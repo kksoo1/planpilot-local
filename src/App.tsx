@@ -23,6 +23,23 @@ function App() {
     return projects.find((project) => project.id === projectId)?.name ?? "프로젝트 없음";
   }
 
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const sevenDaysLater = new Date(today);
+  sevenDaysLater.setDate(today.getDate() + 7);
+
+  const overdueTasks = tasks.filter((task) => {
+    if (!task.dueDate || task.status === "done") return false;
+    return new Date(task.dueDate) < today;
+  });
+
+  const upcomingTasks = tasks.filter((task) => {
+    if (!task.dueDate || task.status === "done") return false;
+    const dueDate = new Date(task.dueDate);
+    return dueDate >= today && dueDate <= sevenDaysLater;
+  });
+
   const filteredTasks =
     selectedProjectFilter === "all"
       ? tasks
@@ -95,6 +112,12 @@ function App() {
         {activeTab === "today" && (
           <section className="screen-card">
             <h2>오늘</h2>
+  <p className="summary">
+    전체 업무 수: {tasks.length}개<br />
+    완료 업무 수: {tasks.filter((task) => task.status === "done").length}개<br />
+    지난 마감 업무 수: {overdueTasks.length}개<br />
+    7일 이내 마감 업무 수: {upcomingTasks.length}개
+  </p>
             <p className="summary">추천 업무 {recommendedTasks.length}개</p>
 
             {recommendedTasks.length === 0 ? (
