@@ -13,7 +13,7 @@ function App() {
   const [newTaskDueDate, setNewTaskDueDate] = useState("");
   const [newTaskPriority, setNewTaskPriority] = useState<Task["priority"]>("medium");
 
-  const { tasks, projects, appSettings, initializeApp, addTask, updateTask } = useStore();
+  const { tasks, projects, appSettings, initializeApp, addTask, updateTask, deleteTask } = useStore();
 
   const aiProvider = useMemo(() => new RuleBasedAIProvider(), []);
 
@@ -45,6 +45,12 @@ function App() {
   function handleToggleTaskDone(task: Task) {
     const nextStatus = task.status === 'done' ? 'todo' : 'done';
     void updateTask({ ...task, status: nextStatus });
+  }
+
+  function handleDeleteTask(task: Task) {
+    if (window.confirm('정말로 이 업무를 삭제하시겠습니까?')) {
+      void deleteTask(task.id);
+    }
   }
 
   return (
@@ -136,6 +142,9 @@ function App() {
                     <span>{task.dueDate ? `마감일: ${task.dueDate}` : "마감일 없음"}</span>
                     <button type="button" onClick={() => handleToggleTaskDone(task)}>
                       {task.status === 'done' ? '미완료로 변경' : '완료'}
+                    </button>
+                    <button type="button" onClick={() => handleDeleteTask(task)}>
+                      삭제
                     </button>
                   </li>
                 ))}
