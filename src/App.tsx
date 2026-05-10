@@ -12,6 +12,7 @@ function App() {
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newTaskDueDate, setNewTaskDueDate] = useState("");
   const [newTaskPriority, setNewTaskPriority] = useState<Task["priority"]>("medium");
+  const [newTaskProjectId, setNewTaskProjectId] = useState("default");
 
   const { tasks, projects, appSettings, initializeApp, addTask, updateTask, deleteTask } = useStore();
 
@@ -35,11 +36,13 @@ function App() {
       title,
       dueDate: newTaskDueDate || undefined,
       priority: newTaskPriority,
+      projectId: newTaskProjectId,
     });
 
     setNewTaskTitle("");
     setNewTaskDueDate("");
     setNewTaskPriority("medium");
+    setNewTaskProjectId("default");
   }
 
   function handleToggleTaskDone(task: Task) {
@@ -123,6 +126,20 @@ function App() {
                   <option value="low">낮음</option>
                   <option value="medium">보통</option>
                   <option value="high">높음</option>
+                </select>
+              </label>
+
+              <label>
+                프로젝트
+                <select
+                  value={newTaskProjectId}
+                  onChange={(event) => setNewTaskProjectId(event.target.value)}
+                >
+                  {projects.map((project) => (
+                    <option key={project.id} value={project.id}>
+                      {project.name}
+                    </option>
+                  ))}
                 </select>
               </label>
 
