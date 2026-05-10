@@ -60,7 +60,7 @@
   - RuleBasedAIProvider 추천 업무 표시
 
 ## Cline Rules
-- 실제 LLM 서버 context size는 16K
+- 실제 LLM 서버 context size는 64K
 - 한 번에 하나의 파일만 작업
 - 요청하지 않은 파일은 읽거나 수정하지 않음
 - `src/App.css`는 사용자가 직접 관리

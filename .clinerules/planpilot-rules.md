@@ -11,7 +11,7 @@
 - 현재 프로젝트 경로는 D:\ai-apps\planpilot-local 이다.
 
 ## Context Limit
-- 실제 LLM 서버 context size는 16K다.
+- 실제 LLM 서버 context size는 64K다.
 - 한 번에 많은 파일을 읽지 않는다.
 - 요청한 파일만 읽고 수정한다.
 - 같은 파일을 반복해서 읽지 않는다.
