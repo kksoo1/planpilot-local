@@ -13,8 +13,10 @@ function App() {
   const [newTaskDueDate, setNewTaskDueDate] = useState("");
   const [newTaskPriority, setNewTaskPriority] = useState<Task["priority"]>("medium");
   const [newTaskProjectId, setNewTaskProjectId] = useState("default");
+  const [newProjectName, setNewProjectName] = useState("");
+  const [newProjectDescription, setNewProjectDescription] = useState("");
 
-  const { tasks, projects, appSettings, initializeApp, addTask, updateTask, deleteTask } = useStore();
+  const { tasks, projects, appSettings, initializeApp, addTask, updateTask, deleteTask, addProject } = useStore();
 
   const aiProvider = useMemo(() => new RuleBasedAIProvider(), []);
 
@@ -54,6 +56,21 @@ function App() {
     if (window.confirm('정말로 이 업무를 삭제하시겠습니까?')) {
       void deleteTask(task.id);
     }
+  }
+
+  async function handleAddProject(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const name = newProjectName.trim();
+    if (!name) return;
+
+    await addProject({
+      name,
+      description: newProjectDescription.trim() || undefined,
+    });
+
+    setNewProjectName("");
+    setNewProjectDescription("");
   }
 
   return (
@@ -174,6 +191,32 @@ function App() {
           <section className="screen-card">
             <h2>프로젝트</h2>
             <p className="summary">총 {projects.length}개</p>
+
+            <form onSubmit={handleAddProject} className="task-card" aria-label="프로젝트 추가">
+              <strong>새 프로젝트 추가</strong>
+
+              <label>
+                프로젝트명
+                <input
+                  type="text"
+                  value={newProjectName}
+                  onChange={(event) => setNewProjectName(event.target.value)}
+                  placeholder="예: 프로젝트 이름"
+                />
+              </label>
+
+              <label>
+                설명
+                <input
+                  type="text"
+                  value={newProjectDescription}
+                  onChange={(event) => setNewProjectDescription(event.target.value)}
+                  placeholder="예: 프로젝트 설명"
+                />
+              </label>
+
+              <button type="submit">프로젝트 추가</button>
+            </form>
 
             {projects.length === 0 ? (
               <p className="empty">프로젝트가 없습니다.</p>
