@@ -13,7 +13,7 @@ function App() {
   const [newTaskDueDate, setNewTaskDueDate] = useState("");
   const [newTaskPriority, setNewTaskPriority] = useState<Task["priority"]>("medium");
 
-  const { tasks, projects, appSettings, initializeApp, addTask } = useStore();
+  const { tasks, projects, appSettings, initializeApp, addTask, updateTask } = useStore();
 
   const aiProvider = useMemo(() => new RuleBasedAIProvider(), []);
 
@@ -40,6 +40,11 @@ function App() {
     setNewTaskTitle("");
     setNewTaskDueDate("");
     setNewTaskPriority("medium");
+  }
+
+  function handleToggleTaskDone(task: Task) {
+    const nextStatus = task.status === 'done' ? 'todo' : 'done';
+    void updateTask({ ...task, status: nextStatus });
   }
 
   return (
@@ -129,6 +134,9 @@ function App() {
                       중요도: {task.priority} · 상태: {task.status}
                     </span>
                     <span>{task.dueDate ? `마감일: ${task.dueDate}` : "마감일 없음"}</span>
+                    <button type="button" onClick={() => handleToggleTaskDone(task)}>
+                      {task.status === 'done' ? '미완료로 변경' : '완료'}
+                    </button>
                   </li>
                 ))}
               </ul>
