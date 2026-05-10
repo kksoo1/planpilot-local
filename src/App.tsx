@@ -18,6 +18,10 @@ function App() {
 
   const { tasks, projects, appSettings, initializeApp, addTask, updateTask, deleteTask, addProject } = useStore();
 
+  function getProjectName(projectId: string) {
+    return projects.find((project) => project.id === projectId)?.name ?? "프로젝트 없음";
+  }
+
   const aiProvider = useMemo(() => new RuleBasedAIProvider(), []);
 
   useEffect(() => {
@@ -95,7 +99,7 @@ function App() {
                   <li key={task.id} className="task-card">
                     <strong>{task.title}</strong>
                     <span>
-                      중요도: {task.priority} · 상태: {task.status}
+                      중요도: {task.priority} · 상태: {task.status} · 프로젝트: {getProjectName(task.projectId)}
                     </span>
                     <span>{task.dueDate ? `마감일: ${task.dueDate}` : "마감일 없음"}</span>
                   </li>
@@ -171,7 +175,7 @@ function App() {
                   <li key={task.id} className="task-card">
                     <strong>{task.title}</strong>
                     <span>
-                      중요도: {task.priority} · 상태: {task.status}
+                      중요도: {task.priority} · 상태: {task.status} · 프로젝트: {getProjectName(task.projectId)}
                     </span>
                     <span>{task.dueDate ? `마감일: ${task.dueDate}` : "마감일 없음"}</span>
                     <button type="button" onClick={() => handleToggleTaskDone(task)}>
