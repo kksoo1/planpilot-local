@@ -1,0 +1,16 @@
+﻿node_modules/
+dist/
+build/
+coverage/
+.vite/
+.git/
+
+*.log
+*.map
+
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# CSS는 사용자가 직접 관리
+src/App.css
