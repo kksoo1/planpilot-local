@@ -15,12 +15,18 @@ function App() {
   const [newTaskProjectId, setNewTaskProjectId] = useState("default");
   const [newProjectName, setNewProjectName] = useState("");
   const [newProjectDescription, setNewProjectDescription] = useState("");
+  const [selectedProjectFilter, setSelectedProjectFilter] = useState("all");
 
   const { tasks, projects, appSettings, initializeApp, addTask, updateTask, deleteTask, addProject } = useStore();
 
   function getProjectName(projectId: string) {
     return projects.find((project) => project.id === projectId)?.name ?? "프로젝트 없음";
   }
+
+  const filteredTasks =
+    selectedProjectFilter === "all"
+      ? tasks
+      : tasks.filter((task) => task.projectId === selectedProjectFilter);
 
   const aiProvider = useMemo(() => new RuleBasedAIProvider(), []);
 
@@ -112,7 +118,7 @@ function App() {
         {activeTab === "tasks" && (
           <section className="screen-card">
             <h2>전체 업무</h2>
-            <p className="summary">총 {tasks.length}개</p>
+            <p className="summary">총 {filteredTasks.length}개</p>
 
             <form onSubmit={handleAddTask} className="task-card" aria-label="업무 추가">
               <strong>새 업무 추가</strong>
@@ -164,14 +170,29 @@ function App() {
                 </select>
               </label>
 
+              <label>
+                프로젝트 필터
+                <select
+                  value={selectedProjectFilter}
+                  onChange={(event) => setSelectedProjectFilter(event.target.value)}
+                >
+                  <option value="all">전체 프로젝트</option>
+                  {projects.map((project) => (
+                    <option key={project.id} value={project.id}>
+                      {project.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
               <button type="submit">업무 추가</button>
             </form>
 
-            {tasks.length === 0 ? (
+            {filteredTasks.length === 0 ? (
               <p className="empty">등록된 업무가 없습니다.</p>
             ) : (
               <ul className="task-list">
-                {tasks.map((task) => (
+                {filteredTasks.map((task) => (
                   <li key={task.id} className="task-card">
                     <strong>{task.title}</strong>
                     <span>
