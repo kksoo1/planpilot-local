@@ -1,13 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { RuleBasedAIProvider } from "./ai/RuleBasedAIProvider";
 import { useStore } from "./store";
-import type { Task } from "./types";
+import type { Project, Task } from "./types";
 import "./App.css";
 
 type Tab = "today" | "tasks" | "projects" | "settings";
 
 function App() {
   const [activeTab, setActiveTab] = useState<Tab>("today");
+  const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
+  const [editProjectName, setEditProjectName] = useState("");
+  const [editProjectDescription, setEditProjectDescription] = useState("");
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [editTaskTitle, setEditTaskTitle] = useState("");
   const [editTaskDueDate, setEditTaskDueDate] = useState("");
@@ -22,7 +25,7 @@ function App() {
   const [newProjectDescription, setNewProjectDescription] = useState("");
   const [selectedProjectFilter, setSelectedProjectFilter] = useState("all");
 
-  const { tasks, projects, appSettings, initializeApp, addTask, updateTask, deleteTask, deleteProject, addProject } = useStore();
+  const { tasks, projects, appSettings, initializeApp, addTask, updateTask, deleteTask, deleteProject, addProject, updateProject } = useStore();
 
   function getProjectTaskStats(projectId: string) {
     const projectTasks = tasks.filter((task) => task.projectId === projectId);
@@ -132,14 +135,41 @@ function App() {
     setEditTaskProjectId("default");
   }
 
-  function handleDeleteProject(projectId: string) {
-    if (projectId === "default") return;
-    const stats = getProjectTaskStats(projectId);
-    if (stats.totalTasks > 0) return;
-    if (window.confirm('정말로 이 프로젝트를 삭제하시겠습니까?')) {
-      void deleteProject(projectId);
-    }
+function handleDeleteProject(projectId: string) {
+  if (projectId === "default") return;
+  const stats = getProjectTaskStats(projectId);
+  if (stats.totalTasks > 0) return;
+  if (window.confirm('정말로 이 프로젝트를 삭제하시겠습니까?')) {
+    void deleteProject(projectId);
   }
+}
+
+function handleStartEditProject(project: Project) {
+  setEditingProjectId(project.id);
+  setEditProjectName(project.name);
+  setEditProjectDescription(project.description || "");
+}
+
+function handleCancelEditProject() {
+  setEditingProjectId(null);
+  setEditProjectName("");
+  setEditProjectDescription("");
+}
+
+function handleSaveEditProject(project: Project) {
+  const name = editProjectName.trim();
+  if (!name) return;
+
+  void updateProject({
+    ...project,
+    name,
+    description: editProjectDescription.trim() || undefined,
+  });
+
+  setEditingProjectId(null);
+  setEditProjectName("");
+  setEditProjectDescription("");
+}
 
   async function handleAddProject(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -399,28 +429,72 @@ function App() {
               <p className="empty">프로젝트가 없습니다.</p>
             ) : (
               <ul className="task-list">
-                {projects.map((project) => {
-                  const stats = getProjectTaskStats(project.id);
+{projects.map((project) => {
+  const stats = getProjectTaskStats(project.id);
 
-                  return (
-                    <li key={project.id} className="task-card">
-                      <strong>{project.name}</strong>
-                      <span>{project.description || "설명 없음"}</span>
-                      <span>
-                        전체 업무: {stats.totalTasks}개<br />
-                        완료: {stats.completedTasks}개<br />
-                        미완료: {stats.incompleteTasks}개
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteProject(project.id)}
-                        disabled={project.id === "default" || stats.totalTasks > 0}
-                      >
-                        {project.id === "default" ? "기본 프로젝트" : stats.totalTasks > 0 ? "업무 있음" : "삭제"}
-                      </button>
-                    </li>
-                  );
-                })}
+  if (editingProjectId === project.id) {
+    return (
+      <li key={project.id} className="task-card">
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            handleSaveEditProject(project);
+          }}
+          aria-label="프로젝트 수정"
+        >
+          <strong>프로젝트 수정</strong>
+
+          <label>
+            프로젝트명
+            <input
+              type="text"
+              value={editProjectName}
+              onChange={(event) => setEditProjectName(event.target.value)}
+              placeholder="예: 프로젝트 이름"
+            />
+          </label>
+
+          <label>
+            설명
+            <input
+              type="text"
+              value={editProjectDescription}
+              onChange={(event) => setEditProjectDescription(event.target.value)}
+              placeholder="예: 프로젝트 설명"
+            />
+          </label>
+
+          <button type="submit">저장</button>
+          <button type="button" onClick={handleCancelEditProject}>
+            취소
+          </button>
+        </form>
+      </li>
+    );
+  }
+
+  return (
+    <li key={project.id} className="task-card">
+      <strong>{project.name}</strong>
+      <span>{project.description || "설명 없음"}</span>
+      <span>
+        전체 업무: {stats.totalTasks}개<br />
+        완료: {stats.completedTasks}개<br />
+        미완료: {stats.incompleteTasks}개
+      </span>
+      <button
+        type="button"
+        onClick={() => handleDeleteProject(project.id)}
+        disabled={project.id === "default" || stats.totalTasks > 0}
+      >
+        {project.id === "default" ? "기본 프로젝트" : stats.totalTasks > 0 ? "업무 있음" : "삭제"}
+      </button>
+      <button type="button" onClick={() => handleStartEditProject(project)}>
+        수정
+      </button>
+    </li>
+  );
+})}
               </ul>
             )}
           </section>
