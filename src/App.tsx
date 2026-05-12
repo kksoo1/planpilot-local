@@ -17,7 +17,7 @@ function App() {
   const [newProjectDescription, setNewProjectDescription] = useState("");
   const [selectedProjectFilter, setSelectedProjectFilter] = useState("all");
 
-  const { tasks, projects, appSettings, initializeApp, addTask, updateTask, deleteTask, addProject } = useStore();
+  const { tasks, projects, appSettings, initializeApp, addTask, updateTask, deleteTask, deleteProject, addProject } = useStore();
 
   function getProjectTaskStats(projectId: string) {
     const projectTasks = tasks.filter((task) => task.projectId === projectId);
@@ -88,11 +88,20 @@ function App() {
     void updateTask({ ...task, status: nextStatus });
   }
 
-  function handleDeleteTask(task: Task) {
-    if (window.confirm('정말로 이 업무를 삭제하시겠습니까?')) {
-      void deleteTask(task.id);
-    }
+function handleDeleteTask(task: Task) {
+  if (window.confirm('정말로 이 업무를 삭제하시겠습니까?')) {
+    void deleteTask(task.id);
   }
+}
+
+function handleDeleteProject(projectId: string) {
+  if (projectId === "default") return;
+  const stats = getProjectTaskStats(projectId);
+  if (stats.totalTasks > 0) return;
+  if (window.confirm('정말로 이 프로젝트를 삭제하시겠습니까?')) {
+    void deleteProject(projectId);
+  }
+}
 
   async function handleAddProject(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -279,21 +288,28 @@ function App() {
               <p className="empty">프로젝트가 없습니다.</p>
             ) : (
               <ul className="task-list">
-                {projects.map((project) => {
-                  const stats = getProjectTaskStats(project.id);
+{projects.map((project) => {
+  const stats = getProjectTaskStats(project.id);
 
-                  return (
-                    <li key={project.id} className="task-card">
-                      <strong>{project.name}</strong>
-                      <span>{project.description || "설명 없음"}</span>
-                      <span>
-                        전체 업무: {stats.totalTasks}개<br />
-                        완료: {stats.completedTasks}개<br />
-                        미완료: {stats.incompleteTasks}개
-                      </span>
-                    </li>
-                  );
-                })}
+  return (
+    <li key={project.id} className="task-card">
+      <strong>{project.name}</strong>
+      <span>{project.description || "설명 없음"}</span>
+      <span>
+        전체 업무: {stats.totalTasks}개<br />
+        완료: {stats.completedTasks}개<br />
+        미완료: {stats.incompleteTasks}개
+      </span>
+      <button
+        type="button"
+        onClick={() => handleDeleteProject(project.id)}
+        disabled={project.id === "default" || stats.totalTasks > 0}
+      >
+        {project.id === "default" ? "기본 프로젝트" : stats.totalTasks > 0 ? "업무 있음" : "삭제"}
+      </button>
+    </li>
+  );
+})}
               </ul>
             )}
           </section>
