@@ -19,6 +19,15 @@ function App() {
 
   const { tasks, projects, appSettings, initializeApp, addTask, updateTask, deleteTask, addProject } = useStore();
 
+  function getProjectTaskStats(projectId: string) {
+    const projectTasks = tasks.filter((task) => task.projectId === projectId);
+    const totalTasks = projectTasks.length;
+    const completedTasks = projectTasks.filter((task) => task.status === "done").length;
+    const incompleteTasks = totalTasks - completedTasks;
+
+    return { totalTasks, completedTasks, incompleteTasks };
+  }
+
   function getProjectName(projectId: string) {
     return projects.find((project) => project.id === projectId)?.name ?? "프로젝트 없음";
   }
@@ -270,12 +279,21 @@ function App() {
               <p className="empty">프로젝트가 없습니다.</p>
             ) : (
               <ul className="task-list">
-                {projects.map((project) => (
-                  <li key={project.id} className="task-card">
-                    <strong>{project.name}</strong>
-                    <span>{project.description || "설명 없음"}</span>
-                  </li>
-                ))}
+                {projects.map((project) => {
+                  const stats = getProjectTaskStats(project.id);
+
+                  return (
+                    <li key={project.id} className="task-card">
+                      <strong>{project.name}</strong>
+                      <span>{project.description || "설명 없음"}</span>
+                      <span>
+                        전체 업무: {stats.totalTasks}개<br />
+                        완료: {stats.completedTasks}개<br />
+                        미완료: {stats.incompleteTasks}개
+                      </span>
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </section>
