@@ -27,6 +27,7 @@ const [newTaskMemo, setNewTaskMemo] = useState("");
   const [newProjectDescription, setNewProjectDescription] = useState("");
   const [selectedProjectFilter, setSelectedProjectFilter] = useState("all");
 const [showCompletedTasks, setShowCompletedTasks] = useState(true);
+const [taskSortOrder, setTaskSortOrder] = useState<"none" | "dueDateAsc">("none");
 const [taskSearchQuery, setTaskSearchQuery] = useState("");
 
   const { tasks, projects, appSettings, initializeApp, addTask, updateTask, deleteTask, deleteProject, addProject, updateProject } = useStore();
@@ -72,6 +73,19 @@ const filteredTasks = tasks.filter((task) => {
   const matchesStatus = showCompletedTasks || task.status !== "done";
 
   return matchesProject && matchesSearch && matchesStatus;
+});
+
+const sortedTasks = [...filteredTasks].sort((a, b) => {
+  if (taskSortOrder === "none") return 0;
+
+  if (taskSortOrder === "dueDateAsc") {
+    if (!a.dueDate && !b.dueDate) return 0;
+    if (!a.dueDate) return 1;
+    if (!b.dueDate) return -1;
+    return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+  }
+
+  return 0;
 });
 
   const aiProvider = useMemo(() => new RuleBasedAIProvider(), []);
@@ -266,6 +280,19 @@ function handleSaveEditProject(project: Project) {
   완료 업무 표시
 </label>
 
+<label>
+  정렬
+  <select
+    value={taskSortOrder}
+    onChange={(event) =>
+      setTaskSortOrder(event.target.value as "none" | "dueDateAsc")
+    }
+  >
+    <option value="none">기본 순서</option>
+    <option value="dueDateAsc">마감일 빠른 순</option>
+  </select>
+</label>
+
             <form onSubmit={handleAddTask} className="task-card" aria-label="업무 추가">
               <strong>새 업무 추가</strong>
 
@@ -348,7 +375,7 @@ function handleSaveEditProject(project: Project) {
               <p className="empty">등록된 업무가 없습니다.</p>
             ) : (
               <ul className="task-list">
-                {filteredTasks.map((task) => {
+                {sortedTasks.map((task) => {
                   if (editingTaskId === task.id) {
                     return (
                       <li key={task.id} className="task-card">
