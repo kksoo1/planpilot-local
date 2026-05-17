@@ -15,12 +15,14 @@ function App() {
   const [editTaskTitle, setEditTaskTitle] = useState("");
   const [editTaskDueDate, setEditTaskDueDate] = useState("");
   const [editTaskPriority, setEditTaskPriority] = useState<Task["priority"]>("medium");
+const [editTaskMemo, setEditTaskMemo] = useState("");
   const [editTaskProjectId, setEditTaskProjectId] = useState("default");
   const [recommendedTasks, setRecommendedTasks] = useState<Task[]>([]);
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newTaskDueDate, setNewTaskDueDate] = useState("");
   const [newTaskPriority, setNewTaskPriority] = useState<Task["priority"]>("medium");
   const [newTaskProjectId, setNewTaskProjectId] = useState("default");
+const [newTaskMemo, setNewTaskMemo] = useState("");
   const [newProjectName, setNewProjectName] = useState("");
   const [newProjectDescription, setNewProjectDescription] = useState("");
   const [selectedProjectFilter, setSelectedProjectFilter] = useState("all");
@@ -85,17 +87,19 @@ const filteredTasks = tasks.filter((task) => {
     const title = newTaskTitle.trim();
     if (!title) return;
 
-    await addTask({
-      title,
-      dueDate: newTaskDueDate || undefined,
-      priority: newTaskPriority,
-      projectId: newTaskProjectId,
-    });
+await addTask({
+  title,
+  memo: newTaskMemo.trim() || undefined,
+  dueDate: newTaskDueDate || undefined,
+  priority: newTaskPriority,
+  projectId: newTaskProjectId,
+});
 
-    setNewTaskTitle("");
-    setNewTaskDueDate("");
-    setNewTaskPriority("medium");
-    setNewTaskProjectId("default");
+setNewTaskTitle("");
+setNewTaskDueDate("");
+setNewTaskPriority("medium");
+setNewTaskProjectId("default");
+setNewTaskMemo("");
   }
 
   function handleToggleTaskDone(task: Task) {
@@ -109,37 +113,41 @@ const filteredTasks = tasks.filter((task) => {
     }
   }
 
-  function handleStartEditTask(task: Task) {
-    setEditingTaskId(task.id);
-    setEditTaskTitle(task.title);
-    setEditTaskDueDate(task.dueDate || "");
-    setEditTaskPriority(task.priority);
-    setEditTaskProjectId(task.projectId);
-  }
+function handleStartEditTask(task: Task) {
+  setEditingTaskId(task.id);
+  setEditTaskTitle(task.title);
+  setEditTaskMemo(task.memo || "");
+  setEditTaskDueDate(task.dueDate || "");
+  setEditTaskPriority(task.priority);
+  setEditTaskProjectId(task.projectId);
+}
 
-  function handleCancelEditTask() {
-    setEditingTaskId(null);
-    setEditTaskTitle("");
-    setEditTaskDueDate("");
-    setEditTaskPriority("medium");
-    setEditTaskProjectId("default");
-  }
+function handleCancelEditTask() {
+  setEditingTaskId(null);
+  setEditTaskTitle("");
+  setEditTaskMemo("");
+  setEditTaskDueDate("");
+  setEditTaskPriority("medium");
+  setEditTaskProjectId("default");
+}
 
   function handleSaveEditTask(task: Task) {
     const title = editTaskTitle.trim();
     if (!title) return;
-    void updateTask({
-      ...task,
-      title,
-      dueDate: editTaskDueDate || undefined,
-      priority: editTaskPriority,
-      projectId: editTaskProjectId,
-    });
-    setEditingTaskId(null);
-    setEditTaskTitle("");
-    setEditTaskDueDate("");
-    setEditTaskPriority("medium");
-    setEditTaskProjectId("default");
+void updateTask({
+  ...task,
+  title,
+  memo: editTaskMemo.trim() || undefined,
+  dueDate: editTaskDueDate || undefined,
+  priority: editTaskPriority,
+  projectId: editTaskProjectId,
+});
+setEditingTaskId(null);
+setEditTaskTitle("");
+setEditTaskMemo("");
+setEditTaskDueDate("");
+setEditTaskPriority("medium");
+setEditTaskProjectId("default");
   }
 
 function handleDeleteProject(projectId: string) {
@@ -249,15 +257,25 @@ function handleSaveEditProject(project: Project) {
             <form onSubmit={handleAddTask} className="task-card" aria-label="업무 추가">
               <strong>새 업무 추가</strong>
 
-              <label>
-                제목
-                <input
-                  type="text"
-                  value={newTaskTitle}
-                  onChange={(event) => setNewTaskTitle(event.target.value)}
-                  placeholder="예: 사업계획서 초안 작성"
-                />
-              </label>
+<label>
+  제목
+  <input
+    type="text"
+    value={newTaskTitle}
+    onChange={(event) => setNewTaskTitle(event.target.value)}
+    placeholder="예: 사업계획서 초안 작성"
+  />
+</label>
+
+<label>
+  메모
+  <input
+    type="text"
+    value={newTaskMemo}
+    onChange={(event) => setNewTaskMemo(event.target.value)}
+    placeholder="예: 참고할 내용"
+  />
+</label>
 
               <label>
                 마감일
@@ -331,15 +349,25 @@ function handleSaveEditProject(project: Project) {
                         >
                           <strong>업무 수정</strong>
 
-                          <label>
-                            제목
-                            <input
-                              type="text"
-                              value={editTaskTitle}
-                              onChange={(event) => setEditTaskTitle(event.target.value)}
-                              placeholder="예: 사업계획서 초안 작성"
-                            />
-                          </label>
+<label>
+  제목
+  <input
+    type="text"
+    value={editTaskTitle}
+    onChange={(event) => setEditTaskTitle(event.target.value)}
+    placeholder="예: 사업계획서 초안 작성"
+  />
+</label>
+
+<label>
+  메모
+  <input
+    type="text"
+    value={editTaskMemo}
+    onChange={(event) => setEditTaskMemo(event.target.value)}
+    placeholder="예: 참고할 내용"
+  />
+</label>
 
                           <label>
                             마감일
@@ -388,22 +416,23 @@ function handleSaveEditProject(project: Project) {
                   }
 
                   return (
-                    <li key={task.id} className="task-card">
-                      <strong>{task.title}</strong>
-                      <span>
-                        중요도: {task.priority} · 상태: {task.status} · 프로젝트: {getProjectName(task.projectId)}
-                      </span>
-                      <span>{task.dueDate ? `마감일: ${task.dueDate}` : "마감일 없음"}</span>
-                      <button type="button" onClick={() => handleToggleTaskDone(task)}>
-                        {task.status === "done" ? "미완료로 변경" : "완료"}
-                      </button>
-                      <button type="button" onClick={() => handleDeleteTask(task)}>
-                        삭제
-                      </button>
-                      <button type="button" onClick={() => handleStartEditTask(task)}>
-                        수정
-                      </button>
-                    </li>
+<li key={task.id} className="task-card">
+  <strong>{task.title}</strong>
+  {task.memo && <span>메모: {task.memo}</span>}
+  <span>
+    중요도: {task.priority} · 상태: {task.status} · 프로젝트: {getProjectName(task.projectId)}
+  </span>
+  <span>{task.dueDate ? `마감일: ${task.dueDate}` : "마감일 없음"}</span>
+  <button type="button" onClick={() => handleToggleTaskDone(task)}>
+    {task.status === "done" ? "미완료로 변경" : "완료"}
+  </button>
+  <button type="button" onClick={() => handleDeleteTask(task)}>
+    삭제
+  </button>
+  <button type="button" onClick={() => handleStartEditTask(task)}>
+    수정
+  </button>
+</li>
                   );
                 })}
               </ul>
