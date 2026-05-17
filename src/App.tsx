@@ -26,6 +26,7 @@ const [newTaskMemo, setNewTaskMemo] = useState("");
   const [newProjectName, setNewProjectName] = useState("");
   const [newProjectDescription, setNewProjectDescription] = useState("");
   const [selectedProjectFilter, setSelectedProjectFilter] = useState("all");
+const [showCompletedTasks, setShowCompletedTasks] = useState(true);
 const [taskSearchQuery, setTaskSearchQuery] = useState("");
 
   const { tasks, projects, appSettings, initializeApp, addTask, updateTask, deleteTask, deleteProject, addProject, updateProject } = useStore();
@@ -68,7 +69,9 @@ const filteredTasks = tasks.filter((task) => {
   const matchesSearch =
     !searchText || task.title.toLowerCase().includes(searchText);
 
-  return matchesProject && matchesSearch;
+  const matchesStatus = showCompletedTasks || task.status !== "done";
+
+  return matchesProject && matchesSearch && matchesStatus;
 });
 
   const aiProvider = useMemo(() => new RuleBasedAIProvider(), []);
@@ -252,6 +255,15 @@ function handleSaveEditProject(project: Project) {
     onChange={(event) => setTaskSearchQuery(event.target.value)}
     placeholder="업무 제목 검색"
   />
+</label>
+
+<label>
+  <input
+    type="checkbox"
+    checked={showCompletedTasks}
+    onChange={(event) => setShowCompletedTasks(event.target.checked)}
+  />
+  완료 업무 표시
 </label>
 
             <form onSubmit={handleAddTask} className="task-card" aria-label="업무 추가">
