@@ -49,3 +49,11 @@
 - 사용자가 이미 허용한 파일은 다시 허락을 요청하지 않는다.
 - src/App.tsx 수정 중에는 기존 JSX를 중복 생성하지 않는다.
 - form, map, li 구조를 수정할 때는 기존 블록을 복사해서 추가하지 말고 기존 블록만 감싼다.
+
+## Preview Rules
+- 빌드 후 `open dist/index.html`을 실행하지 않는다.
+- Windows PowerShell 5.1 환경에서는 `open` 명령을 사용하지 않는다.
+- 빌드 확인은 `npm run build`까지만 수행한다.
+- 사용자가 화면 확인을 요청한 경우에만 `npm run preview`를 안내한다.
+- Cline은 브라우저를 자동으로 열려고 시도하지 않는다.
+- `dist/index.html`을 직접 열라고 안내하지 않는다.
