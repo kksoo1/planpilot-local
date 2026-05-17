@@ -105,6 +105,8 @@ function App() {
     const title = newTaskTitle.trim();
     if (!title) return;
 
+    if (newTaskDueDate && newTaskDueDate.length !== 10) return;
+
     await addTask({
       title,
       memo: newTaskMemo.trim() || undefined,
@@ -153,6 +155,9 @@ function App() {
   function handleSaveEditTask(task: Task) {
     const title = editTaskTitle.trim();
     if (!title) return;
+
+    if (editTaskDueDate && editTaskDueDate.length !== 10) return;
+
     void updateTask({
       ...task,
       title,
@@ -346,6 +351,8 @@ function App() {
                   <input
                     type="date"
                     value={newTaskDueDate}
+                    min="1900-01-01"
+                    max="9999-12-31"
                     onChange={(event) => setNewTaskDueDate(event.target.value)}
                   />
                 </label>
@@ -424,6 +431,8 @@ function App() {
                             <input
                               type="date"
                               value={editTaskDueDate}
+                              min="1900-01-01"
+                              max="9999-12-31"
                               onChange={(event) => setEditTaskDueDate(event.target.value)}
                             />
                           </label>
