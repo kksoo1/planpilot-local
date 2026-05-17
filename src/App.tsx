@@ -24,6 +24,7 @@ function App() {
   const [newProjectName, setNewProjectName] = useState("");
   const [newProjectDescription, setNewProjectDescription] = useState("");
   const [selectedProjectFilter, setSelectedProjectFilter] = useState("all");
+const [taskSearchQuery, setTaskSearchQuery] = useState("");
 
   const { tasks, projects, appSettings, initializeApp, addTask, updateTask, deleteTask, deleteProject, addProject, updateProject } = useStore();
 
@@ -57,10 +58,16 @@ function App() {
     return dueDate >= today && dueDate <= sevenDaysLater;
   });
 
-  const filteredTasks =
-    selectedProjectFilter === "all"
-      ? tasks
-      : tasks.filter((task) => task.projectId === selectedProjectFilter);
+const filteredTasks = tasks.filter((task) => {
+  const matchesProject =
+    selectedProjectFilter === "all" || task.projectId === selectedProjectFilter;
+
+  const searchText = taskSearchQuery.trim().toLowerCase();
+  const matchesSearch =
+    !searchText || task.title.toLowerCase().includes(searchText);
+
+  return matchesProject && matchesSearch;
+});
 
   const aiProvider = useMemo(() => new RuleBasedAIProvider(), []);
 
@@ -228,6 +235,16 @@ function handleSaveEditProject(project: Project) {
           <section className="screen-card">
             <h2>전체 업무</h2>
             <p className="summary">총 {filteredTasks.length}개</p>
+
+<label>
+  업무 검색
+  <input
+    type="text"
+    value={taskSearchQuery}
+    onChange={(event) => setTaskSearchQuery(event.target.value)}
+    placeholder="업무 제목 검색"
+  />
+</label>
 
             <form onSubmit={handleAddTask} className="task-card" aria-label="업무 추가">
               <strong>새 업무 추가</strong>
