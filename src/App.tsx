@@ -15,20 +15,21 @@ function App() {
   const [editTaskTitle, setEditTaskTitle] = useState("");
   const [editTaskDueDate, setEditTaskDueDate] = useState("");
   const [editTaskPriority, setEditTaskPriority] = useState<Task["priority"]>("medium");
-const [editTaskMemo, setEditTaskMemo] = useState("");
+  const [editTaskMemo, setEditTaskMemo] = useState("");
   const [editTaskProjectId, setEditTaskProjectId] = useState("default");
   const [recommendedTasks, setRecommendedTasks] = useState<Task[]>([]);
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newTaskDueDate, setNewTaskDueDate] = useState("");
   const [newTaskPriority, setNewTaskPriority] = useState<Task["priority"]>("medium");
   const [newTaskProjectId, setNewTaskProjectId] = useState("default");
-const [newTaskMemo, setNewTaskMemo] = useState("");
+  const [newTaskMemo, setNewTaskMemo] = useState("");
   const [newProjectName, setNewProjectName] = useState("");
   const [newProjectDescription, setNewProjectDescription] = useState("");
   const [selectedProjectFilter, setSelectedProjectFilter] = useState("all");
-const [showCompletedTasks, setShowCompletedTasks] = useState(true);
-const [taskSortOrder, setTaskSortOrder] = useState<"none" | "dueDateAsc">("none");
-const [taskSearchQuery, setTaskSearchQuery] = useState("");
+  const [showCompletedTasks, setShowCompletedTasks] = useState(true);
+  const [taskSortOrder, setTaskSortOrder] = useState<"none" | "dueDateAsc">("none");
+  const [taskSearchQuery, setTaskSearchQuery] = useState("");
+  const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
 
   const { tasks, projects, appSettings, initializeApp, addTask, updateTask, deleteTask, deleteProject, addProject, updateProject } = useStore();
 
@@ -62,31 +63,31 @@ const [taskSearchQuery, setTaskSearchQuery] = useState("");
     return dueDate >= today && dueDate <= sevenDaysLater;
   });
 
-const filteredTasks = tasks.filter((task) => {
-  const matchesProject =
-    selectedProjectFilter === "all" || task.projectId === selectedProjectFilter;
+  const filteredTasks = tasks.filter((task) => {
+    const matchesProject =
+      selectedProjectFilter === "all" || task.projectId === selectedProjectFilter;
 
-  const searchText = taskSearchQuery.trim().toLowerCase();
-  const matchesSearch =
-    !searchText || task.title.toLowerCase().includes(searchText);
+    const searchText = taskSearchQuery.trim().toLowerCase();
+    const matchesSearch =
+      !searchText || task.title.toLowerCase().includes(searchText);
 
-  const matchesStatus = showCompletedTasks || task.status !== "done";
+    const matchesStatus = showCompletedTasks || task.status !== "done";
 
-  return matchesProject && matchesSearch && matchesStatus;
-});
+    return matchesProject && matchesSearch && matchesStatus;
+  });
 
-const sortedTasks = [...filteredTasks].sort((a, b) => {
-  if (taskSortOrder === "none") return 0;
+  const sortedTasks = [...filteredTasks].sort((a, b) => {
+    if (taskSortOrder === "none") return 0;
 
-  if (taskSortOrder === "dueDateAsc") {
-    if (!a.dueDate && !b.dueDate) return 0;
-    if (!a.dueDate) return 1;
-    if (!b.dueDate) return -1;
-    return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
-  }
+    if (taskSortOrder === "dueDateAsc") {
+      if (!a.dueDate && !b.dueDate) return 0;
+      if (!a.dueDate) return 1;
+      if (!b.dueDate) return -1;
+      return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+    }
 
-  return 0;
-});
+    return 0;
+  });
 
   const aiProvider = useMemo(() => new RuleBasedAIProvider(), []);
 
@@ -104,19 +105,20 @@ const sortedTasks = [...filteredTasks].sort((a, b) => {
     const title = newTaskTitle.trim();
     if (!title) return;
 
-await addTask({
-  title,
-  memo: newTaskMemo.trim() || undefined,
-  dueDate: newTaskDueDate || undefined,
-  priority: newTaskPriority,
-  projectId: newTaskProjectId,
-});
+    await addTask({
+      title,
+      memo: newTaskMemo.trim() || undefined,
+      dueDate: newTaskDueDate || undefined,
+      priority: newTaskPriority,
+      projectId: newTaskProjectId,
+    });
 
-setNewTaskTitle("");
-setNewTaskDueDate("");
-setNewTaskPriority("medium");
-setNewTaskProjectId("default");
-setNewTaskMemo("");
+    setIsTaskFormOpen(false);
+    setNewTaskTitle("");
+    setNewTaskDueDate("");
+    setNewTaskPriority("medium");
+    setNewTaskProjectId("default");
+    setNewTaskMemo("");
   }
 
   function handleToggleTaskDone(task: Task) {
@@ -130,78 +132,78 @@ setNewTaskMemo("");
     }
   }
 
-function handleStartEditTask(task: Task) {
-  setEditingTaskId(task.id);
-  setEditTaskTitle(task.title);
-  setEditTaskMemo(task.memo || "");
-  setEditTaskDueDate(task.dueDate || "");
-  setEditTaskPriority(task.priority);
-  setEditTaskProjectId(task.projectId);
-}
+  function handleStartEditTask(task: Task) {
+    setEditingTaskId(task.id);
+    setEditTaskTitle(task.title);
+    setEditTaskMemo(task.memo || "");
+    setEditTaskDueDate(task.dueDate || "");
+    setEditTaskPriority(task.priority);
+    setEditTaskProjectId(task.projectId);
+  }
 
-function handleCancelEditTask() {
-  setEditingTaskId(null);
-  setEditTaskTitle("");
-  setEditTaskMemo("");
-  setEditTaskDueDate("");
-  setEditTaskPriority("medium");
-  setEditTaskProjectId("default");
-}
+  function handleCancelEditTask() {
+    setEditingTaskId(null);
+    setEditTaskTitle("");
+    setEditTaskMemo("");
+    setEditTaskDueDate("");
+    setEditTaskPriority("medium");
+    setEditTaskProjectId("default");
+  }
 
   function handleSaveEditTask(task: Task) {
     const title = editTaskTitle.trim();
     if (!title) return;
-void updateTask({
-  ...task,
-  title,
-  memo: editTaskMemo.trim() || undefined,
-  dueDate: editTaskDueDate || undefined,
-  priority: editTaskPriority,
-  projectId: editTaskProjectId,
-});
-setEditingTaskId(null);
-setEditTaskTitle("");
-setEditTaskMemo("");
-setEditTaskDueDate("");
-setEditTaskPriority("medium");
-setEditTaskProjectId("default");
+    void updateTask({
+      ...task,
+      title,
+      memo: editTaskMemo.trim() || undefined,
+      dueDate: editTaskDueDate || undefined,
+      priority: editTaskPriority,
+      projectId: editTaskProjectId,
+    });
+    setEditingTaskId(null);
+    setEditTaskTitle("");
+    setEditTaskMemo("");
+    setEditTaskDueDate("");
+    setEditTaskPriority("medium");
+    setEditTaskProjectId("default");
   }
 
-function handleDeleteProject(projectId: string) {
-  if (projectId === "default") return;
-  const stats = getProjectTaskStats(projectId);
-  if (stats.totalTasks > 0) return;
-  if (window.confirm('정말로 이 프로젝트를 삭제하시겠습니까?')) {
-    void deleteProject(projectId);
+  function handleDeleteProject(projectId: string) {
+    if (projectId === "default") return;
+    const stats = getProjectTaskStats(projectId);
+    if (stats.totalTasks > 0) return;
+    if (window.confirm('정말로 이 프로젝트를 삭제하시겠습니까?')) {
+      void deleteProject(projectId);
+    }
   }
-}
 
-function handleStartEditProject(project: Project) {
-  setEditingProjectId(project.id);
-  setEditProjectName(project.name);
-  setEditProjectDescription(project.description || "");
-}
+  function handleStartEditProject(project: Project) {
+    setEditingProjectId(project.id);
+    setEditProjectName(project.name);
+    setEditProjectDescription(project.description || "");
+  }
 
-function handleCancelEditProject() {
-  setEditingProjectId(null);
-  setEditProjectName("");
-  setEditProjectDescription("");
-}
+  function handleCancelEditProject() {
+    setEditingProjectId(null);
+    setEditProjectName("");
+    setEditProjectDescription("");
+  }
 
-function handleSaveEditProject(project: Project) {
-  const name = editProjectName.trim();
-  if (!name) return;
+  function handleSaveEditProject(project: Project) {
+    const name = editProjectName.trim();
+    if (!name) return;
 
-  void updateProject({
-    ...project,
-    name,
-    description: editProjectDescription.trim() || undefined,
-  });
+    void updateProject({
+      ...project,
+      name,
+      description: editProjectDescription.trim() || undefined,
+    });
 
-  setEditingProjectId(null);
-  setEditProjectName("");
-  setEditProjectDescription("");
-}
+    setEditingProjectId(null);
+    setEditProjectName("");
+    setEditProjectDescription("");
+  }
 
   async function handleAddProject(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -230,12 +232,12 @@ function handleSaveEditProject(project: Project) {
         {activeTab === "today" && (
           <section className="screen-card">
             <h2>오늘</h2>
-  <p className="summary">
-    전체 업무 수: {tasks.length}개<br />
-    완료 업무 수: {tasks.filter((task) => task.status === "done").length}개<br />
-    지난 마감 업무 수: {overdueTasks.length}개<br />
-    7일 이내 마감 업무 수: {upcomingTasks.length}개
-  </p>
+            <p className="summary">
+              전체 업무 수: {tasks.length}개<br />
+              완료 업무 수: {tasks.filter((task) => task.status === "done").length}개<br />
+              지난 마감 업무 수: {overdueTasks.length}개<br />
+              7일 이내 마감 업무 수: {upcomingTasks.length}개
+            </p>
             <p className="summary">추천 업무 {recommendedTasks.length}개</p>
 
             {recommendedTasks.length === 0 ? (
@@ -261,115 +263,124 @@ function handleSaveEditProject(project: Project) {
             <h2>전체 업무</h2>
             <p className="summary">총 {filteredTasks.length}개</p>
 
-<label>
-  업무 검색
-  <input
-    type="text"
-    value={taskSearchQuery}
-    onChange={(event) => setTaskSearchQuery(event.target.value)}
-    placeholder="업무 제목 검색"
-  />
-</label>
+            <label>
+              업무 검색
+              <input
+                type="text"
+                value={taskSearchQuery}
+                onChange={(event) => setTaskSearchQuery(event.target.value)}
+                placeholder="업무 제목 검색"
+              />
+            </label>
 
-<label>
-  <input
-    type="checkbox"
-    checked={showCompletedTasks}
-    onChange={(event) => setShowCompletedTasks(event.target.checked)}
-  />
-  완료 업무 표시
-</label>
+            <label>
+              <input
+                type="checkbox"
+                checked={showCompletedTasks}
+                onChange={(event) => setShowCompletedTasks(event.target.checked)}
+              />
+              완료 업무 표시
+            </label>
 
-<label>
-  정렬
-  <select
-    value={taskSortOrder}
-    onChange={(event) =>
-      setTaskSortOrder(event.target.value as "none" | "dueDateAsc")
-    }
-  >
-    <option value="none">기본 순서</option>
-    <option value="dueDateAsc">마감일 빠른 순</option>
-  </select>
-</label>
+            <label>
+              정렬
+              <select
+                value={taskSortOrder}
+                onChange={(event) =>
+                  setTaskSortOrder(event.target.value as "none" | "dueDateAsc")
+                }
+              >
+                <option value="none">기본 순서</option>
+                <option value="dueDateAsc">마감일 빠른 순</option>
+              </select>
+            </label>
 
-            <form onSubmit={handleAddTask} className="task-card" aria-label="업무 추가">
-              <strong>새 업무 추가</strong>
+            <label>
+              프로젝트 필터
+              <select
+                value={selectedProjectFilter}
+                onChange={(event) => setSelectedProjectFilter(event.target.value)}
+              >
+                <option value="all">전체 프로젝트</option>
+                {projects.map((project) => (
+                  <option key={project.id} value={project.id}>
+                    {project.name}
+                  </option>
+                ))}
+              </select>
+            </label>
 
-<label>
-  제목
-  <input
-    type="text"
-    value={newTaskTitle}
-    onChange={(event) => setNewTaskTitle(event.target.value)}
-    placeholder="예: 사업계획서 초안 작성"
-  />
-</label>
+            <button
+              type="button"
+              onClick={() => setIsTaskFormOpen((current) => !current)}
+            >
+              {isTaskFormOpen ? "새 업무 추가 닫기" : "새 업무 추가"}
+            </button>
 
-<label>
-  메모
-  <input
-    type="text"
-    value={newTaskMemo}
-    onChange={(event) => setNewTaskMemo(event.target.value)}
-    placeholder="예: 참고할 내용"
-  />
-</label>
+            {isTaskFormOpen && (
+              <form onSubmit={handleAddTask} className="task-card" aria-label="업무 추가">
+                <strong>새 업무 추가</strong>
 
-              <label>
-                마감일
-                <input
-                  type="date"
-                  value={newTaskDueDate}
-                  onChange={(event) => setNewTaskDueDate(event.target.value)}
-                />
-              </label>
+                <label>
+                  제목
+                  <input
+                    type="text"
+                    value={newTaskTitle}
+                    onChange={(event) => setNewTaskTitle(event.target.value)}
+                    placeholder="예: 사업계획서 초안 작성"
+                  />
+                </label>
 
-              <label>
-                중요도
-                <select
-                  value={newTaskPriority}
-                  onChange={(event) =>
-                    setNewTaskPriority(event.target.value as Task["priority"])
-                  }
-                >
-                  <option value="low">낮음</option>
-                  <option value="medium">보통</option>
-                  <option value="high">높음</option>
-                </select>
-              </label>
+                <label>
+                  메모
+                  <input
+                    type="text"
+                    value={newTaskMemo}
+                    onChange={(event) => setNewTaskMemo(event.target.value)}
+                    placeholder="예: 참고할 내용"
+                  />
+                </label>
 
-              <label>
-                프로젝트
-                <select
-                  value={newTaskProjectId}
-                  onChange={(event) => setNewTaskProjectId(event.target.value)}
-                >
-                  {projects.map((project) => (
-                    <option key={project.id} value={project.id}>
-                      {project.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
+                <label>
+                  마감일
+                  <input
+                    type="date"
+                    value={newTaskDueDate}
+                    onChange={(event) => setNewTaskDueDate(event.target.value)}
+                  />
+                </label>
 
-              <label>
-                프로젝트 필터
-                <select
-                  value={selectedProjectFilter}
-                  onChange={(event) => setSelectedProjectFilter(event.target.value)}
-                >
-                  <option value="all">전체 프로젝트</option>
-                  {projects.map((project) => (
-                    <option key={project.id} value={project.id}>
-                      {project.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
+                <label>
+                  중요도
+                  <select
+                    value={newTaskPriority}
+                    onChange={(event) =>
+                      setNewTaskPriority(event.target.value as Task["priority"])
+                    }
+                  >
+                    <option value="low">낮음</option>
+                    <option value="medium">보통</option>
+                    <option value="high">높음</option>
+                  </select>
+                </label>
 
-              <button type="submit">업무 추가</button>
-            </form>
+                <label>
+                  프로젝트
+                  <select
+                    value={newTaskProjectId}
+                    onChange={(event) => setNewTaskProjectId(event.target.value)}
+                  >
+                    {projects.map((project) => (
+                      <option key={project.id} value={project.id}>
+                        {project.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <button type="submit">업무 추가</button>
+              </form>
+            )}
 
             {filteredTasks.length === 0 ? (
               <p className="empty">등록된 업무가 없습니다.</p>
@@ -388,25 +399,25 @@ function handleSaveEditProject(project: Project) {
                         >
                           <strong>업무 수정</strong>
 
-<label>
-  제목
-  <input
-    type="text"
-    value={editTaskTitle}
-    onChange={(event) => setEditTaskTitle(event.target.value)}
-    placeholder="예: 사업계획서 초안 작성"
-  />
-</label>
+                          <label>
+                            제목
+                            <input
+                              type="text"
+                              value={editTaskTitle}
+                              onChange={(event) => setEditTaskTitle(event.target.value)}
+                              placeholder="예: 사업계획서 초안 작성"
+                            />
+                          </label>
 
-<label>
-  메모
-  <input
-    type="text"
-    value={editTaskMemo}
-    onChange={(event) => setEditTaskMemo(event.target.value)}
-    placeholder="예: 참고할 내용"
-  />
-</label>
+                          <label>
+                            메모
+                            <input
+                              type="text"
+                              value={editTaskMemo}
+                              onChange={(event) => setEditTaskMemo(event.target.value)}
+                              placeholder="예: 참고할 내용"
+                            />
+                          </label>
 
                           <label>
                             마감일
@@ -455,23 +466,23 @@ function handleSaveEditProject(project: Project) {
                   }
 
                   return (
-<li key={task.id} className="task-card">
-  <strong>{task.title}</strong>
-  {task.memo && <span>메모: {task.memo}</span>}
-  <span>
-    중요도: {task.priority} · 상태: {task.status} · 프로젝트: {getProjectName(task.projectId)}
-  </span>
-  <span>{task.dueDate ? `마감일: ${task.dueDate}` : "마감일 없음"}</span>
-  <button type="button" onClick={() => handleToggleTaskDone(task)}>
-    {task.status === "done" ? "미완료로 변경" : "완료"}
-  </button>
-  <button type="button" onClick={() => handleDeleteTask(task)}>
-    삭제
-  </button>
-  <button type="button" onClick={() => handleStartEditTask(task)}>
-    수정
-  </button>
-</li>
+                    <li key={task.id} className="task-card">
+                      <strong>{task.title}</strong>
+                      {task.memo && <span>메모: {task.memo}</span>}
+                      <span>
+                        중요도: {task.priority} · 상태: {task.status} · 프로젝트: {getProjectName(task.projectId)}
+                      </span>
+                      <span>{task.dueDate ? `마감일: ${task.dueDate}` : "마감일 없음"}</span>
+                      <button type="button" onClick={() => handleToggleTaskDone(task)}>
+                        {task.status === "done" ? "미완료로 변경" : "완료"}
+                      </button>
+                      <button type="button" onClick={() => handleDeleteTask(task)}>
+                        삭제
+                      </button>
+                      <button type="button" onClick={() => handleStartEditTask(task)}>
+                        수정
+                      </button>
+                    </li>
                   );
                 })}
               </ul>
@@ -514,72 +525,72 @@ function handleSaveEditProject(project: Project) {
               <p className="empty">프로젝트가 없습니다.</p>
             ) : (
               <ul className="task-list">
-{projects.map((project) => {
-  const stats = getProjectTaskStats(project.id);
+                {projects.map((project) => {
+                  const stats = getProjectTaskStats(project.id);
 
-  if (editingProjectId === project.id) {
-    return (
-      <li key={project.id} className="task-card">
-        <form
-          onSubmit={(event) => {
-            event.preventDefault();
-            handleSaveEditProject(project);
-          }}
-          aria-label="프로젝트 수정"
-        >
-          <strong>프로젝트 수정</strong>
+                  if (editingProjectId === project.id) {
+                    return (
+                      <li key={project.id} className="task-card">
+                        <form
+                          onSubmit={(event) => {
+                            event.preventDefault();
+                            handleSaveEditProject(project);
+                          }}
+                          aria-label="프로젝트 수정"
+                        >
+                          <strong>프로젝트 수정</strong>
 
-          <label>
-            프로젝트명
-            <input
-              type="text"
-              value={editProjectName}
-              onChange={(event) => setEditProjectName(event.target.value)}
-              placeholder="예: 프로젝트 이름"
-            />
-          </label>
+                          <label>
+                            프로젝트명
+                            <input
+                              type="text"
+                              value={editProjectName}
+                              onChange={(event) => setEditProjectName(event.target.value)}
+                              placeholder="예: 프로젝트 이름"
+                            />
+                          </label>
 
-          <label>
-            설명
-            <input
-              type="text"
-              value={editProjectDescription}
-              onChange={(event) => setEditProjectDescription(event.target.value)}
-              placeholder="예: 프로젝트 설명"
-            />
-          </label>
+                          <label>
+                            설명
+                            <input
+                              type="text"
+                              value={editProjectDescription}
+                              onChange={(event) => setEditProjectDescription(event.target.value)}
+                              placeholder="예: 프로젝트 설명"
+                            />
+                          </label>
 
-          <button type="submit">저장</button>
-          <button type="button" onClick={handleCancelEditProject}>
-            취소
-          </button>
-        </form>
-      </li>
-    );
-  }
+                          <button type="submit">저장</button>
+                          <button type="button" onClick={handleCancelEditProject}>
+                            취소
+                          </button>
+                        </form>
+                      </li>
+                    );
+                  }
 
-  return (
-    <li key={project.id} className="task-card">
-      <strong>{project.name}</strong>
-      <span>{project.description || "설명 없음"}</span>
-      <span>
-        전체 업무: {stats.totalTasks}개<br />
-        완료: {stats.completedTasks}개<br />
-        미완료: {stats.incompleteTasks}개
-      </span>
-      <button
-        type="button"
-        onClick={() => handleDeleteProject(project.id)}
-        disabled={project.id === "default" || stats.totalTasks > 0}
-      >
-        {project.id === "default" ? "기본 프로젝트" : stats.totalTasks > 0 ? "업무 있음" : "삭제"}
-      </button>
-      <button type="button" onClick={() => handleStartEditProject(project)}>
-        수정
-      </button>
-    </li>
-  );
-})}
+                  return (
+                    <li key={project.id} className="task-card">
+                      <strong>{project.name}</strong>
+                      <span>{project.description || "설명 없음"}</span>
+                      <span>
+                        전체 업무: {stats.totalTasks}개<br />
+                        완료: {stats.completedTasks}개<br />
+                        미완료: {stats.incompleteTasks}개
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteProject(project.id)}
+                        disabled={project.id === "default" || stats.totalTasks > 0}
+                      >
+                        {project.id === "default" ? "기본 프로젝트" : stats.totalTasks > 0 ? "업무 있음" : "삭제"}
+                      </button>
+                      <button type="button" onClick={() => handleStartEditProject(project)}>
+                        수정
+                      </button>
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </section>
