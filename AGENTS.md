@@ -77,9 +77,21 @@
 
 ## 9. Git 규칙
 
-- 사용자가 명시적으로 요청하지 않으면 git 명령을 실행하지 않는다.
-- `git reset --hard`, `git checkout --`, 강제 push 같은 파괴적 명령은 사용하지 않는다.
-- 커밋, 브랜치 생성, push, PR 생성은 사용자 요청과 허용이 있을 때만 한다.
+- Codex는 사용자가 "커밋까지 진행"을 명시한 작업에서만 git 명령을 실행할 수 있다.
+- 허용되는 git 명령은 아래로 제한한다.
+  - `git status`
+  - `git diff`
+  - `git diff --staged`
+  - `git add <수정한 파일>`
+  - `git commit -m "<작업 내용>"`
+- `git add .`는 사용하지 않는다.
+- `git push`는 실행하지 않는다.
+- `git reset`, `git checkout`, `git restore`, `git clean`, `git rebase`, `git merge`, force push는 실행하지 않는다.
+- 예상하지 못한 수정 파일이 있으면 커밋하지 말고 멈춘다.
+- `npm run build`가 필요한 작업은 build 성공 후에만 commit한다.
+- commit message는 영어로 짧고 명확하게 작성한다.
+- 한 작업당 하나의 commit을 만든다.
+- commit 후 `git status`를 확인하고 결과를 보고한다.
 - 작업 중 발견한 사용자 변경 사항은 되돌리지 않는다.
 
 ## 10. App.tsx 비대화 방지 규칙
