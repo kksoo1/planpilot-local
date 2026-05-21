@@ -3,6 +3,7 @@ import { RuleBasedAIProvider } from "./ai/RuleBasedAIProvider";
 import { useStore } from "./store";
 import { getProjectTaskStats } from "./utils/projectStats";
 import { getOverdueTasks, getUpcomingTasks } from "./utils/taskDates";
+import { ProjectCard } from "./components/ProjectCard";
 import { TaskCard } from "./components/TaskCard";
 import { SettingsView } from "./views/SettingsView";
 import { TodayView } from "./views/TodayView";
@@ -537,25 +538,13 @@ function App() {
                   }
 
                   return (
-                    <li key={project.id} className="task-card">
-                      <strong>{project.name}</strong>
-                      <span>{project.description || "설명 없음"}</span>
-                      <span>
-                        전체 업무: {stats.totalTasks}개<br />
-                        완료: {stats.completedTasks}개<br />
-                        미완료: {stats.incompleteTasks}개
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteProject(project.id)}
-                        disabled={project.id === "default" || stats.totalTasks > 0}
-                      >
-                        {project.id === "default" ? "기본 프로젝트" : stats.totalTasks > 0 ? "업무 있음" : "삭제"}
-                      </button>
-                      <button type="button" onClick={() => handleStartEditProject(project)}>
-                        수정
-                      </button>
-                    </li>
+                    <ProjectCard
+                      key={project.id}
+                      project={project}
+                      stats={stats}
+                      onDelete={handleDeleteProject}
+                      onStartEdit={handleStartEditProject}
+                    />
                   );
                 })}
               </ul>
