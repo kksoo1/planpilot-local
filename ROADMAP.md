@@ -55,7 +55,7 @@
 - `App.tsx` 안에 탭 화면, 폼 상태, 편집 상태, 필터/정렬, CRUD 핸들러가 모두 들어 있다.
 - `useState`가 많아 기능 추가 시 상태 관리가 더 복잡해질 수 있다.
 - 날짜 계산 로직이 `App.tsx`와 `RuleBasedAIProvider`에 중복되어 있다.
-- `README.md`가 아직 Vite 기본 템플릿 문서 상태다.
+- `README.md`는 PlanPilot Local 전용 문서로 교체되었지만, memory-bank 문서는 아직 일부 갱신이 필요하다.
 - `memory-bank` 문서 일부는 현재 구현 상태와 어긋날 수 있다.
 - DB schema migration 전략이 아직 없다.
 - 에러/로딩 상태 처리가 부족하다.
@@ -85,28 +85,75 @@
 
 ## 6. 리팩터링 계획
 
-- 1단계: `App.tsx`에서 화면 컴포넌트 분리
-  - `TodayView`
-  - `TasksView`
-  - `ProjectsView`
-  - `SettingsView`
-- 2단계: 폼 컴포넌트 분리
-  - `TaskForm`
-  - `ProjectForm`
-- 3단계: 반복 표시 컴포넌트 분리
-  - `TaskCard`
-  - `ProjectCard`
-  - summary 표시 컴포넌트
-- 4단계: 파생 데이터 로직 분리
-  - overdue tasks
-  - upcoming tasks
-  - filtered tasks
-  - sorted tasks
-  - project stats
-- 5단계: 라벨 매핑 분리
-  - priority label
-  - status label
-  - settings label
+리팩터링은 동작 변경 없이 작은 단위로 진행한다. 각 단계 후 `npm run build`로 확인하고, 실패하면 다음 단계로 넘어가지 않는다.
+
+### 6.1 1차 목표: 화면 컴포넌트 분리
+
+- 우선 `src/App.tsx`에서 화면별 JSX를 분리한다.
+- CSS class 이름은 유지하고 `src/App.css`는 수정하지 않는다.
+- 첫 분리 후보는 상대적으로 의존성이 적은 `SettingsView`다.
+- 다음 후보는 `TodayView`다.
+- `TasksView`와 `ProjectsView`는 폼 상태와 CRUD 핸들러가 많으므로 후순위로 둔다.
+
+예상 파일 후보:
+
+- `src/views/SettingsView.tsx`
+- `src/views/TodayView.tsx`
+- `src/views/TasksView.tsx`
+- `src/views/ProjectsView.tsx`
+
+### 6.2 2차 목표: 표시 컴포넌트 분리
+
+- 업무 목록의 반복 JSX를 `TaskCard`로 분리한다.
+- 프로젝트 목록의 반복 JSX를 `ProjectCard`로 분리한다.
+- 오늘 화면의 요약 영역은 별도 summary 컴포넌트로 분리할 수 있다.
+
+예상 파일 후보:
+
+- `src/components/TaskCard.tsx`
+- `src/components/ProjectCard.tsx`
+- `src/components/SummaryBlock.tsx`
+
+### 6.3 3차 목표: 폼 컴포넌트 분리
+
+- 업무 추가 폼과 업무 수정 폼의 중복을 줄인다.
+- 프로젝트 추가 폼과 프로젝트 수정 폼의 중복을 줄인다.
+- 처음부터 과도하게 일반화하지 말고, 실제 중복이 명확한 입력 필드부터 분리한다.
+
+예상 파일 후보:
+
+- `src/components/TaskForm.tsx`
+- `src/components/ProjectForm.tsx`
+
+### 6.4 4차 목표: 파생 데이터 로직 분리
+
+- 날짜 계산과 필터/정렬 로직을 `App.tsx` 밖으로 옮긴다.
+- `RuleBasedAIProvider`와 중복되는 overdue/upcoming 계산을 정리한다.
+- DB schema는 이 단계에서 변경하지 않는다.
+
+예상 파일 후보:
+
+- `src/utils/taskFilters.ts`
+- `src/utils/taskDates.ts`
+- `src/utils/projectStats.ts`
+
+### 6.5 5차 목표: 라벨 매핑 분리
+
+- priority/status/settings 표시 문자열을 별도 매핑으로 분리한다.
+- 내부 enum 값은 영어로 유지한다.
+- UI 표시만 한국어 라벨을 사용한다.
+
+예상 파일 후보:
+
+- `src/utils/labels.ts`
+
+### 6.6 분리 작업 원칙
+
+- 새 기능 추가와 리팩터링을 같은 작업에 섞지 않는다.
+- 한 번에 하나의 화면 또는 하나의 컴포넌트만 분리한다.
+- 기존 JSX를 복사해 중복 화면을 만들지 않는다.
+- props가 너무 많아지는 경우 해당 단계에서 멈추고 store selector 또는 분리 순서를 재검토한다.
+- `App.tsx`는 최종적으로 탭 상태, 앱 초기화, 화면 조립 중심으로 줄이는 것을 목표로 한다.
 
 ## 7. 데이터/DB 개선 계획
 
