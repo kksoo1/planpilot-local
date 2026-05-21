@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { RuleBasedAIProvider } from "./ai/RuleBasedAIProvider";
 import { useStore } from "./store";
+import { getProjectTaskStats } from "./utils/projectStats";
 import { getPriorityLabel, getStatusLabel } from "./utils/taskLabels";
 import { SettingsView } from "./views/SettingsView";
 import { TodayView } from "./views/TodayView";
@@ -35,15 +36,6 @@ function App() {
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
 
   const { tasks, projects, appSettings, initializeApp, addTask, updateTask, deleteTask, deleteProject, addProject, updateProject } = useStore();
-
-  function getProjectTaskStats(projectId: string) {
-    const projectTasks = tasks.filter((task) => task.projectId === projectId);
-    const totalTasks = projectTasks.length;
-    const completedTasks = projectTasks.filter((task) => task.status === "done").length;
-    const incompleteTasks = totalTasks - completedTasks;
-
-    return { totalTasks, completedTasks, incompleteTasks };
-  }
 
   function getProjectName(projectId: string) {
     return projects.find((project) => project.id === projectId)?.name ?? "프로젝트 없음";
@@ -179,7 +171,7 @@ function App() {
 
   function handleDeleteProject(projectId: string) {
     if (projectId === "default") return;
-    const stats = getProjectTaskStats(projectId);
+    const stats = getProjectTaskStats(tasks, projectId);
     if (stats.totalTasks > 0) return;
     if (window.confirm('정말로 이 프로젝트를 삭제하시겠습니까?')) {
       void deleteProject(projectId);
@@ -520,7 +512,7 @@ function App() {
             ) : (
               <ul className="task-list">
                 {projects.map((project) => {
-                  const stats = getProjectTaskStats(project.id);
+                  const stats = getProjectTaskStats(tasks, project.id);
 
                   if (editingProjectId === project.id) {
                     return (
