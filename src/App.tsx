@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { RuleBasedAIProvider } from "./ai/RuleBasedAIProvider";
 import { useStore } from "./store";
+import { getPriorityLabel, getStatusLabel } from "./utils/taskLabels";
 import { SettingsView } from "./views/SettingsView";
 import type { Project, Task } from "./types";
 import "./App.css";
@@ -45,23 +46,6 @@ function App() {
 
   function getProjectName(projectId: string) {
     return projects.find((project) => project.id === projectId)?.name ?? "프로젝트 없음";
-  }
-
-  function getPriorityLabel(priority: Task["priority"]) {
-    switch (priority) {
-      case "high":
-        return "높음";
-      case "medium":
-        return "보통";
-      case "low":
-        return "낮음";
-      default:
-        return priority;
-    }
-  }
-
-  function getStatusLabel(status: Task["status"]) {
-    return status === "done" ? "완료" : "미완료";
   }
 
   const today = new Date();
