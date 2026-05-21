@@ -46,6 +46,23 @@ function App() {
     return projects.find((project) => project.id === projectId)?.name ?? "프로젝트 없음";
   }
 
+  function getPriorityLabel(priority: Task["priority"]) {
+    switch (priority) {
+      case "high":
+        return "높음";
+      case "medium":
+        return "보통";
+      case "low":
+        return "낮음";
+      default:
+        return priority;
+    }
+  }
+
+  function getStatusLabel(status: Task["status"]) {
+    return status === "done" ? "완료" : "미완료";
+  }
+
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
@@ -254,7 +271,7 @@ function App() {
             <strong>{task.title}</strong>
             {task.memo && <span>메모: {task.memo}</span>}
             <span>
-              중요도: {task.priority} · 상태: {task.status} · 프로젝트: {getProjectName(task.projectId)}
+              중요도: {getPriorityLabel(task.priority)} · 상태: {getStatusLabel(task.status)} · 프로젝트: {getProjectName(task.projectId)}
             </span>
             <span>{task.dueDate ? `마감일: ${task.dueDate}` : "마감일 없음"}</span>
           </li>
@@ -514,7 +531,7 @@ function App() {
                       <strong>{task.title}</strong>
                       {task.memo && <span>메모: {task.memo}</span>}
                       <span>
-                        중요도: {task.priority} · 상태: {task.status} · 프로젝트: {getProjectName(task.projectId)}
+                        중요도: {getPriorityLabel(task.priority)} · 상태: {getStatusLabel(task.status)} · 프로젝트: {getProjectName(task.projectId)}
                       </span>
                       <span>{task.dueDate ? `마감일: ${task.dueDate}` : "마감일 없음"}</span>
                       <button type="button" onClick={() => handleToggleTaskDone(task)}>
