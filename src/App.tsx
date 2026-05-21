@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { RuleBasedAIProvider } from "./ai/RuleBasedAIProvider";
 import { useStore } from "./store";
 import { getProjectTaskStats } from "./utils/projectStats";
+import { getOverdueTasks, getUpcomingTasks } from "./utils/taskDates";
 import { getPriorityLabel, getStatusLabel } from "./utils/taskLabels";
 import { SettingsView } from "./views/SettingsView";
 import { TodayView } from "./views/TodayView";
@@ -44,19 +45,8 @@ function App() {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const sevenDaysLater = new Date(today);
-  sevenDaysLater.setDate(today.getDate() + 7);
-
-  const overdueTasks = tasks.filter((task) => {
-    if (!task.dueDate || task.status === "done") return false;
-    return new Date(task.dueDate) < today;
-  });
-
-  const upcomingTasks = tasks.filter((task) => {
-    if (!task.dueDate || task.status === "done") return false;
-    const dueDate = new Date(task.dueDate);
-    return dueDate >= today && dueDate <= sevenDaysLater;
-  });
+  const overdueTasks = getOverdueTasks(tasks, today);
+  const upcomingTasks = getUpcomingTasks(tasks, today, 7);
 
   const filteredTasks = tasks.filter((task) => {
     const matchesProject =
