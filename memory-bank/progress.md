@@ -19,14 +19,27 @@
 - `.clineignore` 커밋
 - `.clinerules` 커밋
 
+## 2026-05-21
+
+### Completed
+- 업무 완료/미완료 토글 구현 확인
+- 업무 수정/삭제 구현 확인
+- 업무 검색, 완료 업무 표시/숨김, 프로젝트 필터, 마감일 빠른 순 정렬 구현 확인
+- 프로젝트 추가/수정/삭제 구현 확인
+- 기본 프로젝트와 업무가 있는 프로젝트의 삭제 방지 구현 확인
+- 오늘 화면의 추천 업무, 지난 마감 업무, 7일 이내 마감 업무 표시 구현 확인
+- `README.md`를 PlanPilot Local 전용 문서로 갱신
+- `AGENTS.md`에 Codex 작업 규칙 정리
+- `ROADMAP.md`에 현재 상태와 `App.tsx` 분리 계획 정리
+
 ### Current Stable Commit
 - `Stable MVP baseline`
 - `Add Cline ignore rules`
 - `Add Cline project rules`
 
 ### Next
-1. Memory Bank 커밋
-2. 새 Cline Task 시작
-3. 업무 완료/미완료 토글 기능 추가
-4. 빌드 성공 확인
-5. 커밋
+1. 현재 memory-bank 문서를 Codex 운영 방식과 현재 구현 상태에 맞게 유지
+2. `src/App.tsx` 분리 전 현재 빌드 상태 확인
+3. 의존성이 적은 `SettingsView`부터 화면 컴포넌트 분리
+4. 각 작은 리팩터링 후 `npm run build`로 확인
+5. 사용자가 "커밋까지 진행"을 명시한 경우에만 제한된 git 명령으로 커밋
