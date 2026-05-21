@@ -4,6 +4,7 @@ import { useStore } from "./store";
 import { getProjectTaskStats } from "./utils/projectStats";
 import { getOverdueTasks, getUpcomingTasks } from "./utils/taskDates";
 import { ProjectCard } from "./components/ProjectCard";
+import { ProjectForm } from "./components/ProjectForm";
 import { TaskCard } from "./components/TaskCard";
 import { SettingsView } from "./views/SettingsView";
 import { TodayView } from "./views/TodayView";
@@ -463,31 +464,16 @@ function App() {
             <h2>프로젝트</h2>
             <p className="summary">총 {projects.length}개</p>
 
-            <form onSubmit={handleAddProject} className="task-card" aria-label="프로젝트 추가">
-              <strong>새 프로젝트 추가</strong>
-
-              <label>
-                프로젝트명
-                <input
-                  type="text"
-                  value={newProjectName}
-                  onChange={(event) => setNewProjectName(event.target.value)}
-                  placeholder="예: 프로젝트 이름"
-                />
-              </label>
-
-              <label>
-                설명
-                <input
-                  type="text"
-                  value={newProjectDescription}
-                  onChange={(event) => setNewProjectDescription(event.target.value)}
-                  placeholder="예: 프로젝트 설명"
-                />
-              </label>
-
-              <button type="submit">프로젝트 추가</button>
-            </form>
+            <ProjectForm
+              title="새 프로젝트 추가"
+              ariaLabel="프로젝트 추가"
+              name={newProjectName}
+              description={newProjectDescription}
+              submitLabel="프로젝트 추가"
+              onNameChange={setNewProjectName}
+              onDescriptionChange={setNewProjectDescription}
+              onSubmit={handleAddProject}
+            />
 
             {projects.length === 0 ? (
               <p className="empty">프로젝트가 없습니다.</p>
@@ -499,40 +485,21 @@ function App() {
                   if (editingProjectId === project.id) {
                     return (
                       <li key={project.id} className="task-card">
-                        <form
+                        <ProjectForm
+                          title="프로젝트 수정"
+                          ariaLabel="프로젝트 수정"
+                          name={editProjectName}
+                          description={editProjectDescription}
+                          submitLabel="저장"
+                          onNameChange={setEditProjectName}
+                          onDescriptionChange={setEditProjectDescription}
                           onSubmit={(event) => {
                             event.preventDefault();
                             handleSaveEditProject(project);
                           }}
-                          aria-label="프로젝트 수정"
-                        >
-                          <strong>프로젝트 수정</strong>
-
-                          <label>
-                            프로젝트명
-                            <input
-                              type="text"
-                              value={editProjectName}
-                              onChange={(event) => setEditProjectName(event.target.value)}
-                              placeholder="예: 프로젝트 이름"
-                            />
-                          </label>
-
-                          <label>
-                            설명
-                            <input
-                              type="text"
-                              value={editProjectDescription}
-                              onChange={(event) => setEditProjectDescription(event.target.value)}
-                              placeholder="예: 프로젝트 설명"
-                            />
-                          </label>
-
-                          <button type="submit">저장</button>
-                          <button type="button" onClick={handleCancelEditProject}>
-                            취소
-                          </button>
-                        </form>
+                          onCancel={handleCancelEditProject}
+                          className=""
+                        />
                       </li>
                     );
                   }
