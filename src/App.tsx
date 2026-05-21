@@ -3,7 +3,7 @@ import { RuleBasedAIProvider } from "./ai/RuleBasedAIProvider";
 import { useStore } from "./store";
 import { getProjectTaskStats } from "./utils/projectStats";
 import { getOverdueTasks, getUpcomingTasks } from "./utils/taskDates";
-import { getPriorityLabel, getStatusLabel } from "./utils/taskLabels";
+import { TaskCard } from "./components/TaskCard";
 import { SettingsView } from "./views/SettingsView";
 import { TodayView } from "./views/TodayView";
 import type { Project, Task } from "./types";
@@ -442,23 +442,14 @@ function App() {
                   }
 
                   return (
-                    <li key={task.id} className="task-card">
-                      <strong>{task.title}</strong>
-                      {task.memo && <span>메모: {task.memo}</span>}
-                      <span>
-                        중요도: {getPriorityLabel(task.priority)} · 상태: {getStatusLabel(task.status)} · 프로젝트: {getProjectName(task.projectId)}
-                      </span>
-                      <span>{task.dueDate ? `마감일: ${task.dueDate}` : "마감일 없음"}</span>
-                      <button type="button" onClick={() => handleToggleTaskDone(task)}>
-                        {task.status === "done" ? "미완료로 변경" : "완료"}
-                      </button>
-                      <button type="button" onClick={() => handleDeleteTask(task)}>
-                        삭제
-                      </button>
-                      <button type="button" onClick={() => handleStartEditTask(task)}>
-                        수정
-                      </button>
-                    </li>
+                    <TaskCard
+                      key={task.id}
+                      task={task}
+                      projectName={getProjectName(task.projectId)}
+                      onToggleDone={handleToggleTaskDone}
+                      onDelete={handleDeleteTask}
+                      onStartEdit={handleStartEditTask}
+                    />
                   );
                 })}
               </ul>
