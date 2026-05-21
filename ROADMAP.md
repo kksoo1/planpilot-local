@@ -155,6 +155,45 @@
 - props가 너무 많아지는 경우 해당 단계에서 멈추고 store selector 또는 분리 순서를 재검토한다.
 - `App.tsx`는 최종적으로 탭 상태, 앱 초기화, 화면 조립 중심으로 줄이는 것을 목표로 한다.
 
+### 6.7 TodayView 분리 전 점검
+
+`TodayView`는 `SettingsView` 다음 분리 후보지만, 추천 업무와 날짜 기반 목록을 함께 표시하므로 props와 계산 위치를 먼저 정리한다.
+
+분리 시 props 후보:
+
+- `tasks`
+- `recommendedTasks`
+- `overdueTasks`
+- `upcomingTasks`
+- `getProjectName`
+
+`TodayView`가 받을 데이터 후보:
+
+- 전체 업무 수
+- 완료 업무 수
+- 추천 업무 목록
+- 지난 마감 업무 목록
+- 7일 이내 마감 업무 목록
+- 프로젝트 이름 조회 함수
+
+`TodayView`에서 직접 계산하지 않는 편이 좋은 로직:
+
+- 오늘 날짜 기준 계산
+- 7일 이내 마감 기준 계산
+- 완료 업무 수 계산
+- 추천 업무 계산
+- 프로젝트 통계 계산
+
+안전한 분리 체크리스트:
+
+1. `TodayView`는 표시 전용 컴포넌트로 시작한다.
+2. `App.tsx`의 기존 overdue/upcoming/recommended 계산 결과를 props로 넘긴다.
+3. UI 문구와 class 이름은 바꾸지 않는다.
+4. `RuleBasedAIProvider` 로직은 건드리지 않는다.
+5. 날짜 계산 유틸 분리는 TodayView 분리 이후 별도 작업으로 진행한다.
+6. 분리 후 `npm run build`로 확인한다.
+7. props가 과도하게 늘어나면 TodayView 분리만 완료하고 추가 리팩터링은 다음 작업으로 미룬다.
+
 ## 7. 데이터/DB 개선 계획
 
 - Dexie schema 변경 전 migration 계획을 작성한다.
