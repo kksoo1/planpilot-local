@@ -50,7 +50,7 @@
 - `SettingsView`, `TodayView`, `TasksView`, `ProjectsView` 화면 컴포넌트 분리
 - `TaskCard`, `ProjectCard` 표시 컴포넌트 분리
 - `TaskForm`, `ProjectForm` 폼 컴포넌트 분리
-- `taskLabels`, `taskDates`, `projectStats`, `taskFilters` 유틸 분리
+- `taskLabels`, `taskDates`, `taskFilters`, `taskSummary`, `projectLookup`, `projectStats` 유틸 분리
 - ROADMAP에 앱 완성 기준과 리팩터링 진행 상태 보강
 
 ### Next

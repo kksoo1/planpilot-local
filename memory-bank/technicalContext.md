@@ -77,6 +77,8 @@
   - taskLabels
   - taskDates
   - taskFilters
+  - taskSummary
+  - projectLookup
   - projectStats
 
 ## Codex Rules

@@ -5,6 +5,7 @@ import { getProjectName } from "./utils/projectLookup";
 import { getProjectTaskStats } from "./utils/projectStats";
 import { getOverdueTasks, getUpcomingTasks } from "./utils/taskDates";
 import { filterTasks, sortTasks, type TaskSortOrder } from "./utils/taskFilters";
+import { getTaskSummary } from "./utils/taskSummary";
 import { SettingsView } from "./views/SettingsView";
 import { TasksView } from "./views/TasksView";
 import { ProjectsView } from "./views/ProjectsView";
@@ -46,6 +47,7 @@ function App() {
 
   const overdueTasks = getOverdueTasks(tasks, today);
   const upcomingTasks = getUpcomingTasks(tasks, today, 7);
+  const taskSummary = getTaskSummary(tasks);
 
   const filteredTasks = filterTasks(tasks, {
     selectedProjectFilter,
@@ -202,8 +204,8 @@ function App() {
       <main className="app-main">
 {activeTab === "today" && (
   <TodayView
-    totalTasks={tasks.length}
-    completedTasks={tasks.filter((task) => task.status === "done").length}
+    totalTasks={taskSummary.totalTasks}
+    completedTasks={taskSummary.completedTasks}
     recommendedTasks={recommendedTasks}
     overdueTasks={overdueTasks}
     upcomingTasks={upcomingTasks}
