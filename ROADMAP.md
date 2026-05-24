@@ -355,6 +355,48 @@ AI Provider:
 - `src/components/TaskForm.tsx`
 - `src/components/ProjectForm.tsx`
 
+### 17.3.1 TaskForm 분리 계획
+
+`TaskForm`은 업무 추가 form과 업무 수정 form을 함께 다룰 수 있지만, 프로젝트 form보다 상태와 필드가 많아 바로 분리하지 않는다. 먼저 공통 필드와 동작 차이를 명확히 나눈 뒤 작은 단계로 진행한다.
+
+공통 필드 후보:
+
+- 제목
+- 메모
+- 마감일
+- 중요도
+- 프로젝트 선택
+
+추가 form 전용 동작:
+
+- `newTaskTitle`, `newTaskMemo`, `newTaskDueDate`, `newTaskPriority`, `newTaskProjectId` 상태를 사용한다.
+- 제출 후 추가 form을 닫는다.
+- 제출 후 입력값을 기본값으로 초기화한다.
+- submit label은 `업무 추가`다.
+
+수정 form 전용 동작:
+
+- `editTaskTitle`, `editTaskMemo`, `editTaskDueDate`, `editTaskPriority`, `editTaskProjectId` 상태를 사용한다.
+- 저장 후 `editingTaskId`를 해제한다.
+- 취소 버튼이 필요하다.
+- submit label은 `저장`이다.
+
+분리 전 위험 요소:
+
+- 업무 추가 form은 `isTaskFormOpen` 상태와 연결되어 있다.
+- 업무 수정 form은 `sortedTasks.map()` 내부에서 특정 업무와 함께 렌더링된다.
+- 수정 form은 `task` 객체를 기반으로 `updateTask`를 호출하므로, submit handler의 closure를 유지해야 한다.
+- 프로젝트 select options는 `projects` 배열을 필요로 한다.
+- form class 이름과 기존 `li.task-card` 구조를 잘못 바꾸면 CSS가 달라질 수 있다.
+
+권장 분리 순서:
+
+1. `TaskForm` props 타입을 먼저 설계한다.
+2. 추가 form만 `TaskForm`으로 교체한다.
+3. 사용자 허용 후 `npm run build`와 수동 테스트를 확인한 뒤 수정 form 교체를 별도 작업으로 진행한다.
+4. 두 form이 모두 안정화된 뒤 중복 submit/reset 로직을 검토한다.
+5. `TasksView` 분리는 `TaskForm` 교체가 끝난 뒤 진행한다.
+
 ### 17.4 4차 목표: 파생 데이터 로직 분리
 
 - 날짜 계산과 필터/정렬 로직을 `App.tsx` 밖으로 옮긴다.
