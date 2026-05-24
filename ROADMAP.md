@@ -203,6 +203,8 @@ AI Provider:
 
 ## 11. 수동 테스트 체크리스트
 
+상세 수동 테스트 문서는 [docs/manual-test-checklist.md](docs/manual-test-checklist.md)를 기준으로 한다. 아래 목록은 ROADMAP에서 추적할 핵심 요약이며, 실제 리팩터링 후 검증은 문서의 체크박스를 따라 수행한다.
+
 기본 실행:
 
 - 새 브라우저 프로필 또는 IndexedDB 초기 상태에서 앱을 열면 기본 프로젝트가 생성된다.
@@ -244,6 +246,8 @@ AI Provider:
 
 - 각 주요 변경 후 `npm run build`가 성공한다.
 - 예기치 않은 파일 변경이 없는지 `git status`로 확인한다.
+- 화면 분리 후 `TodayView`, `TasksView`, `ProjectsView`, `SettingsView`의 기존 동작이 유지되는지 확인한다.
+- 서버 API, `localStorage`, 로그인, 클라우드 동기화, 알림 권한 요청, Capacitor가 추가되지 않았는지 확인한다.
 
 ## 12. 배포 전 체크리스트
 
