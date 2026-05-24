@@ -6,6 +6,7 @@ import { getOverdueTasks, getUpcomingTasks } from "./utils/taskDates";
 import { ProjectCard } from "./components/ProjectCard";
 import { ProjectForm } from "./components/ProjectForm";
 import { TaskCard } from "./components/TaskCard";
+import { TaskForm } from "./components/TaskForm";
 import { SettingsView } from "./views/SettingsView";
 import { TodayView } from "./views/TodayView";
 import type { Project, Task } from "./types";
@@ -292,70 +293,23 @@ function App() {
             </button>
 
             {isTaskFormOpen && (
-              <form onSubmit={handleAddTask} className="task-card" aria-label="업무 추가">
-                <strong>새 업무 추가</strong>
-
-                <label>
-                  제목
-                  <input
-                    type="text"
-                    value={newTaskTitle}
-                    onChange={(event) => setNewTaskTitle(event.target.value)}
-                    placeholder="예: 사업계획서 초안 작성"
-                  />
-                </label>
-
-                <label>
-                  메모
-                  <input
-                    type="text"
-                    value={newTaskMemo}
-                    onChange={(event) => setNewTaskMemo(event.target.value)}
-                    placeholder="예: 참고할 내용"
-                  />
-                </label>
-
-                <label>
-                  마감일
-                  <input
-                    type="date"
-                    value={newTaskDueDate}
-                    min="1900-01-01"
-                    max="9999-12-31"
-                    onChange={(event) => setNewTaskDueDate(event.target.value)}
-                  />
-                </label>
-
-                <label>
-                  중요도
-                  <select
-                    value={newTaskPriority}
-                    onChange={(event) =>
-                      setNewTaskPriority(event.target.value as Task["priority"])
-                    }
-                  >
-                    <option value="low">낮음</option>
-                    <option value="medium">보통</option>
-                    <option value="high">높음</option>
-                  </select>
-                </label>
-
-                <label>
-                  프로젝트
-                  <select
-                    value={newTaskProjectId}
-                    onChange={(event) => setNewTaskProjectId(event.target.value)}
-                  >
-                    {projects.map((project) => (
-                      <option key={project.id} value={project.id}>
-                        {project.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-
-                <button type="submit">업무 추가</button>
-              </form>
+              <TaskForm
+                title="새 업무 추가"
+                ariaLabel="업무 추가"
+                taskTitle={newTaskTitle}
+                memo={newTaskMemo}
+                dueDate={newTaskDueDate}
+                priority={newTaskPriority}
+                projectId={newTaskProjectId}
+                projects={projects}
+                submitLabel="업무 추가"
+                onTitleChange={setNewTaskTitle}
+                onMemoChange={setNewTaskMemo}
+                onDueDateChange={setNewTaskDueDate}
+                onPriorityChange={setNewTaskPriority}
+                onProjectIdChange={setNewTaskProjectId}
+                onSubmit={handleAddTask}
+              />
             )}
 
             {filteredTasks.length === 0 ? (
@@ -366,79 +320,28 @@ function App() {
                   if (editingTaskId === task.id) {
                     return (
                       <li key={task.id} className="task-card">
-                        <form
+                        <TaskForm
+                          title="업무 수정"
+                          ariaLabel="업무 수정"
+                          taskTitle={editTaskTitle}
+                          memo={editTaskMemo}
+                          dueDate={editTaskDueDate}
+                          priority={editTaskPriority}
+                          projectId={editTaskProjectId}
+                          projects={projects}
+                          submitLabel="저장"
+                          onTitleChange={setEditTaskTitle}
+                          onMemoChange={setEditTaskMemo}
+                          onDueDateChange={setEditTaskDueDate}
+                          onPriorityChange={setEditTaskPriority}
+                          onProjectIdChange={setEditTaskProjectId}
                           onSubmit={(event) => {
                             event.preventDefault();
                             handleSaveEditTask(task);
                           }}
-                          aria-label="업무 수정"
-                        >
-                          <strong>업무 수정</strong>
-
-                          <label>
-                            제목
-                            <input
-                              type="text"
-                              value={editTaskTitle}
-                              onChange={(event) => setEditTaskTitle(event.target.value)}
-                              placeholder="예: 사업계획서 초안 작성"
-                            />
-                          </label>
-
-                          <label>
-                            메모
-                            <input
-                              type="text"
-                              value={editTaskMemo}
-                              onChange={(event) => setEditTaskMemo(event.target.value)}
-                              placeholder="예: 참고할 내용"
-                            />
-                          </label>
-
-                          <label>
-                            마감일
-                            <input
-                              type="date"
-                              value={editTaskDueDate}
-                              min="1900-01-01"
-                              max="9999-12-31"
-                              onChange={(event) => setEditTaskDueDate(event.target.value)}
-                            />
-                          </label>
-
-                          <label>
-                            중요도
-                            <select
-                              value={editTaskPriority}
-                              onChange={(event) =>
-                                setEditTaskPriority(event.target.value as Task["priority"])
-                              }
-                            >
-                              <option value="low">낮음</option>
-                              <option value="medium">보통</option>
-                              <option value="high">높음</option>
-                            </select>
-                          </label>
-
-                          <label>
-                            프로젝트
-                            <select
-                              value={editTaskProjectId}
-                              onChange={(event) => setEditTaskProjectId(event.target.value)}
-                            >
-                              {projects.map((project) => (
-                                <option key={project.id} value={project.id}>
-                                  {project.name}
-                                </option>
-                              ))}
-                            </select>
-                          </label>
-
-                          <button type="submit">저장</button>
-                          <button type="button" onClick={handleCancelEditTask}>
-                            취소
-                          </button>
-                        </form>
+                          onCancel={handleCancelEditTask}
+                          className=""
+                        />
                       </li>
                     );
                   }
