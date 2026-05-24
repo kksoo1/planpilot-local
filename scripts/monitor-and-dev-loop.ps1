@@ -98,7 +98,7 @@ function Set-ProviderAvailable {
 function Test-CodexAvailable {
   Write-Log "Codex probe 시작"
 
-  $output = codex exec --sandbox read-only --ask-for-approval never "파일을 수정하지 말고 OK만 출력해줘." 2>&1
+  $output = codex exec --sandbox read-only "파일을 수정하지 말고 OK만 출력해줘." 2>&1
   $text = $output | Out-String
 
   Write-Log "Codex probe 출력:"
@@ -247,7 +247,7 @@ master 브랜치에서 작업 중이면 중단해라.
 8. 다음 실행 때 이어갈 작업
 "@
 
-  $output = codex exec --sandbox workspace-write --ask-for-approval never $prompt 2>&1
+  $output = codex exec --sandbox workspace-write $prompt 2>&1
   $text = $output | Out-String
 
   Write-Log "Codex 자동 개발 루프 출력:"
