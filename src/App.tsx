@@ -5,9 +5,8 @@ import { getProjectTaskStats } from "./utils/projectStats";
 import { getOverdueTasks, getUpcomingTasks } from "./utils/taskDates";
 import { ProjectCard } from "./components/ProjectCard";
 import { ProjectForm } from "./components/ProjectForm";
-import { TaskCard } from "./components/TaskCard";
-import { TaskForm } from "./components/TaskForm";
 import { SettingsView } from "./views/SettingsView";
+import { TasksView } from "./views/TasksView";
 import { TodayView } from "./views/TodayView";
 import type { Project, Task } from "./types";
 import "./App.css";
@@ -234,132 +233,49 @@ function App() {
 )}
 
         {activeTab === "tasks" && (
-          <section className="screen-card">
-            <h2>전체 업무</h2>
-            <p className="summary">총 {filteredTasks.length}개</p>
-
-            <label>
-              업무 검색
-              <input
-                type="text"
-                value={taskSearchQuery}
-                onChange={(event) => setTaskSearchQuery(event.target.value)}
-                placeholder="업무 제목 검색"
-              />
-            </label>
-
-            <label>
-              <input
-                type="checkbox"
-                checked={showCompletedTasks}
-                onChange={(event) => setShowCompletedTasks(event.target.checked)}
-              />
-              완료 업무 표시
-            </label>
-
-            <label>
-              정렬
-              <select
-                value={taskSortOrder}
-                onChange={(event) =>
-                  setTaskSortOrder(event.target.value as "none" | "dueDateAsc")
-                }
-              >
-                <option value="none">기본 순서</option>
-                <option value="dueDateAsc">마감일 빠른 순</option>
-              </select>
-            </label>
-
-            <label>
-              프로젝트 필터
-              <select
-                value={selectedProjectFilter}
-                onChange={(event) => setSelectedProjectFilter(event.target.value)}
-              >
-                <option value="all">전체 프로젝트</option>
-                {projects.map((project) => (
-                  <option key={project.id} value={project.id}>
-                    {project.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <button
-              type="button"
-              onClick={() => setIsTaskFormOpen((current) => !current)}
-            >
-              {isTaskFormOpen ? "새 업무 추가 닫기" : "새 업무 추가"}
-            </button>
-
-            {isTaskFormOpen && (
-              <TaskForm
-                title="새 업무 추가"
-                ariaLabel="업무 추가"
-                taskTitle={newTaskTitle}
-                memo={newTaskMemo}
-                dueDate={newTaskDueDate}
-                priority={newTaskPriority}
-                projectId={newTaskProjectId}
-                projects={projects}
-                submitLabel="업무 추가"
-                onTitleChange={setNewTaskTitle}
-                onMemoChange={setNewTaskMemo}
-                onDueDateChange={setNewTaskDueDate}
-                onPriorityChange={setNewTaskPriority}
-                onProjectIdChange={setNewTaskProjectId}
-                onSubmit={handleAddTask}
-              />
-            )}
-
-            {filteredTasks.length === 0 ? (
-              <p className="empty">등록된 업무가 없습니다.</p>
-            ) : (
-              <ul className="task-list">
-                {sortedTasks.map((task) => {
-                  if (editingTaskId === task.id) {
-                    return (
-                      <li key={task.id} className="task-card">
-                        <TaskForm
-                          title="업무 수정"
-                          ariaLabel="업무 수정"
-                          taskTitle={editTaskTitle}
-                          memo={editTaskMemo}
-                          dueDate={editTaskDueDate}
-                          priority={editTaskPriority}
-                          projectId={editTaskProjectId}
-                          projects={projects}
-                          submitLabel="저장"
-                          onTitleChange={setEditTaskTitle}
-                          onMemoChange={setEditTaskMemo}
-                          onDueDateChange={setEditTaskDueDate}
-                          onPriorityChange={setEditTaskPriority}
-                          onProjectIdChange={setEditTaskProjectId}
-                          onSubmit={(event) => {
-                            event.preventDefault();
-                            handleSaveEditTask(task);
-                          }}
-                          onCancel={handleCancelEditTask}
-                          className=""
-                        />
-                      </li>
-                    );
-                  }
-
-                  return (
-                    <TaskCard
-                      key={task.id}
-                      task={task}
-                      projectName={getProjectName(task.projectId)}
-                      onToggleDone={handleToggleTaskDone}
-                      onDelete={handleDeleteTask}
-                      onStartEdit={handleStartEditTask}
-                    />
-                  );
-                })}
-              </ul>
-            )}
-          </section>
+          <TasksView
+            projects={projects}
+            filteredTasks={filteredTasks}
+            sortedTasks={sortedTasks}
+            selectedProjectFilter={selectedProjectFilter}
+            showCompletedTasks={showCompletedTasks}
+            taskSortOrder={taskSortOrder}
+            taskSearchQuery={taskSearchQuery}
+            isTaskFormOpen={isTaskFormOpen}
+            newTaskTitle={newTaskTitle}
+            newTaskMemo={newTaskMemo}
+            newTaskDueDate={newTaskDueDate}
+            newTaskPriority={newTaskPriority}
+            newTaskProjectId={newTaskProjectId}
+            editingTaskId={editingTaskId}
+            editTaskTitle={editTaskTitle}
+            editTaskMemo={editTaskMemo}
+            editTaskDueDate={editTaskDueDate}
+            editTaskPriority={editTaskPriority}
+            editTaskProjectId={editTaskProjectId}
+            getProjectName={getProjectName}
+            onTaskSearchQueryChange={setTaskSearchQuery}
+            onShowCompletedTasksChange={setShowCompletedTasks}
+            onTaskSortOrderChange={setTaskSortOrder}
+            onSelectedProjectFilterChange={setSelectedProjectFilter}
+            onTaskFormOpenChange={setIsTaskFormOpen}
+            onNewTaskTitleChange={setNewTaskTitle}
+            onNewTaskMemoChange={setNewTaskMemo}
+            onNewTaskDueDateChange={setNewTaskDueDate}
+            onNewTaskPriorityChange={setNewTaskPriority}
+            onNewTaskProjectIdChange={setNewTaskProjectId}
+            onEditTaskTitleChange={setEditTaskTitle}
+            onEditTaskMemoChange={setEditTaskMemo}
+            onEditTaskDueDateChange={setEditTaskDueDate}
+            onEditTaskPriorityChange={setEditTaskPriority}
+            onEditTaskProjectIdChange={setEditTaskProjectId}
+            onAddTask={handleAddTask}
+            onSaveEditTask={handleSaveEditTask}
+            onCancelEditTask={handleCancelEditTask}
+            onToggleTaskDone={handleToggleTaskDone}
+            onDeleteTask={handleDeleteTask}
+            onStartEditTask={handleStartEditTask}
+          />
         )}
 
         {activeTab === "projects" && (
