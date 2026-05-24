@@ -2,11 +2,10 @@
 
 import type { AIProvider } from "./AIProvider";
 import type { Task } from "../types";
-import { getTaskScore } from "./recommendationScore";
+import { compareRecommendedTasks } from "./recommendationScore";
 import {
   isOverdueTask,
   isUpcomingTask,
-  parseDueDate,
   startOfToday,
 } from "../utils/dateUtils";
 
@@ -14,22 +13,7 @@ export class RuleBasedAIProvider implements AIProvider {
   async suggestTodayTasks(tasks: Task[], limit = 3): Promise<Task[]> {
     const filteredTasks = tasks
       .filter(task => task.status !== "done")
-      .sort((a, b) => {
-        const scoreA = getTaskScore(a);
-        const scoreB = getTaskScore(b);
-
-        if (scoreA !== scoreB) {
-          return scoreB - scoreA;
-        }
-
-        const aDue = parseDueDate(a.dueDate);
-        const bDue = parseDueDate(b.dueDate);
-
-        if (aDue && bDue) return aDue.getTime() - bDue.getTime();
-        if (aDue) return -1;
-        if (bDue) return 1;
-        return 0;
-      });
+      .sort(compareRecommendedTasks);
 
     return filteredTasks.slice(0, limit);
   }

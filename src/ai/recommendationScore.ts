@@ -26,3 +26,20 @@ export function getTaskScore(task: Task): number {
 
   return priorityScore(task.priority) + dueDateScore;
 }
+
+export function compareRecommendedTasks(a: Task, b: Task): number {
+  const scoreA = getTaskScore(a);
+  const scoreB = getTaskScore(b);
+
+  if (scoreA !== scoreB) {
+    return scoreB - scoreA;
+  }
+
+  const aDue = parseDueDate(a.dueDate);
+  const bDue = parseDueDate(b.dueDate);
+
+  if (aDue && bDue) return aDue.getTime() - bDue.getTime();
+  if (aDue) return -1;
+  if (bDue) return 1;
+  return 0;
+}
