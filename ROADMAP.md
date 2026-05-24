@@ -720,6 +720,55 @@ upcoming 기준:
 5. 마지막에 `suggestTodayTasks()`가 필터, 정렬, slice 조립만 담당하도록 줄인다.
 6. 각 단계마다 `npm run build`와 오늘 화면 추천 업무 수동 테스트를 수행한다.
 
+### 17.12 추천 정렬 comparator 분리 계획
+
+`RuleBasedAIProvider.suggestTodayTasks()` 안의 정렬 comparator는 추천 업무의 최종 표시 순서를 결정한다. `priorityScore()`와 `getTaskScore()`는 분리되었지만, comparator는 점수 동점 처리와 dueDate fallback을 함께 담당하므로 바로 옮기지 않고 기준을 먼저 고정한다.
+
+현재 comparator 정렬 기준:
+
+- `getTaskScore(a)`와 `getTaskScore(b)`를 비교한다.
+- 두 점수가 다르면 높은 점수의 업무가 먼저 온다.
+- 두 점수가 같으면 `parseDueDate(a.dueDate)`와 `parseDueDate(b.dueDate)`를 비교한다.
+- 두 업무 모두 유효한 dueDate가 있으면 더 빠른 dueDate의 업무가 먼저 온다.
+- 한 업무에만 유효한 dueDate가 있으면 dueDate가 있는 업무가 먼저 온다.
+- 두 업무 모두 dueDate가 없거나 invalid dueDate이면 comparator는 `0`을 반환한다.
+- 추천 후보 필터는 `task.status !== "done"` 조건을 유지한다.
+- 정렬 후 반환은 기존처럼 `filteredTasks.slice(0, limit)`를 사용하며 기본 limit은 3이다.
+
+dueDate 없음/invalid dueDate 처리 기준:
+
+- `parseDueDate()`가 `null`을 반환하면 정렬상 유효한 dueDate가 없는 업무로 취급한다.
+- 점수가 같은 업무끼리 비교할 때 dueDate가 없는 업무는 dueDate가 있는 업무보다 뒤에 온다.
+- 두 업무 모두 dueDate가 없거나 invalid이면 기존 배열 순서가 유지되도록 comparator 결과를 `0`으로 둔다.
+- invalid dueDate는 추천 후보 제외 조건이 아니며, 마감일 정렬과 마감일 점수에서만 제외된다.
+
+`compareRecommendedTasks` 분리 후보:
+
+- 함수 후보: `compareRecommendedTasks(a: Task, b: Task): number`
+- 위치 후보: `src/ai/recommendationScore.ts`
+- 내부에서 `getTaskScore()`와 `parseDueDate()`를 그대로 사용한다.
+- 첫 단계에서는 today 주입이나 정렬 정책 변경을 추가하지 않는다.
+- `suggestTodayTasks()`는 `filter`, `sort(compareRecommendedTasks)`, `slice(limit)` 조립만 담당하도록 줄인다.
+
+comparator 분리 시 바뀌면 안 되는 동작:
+
+- `done` 상태 업무 제외 조건
+- 점수 내림차순 우선 정렬
+- 점수 동점 시 dueDate 빠른 순 정렬
+- 점수 동점 시 dueDate가 있는 업무를 dueDate 없는 업무보다 우선하는 동작
+- 두 업무 모두 dueDate가 없거나 invalid일 때 comparator가 `0`을 반환하는 동작
+- 추천 업무 기본 반환 개수 3개
+- 지난 마감/7일 이내 마감 목록 계산과 추천 업무 정렬의 역할 구분
+
+향후 안전한 코드 분리 순서:
+
+1. 수동 테스트 체크리스트의 추천 정렬 항목을 먼저 확인한다.
+2. `compareRecommendedTasks(a, b)`를 `recommendationScore.ts`에 추가하되 기존 comparator 코드를 그대로 옮긴다.
+3. `RuleBasedAIProvider.suggestTodayTasks()`의 `.sort()`에 새 comparator만 연결한다.
+4. `filter(task => task.status !== "done")`와 `slice(0, limit)`는 provider에 그대로 둔다.
+5. `npm run build` 후 추천 업무 순서, 최대 3개 반환, dueDate 없음/invalid date 처리 항목을 수동 확인한다.
+6. 문제가 없을 때만 다음 단계에서 today 주입 가능성이나 selector화 여부를 검토한다.
+
 ## 18. 데이터/DB 개선 계획
 
 - Dexie schema 변경 전 migration 계획을 작성한다.
