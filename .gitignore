@@ -24,3 +24,7 @@ dist-ssr
 *.sw?
 
 .antigravitycli/
+
+automation-state.json
+.antigravitycli/
+automation-logs/
