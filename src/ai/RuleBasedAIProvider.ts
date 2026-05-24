@@ -2,38 +2,13 @@
 
 import type { AIProvider } from "./AIProvider";
 import type { Task } from "../types";
+import { getTaskScore } from "./recommendationScore";
 import {
   isOverdueTask,
   isUpcomingTask,
   parseDueDate,
   startOfToday,
 } from "../utils/dateUtils";
-
-function priorityScore(priority: Task["priority"]): number {
-  switch (priority) {
-    case "high":
-      return 3;
-    case "medium":
-      return 2;
-    case "low":
-      return 1;
-    default:
-      return 0;
-  }
-}
-
-function getTaskScore(task: Task): number {
-  const today = startOfToday();
-  const dueDate = parseDueDate(task.dueDate);
-  let dueDateScore = 0;
-  if (dueDate) {
-    const daysUntilDue = Math.floor((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-    if (daysUntilDue < 0) dueDateScore += 10;
-    if (daysUntilDue === 0) dueDateScore += 5;
-  }
-
-  return priorityScore(task.priority) + dueDateScore;
-}
 
 export class RuleBasedAIProvider implements AIProvider {
   async suggestTodayTasks(tasks: Task[], limit = 3): Promise<Task[]> {
