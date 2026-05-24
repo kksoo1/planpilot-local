@@ -125,7 +125,7 @@ function Test-CodexAvailable {
 }
 
 function Test-AntigravityCliCommand {
-  $candidates = @("antigravity", "ag", "antigravity-cli")
+  $candidates = @("agy", "antigravity", "ag", "antigravity-cli")
 
   foreach ($candidate in $candidates) {
     $found = $null
