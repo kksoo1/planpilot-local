@@ -69,8 +69,8 @@ PlanPilot Local은 Dexie.js를 통해 IndexedDB에 데이터를 저장합니다.
 ## 주요 파일
 
 - `src/App.tsx`
-  - 현재 메인 UI와 화면 로직이 모여 있는 파일입니다.
-  - 이미 커진 상태이므로 새 기능 추가 전 분리/정리를 먼저 검토합니다.
+  - 앱 초기화, 탭 상태, 화면 조립, 주요 CRUD 핸들러를 담당합니다.
+  - 화면 JSX와 반복 UI는 `src/views`, `src/components`, `src/utils`로 분리 중입니다.
 - `src/store.ts`
   - Zustand store와 업무/프로젝트/설정 액션을 정의합니다.
 - `src/db.ts`
@@ -81,6 +81,12 @@ PlanPilot Local은 Dexie.js를 통해 IndexedDB에 데이터를 저장합니다.
   - AI Provider 인터페이스입니다.
 - `src/ai/RuleBasedAIProvider.ts`
   - 로컬 rule-based 추천 구현입니다.
+- `src/views`
+  - 오늘, 업무, 프로젝트, 설정 화면 컴포넌트를 담습니다.
+- `src/components`
+  - 업무/프로젝트 카드와 폼 컴포넌트를 담습니다.
+- `src/utils`
+  - 날짜 계산, 프로젝트 통계, 라벨 매핑, 업무 필터/정렬 유틸을 담습니다.
 - `AGENTS.md`
   - Codex 작업 규칙입니다.
 - `ROADMAP.md`
@@ -115,7 +121,7 @@ npm run preview
 1. 문서와 실제 코드 상태 동기화
 2. 현재 빌드 가능 여부 확인
 3. `src/App.tsx` 분리 설계
-4. 화면 단위 컴포넌트 분리
+4. 남은 `App.tsx` 상태/핸들러 책임 축소
 5. 날짜 계산과 추천 로직 정리
 6. DB migration 정책 문서화
 7. Android/Capacitor 전환 준비

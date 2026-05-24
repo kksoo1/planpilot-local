@@ -1,7 +1,7 @@
 ﻿# Active Context
 
 ## Current Status
-기본 MVP 구조는 생성되어 있고, 현재 문서와 코드 상태를 맞추는 단계다.
+기본 MVP 구조는 생성되어 있고, 화면/카드/폼/유틸 분리를 통해 `App.tsx` 책임을 줄이는 단계다.
 최근 확인 기준으로 `npm run build`는 성공했다.
 
 ## Completed
@@ -21,6 +21,10 @@
 - 기본 프로젝트 삭제 방지 구현
 - 업무가 있는 프로젝트 삭제 방지 구현
 - 오늘 화면의 추천 업무, 지난 마감 업무, 7일 이내 마감 업무 표시 구현
+- SettingsView, TodayView, TasksView, ProjectsView 화면 컴포넌트 분리
+- TaskCard, ProjectCard 표시 컴포넌트 분리
+- TaskForm, ProjectForm 폼 컴포넌트 분리
+- taskLabels, taskDates, taskFilters, projectStats 유틸 분리
 - README.md를 PlanPilot Local 전용 문서로 갱신
 - AGENTS.md 작성 및 Codex 작업 규칙 정리
 - ROADMAP.md 작성 및 App.tsx 분리 계획 정리
@@ -43,11 +47,11 @@ Codex는 AGENTS.md와 ROADMAP.md를 기준으로 작업한다.
 - git 명령은 사용자가 "커밋까지 진행"을 명시한 작업에서만 제한적으로 실행
 
 ## Next Recommended Task
-`src/App.tsx` 분리를 위한 첫 작은 리팩터링을 진행한다.
+`src/App.tsx`에 남은 상태와 CRUD 핸들러 책임을 줄일 수 있는지 점검한다.
 
 ## Next Task Scope
-- 우선 후보: `SettingsView` 분리
-- 목표: 동작 변경 없이 화면 JSX만 작은 단위로 분리
+- 우선 후보: Task 관련 form 상태와 submit/reset 핸들러 정리 계획
+- 목표: 동작 변경 없이 `App.tsx`의 남은 책임을 작은 단위로 줄이기
 - 검증: `npm run build`
 - 금지:
   - `src/App.css` 수정

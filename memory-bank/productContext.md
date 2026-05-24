@@ -47,8 +47,7 @@ PlanPilot Local
 - 7일 이내 마감 업무 표시
 
 ## Future Features
-- `src/App.tsx` 화면 단위 분리
-- 업무/프로젝트 폼 컴포넌트 분리
+- `src/App.tsx`에 남은 상태와 핸들러 책임 축소
 - 날짜 계산과 추천 로직 정리
 - 설정 편집 기능
 - 업무 상태 `todo`, `in_progress`, `done` 전체를 자연스럽게 조작하는 UI

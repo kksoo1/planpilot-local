@@ -54,16 +54,30 @@
   - 서버 호출 없는 rule-based AI 구현
 
 - `src/App.tsx`
-  - 하단 탭 UI
-  - 오늘/업무/프로젝트/설정 화면
-  - 업무 추가/수정 폼
-  - 프로젝트 추가/수정 폼
-  - 업무 완료/미완료 토글
-  - 업무 삭제
-  - 프로젝트 삭제
-  - 업무 검색, 필터, 정렬
-  - RuleBasedAIProvider 추천 업무 표시
-  - 현재 약 700줄 규모로 커져 있어 화면/폼/파생 데이터 로직 분리 필요
+  - 앱 초기화
+  - 하단 탭 상태
+  - 화면 컴포넌트 조립
+  - 업무/프로젝트 form 상태
+  - 업무/프로젝트 CRUD 핸들러
+  - RuleBasedAIProvider 추천 업무 연결
+
+- `src/views`
+  - SettingsView
+  - TodayView
+  - TasksView
+  - ProjectsView
+
+- `src/components`
+  - TaskCard
+  - ProjectCard
+  - TaskForm
+  - ProjectForm
+
+- `src/utils`
+  - taskLabels
+  - taskDates
+  - taskFilters
+  - projectStats
 
 ## Codex Rules
 - AGENTS.md를 우선 기준으로 작업

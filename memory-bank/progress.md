@@ -43,3 +43,18 @@
 3. 의존성이 적은 `SettingsView`부터 화면 컴포넌트 분리
 4. 각 작은 리팩터링 후 `npm run build`로 확인
 5. 사용자가 "커밋까지 진행"을 명시한 경우에만 제한된 git 명령으로 커밋
+
+## 2026-05-24
+
+### Completed
+- `SettingsView`, `TodayView`, `TasksView`, `ProjectsView` 화면 컴포넌트 분리
+- `TaskCard`, `ProjectCard` 표시 컴포넌트 분리
+- `TaskForm`, `ProjectForm` 폼 컴포넌트 분리
+- `taskLabels`, `taskDates`, `projectStats`, `taskFilters` 유틸 분리
+- ROADMAP에 앱 완성 기준과 리팩터링 진행 상태 보강
+
+### Next
+1. `App.tsx`에 남은 업무/프로젝트 CRUD 핸들러와 form 상태 정리 가능성 점검
+2. 날짜 계산과 `RuleBasedAIProvider` 추천 기준 중복 정리
+3. 수동 테스트 체크리스트 문서 추가 또는 보강
+4. DB migration 규칙 문서화

@@ -8,7 +8,7 @@
 - Zustand store와 Dexie.js + IndexedDB 기반 저장소가 구현되어 있다.
 - 서버 없이 동작하는 privacy-first 개인 일정/업무 관리 앱 방향을 따른다.
 - 로그인, 서버 API, 클라우드 동기화, 알림, Capacitor는 아직 도입하지 않는다.
-- UI는 `src/App.tsx` 중심으로 구현되어 있으며, 현재 파일이 커진 상태다.
+- UI는 `src/views`, `src/components`, `src/utils`로 분리 중이며, `src/App.tsx`는 앱 초기화, 탭 상태, 주요 상태/핸들러 조립을 담당한다.
 
 ## 2. 현재 구현된 기능
 
@@ -51,12 +51,10 @@
 
 ## 3. 현재 구조의 문제점
 
-- `src/App.tsx`가 약 700줄 규모로 커졌다.
-- `App.tsx` 안에 탭 화면, 폼 상태, 편집 상태, 필터/정렬, CRUD 핸들러가 모두 들어 있다.
+- `src/App.tsx`에서 화면 JSX와 반복 UI는 분리되었지만, 폼 상태, 편집 상태, CRUD 핸들러가 아직 많이 남아 있다.
 - `useState`가 많아 기능 추가 시 상태 관리가 더 복잡해질 수 있다.
-- 날짜 계산 로직이 `App.tsx`와 `RuleBasedAIProvider`에 중복되어 있다.
-- `README.md`는 PlanPilot Local 전용 문서로 교체되었지만, memory-bank 문서는 아직 일부 갱신이 필요하다.
-- `memory-bank` 문서 일부는 현재 구현 상태와 어긋날 수 있다.
+- 날짜 계산과 추천 기준은 `taskDates`와 `RuleBasedAIProvider` 사이에서 추가 정리가 필요하다.
+- 문서는 리팩터링 진행 상태에 맞춰 계속 동기화해야 한다.
 - DB schema migration 전략이 아직 없다.
 - 에러/로딩 상태 처리가 부족하다.
 - 테스트 파일과 자동 검증 흐름이 아직 정리되어 있지 않다.
@@ -294,10 +292,10 @@ AI Provider:
 ## 15. 단기 개발 목표
 
 1. 현재 구현 상태에 맞게 README와 내부 문서를 정리한다.
-2. `src/App.tsx` 분리 계획을 세운다.
+2. 남은 `src/App.tsx` 상태와 핸들러 책임을 줄일 순서를 정한다.
 3. 기능 추가 전 현재 빌드 상태를 확인한다.
-4. `TodayView`, `TasksView`, `ProjectsView`, `SettingsView` 분리 후보를 검토한다.
-5. 업무 추가/수정 폼과 프로젝트 추가/수정 폼의 중복을 줄인다.
+4. 화면 분리 이후 남은 props 과다 구간을 점검한다.
+5. 업무/프로젝트 폼 컴포넌트 분리 결과를 유지하고, 중복 submit/reset 로직은 별도 작업으로 검토한다.
 6. 날짜 계산과 추천 업무 계산의 중복을 정리한다.
 7. 설정 화면을 단순 표시에서 실제 설정 편집 화면으로 확장할지 결정한다.
 
@@ -332,32 +330,32 @@ AI Provider:
 - [x] [TasksView.tsx](file:///d:/ai-apps/planpilot-local/src/views/TasksView.tsx)
 - [x] [ProjectsView.tsx](file:///d:/ai-apps/planpilot-local/src/views/ProjectsView.tsx)
 
-### 17.2 2차 목표: 표시 컴포넌트 분리
+### 17.2 2차 목표: 표시 컴포넌트 분리 [진행 중]
 
-- 업무 목록의 반복 JSX를 `TaskCard`로 분리한다.
-- 프로젝트 목록의 반복 JSX를 `ProjectCard`로 분리한다.
+- 업무 목록의 반복 JSX를 `TaskCard`로 분리한다. [x]
+- 프로젝트 목록의 반복 JSX를 `ProjectCard`로 분리한다. [x]
 - 오늘 화면의 요약 영역은 별도 summary 컴포넌트로 분리할 수 있다.
 
 예상 파일 후보:
 
-- `src/components/TaskCard.tsx`
-- `src/components/ProjectCard.tsx`
+- `src/components/TaskCard.tsx` [x]
+- `src/components/ProjectCard.tsx` [x]
 - `src/components/SummaryBlock.tsx`
 
-### 17.3 3차 목표: 폼 컴포넌트 분리
+### 17.3 3차 목표: 폼 컴포넌트 분리 [완료]
 
-- 업무 추가 폼과 업무 수정 폼의 중복을 줄인다.
-- 프로젝트 추가 폼과 프로젝트 수정 폼의 중복을 줄인다.
+- 업무 추가 폼과 업무 수정 폼의 중복을 줄인다. [x]
+- 프로젝트 추가 폼과 프로젝트 수정 폼의 중복을 줄인다. [x]
 - 처음부터 과도하게 일반화하지 말고, 실제 중복이 명확한 입력 필드부터 분리한다.
 
 예상 파일 후보:
 
-- `src/components/TaskForm.tsx`
-- `src/components/ProjectForm.tsx`
+- `src/components/TaskForm.tsx` [x]
+- `src/components/ProjectForm.tsx` [x]
 
 ### 17.3.1 TaskForm 분리 계획
 
-`TaskForm`은 업무 추가 form과 업무 수정 form을 함께 다룰 수 있지만, 프로젝트 form보다 상태와 필드가 많아 바로 분리하지 않는다. 먼저 공통 필드와 동작 차이를 명확히 나눈 뒤 작은 단계로 진행한다.
+`TaskForm`은 업무 추가 form과 업무 수정 form의 공통 입력 UI로 분리되었다. 다만 상태와 submit/reset 핸들러는 아직 `App.tsx`와 `TasksView` props에 남아 있으므로, 다음 단계에서는 동작 변경 없이 책임을 더 줄일 수 있는지 검토한다.
 
 공통 필드 후보:
 
@@ -381,7 +379,7 @@ AI Provider:
 - 취소 버튼이 필요하다.
 - submit label은 `저장`이다.
 
-분리 전 위험 요소:
+남은 위험 요소:
 
 - 업무 추가 form은 `isTaskFormOpen` 상태와 연결되어 있다.
 - 업무 수정 form은 `sortedTasks.map()` 내부에서 특정 업무와 함께 렌더링된다.
@@ -389,25 +387,25 @@ AI Provider:
 - 프로젝트 select options는 `projects` 배열을 필요로 한다.
 - form class 이름과 기존 `li.task-card` 구조를 잘못 바꾸면 CSS가 달라질 수 있다.
 
-권장 분리 순서:
+다음 정리 순서:
 
-1. `TaskForm` props 타입을 먼저 설계한다.
-2. 추가 form만 `TaskForm`으로 교체한다.
-3. 사용자 허용 후 `npm run build`와 수동 테스트를 확인한 뒤 수정 form 교체를 별도 작업으로 진행한다.
-4. 두 form이 모두 안정화된 뒤 중복 submit/reset 로직을 검토한다.
-5. `TasksView` 분리는 `TaskForm` 교체가 끝난 뒤 진행한다.
+1. `TasksView` props 중 상태 setter와 form 값을 분류한다.
+2. submit/reset 로직을 훅 또는 작은 helper로 옮길 수 있는지 검토한다.
+3. `TaskForm` UI는 이미 분리되었으므로 JSX를 다시 복제하지 않는다.
+4. props가 더 늘어나는 방식이면 코드 수정 대신 계획을 먼저 문서화한다.
+5. 각 단계 후 `npm run build`로 확인한다.
 
-### 17.4 4차 목표: 파생 데이터 로직 분리
+### 17.4 4차 목표: 파생 데이터 로직 분리 [진행 중]
 
-- 날짜 계산과 필터/정렬 로직을 `App.tsx` 밖으로 옮긴다.
+- 날짜 계산과 필터/정렬 로직을 `App.tsx` 밖으로 옮긴다. [진행 중]
 - `RuleBasedAIProvider`와 중복되는 overdue/upcoming 계산을 정리한다.
 - DB schema는 이 단계에서 변경하지 않는다.
 
 예상 파일 후보:
 
-- `src/utils/taskFilters.ts`
-- `src/utils/taskDates.ts`
-- `src/utils/projectStats.ts`
+- `src/utils/taskFilters.ts` [x]
+- `src/utils/taskDates.ts` [x]
+- `src/utils/projectStats.ts` [x]
 
 ### 17.5 5차 목표: 라벨 매핑 분리
 
@@ -519,9 +517,11 @@ AI Provider:
 2. 현재 빌드 가능 여부 확인 [완료]
 3. `App.tsx` 분리 설계 [완료]
 4. `SettingsView`, `TodayView`, `TasksView`, `ProjectsView` 화면 컴포넌트 분리 [완료]
-5. 날짜 계산 로직 중복 제거 (TodayView 및 RuleBasedAIProvider 등)
-6. 업무/프로젝트 폼 컴포넌트 분리 및 중복 축소
-7. 설정 편집 기능 추가 여부 결정
-8. DB migration 규칙 문서화
-9. RuleBasedAIProvider 개선
-10. Android/Capacitor 전환 준비 문서 작성
+5. 업무/프로젝트 폼 컴포넌트 분리 및 중복 축소 [완료]
+6. 업무 필터/정렬 유틸 분리 [완료]
+7. 날짜 계산 로직 중복 제거 (TodayView 및 RuleBasedAIProvider 등)
+8. `App.tsx`에 남은 CRUD 핸들러와 form 상태 정리 계획 수립
+9. 설정 편집 기능 추가 여부 결정
+10. DB migration 규칙 문서화
+11. RuleBasedAIProvider 개선
+12. Android/Capacitor 전환 준비 문서 작성

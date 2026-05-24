@@ -3,6 +3,7 @@ import { RuleBasedAIProvider } from "./ai/RuleBasedAIProvider";
 import { useStore } from "./store";
 import { getProjectTaskStats } from "./utils/projectStats";
 import { getOverdueTasks, getUpcomingTasks } from "./utils/taskDates";
+import { filterTasks, sortTasks, type TaskSortOrder } from "./utils/taskFilters";
 import { SettingsView } from "./views/SettingsView";
 import { TasksView } from "./views/TasksView";
 import { ProjectsView } from "./views/ProjectsView";
@@ -33,7 +34,7 @@ function App() {
   const [newProjectDescription, setNewProjectDescription] = useState("");
   const [selectedProjectFilter, setSelectedProjectFilter] = useState("all");
   const [showCompletedTasks, setShowCompletedTasks] = useState(true);
-  const [taskSortOrder, setTaskSortOrder] = useState<"none" | "dueDateAsc">("none");
+  const [taskSortOrder, setTaskSortOrder] = useState<TaskSortOrder>("none");
   const [taskSearchQuery, setTaskSearchQuery] = useState("");
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
 
@@ -49,31 +50,13 @@ function App() {
   const overdueTasks = getOverdueTasks(tasks, today);
   const upcomingTasks = getUpcomingTasks(tasks, today, 7);
 
-  const filteredTasks = tasks.filter((task) => {
-    const matchesProject =
-      selectedProjectFilter === "all" || task.projectId === selectedProjectFilter;
-
-    const searchText = taskSearchQuery.trim().toLowerCase();
-    const matchesSearch =
-      !searchText || task.title.toLowerCase().includes(searchText);
-
-    const matchesStatus = showCompletedTasks || task.status !== "done";
-
-    return matchesProject && matchesSearch && matchesStatus;
+  const filteredTasks = filterTasks(tasks, {
+    selectedProjectFilter,
+    showCompletedTasks,
+    taskSearchQuery,
   });
 
-  const sortedTasks = [...filteredTasks].sort((a, b) => {
-    if (taskSortOrder === "none") return 0;
-
-    if (taskSortOrder === "dueDateAsc") {
-      if (!a.dueDate && !b.dueDate) return 0;
-      if (!a.dueDate) return 1;
-      if (!b.dueDate) return -1;
-      return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
-    }
-
-    return 0;
-  });
+  const sortedTasks = sortTasks(filteredTasks, taskSortOrder);
 
   const aiProvider = useMemo(() => new RuleBasedAIProvider(), []);
 

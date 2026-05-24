@@ -2,8 +2,7 @@ import type { FormEvent } from "react";
 import { TaskCard } from "../components/TaskCard";
 import { TaskForm } from "../components/TaskForm";
 import type { Project, Task } from "../types";
-
-type TaskSortOrder = "none" | "dueDateAsc";
+import type { TaskSortOrder } from "../utils/taskFilters";
 
 type TasksViewProps = {
   projects: Project[];
