@@ -468,6 +468,64 @@ AI Provider:
 6. 분리 후 `npm run build`로 확인한다.
 7. props가 과도하게 늘어나면 TodayView 분리만 완료하고 추가 리팩터링은 다음 작업으로 미룬다.
 
+### 17.8 App.tsx 잔여 책임 정리 계획
+
+화면, 카드, 폼, 일부 유틸은 분리되었지만 `App.tsx`에는 아직 form 상태와 CRUD 핸들러가 많이 남아 있다. 다음 리팩터링은 바로 코드를 옮기기보다, 책임을 아래처럼 분류한 뒤 작은 단위로 진행한다.
+
+현재 `App.tsx`에 남은 책임:
+
+- 탭 상태 관리
+- 앱 초기화와 store 액션 연결
+- `RuleBasedAIProvider` 생성과 추천 업무 상태 관리
+- 오늘 화면용 파생 데이터 연결
+- 프로젝트 이름 조회 함수
+- 업무 추가 form 상태와 reset 로직
+- 업무 수정 form 상태와 reset 로직
+- 업무 완료/미완료 토글 핸들러
+- 업무 삭제 확인 핸들러
+- 프로젝트 추가 form 상태와 reset 로직
+- 프로젝트 수정 form 상태와 reset 로직
+- 프로젝트 삭제 가능 여부 확인과 삭제 확인 핸들러
+- `TasksView`, `ProjectsView`에 전달하는 다수의 props 조립
+
+우선 정리 후보:
+
+1. 업무 form 상태 묶음 검토
+   - `newTask*`, `editTask*`, `editingTaskId`, `isTaskFormOpen` 상태를 한 번에 옮기지 않는다.
+   - 추가 form 상태와 수정 form 상태를 별도 단위로 볼 수 있는지 먼저 확인한다.
+   - `TaskForm` JSX는 이미 분리되어 있으므로 중복 생성하지 않는다.
+
+2. 프로젝트 form 상태 묶음 검토
+   - `newProject*`, `editProject*`, `editingProjectId` 상태를 작은 단위로 정리한다.
+   - 프로젝트 삭제 정책은 기본 프로젝트 삭제 방지와 업무 연결 프로젝트 삭제 방지를 유지한다.
+   - `ProjectForm`과 `ProjectCard` 구조는 유지한다.
+
+3. handler helper 또는 custom hook 후보 검토
+   - 후보 이름은 `useTaskFormState`, `useProjectFormState`, `useTaskActions`, `useProjectActions`처럼 역할이 분명해야 한다.
+   - hook으로 옮길 경우 store 액션, confirm 문구, reset 순서가 바뀌지 않아야 한다.
+   - hook 도입이 props 수를 줄이지 못하면 진행하지 않는다.
+
+4. 작은 유틸 후보 검토
+   - `getProjectName(projects, projectId)`처럼 순수 조회 helper는 유틸로 분리할 수 있다.
+   - 완료 업무 수 계산은 `TodayView` props로 넘기기 전에 selector 또는 helper로 분리할 수 있다.
+   - 단, 유틸 분리만으로 가독성이 크게 좋아지지 않으면 보류한다.
+
+진입 조건:
+
+- `git status`가 깨끗하다.
+- `npm run build`가 성공한다.
+- `docs/manual-test-checklist.md`에서 업무 추가/수정/삭제, 프로젝트 추가/수정/삭제, TodayView 회귀 항목을 확인할 수 있다.
+- 수정 범위가 한 종류의 상태 또는 한 종류의 handler로 제한된다.
+- `App.css`, DB schema, store 타입, UI 문구 변경이 필요하지 않다.
+
+중단 조건:
+
+- `TasksView`나 `ProjectsView` props가 더 늘어난다.
+- confirm 문구나 삭제 정책이 바뀔 가능성이 있다.
+- form reset 순서가 바뀔 가능성이 있다.
+- store 액션 시그니처 변경이 필요하다.
+- 한 작업에서 업무와 프로젝트를 동시에 크게 바꿔야 한다.
+
 ## 18. 데이터/DB 개선 계획
 
 - Dexie schema 변경 전 migration 계획을 작성한다.
