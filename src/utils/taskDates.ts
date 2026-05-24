@@ -1,9 +1,11 @@
 import type { Task } from "../types";
+import { parseDueDate } from "./dateUtils";
 
 export function getOverdueTasks(tasks: Task[], today: Date) {
   return tasks.filter((task) => {
-    if (!task.dueDate || task.status === "done") return false;
-    return new Date(task.dueDate) < today;
+    if (task.status === "done") return false;
+    const dueDate = parseDueDate(task.dueDate);
+    return Boolean(dueDate && dueDate < today);
   });
 }
 
@@ -12,8 +14,8 @@ export function getUpcomingTasks(tasks: Task[], today: Date, days: number) {
   daysLater.setDate(today.getDate() + days);
 
   return tasks.filter((task) => {
-    if (!task.dueDate || task.status === "done") return false;
-    const dueDate = new Date(task.dueDate);
-    return dueDate >= today && dueDate <= daysLater;
+    if (task.status === "done") return false;
+    const dueDate = parseDueDate(task.dueDate);
+    return Boolean(dueDate && dueDate >= today && dueDate <= daysLater);
   });
 }
