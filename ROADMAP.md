@@ -317,20 +317,20 @@ AI Provider:
 
 리팩터링은 동작 변경 없이 작은 단위로 진행한다. 각 단계 후 `npm run build`로 확인하고, 실패하면 다음 단계로 넘어가지 않는다.
 
-### 17.1 1차 목표: 화면 컴포넌트 분리
+### 17.1 1차 목표: 화면 컴포넌트 분리 [완료]
 
-- 우선 `src/App.tsx`에서 화면별 JSX를 분리한다.
-- CSS class 이름은 유지하고 `src/App.css`는 수정하지 않는다.
-- 첫 분리 후보는 상대적으로 의존성이 적은 `SettingsView`다.
-- 다음 후보는 `TodayView`다.
-- `TasksView`와 `ProjectsView`는 폼 상태와 CRUD 핸들러가 많으므로 후순위로 둔다.
+- 우선 `src/App.tsx`에서 화면별 JSX를 분리한다. [x]
+- CSS class 이름은 유지하고 `src/App.css`는 수정하지 않는다. [x]
+- 첫 분리 후보는 상대적으로 의존성이 적은 `SettingsView`다. [x]
+- 다음 후보는 `TodayView`다. [x]
+- `TasksView`와 `ProjectsView`는 폼 상태와 CRUD 핸들러가 많으므로 후순위로 둔다. [x]
 
-예상 파일 후보:
+분리 완료 파일:
 
-- `src/views/SettingsView.tsx`
-- `src/views/TodayView.tsx`
-- `src/views/TasksView.tsx`
-- `src/views/ProjectsView.tsx`
+- [x] [SettingsView.tsx](file:///d:/ai-apps/planpilot-local/src/views/SettingsView.tsx)
+- [x] [TodayView.tsx](file:///d:/ai-apps/planpilot-local/src/views/TodayView.tsx)
+- [x] [TasksView.tsx](file:///d:/ai-apps/planpilot-local/src/views/TasksView.tsx)
+- [x] [ProjectsView.tsx](file:///d:/ai-apps/planpilot-local/src/views/ProjectsView.tsx)
 
 ### 17.2 2차 목표: 표시 컴포넌트 분리
 
@@ -515,12 +515,12 @@ AI Provider:
 
 ## 21. 다음 작업 우선순위
 
-1. 현재 문서와 코드 상태 동기화
-2. 현재 빌드 가능 여부 확인
-3. `App.tsx` 분리 설계
-4. `TodayView` 또는 `TasksView`부터 작은 단위로 분리
-5. 날짜 계산 로직 중복 제거
-6. 업무/프로젝트 폼 컴포넌트 분리
+1. 현재 문서와 코드 상태 동기화 [완료]
+2. 현재 빌드 가능 여부 확인 [완료]
+3. `App.tsx` 분리 설계 [완료]
+4. `SettingsView`, `TodayView`, `TasksView`, `ProjectsView` 화면 컴포넌트 분리 [완료]
+5. 날짜 계산 로직 중복 제거 (TodayView 및 RuleBasedAIProvider 등)
+6. 업무/프로젝트 폼 컴포넌트 분리 및 중복 축소
 7. 설정 편집 기능 추가 여부 결정
 8. DB migration 규칙 문서화
 9. RuleBasedAIProvider 개선

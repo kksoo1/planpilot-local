@@ -3,10 +3,9 @@ import { RuleBasedAIProvider } from "./ai/RuleBasedAIProvider";
 import { useStore } from "./store";
 import { getProjectTaskStats } from "./utils/projectStats";
 import { getOverdueTasks, getUpcomingTasks } from "./utils/taskDates";
-import { ProjectCard } from "./components/ProjectCard";
-import { ProjectForm } from "./components/ProjectForm";
 import { SettingsView } from "./views/SettingsView";
 import { TasksView } from "./views/TasksView";
+import { ProjectsView } from "./views/ProjectsView";
 import { TodayView } from "./views/TodayView";
 import type { Project, Task } from "./types";
 import "./App.css";
@@ -279,63 +278,24 @@ function App() {
         )}
 
         {activeTab === "projects" && (
-          <section className="screen-card">
-            <h2>프로젝트</h2>
-            <p className="summary">총 {projects.length}개</p>
-
-            <ProjectForm
-              title="새 프로젝트 추가"
-              ariaLabel="프로젝트 추가"
-              name={newProjectName}
-              description={newProjectDescription}
-              submitLabel="프로젝트 추가"
-              onNameChange={setNewProjectName}
-              onDescriptionChange={setNewProjectDescription}
-              onSubmit={handleAddProject}
-            />
-
-            {projects.length === 0 ? (
-              <p className="empty">프로젝트가 없습니다.</p>
-            ) : (
-              <ul className="task-list">
-                {projects.map((project) => {
-                  const stats = getProjectTaskStats(tasks, project.id);
-
-                  if (editingProjectId === project.id) {
-                    return (
-                      <li key={project.id} className="task-card">
-                        <ProjectForm
-                          title="프로젝트 수정"
-                          ariaLabel="프로젝트 수정"
-                          name={editProjectName}
-                          description={editProjectDescription}
-                          submitLabel="저장"
-                          onNameChange={setEditProjectName}
-                          onDescriptionChange={setEditProjectDescription}
-                          onSubmit={(event) => {
-                            event.preventDefault();
-                            handleSaveEditProject(project);
-                          }}
-                          onCancel={handleCancelEditProject}
-                          className=""
-                        />
-                      </li>
-                    );
-                  }
-
-                  return (
-                    <ProjectCard
-                      key={project.id}
-                      project={project}
-                      stats={stats}
-                      onDelete={handleDeleteProject}
-                      onStartEdit={handleStartEditProject}
-                    />
-                  );
-                })}
-              </ul>
-            )}
-          </section>
+          <ProjectsView
+            projects={projects}
+            tasks={tasks}
+            editingProjectId={editingProjectId}
+            editProjectName={editProjectName}
+            editProjectDescription={editProjectDescription}
+            newProjectName={newProjectName}
+            newProjectDescription={newProjectDescription}
+            onNewProjectNameChange={setNewProjectName}
+            onNewProjectDescriptionChange={setNewProjectDescription}
+            onEditProjectNameChange={setEditProjectName}
+            onEditProjectDescriptionChange={setEditProjectDescription}
+            onAddProject={handleAddProject}
+            onSaveEditProject={handleSaveEditProject}
+            onCancelEditProject={handleCancelEditProject}
+            onDeleteProject={handleDeleteProject}
+            onStartEditProject={handleStartEditProject}
+          />
         )}
 
         {activeTab === "settings" && <SettingsView appSettings={appSettings} />}
