@@ -51,10 +51,13 @@
 - `TaskCard`, `ProjectCard` 표시 컴포넌트 분리
 - `TaskForm`, `ProjectForm` 폼 컴포넌트 분리
 - `taskLabels`, `taskDates`, `taskFilters`, `taskSummary`, `projectLookup`, `projectStats` 유틸 분리
+- `dateUtils`에 `startOfToday`, `parseDueDate`, `isOverdueTask`, `isUpcomingTask` 공용 날짜 helper 정리
+- `recommendationScore`에 `priorityScore`, `getTaskScore`, `compareRecommendedTasks` 추천 점수/정렬 helper 정리
+- `RuleBasedAIProvider`는 추천 흐름 조립, 지난 마감/예정 업무 목록 제공, 업무 요약 문자열 생성을 담당하도록 정리
 - ROADMAP에 앱 완성 기준과 리팩터링 진행 상태 보강
 
 ### Next
-1. `App.tsx`에 남은 업무/프로젝트 CRUD 핸들러와 form 상태 정리 가능성 점검
-2. 날짜 계산과 `RuleBasedAIProvider` 추천 기준 중복 정리
-3. 수동 테스트 체크리스트 문서 추가 또는 보강
+1. `App.tsx`에 남은 unused import/state/helper 정리 가능성 점검
+2. 설정 화면 실제 편집 기능을 추가할지 검토
+3. 추천 로직 수동 테스트 후 기능 추가 진입 여부 결정
 4. DB migration 규칙 문서화

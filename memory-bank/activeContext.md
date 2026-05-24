@@ -25,6 +25,9 @@
 - TaskCard, ProjectCard 표시 컴포넌트 분리
 - TaskForm, ProjectForm 폼 컴포넌트 분리
 - taskLabels, taskDates, taskFilters, projectStats 유틸 분리
+- taskSummary, projectLookup, dateUtils, recommendationScore 유틸 분리
+- RuleBasedAIProvider가 추천 흐름 조립, 지난 마감/예정 업무 목록, 요약 문자열 생성을 담당하도록 정리
+- recommendationScore가 priorityScore, getTaskScore, compareRecommendedTasks를 담당하도록 정리
 - README.md를 PlanPilot Local 전용 문서로 갱신
 - AGENTS.md 작성 및 Codex 작업 규칙 정리
 - ROADMAP.md 작성 및 App.tsx 분리 계획 정리
@@ -47,10 +50,11 @@ Codex는 AGENTS.md와 ROADMAP.md를 기준으로 작업한다.
 - git 명령은 사용자가 "커밋까지 진행"을 명시한 작업에서만 제한적으로 실행
 
 ## Next Recommended Task
-`src/App.tsx`에 남은 상태와 CRUD 핸들러 책임을 줄일 수 있는지 점검한다.
+`src/App.tsx`에 남은 unused import/state/helper를 먼저 정리할 수 있는지 점검한다.
 
 ## Next Task Scope
-- 우선 후보: Task 관련 form 상태와 submit/reset 핸들러 정리 계획
+- 우선 후보: App.tsx 잔여 import/state/helper 정리
+- 보조 후보: 설정 화면 실제 편집 기능 검토, 추천 로직 수동 테스트 후 기능 추가 진입
 - 목표: 동작 변경 없이 `App.tsx`의 남은 책임을 작은 단위로 줄이기
 - 검증: `npm run build`
 - 금지:

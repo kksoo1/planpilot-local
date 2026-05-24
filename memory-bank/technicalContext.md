@@ -52,6 +52,14 @@
 
 - `src/ai/RuleBasedAIProvider.ts`
   - 서버 호출 없는 rule-based AI 구현
+  - 추천 흐름 조립
+  - 지난 마감/예정 업무 목록 제공
+  - 업무 요약 문자열 생성
+
+- `src/ai/recommendationScore.ts`
+  - priorityScore
+  - getTaskScore
+  - compareRecommendedTasks
 
 - `src/App.tsx`
   - 앱 초기화
@@ -74,6 +82,7 @@
   - ProjectForm
 
 - `src/utils`
+  - dateUtils
   - taskLabels
   - taskDates
   - taskFilters

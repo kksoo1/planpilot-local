@@ -125,3 +125,22 @@ npm run preview
 5. 날짜 계산과 추천 로직 정리
 6. DB migration 정책 문서화
 7. Android/Capacitor 전환 준비
+
+## 추천/날짜 유틸 구조
+
+최근 리팩터링 기준으로 추천 업무와 날짜 계산은 다음 역할로 나뉜다.
+
+- `src/ai/recommendationScore.ts`
+  - `priorityScore`: 업무 우선순위 값을 추천 점수로 변환한다.
+  - `getTaskScore`: 우선순위와 마감일 기준 점수를 합산한다.
+  - `compareRecommendedTasks`: 추천 업무 정렬 기준을 담당한다.
+- `src/ai/RuleBasedAIProvider.ts`
+  - 추천 흐름을 조립한다.
+  - 완료되지 않은 업무를 추천 후보로 필터링하고, 추천 comparator를 적용한 뒤 기본 3개를 반환한다.
+  - 지난 마감/예정 업무 목록과 업무 요약 문자열을 제공한다.
+- `src/utils/dateUtils.ts`
+  - `startOfToday`, `parseDueDate`, `isOverdueTask`, `isUpcomingTask` 같은 공용 날짜 helper를 제공한다.
+- `src/utils/taskDates.ts`
+  - Today 화면에서 사용할 지난 마감 업무와 7일 이내 마감 업무 목록 계산을 담당한다.
+
+다음 리팩터링은 `App.tsx`에 남은 unused import/state/helper 정리, 설정 화면 실제 편집 기능 검토, 추천 로직 수동 테스트 후 기능 추가 진입 순서로 검토한다.

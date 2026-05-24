@@ -830,3 +830,36 @@ comparator 분리 시 바뀌면 안 되는 동작:
 10. DB migration 규칙 문서화
 11. RuleBasedAIProvider 개선
 12. Android/Capacitor 전환 준비 문서 작성
+
+## 22. 추천/날짜 유틸 구조 동기화
+
+최근 리팩터링으로 추천 업무와 날짜 계산 책임은 다음처럼 정리되었다.
+
+- `src/ai/recommendationScore.ts`
+  - `priorityScore`: `high`, `medium`, `low` 우선순위를 추천 점수로 변환한다.
+  - `getTaskScore`: 우선순위 점수와 마감일 점수를 합산한다.
+  - `compareRecommendedTasks`: 추천 업무 정렬을 담당한다. 점수 내림차순, 동점 시 dueDate 빠른 순, 한쪽만 dueDate가 있으면 dueDate 있는 업무 우선, 둘 다 없거나 invalid이면 `0` 반환 기준을 유지한다.
+- `src/ai/RuleBasedAIProvider.ts`
+  - 추천 흐름 조립을 담당한다.
+  - `suggestTodayTasks()`는 완료되지 않은 업무 필터링, 추천 comparator 적용, `limit` 개수 반환을 조립한다.
+  - `findOverdueTasks()`와 `findUpcomingTasks()`는 공용 date predicate를 사용해 지난 마감/예정 업무 목록을 제공한다.
+  - `summarizeTasks()`는 업무 통계와 날짜 목록 개수를 문자열로 만든다.
+- `src/utils/dateUtils.ts`
+  - `startOfToday`, `parseDueDate`, `isOverdueTask`, `isUpcomingTask`를 제공한다.
+  - 비어 있거나 invalid인 `dueDate`는 날짜 기반 목록과 추천 마감일 점수에서 안전하게 제외한다.
+- `src/utils/taskDates.ts`
+  - Today 화면용 지난 마감 업무와 7일 이내 마감 업무 목록 계산을 담당한다.
+  - 내부 판단은 `dateUtils`의 predicate helper를 재사용한다.
+
+App.tsx 리팩터링 진행 상태:
+
+- 화면 컴포넌트(`TodayView`, `TasksView`, `ProjectsView`, `SettingsView`) 분리는 완료했다.
+- 표시 컴포넌트(`TaskCard`, `ProjectCard`)와 폼 컴포넌트(`TaskForm`, `ProjectForm`) 분리는 완료했다.
+- 파생 계산 유틸(`taskLabels`, `taskDates`, `taskFilters`, `taskSummary`, `projectLookup`, `projectStats`) 분리는 진행했다.
+- `App.tsx`에는 아직 앱 초기화, 탭 상태, 업무/프로젝트 form 상태, CRUD 핸들러, 화면 props 조립 책임이 남아 있다.
+
+다음 추천 작업 후보:
+
+1. `App.tsx`에 남은 unused import/state/helper를 정리한다.
+2. 설정 화면을 실제 편집 기능으로 확장할지 검토하되, 저장 방식과 `updatedAt` 갱신 기준을 먼저 문서화한다.
+3. 추천 로직은 수동 테스트 체크리스트로 점수/정렬 회귀를 확인한 뒤 기능 추가 여부를 결정한다.
