@@ -165,7 +165,12 @@ export const useStore = create<Store>((set, get) => ({
     set((state) => ({ projects: state.projects.filter((p) => p.id !== projectId) }));
   },
   updateAppSettings: async (settings) => {
-    await db.appSettings.put({ ...settings, id: "app-settings" });
-    set({ appSettings: settings });
+    const updatedSettings: AppSettings = {
+      ...settings,
+      updatedAt: new Date().toISOString(),
+    };
+
+    await db.appSettings.put({ ...updatedSettings, id: "app-settings" });
+    set({ appSettings: updatedSettings });
   },
 }));
