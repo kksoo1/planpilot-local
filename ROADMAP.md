@@ -863,3 +863,78 @@ App.tsx 리팩터링 진행 상태:
 1. `App.tsx`에 남은 unused import/state/helper를 정리한다.
 2. 설정 화면을 실제 편집 기능으로 확장할지 검토하되, 저장 방식과 `updatedAt` 갱신 기준을 먼저 문서화한다.
 3. 추천 로직은 수동 테스트 체크리스트로 점수/정렬 회귀를 확인한 뒤 기능 추가 여부를 결정한다.
+
+## 23. 설정 저장 정책과 편집 기능 진입 기준
+
+설정 화면을 실제 편집 가능하게 만들기 전에 현재 저장 구조와 갱신 기준을 아래처럼 고정한다.
+
+현재 타입과 저장 구조:
+
+- `AppSettings`는 앱에서 사용하는 설정 값이다.
+  - `theme: "light"`
+  - `language: "ko"`
+  - `aiProvider: "rule_based"`
+  - `enableNotifications: false`
+  - `firstLaunchCompleted: boolean`
+  - `createdAt: string`
+  - `updatedAt: string`
+- `StoredAppSettings`는 `AppSettings`에 IndexedDB key인 `id: string`을 더한 저장용 타입이다.
+- 현재 설정 레코드는 Dexie `appSettings` 테이블에 `id: "app-settings"`로 1개만 저장한다.
+- Zustand store는 `fetchAppSettings()`에서 저장 레코드의 `id`를 제거하고 `appSettings` 상태에 `AppSettings`만 보관한다.
+
+기본 설정 생성 흐름:
+
+- `initializeApp()`이 `db.ensureDefaultData()`를 먼저 호출한다.
+- `ensureDefaultData()`는 `appSettings` 테이블에서 `app-settings` 레코드를 찾는다.
+- 레코드가 없으면 기본값을 생성한다.
+- 기본값은 light theme, ko language, rule_based provider, notifications disabled, firstLaunchCompleted false다.
+- `createdAt`과 `updatedAt`은 생성 시점의 ISO 문자열로 저장한다.
+
+현재 `updateAppSettings` 동작:
+
+- `updateAppSettings(settings)`는 전달받은 `settings`에 `id: "app-settings"`를 붙여 `db.appSettings.put()`으로 저장한다.
+- 저장 후 Zustand `appSettings` 상태를 전달받은 `settings`로 교체한다.
+- 현재 구현은 `updatedAt`을 내부에서 자동 갱신하지 않는다.
+- 따라서 실제 편집 기능을 구현할 때는 호출자가 변경 직전에 `updatedAt: new Date().toISOString()`을 명시적으로 넣거나, 별도 작업에서 store가 자동 갱신하도록 정책을 먼저 바꿔야 한다.
+
+`updatedAt` 갱신 기준:
+
+- 사용자가 설정 값을 실제로 변경해 저장할 때만 갱신한다.
+- 설정 화면을 단순히 열거나 현재 값을 표시하는 것만으로는 갱신하지 않는다.
+- 저장 버튼을 눌렀지만 값이 이전 값과 같으면 갱신하지 않는 방향을 우선 검토한다.
+- `createdAt`은 최초 생성 시점 이후 변경하지 않는다.
+- 여러 설정을 한 번에 저장하면 `updatedAt`은 저장 작업 1회 기준으로 한 번만 갱신한다.
+
+편집 후보와 MVP 범위:
+
+- `theme`: 현재 타입은 `"light"`만 허용하므로 MVP에서는 표시만 유지한다. dark theme을 추가하려면 타입, UI, CSS, 저장 정책이 함께 필요하므로 별도 작업으로 분리한다.
+- `language`: 현재 타입은 `"ko"`만 허용하므로 MVP에서는 표시만 유지한다. 다국어를 추가하려면 문자열 리소스 구조가 먼저 필요하다.
+- `aiProvider`: 현재 타입은 `"rule_based"`만 허용하므로 MVP에서는 표시만 유지한다. 외부 AI provider는 서버 API/네트워크 정책과 충돌할 수 있어 현재 범위에서 제외한다.
+- `enableNotifications`: 현재 타입은 `false`만 허용하므로 MVP에서는 표시만 유지한다. 알림 권한 요청과 Android notification은 금지 상태이므로 편집 기능으로 켜지 않게 한다.
+- `firstLaunchCompleted`: 현재 boolean으로 저장 가능하다. DB schema 변경 없이 편집 가능하지만, 실제 사용자 설정으로 노출할지 먼저 UX 의도를 정해야 한다.
+
+DB schema 변경 없이 구현 가능한 범위:
+
+- 기존 `appSettings` 단일 레코드의 값을 읽고 저장한다.
+- `firstLaunchCompleted` boolean 변경은 schema 변경 없이 가능하다.
+- 현재 타입 union에 없는 값을 추가하지 않는다.
+- `theme`, `language`, `aiProvider`, `enableNotifications`의 선택지를 늘리지 않는다.
+- 저장 시 기존 `createdAt`을 유지하고 `updatedAt`만 정책에 맞게 갱신한다.
+
+중단 기준:
+
+- 새 설정 값을 위해 `AppSettings` 타입 union을 확장해야 하면 별도 작업으로 분리한다.
+- Dexie schema version 변경이 필요하면 migration 계획을 먼저 문서화하고 중단한다.
+- 알림 권한 요청, 브라우저 Notification API, Capacitor, Android 권한이 필요하면 중단한다.
+- 서버 API, 로그인, cloud sync, localStorage가 필요하면 중단한다.
+- `App.css` 수정 없이는 UI가 불안정하면 구현하지 말고 디자인/컴포넌트 계획만 문서화한다.
+
+설정 편집 기능 구현 전 수동 테스트 항목:
+
+- 설정 화면에서 현재 theme, language, AI Provider, 알림, 첫 실행 상태가 표시된다.
+- 새로고침 후 기존 설정 값이 유지된다.
+- 설정 값을 변경한 경우 IndexedDB와 화면 상태가 같은 값으로 갱신된다.
+- `updatedAt`은 실제 값 변경 저장 시에만 바뀐다.
+- `createdAt`은 설정 변경 후에도 유지된다.
+- 알림 권한 요청이 발생하지 않는다.
+- 서버 API, localStorage, 로그인, cloud sync, Capacitor가 추가되지 않는다.
