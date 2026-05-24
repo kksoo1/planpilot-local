@@ -1,0 +1,42 @@
+﻿{
+  "goal": "PlanPilot Local을 ROADMAP.md 기준으로 완성한다.",
+  "branch": "auto/dev-loop",
+  "mode": "monitor-until-both-available",
+  "lastRunAt": null,
+  "lastMonitorAt": null,
+  "lastDevLoopAt": null,
+  "lastCompletedTask": null,
+  "nextTaskHint": null,
+  "stopReason": null,
+  "policy": {
+    "requireBothProviders": true,
+    "monitorIntervalMinutes": 15,
+    "minProbeIntervalMinutes": 15,
+    "codexCooldownMinutes": 30,
+    "antigravityCooldownMinutes": 30,
+    "limitCooldownMinutes": 180,
+    "maxDevTasksPerRun": 3,
+    "pushTarget": "origin auto/dev-loop"
+  },
+  "providers": {
+    "codex": {
+      "enabled": true,
+      "available": false,
+      "lastProbeAt": null,
+      "lastSuccessAt": null,
+      "lastLimitAt": null,
+      "nextProbeAt": null,
+      "lastLimitMessage": null
+    },
+    "antigravity": {
+      "enabled": true,
+      "available": false,
+      "lastProbeAt": null,
+      "lastSuccessAt": null,
+      "lastLimitAt": null,
+      "nextProbeAt": null,
+      "lastLimitMessage": null,
+      "cliCommand": null
+    }
+  }
+}
