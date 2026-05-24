@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { RuleBasedAIProvider } from "./ai/RuleBasedAIProvider";
 import { useStore } from "./store";
+import { getProjectName } from "./utils/projectLookup";
 import { getProjectTaskStats } from "./utils/projectStats";
 import { getOverdueTasks, getUpcomingTasks } from "./utils/taskDates";
 import { filterTasks, sortTasks, type TaskSortOrder } from "./utils/taskFilters";
@@ -39,10 +40,6 @@ function App() {
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
 
   const { tasks, projects, appSettings, initializeApp, addTask, updateTask, deleteTask, deleteProject, addProject, updateProject } = useStore();
-
-  function getProjectName(projectId: string) {
-    return projects.find((project) => project.id === projectId)?.name ?? "프로젝트 없음";
-  }
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -210,7 +207,7 @@ function App() {
     recommendedTasks={recommendedTasks}
     overdueTasks={overdueTasks}
     upcomingTasks={upcomingTasks}
-    getProjectName={getProjectName}
+    getProjectName={(projectId) => getProjectName(projects, projectId)}
   />
 )}
 
@@ -235,7 +232,7 @@ function App() {
             editTaskDueDate={editTaskDueDate}
             editTaskPriority={editTaskPriority}
             editTaskProjectId={editTaskProjectId}
-            getProjectName={getProjectName}
+            getProjectName={(projectId) => getProjectName(projects, projectId)}
             onTaskSearchQueryChange={setTaskSearchQuery}
             onShowCompletedTasksChange={setShowCompletedTasks}
             onTaskSortOrderChange={setTaskSortOrder}
