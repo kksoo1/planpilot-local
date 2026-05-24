@@ -2,12 +2,7 @@
 
 import type { AIProvider } from "./AIProvider";
 import type { Task } from "../types";
-
-function startOfToday(): Date {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return today;
-}
+import { parseDueDate, startOfToday } from "../utils/dateUtils";
 
 function priorityScore(priority: Task["priority"]): number {
   switch (priority) {
@@ -20,12 +15,6 @@ function priorityScore(priority: Task["priority"]): number {
     default:
       return 0;
   }
-}
-
-function parseDueDate(dueDate?: string): Date | null {
-  if (!dueDate) return null;
-  const parsed = new Date(dueDate);
-  return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
 function getTaskScore(task: Task): number {
