@@ -661,6 +661,65 @@ upcoming 기준:
 7. `suggestTodayTasks()` 점수 계산은 마지막에 별도 테스트 기준을 두고 검토한다.
 8. 각 단계 후 `npm run build`와 오늘 화면/추천 업무 수동 테스트를 수행한다.
 
+### 17.11 추천 점수 로직 분리 계획
+
+`RuleBasedAIProvider.suggestTodayTasks()`는 현재 오늘 화면의 추천 업무 목록을 계산한다. 추천 결과는 사용자에게 직접 보이는 영역이므로, 점수 계산을 바로 유틸로 옮기기 전에 현재 기준과 회귀 테스트 기준을 먼저 고정한다.
+
+현재 추천 업무 선택 기준:
+
+- `done` 상태 업무는 추천 후보에서 제외한다.
+- `todo`, `in_progress` 상태 업무만 추천 후보가 될 수 있다.
+- 기본 추천 개수는 `limit = 3`이다.
+- 후보 업무를 점수 내림차순으로 정렬한 뒤 상위 `limit`개를 반환한다.
+
+현재 우선순위 점수 기준:
+
+- `high`: 3점
+- `medium`: 2점
+- `low`: 1점
+- 알 수 없는 priority 값: 0점
+
+현재 마감일 점수 기준:
+
+- `parseDueDate(task.dueDate)`가 유효한 날짜를 반환할 때만 마감일 점수를 계산한다.
+- 오늘 0시 기준으로 `daysUntilDue`를 계산한다.
+- 마감일이 오늘보다 이전이면 10점을 더한다.
+- 마감일이 오늘이면 5점을 더한다.
+- 미래 마감일은 추가 점수를 받지 않는다.
+- 마감일이 없거나 invalid date이면 마감일 점수는 0점이다.
+
+현재 정렬 기준:
+
+- 1차 정렬은 `getTaskScore()` 결과의 내림차순이다.
+- 점수가 다르면 높은 점수의 업무가 먼저 온다.
+- 점수가 같고 두 업무 모두 유효한 마감일이 있으면 마감일이 빠른 업무가 먼저 온다.
+- 점수가 같고 한 업무에만 유효한 마감일이 있으면 마감일이 있는 업무가 먼저 온다.
+- 점수도 같고 두 업무 모두 유효한 마감일이 없으면 기존 배열 순서를 유지한다.
+
+분리 후보:
+
+- `priorityScore(priority)`
+- `getTaskScore(task, today)`
+- `compareRecommendedTasks(a, b, today)`
+- 필요 시 `getRecommendedTasks(tasks, limit, today)` 형태의 순수 selector
+
+바로 코드 분리하지 말아야 할 위험 요소:
+
+- `suggestTodayTasks()`는 단순 날짜 목록이 아니라 사용자-facing 추천 순서를 만든다.
+- `getTaskScore()`에서 사용하는 오늘 기준과 `parseDueDate()` 처리 방식이 바뀌면 추천 순서가 달라질 수 있다.
+- 정렬 comparator를 옮길 때 동점 처리와 마감일 없는 업무의 순서가 바뀔 수 있다.
+- `Array.prototype.sort()`는 원본 배열을 정렬하므로, 분리 과정에서 입력 배열 복사 여부를 바꾸면 호출부 기대 동작을 다시 확인해야 한다.
+- 추천 개수 `limit` 기본값과 slice 위치가 바뀌면 오늘 화면 표시 개수가 달라질 수 있다.
+
+향후 안전한 리팩터링 순서:
+
+1. 수동 테스트 체크리스트의 추천 업무 항목을 먼저 확인한다.
+2. `priorityScore()`를 그대로 유지한 채 별도 파일 이동 가능성을 검토한다.
+3. `getTaskScore(task, today)`를 today 주입 가능한 순수 함수로 분리한다.
+4. 동점 정렬 기준을 `compareRecommendedTasks(a, b, today)`로 분리하되 기존 comparator 결과와 비교한다.
+5. 마지막에 `suggestTodayTasks()`가 필터, 정렬, slice 조립만 담당하도록 줄인다.
+6. 각 단계마다 `npm run build`와 오늘 화면 추천 업무 수동 테스트를 수행한다.
+
 ## 18. 데이터/DB 개선 계획
 
 - Dexie schema 변경 전 migration 계획을 작성한다.
