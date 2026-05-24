@@ -2,7 +2,12 @@
 
 import type { AIProvider } from "./AIProvider";
 import type { Task } from "../types";
-import { parseDueDate, startOfToday } from "../utils/dateUtils";
+import {
+  isOverdueTask,
+  isUpcomingTask,
+  parseDueDate,
+  startOfToday,
+} from "../utils/dateUtils";
 
 function priorityScore(priority: Task["priority"]): number {
   switch (priority) {
@@ -56,26 +61,12 @@ export class RuleBasedAIProvider implements AIProvider {
 
   async findOverdueTasks(tasks: Task[]): Promise<Task[]> {
     const today = startOfToday();
-    return tasks.filter((task) => {
-      const dueDate = parseDueDate(task.dueDate);
-      return Boolean(dueDate && task.status !== "done" && dueDate < today);
-    });
+    return tasks.filter((task) => isOverdueTask(task, today));
   }
 
   async findUpcomingTasks(tasks: Task[], days = 7): Promise<Task[]> {
     const today = startOfToday();
-    const daysLater = new Date(today);
-    daysLater.setDate(today.getDate() + days);
-
-    return tasks.filter((task) => {
-      const dueDate = parseDueDate(task.dueDate);
-      return Boolean(
-        dueDate &&
-          task.status !== "done" &&
-          dueDate >= today &&
-          dueDate <= daysLater
-      );
-    });
+    return tasks.filter((task) => isUpcomingTask(task, today, days));
   }
 
   async summarizeTasks(tasks: Task[]): Promise<string> {
