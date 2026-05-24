@@ -526,6 +526,69 @@ AI Provider:
 - store 액션 시그니처 변경이 필요하다.
 - 한 작업에서 업무와 프로젝트를 동시에 크게 바꿔야 한다.
 
+### 17.9 날짜 계산 중복 점검 결과
+
+`taskDates.ts`와 `RuleBasedAIProvider`는 모두 지난 마감 업무와 7일 이내 마감 업무를 계산한다. 다만 두 파일의 책임이 완전히 같지는 않으므로, 바로 통합하기 전에 기준 차이와 회귀 위험을 먼저 고정한다.
+
+현재 역할 구분:
+
+- `src/utils/taskDates.ts`
+  - `getOverdueTasks(tasks, today)`를 제공한다.
+  - `getUpcomingTasks(tasks, today, days)`를 제공한다.
+  - 호출자가 기준일 `today`를 직접 넘긴다.
+  - 완료된 업무는 제외한다.
+  - 마감일이 없는 업무는 제외한다.
+  - 현재 `App.tsx`가 오늘 화면의 지난 마감/7일 이내 마감 업무 목록을 만들 때 사용한다.
+
+- `src/ai/RuleBasedAIProvider.ts`
+  - 내부 `startOfToday()`로 오늘 0시 기준을 직접 만든다.
+  - 내부 `parseDueDate()`로 날짜 문자열을 파싱하고 invalid date를 제외한다.
+  - `findOverdueTasks(tasks)`와 `findUpcomingTasks(tasks, days)`를 제공한다.
+  - `suggestTodayTasks(tasks, limit)`에서 우선순위와 마감일 점수를 합쳐 추천 업무를 정렬한다.
+  - `summarizeTasks(tasks)`에서 총 업무 수, 완료 업무 수, 미완료 업무 수, 지난 마감 업무 수, 7일 이내 마감 업무 수를 문자열로 만든다.
+
+중복되는 기준:
+
+- 완료된 업무는 지난 마감/예정 업무에서 제외한다.
+- 지난 마감 업무는 오늘 0시보다 이전 마감일을 기준으로 한다.
+- 7일 이내 마감 업무는 오늘 0시부터 `days`일 이내 마감일을 기준으로 한다.
+- 마감일 없는 업무는 날짜 기반 목록에서 제외한다.
+
+현재 차이점:
+
+- `taskDates.ts`는 기준일을 외부에서 받으므로 화면 테스트에서 기준일을 통제하기 쉽다.
+- `RuleBasedAIProvider`는 기준일을 내부에서 생성하므로 추천/요약 실행 시점에 따라 기준일이 정해진다.
+- `RuleBasedAIProvider`는 invalid date를 `parseDueDate()`에서 걸러내지만, `taskDates.ts`는 `new Date(task.dueDate)` 결과를 직접 비교한다.
+- 추천 업무는 단순 overdue/upcoming 목록이 아니라 우선순위 점수, 지난 마감 가중치, 오늘 마감 가중치, 마감일 빠른 순 정렬을 함께 사용한다.
+
+바로 통합하면 위험한 이유:
+
+- 오늘 화면의 지난 마감/예정 업무 표시와 추천 업무 정렬이 동시에 바뀔 수 있다.
+- invalid date 처리 방식이 바뀌면 기존 저장 데이터 중 이상한 마감일 문자열이 있을 때 표시 결과가 달라질 수 있다.
+- `RuleBasedAIProvider.summarizeTasks()`의 문자열 결과가 바뀔 수 있다.
+- 추천 점수는 사용자-facing 추천 순서에 영향을 주므로 단순 날짜 유틸 정리보다 회귀 범위가 넓다.
+- 기준일 생성 위치를 잘못 바꾸면 자정 전후 동작이 달라질 수 있다.
+
+추천 로직을 건드리기 전 수동 테스트 항목:
+
+- 오늘 이전 마감일의 미완료 업무가 지난 마감 업무에 표시된다.
+- 완료된 지난 마감 업무는 지난 마감 업무에 표시되지 않는다.
+- 오늘부터 7일 이내 마감일의 미완료 업무가 7일 이내 마감 업무에 표시된다.
+- 완료된 예정 업무는 7일 이내 마감 업무에 표시되지 않는다.
+- 추천 업무가 우선순위와 마감일 기준으로 표시된다.
+- 추천 업무가 없을 때 빈 상태 메시지가 유지된다.
+- `npm run build`가 성공한다.
+- 서버 API, `localStorage`, 로그인, 클라우드 동기화, 알림 권한 요청, Capacitor가 추가되지 않는다.
+
+향후 안전한 정리 순서:
+
+1. `taskDates.ts`에 invalid date 처리 방식을 추가할지 먼저 결정한다.
+2. `startOfToday()`와 `parseDueDate()`를 공용 유틸로 빼기 전에 현재 표시 결과를 수동 테스트 체크리스트로 확인한다.
+3. overdue/upcoming 계산만 먼저 공용 유틸로 맞추고, 추천 점수 계산은 분리된 상태로 둔다.
+4. `RuleBasedAIProvider.findOverdueTasks()`와 `findUpcomingTasks()`가 공용 유틸을 사용하도록 바꾸는 작업은 별도 커밋으로 진행한다.
+5. `suggestTodayTasks()`의 점수 계산은 마지막에 별도 계획을 세운 뒤 진행한다.
+6. 각 단계 후 `npm run build`와 오늘 화면 수동 테스트 항목을 확인한다.
+
 ## 18. 데이터/DB 개선 계획
 
 - Dexie schema 변경 전 migration 계획을 작성한다.
