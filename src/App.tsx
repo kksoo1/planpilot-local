@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { RuleBasedAIProvider } from "./ai/RuleBasedAIProvider";
 import { useStore } from "./store";
+import { startOfToday } from "./utils/dateUtils";
 import { getProjectName } from "./utils/projectLookup";
 import { getProjectTaskStats } from "./utils/projectStats";
 import { getOverdueTasks, getUpcomingTasks } from "./utils/taskDates";
@@ -42,8 +43,7 @@ function App() {
 
   const { tasks, projects, appSettings, initializeApp, addTask, updateTask, deleteTask, deleteProject, addProject, updateProject } = useStore();
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const today = startOfToday();
 
   const overdueTasks = getOverdueTasks(tasks, today);
   const upcomingTasks = getUpcomingTasks(tasks, today, 7);
