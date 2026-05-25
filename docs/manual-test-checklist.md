@@ -244,14 +244,13 @@ AI Provider 확장은 현재 구현 범위가 아니며, `aiProvider` 타입이 
 
 ## 17. firstLaunchCompleted UX 정책 테스트
 
-`firstLaunchCompleted`는 현재 설정 화면에 노출되어 있지만, 향후 일반 설정으로 유지할지 내부 onboarding 상태로 숨길지 결정해야 한다.
+`firstLaunchCompleted`는 내부 onboarding 상태에 가까우므로 현재 설정 화면에서는 읽기 전용으로만 확인한다.
 
 - [ ] 현재 `firstLaunchCompleted` 기본값은 `false`다.
-- [ ] 설정 화면에서 첫 실행 완료 상태가 표시된다.
-- [ ] 현재 설정 화면에서 첫 실행 완료 상태를 토글할 수 있다.
-- [ ] 토글 후 새로고침해도 `firstLaunchCompleted` 값이 IndexedDB에 유지된다.
-- [ ] 토글 후 `updatedAt`은 갱신되고 `createdAt`은 유지된다.
+- [ ] 설정 화면에서 첫 실행 완료 상태가 읽기 전용으로 표시된다.
+- [ ] 설정 화면에서 첫 실행 완료 상태를 직접 토글할 수 없다.
+- [ ] 설정 화면에서 첫 실행 완료 상태 표시만으로 `updatedAt`이 변경되지 않는다.
 - [ ] 설정 화면을 열기만 해도 `updatedAt`이 변경되지 않는다.
-- [ ] 이 값을 일반 사용자 설정으로 유지할 경우 사용자-facing 문구와 실제 효과가 문서화되어 있다.
-- [ ] 이 값을 내부 onboarding 상태로 숨길 경우 SettingsView 제거 계획과 수동 테스트 항목 변경이 먼저 문서화되어 있다.
+- [ ] 향후 onboarding 흐름이 생기면 값 변경은 해당 흐름이나 내부 로직에서만 발생한다.
+- [ ] 이 값을 완전히 숨길 경우 SettingsView 제거 계획과 수동 테스트 항목 변경이 먼저 문서화되어 있다.
 - [ ] onboarding 흐름이 생기기 전까지 이 값이 실제 앱 동작에 미치는 효과를 과장하지 않는다.
