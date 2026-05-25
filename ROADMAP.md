@@ -1488,3 +1488,109 @@ custom hook 후보:
 - 업무가 없는 사용자 프로젝트는 확인창에서 확인한 경우에만 삭제된다.
 - 삭제 취소 시 프로젝트가 유지된다.
 - 프로젝트 삭제/수정 후 Today/Tasks 화면의 프로젝트 이름과 통계가 깨지지 않는다.
+
+## 32. useTaskActions 분리 검토 기준
+
+`useTaskFormState` 분리는 완료되었고, 업무 추가/수정 form 입력값, 수정 대상 id, 추가 form 열림 상태, reset/start/cancel 흐름은 hook이 담당한다. 아직 `App.tsx`에는 실제 업무 CRUD orchestration handler가 남아 있다. 이번 기준에서는 코드를 바로 옮기지 않고, `useTaskActions`를 만들 경우 어떤 순서와 범위가 안전한지 먼저 고정한다.
+
+현재 `App.tsx`에 남아 있는 업무 handler:
+
+- `handleAddTask`
+  - submit event의 `preventDefault()`를 호출한다.
+  - `newTaskTitle.trim()`으로 빈 제목 저장을 막는다.
+  - `newTaskDueDate` 길이가 10이 아니면 저장하지 않는다.
+  - `addTask()` store action을 호출한다.
+  - 저장 성공 후 `resetNewTaskForm()`으로 추가 form을 닫고 입력값을 초기화한다.
+- `handleSaveEditTask`
+  - `editTaskTitle.trim()`으로 빈 제목 저장을 막는다.
+  - `editTaskDueDate` 길이가 10이 아니면 저장하지 않는다.
+  - 기존 task에 제목, 메모, 마감일, 우선순위, 프로젝트 id를 반영해 `updateTask()`를 호출한다.
+  - 저장 후 `resetEditTaskForm()`으로 수정 상태를 초기화한다.
+- `handleDeleteTask`
+  - 삭제 확인창을 띄운다.
+  - 확인한 경우에만 `deleteTask(task.id)`를 호출한다.
+- `handleToggleTaskDone`
+  - `done`이면 `todo`, 그 외에는 `done`으로 status를 전환한다.
+  - 기존 task를 유지한 채 `updateTask()`를 호출한다.
+- `handleStartEditTask` / `handleCancelEditTask`
+  - 현재는 `useTaskFormState`의 `startEditTask()`와 `resetEditTaskForm()`을 호출하는 얇은 wrapper다.
+
+`useTaskFormState`의 현재 책임:
+
+- 업무 추가 form state
+  - `isTaskFormOpen`
+  - `newTaskTitle`
+  - `newTaskDueDate`
+  - `newTaskPriority`
+  - `newTaskProjectId`
+  - `newTaskMemo`
+- 업무 수정 form state
+  - `editingTaskId`
+  - `editTaskTitle`
+  - `editTaskDueDate`
+  - `editTaskPriority`
+  - `editTaskMemo`
+  - `editTaskProjectId`
+- 상태 전환 helper
+  - `resetNewTaskForm`
+  - `resetEditTaskForm`
+  - `startEditTask`
+
+`App.tsx`의 현재 업무 orchestration 책임:
+
+- 업무 추가/수정 submit event 처리
+- 빈 제목 방지와 trim 정책 유지
+- 날짜 입력 길이 방어
+- store action 호출
+- 저장 성공 후 reset 시점 결정
+- 삭제 확인창 표시
+- 완료/미완료 토글 status 계산
+- `TasksView`에 업무 form state, filter state, handler props를 조립해 전달
+
+`useTaskActions` 후보 책임:
+
+- 1차 후보는 업무 추가 submit과 업무 수정 submit만 담당한다.
+- `addTask`, `updateTask`, 현재 form state 값, reset 함수를 인자로 받아 orchestration만 수행한다.
+- store action 자체를 중복 구현하지 않는다.
+- 삭제와 완료/미완료 토글은 초기 `useTaskActions` 범위에 포함하지 않는다.
+- 삭제 handler와 완료 토글은 회귀 영향이 작게 분리 가능한지 별도 문서화 후 검토한다.
+
+바로 hook으로 옮기면 위험한 이유:
+
+- 업무 추가 성공 후 form 닫힘과 입력값 reset 시점이 바뀔 수 있다.
+- 업무 수정 저장 후 수정 form 초기화 시점이 바뀔 수 있다.
+- 빈 제목 방지와 trim 정책이 누락되면 빈 업무가 저장될 수 있다.
+- 프로젝트 선택값이 저장/초기화 과정에서 잘못 유지되거나 `default`로 돌아가지 않을 수 있다.
+- 삭제 확인창 위치가 바뀌면 사용자가 의도하지 않게 업무를 삭제할 위험이 있다.
+- 완료/미완료 토글은 status 전환 규칙이 단순해 보이지만 Today/Tasks/Projects 통계에 함께 영향을 준다.
+- `TasksView` props 구조가 과도하게 바뀌면 form state 분리보다 더 큰 view 재작업으로 번질 수 있다.
+
+안전한 코드 분리 순서:
+
+1. `useTaskFormState` 적용 후 업무 추가/수정/취소 수동 테스트를 먼저 수행한다.
+2. `useTaskActions`를 만든다면 업무 추가/수정 submit handler만 1차로 분리한다.
+3. 추가/수정 submit 분리 후 `npm run build`와 수동 테스트 체크리스트를 통과한다.
+4. 삭제 handler는 확인창과 삭제 후 Today/Projects 통계 회귀를 따로 점검한 뒤 별도 작업으로 검토한다.
+5. 완료/미완료 토글은 마지막에 검토한다.
+6. handler를 hook으로 옮기더라도 `TasksView`, `TaskForm`, `TaskCard` JSX 구조는 대규모로 바꾸지 않는다.
+
+중단 조건:
+
+- `TasksView` props가 지금보다 크게 복잡해지거나 handler bundle 객체로 바뀌어 흐름이 불명확해지는 경우
+- hook이 `store.ts` action과 같은 IndexedDB 저장 로직을 직접 구현하기 시작하는 경우
+- 업무 삭제와 완료 토글까지 한 번에 옮겨 수동 테스트 범위가 커지는 경우
+- 프로젝트 관련 hook/helper를 함께 수정해야 하는 경우
+- `App.css`, DB schema, `types.ts`, `store.ts` 변경이 필요해지는 경우
+
+향후 코드 분리 시 수동 테스트 항목:
+
+- 업무 추가 form 열기/닫기와 입력값 reset
+- 제목만 입력한 업무 추가
+- 제목, 메모, 마감일, 우선순위, 프로젝트를 모두 입력한 업무 추가
+- 빈 제목 저장 방지
+- 잘못된 날짜 길이 저장 방지
+- 업무 수정 시작 시 기존 값 채우기
+- 업무 수정 취소 시 기존 목록 유지와 수정 입력값 reset
+- 업무 수정 저장 후 변경값 반영과 수정 form 닫힘
+- 업무 삭제 확인창 취소/확인
+- 완료/미완료 토글 후 Today 통계, Projects 통계, 필터/정렬 유지

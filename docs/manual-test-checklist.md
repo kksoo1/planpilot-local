@@ -332,3 +332,28 @@ AI Provider 확장은 현재 구현 범위가 아니며, `aiProvider` 타입이 
 - [ ] 프로젝트 추가/수정 submit 분리 후에도 `ProjectsView`, `ProjectForm`, `ProjectCard`의 화면 구조와 문구가 유지된다.
 - [ ] 프로젝트 리팩터링 후 업무 form state와 업무 CRUD handler 동작이 바뀌지 않는다.
 - [ ] 리팩터링 후 `src/App.css`, DB schema, `types.ts`, `store.ts` 구조 변경이 없다.
+
+## 21. useTaskActions 분리 전후 회귀 테스트
+
+이 항목은 `useTaskFormState` 적용 이후, 업무 추가/수정 submit handler를 `useTaskActions` 같은 hook으로 분리할 때 확인할 수동 테스트 기준이다. 삭제와 완료/미완료 토글은 초기 submit hook 분리 범위에 포함하지 않는다.
+
+- [ ] 업무 추가 form을 열고 닫을 수 있다.
+- [ ] 업무 추가 form에 제목만 입력해 저장하면 업무가 생성된다.
+- [ ] 업무 추가 form에 제목, 메모, 마감일, 우선순위, 프로젝트를 입력해 저장하면 값이 모두 반영된다.
+- [ ] 빈 제목 또는 공백 제목으로 저장하면 업무가 생성되지 않는다.
+- [ ] 잘못된 길이의 마감일 값은 저장되지 않는다.
+- [ ] 업무 추가 저장 성공 후 추가 form이 닫히고 입력값이 초기화된다.
+- [ ] 업무 수정 시작 시 기존 제목, 메모, 마감일, 우선순위, 프로젝트가 수정 form에 표시된다.
+- [ ] 업무 수정 취소 시 목록 표시로 돌아가고 다음 수정 form에 이전 입력값이 남지 않는다.
+- [ ] 업무 수정 저장 후 변경값만 반영되고 수정 form이 닫힌다.
+- [ ] 업무 수정 저장 시 빈 제목은 저장되지 않는다.
+- [ ] 업무 수정 저장 시 잘못된 길이의 마감일 값은 저장되지 않는다.
+- [ ] 업무 삭제 handler는 submit hook 분리 작업에서 이동하지 않는다.
+- [ ] 완료/미완료 토글 handler는 submit hook 분리 작업에서 이동하지 않는다.
+- [ ] 업무 삭제 확인창에서 취소하면 업무가 유지된다.
+- [ ] 업무 삭제 확인창에서 확인하면 업무가 삭제되고 Today/Projects 통계가 갱신된다.
+- [ ] 완료/미완료 토글 후 Today 완료 업무 수와 Projects 완료/미완료 통계가 갱신된다.
+- [ ] 업무 추가/수정 submit 분리 후 검색, 완료 업무 표시/숨김, 프로젝트 필터, 마감일 빠른 순 정렬이 유지된다.
+- [ ] `TasksView`, `TaskForm`, `TaskCard` JSX 구조를 대규모로 재작성하지 않는다.
+- [ ] 프로젝트 hook/helper 파일은 업무 submit handler 분리 작업에서 수정하지 않는다.
+- [ ] 분리 후에도 `src/App.css`, DB schema, `types.ts`, `store.ts` 구조 변경이 없다.

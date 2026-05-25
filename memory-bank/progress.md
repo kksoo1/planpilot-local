@@ -57,12 +57,13 @@
 - `useProjectFormState`로 프로젝트 추가/수정 form state, reset, 수정 시작/취소 흐름 분리
 - `projectDeletion`으로 기본 프로젝트 삭제 방지와 업무 연결 프로젝트 삭제 방지 기준 분리
 - `useProjectActions`로 프로젝트 추가/수정 submit orchestration 분리
+- `useTaskFormState`로 업무 추가/수정 form state, reset, 수정 시작/취소 흐름 분리
 - ROADMAP에 앱 완성 기준과 리팩터링 진행 상태 보강
 
 ### Next
-1. 프로젝트 삭제 handler는 아직 `App.tsx`에 유지하고, 삭제 방지 정책과 confirm 흐름을 수동 테스트로 확인
-2. 삭제 handler를 hook으로 옮길지는 추가 문서화 또는 수동 테스트 이후 별도 작업으로 검토
-3. 업무 form state는 `useTaskFormState` 후보로 별도 작업에서 작게 분리 검토
+1. 업무 추가/수정 submit handler를 `useTaskActions`로 옮길지 문서 기준과 수동 테스트 기준으로 확인
+2. 코드 분리 시 업무 삭제 handler와 완료/미완료 토글은 제외하고 추가/수정 submit만 먼저 검토
+3. 프로젝트 삭제 handler는 아직 `App.tsx`에 유지하고, 삭제 방지 정책과 confirm 흐름을 수동 테스트로 확인
 4. 설정 화면은 현재 읽기 전용 상태 확인 화면으로 유지하고, 실제 편집 기능은 별도 정책 확정 후 검토
 5. 추천 로직 수동 테스트 후 기능 추가 진입 여부 결정
 6. DB migration 규칙 문서화

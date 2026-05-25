@@ -78,8 +78,15 @@
   - `useProjectActions`는 프로젝트 추가/수정 submit orchestration만 담당한다.
   - `projectDeletion`은 기본 프로젝트와 업무 연결 프로젝트 삭제 방지 기준을 제공한다.
   - 프로젝트 삭제 handler는 아직 `App.tsx`에 있으며, 삭제 확인창과 실제 `deleteProject` 호출을 유지한다.
+  - `useTaskFormState`는 업무 추가/수정 form state와 reset/start/cancel만 담당한다.
+  - 업무 추가/수정/삭제/완료 토글 handler는 아직 `App.tsx`에 있으며, `useTaskActions`로 옮기기 전 submit handler만 먼저 검토한다.
 
 - `src/hooks`
+  - `useTaskFormState`
+    - 업무 추가 form 입력값과 form open 상태
+    - 업무 수정 form 입력값과 수정 대상 id
+    - 수정 시작, 수정 취소, 추가/수정 form reset
+    - 업무 CRUD handler는 담당하지 않음
   - `useProjectFormState`
     - 프로젝트 추가/수정 form 입력값
     - 수정 대상 id
