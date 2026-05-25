@@ -117,4 +117,4 @@
 - 다국어 확장은 `AppSettings.language` 타입 확장, 기본값/IndexedDB 호환성 확인, 문자열 리소스 구조 결정 후 별도 작업으로 진행한다.
 - AI provider 확장은 API Key 저장, 네트워크 호출, 개인정보 전송, local LLM endpoint 정책을 먼저 문서화한 뒤 별도 작업으로 진행한다.
 - 알림 확장은 권한 요청 시점, 사용자 고지 문구, 로컬 알림/Android 알림/server push 범위 구분을 먼저 문서화한 뒤 별도 작업으로 진행한다.
-- `firstLaunchCompleted`는 schema 변경 없이 수정 가능하지만 사용자-facing 설정으로 노출할지 먼저 UX 의도를 확인한다.
+- `firstLaunchCompleted`는 현재 SettingsView에서 토글 가능하지만, 1차 정식 버전 전에는 사용자 설정으로 유지할지 내부 onboarding 상태로 숨길지 UX 정책을 확정해야 한다.
