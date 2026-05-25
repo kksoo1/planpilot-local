@@ -1,6 +1,7 @@
 import type { FormEvent } from "react";
 import { ProjectCard } from "../components/ProjectCard";
 import { ProjectForm } from "../components/ProjectForm";
+import { getProjectDeleteBlockReason } from "../utils/projectDeletion";
 import { getProjectTaskStats } from "../utils/projectStats";
 import type { Project, Task } from "../types";
 
@@ -63,6 +64,7 @@ export function ProjectsView({
         <ul className="task-list">
           {projects.map((project) => {
             const stats = getProjectTaskStats(tasks, project.id);
+            const deleteBlockReason = getProjectDeleteBlockReason(project, tasks);
 
             if (editingProjectId === project.id) {
               return (
@@ -91,6 +93,7 @@ export function ProjectsView({
                 key={project.id}
                 project={project}
                 stats={stats}
+                deleteBlockReason={deleteBlockReason}
                 onDelete={onDeleteProject}
                 onStartEdit={onStartEditProject}
               />

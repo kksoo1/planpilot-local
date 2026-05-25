@@ -1,4 +1,5 @@
 import type { Project } from "../types";
+import type { ProjectDeleteBlockReason } from "../utils/projectDeletion";
 
 type ProjectTaskStats = {
   totalTasks: number;
@@ -9,6 +10,7 @@ type ProjectTaskStats = {
 type ProjectCardProps = {
   project: Project;
   stats: ProjectTaskStats;
+  deleteBlockReason: ProjectDeleteBlockReason | null;
   onDelete: (projectId: string) => void;
   onStartEdit: (project: Project) => void;
 };
@@ -16,6 +18,7 @@ type ProjectCardProps = {
 export function ProjectCard({
   project,
   stats,
+  deleteBlockReason,
   onDelete,
   onStartEdit,
 }: ProjectCardProps) {
@@ -31,9 +34,9 @@ export function ProjectCard({
       <button
         type="button"
         onClick={() => onDelete(project.id)}
-        disabled={project.id === "default" || stats.totalTasks > 0}
+        disabled={deleteBlockReason !== null}
       >
-        {project.id === "default" ? "기본 프로젝트" : stats.totalTasks > 0 ? "업무 있음" : "삭제"}
+        {deleteBlockReason === "default-project" ? "기본 프로젝트" : deleteBlockReason === "has-tasks" ? "업무 있음" : "삭제"}
       </button>
       <button type="button" onClick={() => onStartEdit(project)}>
         수정

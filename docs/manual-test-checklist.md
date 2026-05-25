@@ -302,6 +302,8 @@ AI Provider 확장은 현재 구현 범위가 아니며, `aiProvider` 타입이 
 - [ ] 삭제 확인창에서 취소하면 프로젝트가 유지된다.
 - [ ] 프로젝트 삭제 후 프로젝트 목록, 프로젝트 통계, 업무 카드의 프로젝트 이름 표시가 깨지지 않는다.
 - [ ] 삭제 가능 여부 helper를 분리한다면 `ProjectCard` disabled 기준과 handler 삭제 방지 기준이 동일하다.
+- [ ] 프로젝트 삭제 가능 여부 helper 분리 후 기본 프로젝트는 버튼 비활성과 handler 방어가 같은 기준을 사용한다.
+- [ ] 프로젝트 삭제 가능 여부 helper 분리 후 업무가 있는 프로젝트는 버튼 비활성과 handler 방어가 같은 기준을 사용한다.
 - [ ] hook이 `addProject`, `updateProject`, `deleteProject` store action을 호출만 하고 IndexedDB 저장 로직을 중복 구현하지 않는다.
 - [ ] 프로젝트 handler 분리 중 `ProjectsView`, `ProjectForm`, `ProjectCard` JSX 구조를 대규모로 재작성하지 않는다.
 - [ ] 프로젝트 handler 분리 중 업무 form state나 업무 CRUD handler를 함께 수정하지 않는다.

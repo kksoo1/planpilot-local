@@ -3,8 +3,8 @@ import { RuleBasedAIProvider } from "./ai/RuleBasedAIProvider";
 import { useProjectFormState } from "./hooks/useProjectFormState";
 import { useStore } from "./store";
 import { startOfToday } from "./utils/dateUtils";
+import { getProjectDeleteBlockReason } from "./utils/projectDeletion";
 import { getProjectName } from "./utils/projectLookup";
-import { getProjectTaskStats } from "./utils/projectStats";
 import { getOverdueTasks, getUpcomingTasks } from "./utils/taskDates";
 import { filterTasks, sortTasks, type TaskSortOrder } from "./utils/taskFilters";
 import { getTaskSummary } from "./utils/taskSummary";
@@ -154,9 +154,9 @@ function App() {
   }
 
   function handleDeleteProject(projectId: string) {
-    if (projectId === "default") return;
-    const stats = getProjectTaskStats(tasks, projectId);
-    if (stats.totalTasks > 0) return;
+    const project = projects.find((item) => item.id === projectId);
+    if (!project) return;
+    if (getProjectDeleteBlockReason(project, tasks)) return;
     if (window.confirm('정말로 이 프로젝트를 삭제하시겠습니까?')) {
       void deleteProject(projectId);
     }
