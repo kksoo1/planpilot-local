@@ -50,12 +50,12 @@ Codex는 AGENTS.md와 ROADMAP.md를 기준으로 작업한다.
 - git 명령은 사용자가 "커밋까지 진행"을 명시한 작업에서만 제한적으로 실행
 
 ## Next Recommended Task
-`src/App.tsx`에 남은 unused import/state/helper를 먼저 정리할 수 있는지 점검한다.
+`src/App.tsx`에 남은 업무/프로젝트 form state와 CRUD handler를 custom hook으로 분리할지 검토한다.
 
 ## Next Task Scope
-- 우선 후보: App.tsx 잔여 import/state/helper 정리
-- 보조 후보: 읽기 전용 설정 화면 문서 동기화, 추천 로직 수동 테스트 후 기능 추가 진입
-- 목표: 동작 변경 없이 `App.tsx`의 남은 책임을 작은 단위로 줄이기
+- 우선 후보: `useProjectFormState` 또는 `useTaskFormState`처럼 form state만 먼저 분리
+- 보조 후보: form state 분리 후 submit handler와 CRUD orchestration hook 분리 가능성 검토
+- 목표: 동작 변경 없이 `App.tsx`의 남은 form/handler 책임을 작은 단위로 줄이기
 - 검증: `npm run build`
 - 금지:
   - `src/App.css` 수정

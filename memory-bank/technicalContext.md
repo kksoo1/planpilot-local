@@ -71,6 +71,9 @@
   - 업무/프로젝트 form 상태
   - 업무/프로젝트 CRUD 핸들러
   - RuleBasedAIProvider 추천 업무 연결
+  - 다음 리팩터링 후보는 form state와 CRUD orchestration을 custom hook으로 나누는 작업이다.
+  - 첫 단계에서는 `useTaskFormState` 또는 `useProjectFormState`처럼 상태/reset/start/cancel만 분리하고, submit/삭제/토글 handler 이동은 별도 단계로 검토한다.
+  - hook은 store action을 중복 구현하지 않고 기존 `addTask`, `updateTask`, `deleteTask`, `addProject`, `updateProject`, `deleteProject`를 호출하는 방향을 유지한다.
 
 - `src/views`
   - SettingsView

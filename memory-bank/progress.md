@@ -57,7 +57,8 @@
 - ROADMAP에 앱 완성 기준과 리팩터링 진행 상태 보강
 
 ### Next
-1. `App.tsx`에 남은 unused import/state/helper 정리 가능성 점검
-2. 설정 화면은 현재 읽기 전용 상태 확인 화면으로 유지하고, 실제 편집 기능은 별도 정책 확정 후 검토
-3. 추천 로직 수동 테스트 후 기능 추가 진입 여부 결정
-4. DB migration 규칙 문서화
+1. `App.tsx`에 남은 업무/프로젝트 form state를 custom hook으로 분리할지 검토
+2. 먼저 `useProjectFormState` 또는 `useTaskFormState`처럼 form state만 분리하고, submit/CRUD handler 이동은 이후 단계로 분리
+3. 설정 화면은 현재 읽기 전용 상태 확인 화면으로 유지하고, 실제 편집 기능은 별도 정책 확정 후 검토
+4. 추천 로직 수동 테스트 후 기능 추가 진입 여부 결정
+5. DB migration 규칙 문서화

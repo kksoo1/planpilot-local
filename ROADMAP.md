@@ -1234,3 +1234,98 @@ DB schema 변경 없이 구현 가능한 범위:
 - `createdAt`은 향후 설정 변경 기능을 추가하더라도 유지된다.
 - 알림 권한 요청이 발생하지 않는다.
 - 서버 API, localStorage, 로그인, cloud sync, Capacitor가 추가되지 않는다.
+
+## 29. App form state / CRUD handler custom hook 분리 계획
+
+이번 단계에서는 코드를 바로 분리하지 않고, `App.tsx`에 남아 있는 사용 중인 책임을 기준으로 다음 리팩터링 순서를 고정한다. 현재 `App.tsx`는 화면 컴포넌트와 유틸 분리는 많이 진행되었지만, 업무/프로젝트 form 상태와 CRUD orchestration handler는 아직 직접 소유한다.
+
+현재 `App.tsx`에 남아 있는 form state:
+
+- 업무 추가 form state
+  - `isTaskFormOpen`
+  - `newTaskTitle`
+  - `newTaskDueDate`
+  - `newTaskPriority`
+  - `newTaskProjectId`
+  - `newTaskMemo`
+- 업무 수정 form state
+  - `editingTaskId`
+  - `editTaskTitle`
+  - `editTaskDueDate`
+  - `editTaskPriority`
+  - `editTaskMemo`
+  - `editTaskProjectId`
+- 프로젝트 추가 form state
+  - `newProjectName`
+  - `newProjectDescription`
+- 프로젝트 수정 form state
+  - `editingProjectId`
+  - `editProjectName`
+  - `editProjectDescription`
+
+현재 `App.tsx`에 남아 있는 CRUD / form handler:
+
+- 업무 handler
+  - `handleAddTask`
+  - `handleSaveEditTask`
+  - `handleDeleteTask`
+  - `handleToggleTaskDone`
+  - `handleStartEditTask`
+  - `handleCancelEditTask`
+- 프로젝트 handler
+  - `handleAddProject`
+  - `handleSaveEditProject`
+  - `handleDeleteProject`
+  - `handleStartEditProject`
+  - `handleCancelEditProject`
+
+store action과 App handler의 역할 구분:
+
+- `store.ts`의 action은 IndexedDB 저장, Zustand 상태 갱신, `updatedAt` 갱신 같은 데이터 계층 책임을 담당한다.
+- `App.tsx`의 handler는 입력값 trim, 빈 값 방지, form reset, 편집 시작/취소 상태 복원, 삭제 확인창, 기본 프로젝트 삭제 방지, 업무가 연결된 프로젝트 삭제 방지 같은 화면 흐름과 정책 조립을 담당한다.
+- custom hook을 만들 때 store action 자체를 복제하지 않는다. hook은 화면 상태와 orchestration을 묶고, 실제 데이터 변경은 기존 store action을 계속 호출한다.
+
+custom hook 후보:
+
+- `useTaskFormState`: 업무 추가/수정 form 값, form open 상태, 편집 시작/취소/reset 상태 전환을 담당하는 후보. 첫 코드 분리 후보로 적합하다.
+- `useTaskActions`: 업무 추가/수정/삭제/완료 토글 orchestration을 담당하는 후보. `useTaskFormState`가 안정화된 뒤 검토한다.
+- `useProjectFormState`: 프로젝트 추가/수정 form 값, 편집 시작/취소/reset 상태 전환을 담당하는 후보. 업무 form보다 필드 수가 적어 낮은 위험도로 분리할 수 있다.
+- `useProjectActions`: 프로젝트 추가/수정/삭제 orchestration과 삭제 방지 정책 연결을 담당하는 후보. 기본 프로젝트 삭제 방지와 업무가 있는 프로젝트 삭제 방지가 흔들리지 않아야 한다.
+
+바로 코드 분리하지 말아야 할 이유:
+
+- `TasksView`와 `ProjectsView` props가 이미 크기 때문에 hook 반환 객체를 잘못 설계하면 props 조립 책임이 더 복잡해질 수 있다.
+- form submit 흐름이 `FormEvent`와 view 내부 inline submit wrapper에 걸쳐 있어, 분리 중 `preventDefault` 위치가 바뀌면 중복 저장 또는 새로고침 위험이 있다.
+- 편집 취소와 저장 후 reset 항목이 많아 하나라도 누락하면 이전 값이 다음 form에 남을 수 있다.
+- 프로젝트 삭제 정책은 store action의 기본 프로젝트 방지와 App handler의 업무 연결 방지가 나뉘어 있어, 무리하게 옮기면 정책 일부가 사라질 수 있다.
+- build는 성공해도 업무/프로젝트 추가, 수정, 취소, 삭제, 필터, 통계까지 수동 회귀 범위가 넓다.
+
+안전한 분리 순서:
+
+1. 현재 `App.tsx` form state와 handler 목록을 문서 기준으로 다시 확인한다.
+2. 코드 첫 단계에서는 `useProjectFormState` 또는 `useTaskFormState`처럼 form state와 reset/start/cancel만 분리한다.
+3. submit handler는 처음부터 hook으로 옮기지 말고, form state hook 적용 후 수동 테스트를 먼저 통과시킨다.
+4. 다음 단계에서 추가/수정 submit helper를 작은 범위로 분리한다.
+5. 삭제와 완료 토글 handler는 마지막에 검토한다. 특히 프로젝트 삭제 방지 정책은 별도 회귀 테스트 후 이동한다.
+6. hook 반환값은 view props 이름과 맞추되, `TasksView`/`ProjectsView` 전체 구조를 다시 뒤집지 않는다.
+7. 각 단계마다 `npm run build`와 수동 테스트 체크리스트의 업무/프로젝트 form 항목을 확인한다.
+
+중단 조건:
+
+- `TasksView` 또는 `ProjectsView` props가 현재보다 더 읽기 어려운 대형 객체로 바뀐다.
+- hook이 store action과 같은 데이터 저장 로직을 중복 구현하기 시작한다.
+- form state 분리만으로 끝나지 않고 view JSX나 카드/form 컴포넌트 구조 재작업이 필요해진다.
+- build는 되지만 수동 테스트 범위가 업무/프로젝트 전체 회귀를 한 번에 요구할 만큼 커진다.
+- 기본 프로젝트 삭제 방지, 업무가 있는 프로젝트 삭제 방지, 편집 취소 reset 정책 중 하나라도 불명확해진다.
+- `App.css`, DB schema, `types.ts`, `store.ts` 구조 변경이 필요해진다.
+
+향후 코드 분리 시 우선 확인할 수동 테스트:
+
+- 업무 추가 form 열기/닫기와 저장 후 입력값 reset
+- 업무 수정 시작/취소/저장 후 기존 목록 표시 유지
+- 업무 완료/미완료 토글과 삭제 확인창
+- 프로젝트 추가 form 저장 후 입력값 reset
+- 프로젝트 수정 시작/취소/저장 후 기존 통계 표시 유지
+- 기본 프로젝트 삭제 방지
+- 업무가 연결된 프로젝트 삭제 방지
+- 업무/프로젝트 변경 후 오늘 화면 통계와 프로젝트별 업무 수 유지
