@@ -52,6 +52,63 @@ App.css 규칙과 충돌하지 않는 구현 방식:
 6. 사용자가 `App.css` 수정을 명시적으로 허용한 뒤 최소 스타일 변경을 진행한다.
 7. 수동 테스트 체크리스트의 다중 테마 항목을 기준으로 새로고침 후 값 유지, `updatedAt` 갱신, 금지 기능 미추가를 확인한다.
 
+## 25. Language 확장 정책과 다국어 리소스 구조
+
+현재 상태:
+
+- `AppSettings.language`의 허용 값은 `"ko"` 하나뿐이다.
+- `SettingsView`는 현재 language 값을 표시하지만, language 선택 컨트롤이나 실제 다국어 전환 기능은 없다.
+- 현재 화면 문구는 대부분 컴포넌트 내부에 한국어 문자열로 직접 작성되어 있다.
+- 현재 language 값은 저장된 설정 상태를 보여주는 용도이며, 화면 문자열을 바꾸는 런타임 i18n 상태로 사용하지 않는다.
+
+신규 언어를 추가하려면 필요한 작업:
+
+- `src/types.ts`의 `AppSettings.language` union을 예: `"ko" | "en"`처럼 확장한다.
+- `src/db.ts`와 `src/store.ts`의 기본 설정 값이 기존 사용자 데이터와 충돌하지 않는지 확인한다. 기본값은 `ko`를 유지하는 방향을 우선한다.
+- 기존 IndexedDB 설정 데이터에 저장된 `ko` 값이 그대로 유효한지 확인한다.
+- `SettingsView`에 language 선택지를 추가한다.
+- 화면별 하드코딩 문구를 문자열 리소스로 옮길 범위를 정한다.
+- README, ROADMAP, manual-test-checklist 같은 문서는 한국어 기준을 유지하되, 앱 UI 문자열 리소스와 문서 언어 정책을 분리한다.
+
+다국어 문자열 리소스 후보 구조:
+
+- 후보 1: `src/i18n/messages.ts`
+  - `messages.ko`, `messages.en` 객체를 한 파일에서 관리한다.
+  - MVP 이후 작은 앱 규모에서는 가장 단순하다.
+- 후보 2: `src/locales/ko.ts`, `src/locales/en.ts`
+  - 언어별 파일을 분리한다.
+  - 화면 문구가 많아지거나 번역 검토가 필요해지면 더 적합하다.
+- 메시지 key는 화면 구조를 반영해 `nav.today`, `settings.language`, `tasks.addTask`처럼 안정적으로 둔다.
+- 화면 컴포넌트는 문자열을 직접 작성하지 않고 `t("settings.language")` 같은 helper 또는 props로 받은 labels를 참조한다.
+- 초기 단계에서는 외부 i18n 라이브러리 없이 typed message object와 작은 `getMessage(language, key)` helper를 우선 검토한다.
+
+MVP 포함 여부:
+
+- MVP에서는 다국어 전환을 필수 기능으로 보지 않는다.
+- 현재 MVP 범위에서는 `language: "ko"` 유지와 값 표시까지만 완료 기준으로 둔다.
+- `en` 같은 신규 언어와 실제 문구 전환은 1차 정식 버전 이후 개선 후보로 미루는 것을 기본 제안으로 한다.
+- 다국어를 구현하기 전에는 전체 화면 문구 목록과 수동 테스트 항목을 먼저 확정한다.
+
+다국어 구현 전 중단 조건:
+
+- 화면 문구 전체를 한 번에 교체해야 하는 대규모 작업이 된다.
+- 문자열 길이 변화로 `App.css` 또는 layout 수정이 필요하다.
+- `AppSettings.language` 타입 확장 외에 Dexie schema version 변경이 필요하다.
+- 기존 IndexedDB 설정 데이터의 migration 기준이 불명확하다.
+- 외부 번역 API, 서버 API, `localStorage`, 로그인, cloud sync가 필요해진다.
+- 알림 권한 요청이나 Capacitor 변경이 함께 필요해진다.
+
+향후 안전한 구현 순서:
+
+1. 다국어 전환을 MVP에 포함할지 1차 정식 버전 이후로 미룰지 결정한다.
+2. 현재 화면의 사용자-facing 문자열 목록을 문서화한다.
+3. `AppSettings.language` 허용 값 확장안을 문서화한다.
+4. 문자열 리소스 구조를 `src/i18n` 단일 파일 방식으로 시작할지, `src/locales` 언어별 파일 방식으로 시작할지 결정한다.
+5. `SettingsView` 선택지만 먼저 확장하고 `npm run build`로 확인한다.
+6. 작은 화면 하나부터 문자열 리소스를 적용하고 회귀 테스트한다.
+7. 모든 화면으로 확장하기 전 모바일 폭과 긴 영어 문자열의 layout 영향을 확인한다.
+8. 수동 테스트 체크리스트의 다국어 항목을 기준으로 language 값 유지, 화면 문구 전환, 금지 기능 미추가를 확인한다.
+
 이 문서는 PlanPilot Local의 현재 상태와 앞으로의 개발 순서를 정리한다.
 
 ## 1. 현재 MVP 상태

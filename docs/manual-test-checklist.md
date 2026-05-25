@@ -194,3 +194,18 @@
 - [ ] 다중 테마 구현 후 새로고침해도 선택한 theme 값이 IndexedDB에 유지된다.
 - [ ] 다중 테마 구현 후 `updatedAt`은 실제 theme 변경 저장 시에만 갱신되고 `createdAt`은 유지된다.
 - [ ] 다중 테마 구현 후에도 서버 API, `localStorage`, 로그인, cloud sync, 알림 권한 요청, Capacitor가 추가되지 않는다.
+
+## 14. 향후 다국어 도입 전후 테스트
+
+다국어 전환은 현재 구현 범위가 아니며, `language` 타입이 `ko` 단일 값인 상태를 기준으로 아래 항목을 먼저 확인한다.
+
+- [ ] 현재 `language` 허용 값은 `ko` 하나뿐이다.
+- [ ] 현재 language 표시는 실제 화면 문구 전환이 아니라 설정 값 표시용이다.
+- [ ] `en` 같은 신규 값을 추가하기 전 `AppSettings` 타입 확장 범위가 문서화되어 있다.
+- [ ] 신규 language 값을 추가할 경우 기본 설정 생성 값과 기존 IndexedDB 데이터 처리 기준이 정해져 있다.
+- [ ] 신규 language 값을 추가할 경우 `SettingsView` 선택지와 문자열 리소스 구조가 먼저 확정되어 있다.
+- [ ] 사용자-facing 문자열이 `src/i18n` 또는 `src/locales` 같은 리소스 구조로 이동될 범위가 정해져 있다.
+- [ ] 영어 문자열 길이 때문에 버튼, 카드, 하단 탭, form label이 깨지지 않는지 모바일 폭에서 확인한다.
+- [ ] 다국어 구현 후 새로고침해도 선택한 language 값이 IndexedDB에 유지된다.
+- [ ] 다국어 구현 후 `updatedAt`은 실제 language 변경 저장 시에만 갱신되고 `createdAt`은 유지된다.
+- [ ] 다국어 구현 후에도 서버 API, 외부 번역 API, `localStorage`, 로그인, cloud sync, 알림 권한 요청, Capacitor가 추가되지 않는다.

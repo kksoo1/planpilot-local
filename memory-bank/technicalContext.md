@@ -111,5 +111,7 @@
 - `db.ensureDefaultData()`는 `app-settings` 레코드가 없을 때 기본 설정을 생성한다.
 - 설정 화면 편집 기능은 DB schema 변경 없이 가능한 범위부터 검토한다.
 - MVP에서 `theme`은 현재 허용 값 `light`를 선택 컨트롤로 표시하고 저장 경로를 확인하는 범위에 머문다.
-- `language`, `aiProvider`, `enableNotifications`는 표시 우선이며 선택지 확장은 별도 작업으로 분리한다.
+- `language`는 현재 허용 값 `ko`만 표시하며 실제 다국어 전환 기능은 없다.
+- `aiProvider`, `enableNotifications`는 표시 우선이며 선택지 확장은 별도 작업으로 분리한다.
+- 다국어 확장은 `AppSettings.language` 타입 확장, 기본값/IndexedDB 호환성 확인, 문자열 리소스 구조 결정 후 별도 작업으로 진행한다.
 - `firstLaunchCompleted`는 schema 변경 없이 수정 가능하지만 사용자-facing 설정으로 노출할지 먼저 UX 의도를 확인한다.
