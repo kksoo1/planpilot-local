@@ -281,3 +281,28 @@ AI Provider 확장은 현재 구현 범위가 아니며, `aiProvider` 타입이 
 - [ ] form state hook 분리 후에도 검색, 완료 업무 표시/숨김, 프로젝트 필터, 마감일 빠른 순 정렬이 유지된다.
 - [ ] CRUD handler hook 분리 후에도 서버 API, `localStorage`, 로그인, cloud sync, 알림 권한 요청, Capacitor가 추가되지 않는다.
 - [ ] 분리 작업에 `src/App.css`, DB schema, `types.ts`, `store.ts` 구조 변경이 포함되지 않는다.
+
+## 19. useProjectActions 분리 전후 회귀 테스트
+
+이 항목은 프로젝트 추가/수정/삭제 handler를 `useProjectActions` 같은 hook으로 옮기기 전후에 확인한다. 현재 단계에서는 코드 변경 없이 기준만 고정한다.
+
+- [ ] 프로젝트 추가 submit이 `preventDefault()`를 유지해 화면 새로고침을 일으키지 않는다.
+- [ ] 프로젝트 이름만 입력해 저장하면 프로젝트가 추가된다.
+- [ ] 프로젝트 이름과 설명을 입력해 저장하면 두 값이 모두 반영된다.
+- [ ] 빈 이름으로 저장하면 프로젝트가 추가되지 않는다.
+- [ ] 프로젝트 추가 성공 후 추가 form 입력값이 reset된다.
+- [ ] 프로젝트 수정 저장 시 이름과 설명이 반영된다.
+- [ ] 프로젝트 수정 저장 후 수정 form이 닫히고 임시 입력값이 reset된다.
+- [ ] 프로젝트 수정 취소 시 기존 값이 유지되고 임시 입력값이 다음 수정 form에 남지 않는다.
+- [ ] 기본 프로젝트 삭제 버튼은 비활성 상태로 유지된다.
+- [ ] 기본 프로젝트 id가 handler로 전달되어도 삭제되지 않는다.
+- [ ] 업무가 연결된 프로젝트 삭제 버튼은 비활성 상태로 유지된다.
+- [ ] 업무가 연결된 프로젝트 id가 handler로 전달되어도 삭제되지 않는다.
+- [ ] 업무가 없는 사용자 프로젝트는 확인창에서 확인하면 삭제된다.
+- [ ] 삭제 확인창에서 취소하면 프로젝트가 유지된다.
+- [ ] 프로젝트 삭제 후 프로젝트 목록, 프로젝트 통계, 업무 카드의 프로젝트 이름 표시가 깨지지 않는다.
+- [ ] 삭제 가능 여부 helper를 분리한다면 `ProjectCard` disabled 기준과 handler 삭제 방지 기준이 동일하다.
+- [ ] hook이 `addProject`, `updateProject`, `deleteProject` store action을 호출만 하고 IndexedDB 저장 로직을 중복 구현하지 않는다.
+- [ ] 프로젝트 handler 분리 중 `ProjectsView`, `ProjectForm`, `ProjectCard` JSX 구조를 대규모로 재작성하지 않는다.
+- [ ] 프로젝트 handler 분리 중 업무 form state나 업무 CRUD handler를 함께 수정하지 않는다.
+- [ ] 분리 후에도 `src/App.css`, DB schema, `types.ts`, `store.ts` 구조 변경이 없다.

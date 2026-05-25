@@ -50,12 +50,12 @@ Codex는 AGENTS.md와 ROADMAP.md를 기준으로 작업한다.
 - git 명령은 사용자가 "커밋까지 진행"을 명시한 작업에서만 제한적으로 실행
 
 ## Next Recommended Task
-`src/App.tsx`에 남은 업무/프로젝트 form state와 CRUD handler를 custom hook으로 분리할지 검토한다.
+프로젝트 submit/delete handler를 `useProjectActions` 같은 hook으로 옮길지 검토한다.
 
 ## Next Task Scope
-- 우선 후보: `useProjectFormState` 또는 `useTaskFormState`처럼 form state만 먼저 분리
-- 보조 후보: form state 분리 후 submit handler와 CRUD orchestration hook 분리 가능성 검토
-- 목표: 동작 변경 없이 `App.tsx`의 남은 form/handler 책임을 작은 단위로 줄이기
+- 우선 후보: 프로젝트 추가/수정 submit handler 분리 가능성 문서 기준 확인
+- 보조 후보: 프로젝트 삭제 방지 정책을 순수 helper로 먼저 분리할지 검토
+- 목표: 기본 프로젝트 삭제 방지와 업무 연결 프로젝트 삭제 방지를 유지하면서 `App.tsx`의 프로젝트 orchestration 책임을 줄일 수 있는지 판단
 - 검증: `npm run build`
 - 금지:
   - `src/App.css` 수정

@@ -1329,3 +1329,106 @@ custom hook 후보:
 - 기본 프로젝트 삭제 방지
 - 업무가 연결된 프로젝트 삭제 방지
 - 업무/프로젝트 변경 후 오늘 화면 통계와 프로젝트별 업무 수 유지
+
+## 30. useProjectActions 분리 검토 기준
+
+`useProjectFormState` 분리는 완료되었고, 현재 프로젝트 입력값과 수정 대상 id, 수정 시작/취소/reset은 hook이 담당한다. 그러나 프로젝트 추가/수정/삭제 submit handler와 삭제 방지 정책은 아직 `App.tsx`에 남아 있다. 이번 단계에서는 이 handler를 바로 옮기지 않고, `useProjectActions` 같은 hook으로 분리할 수 있는 기준을 문서로 고정한다.
+
+현재 `App.tsx`에 남아 있는 프로젝트 handler:
+
+- `handleAddProject`
+  - `FormEvent`에서 `preventDefault()`를 호출한다.
+  - `newProjectName.trim()`이 비어 있으면 저장하지 않는다.
+  - `addProject({ name, description })` store action을 호출한다.
+  - 저장 성공 후 `resetNewProjectForm()`을 호출한다.
+- `handleSaveEditProject`
+  - `editProjectName.trim()`이 비어 있으면 저장하지 않는다.
+  - 기존 `project`에 새 `name`, `description`을 반영해 `updateProject()` store action을 호출한다.
+  - 저장 후 `resetEditProjectForm()`을 호출한다.
+- `handleDeleteProject`
+  - `projectId === "default"`이면 즉시 중단한다.
+  - `getProjectTaskStats(tasks, projectId)`로 연결된 업무 수를 확인한다.
+  - 연결된 업무가 1개 이상이면 삭제하지 않는다.
+  - 삭제 확인창에서 확인한 경우에만 `deleteProject(projectId)` store action을 호출한다.
+- `handleStartEditProject` / `handleCancelEditProject`
+  - 현재는 `useProjectFormState`의 `startEditProject()`와 `resetEditProjectForm()`을 호출하는 얇은 연결 역할만 한다.
+
+현재 책임 구분:
+
+- `useProjectFormState`
+  - `editingProjectId`, `editProjectName`, `editProjectDescription`
+  - `newProjectName`, `newProjectDescription`
+  - 입력 setter
+  - `startEditProject`
+  - `resetNewProjectForm`
+  - `resetEditProjectForm`
+- `App.tsx`
+  - form submit event 처리
+  - 입력값 trim과 빈 값 방지
+  - store action 호출
+  - 삭제 확인창 호출
+  - 기본 프로젝트 삭제 방지
+  - 업무가 연결된 프로젝트 삭제 방지
+  - `ProjectsView`에 props 조립
+
+`useProjectActions` 후보 책임:
+
+- 프로젝트 추가 submit orchestration
+- 프로젝트 수정 submit orchestration
+- 프로젝트 삭제 orchestration
+- 삭제 가능 여부 판단 helper 연결
+- 삭제 확인창 호출 여부 결정
+- 저장 성공 후 `useProjectFormState` reset 함수 호출
+- 기존 store action을 호출하되, store action 자체를 중복 구현하지 않는다.
+
+바로 hook으로 옮기면 위험한 이유:
+
+- 기본 프로젝트 삭제 방지는 store action과 UI 버튼 disabled, App handler에 걸쳐 중복 방어되고 있다. hook 이동 중 하나라도 빠지면 회귀가 생긴다.
+- 업무가 있는 프로젝트 삭제 방지는 현재 App handler에서 `tasks`와 `getProjectTaskStats()`로 판단한다. hook으로 옮기면 `tasks` 의존성이 추가되어 hook 책임이 커진다.
+- 삭제 확인창 호출 위치가 바뀌면 사용자가 실수로 프로젝트를 삭제할 수 있다.
+- 추가/수정 저장 후 reset 시점이 바뀌면 form 입력값이 너무 빨리 지워지거나, 저장 실패 후에도 사라질 수 있다.
+- `ProjectsView` props 구조가 handler 묶음 객체로 바뀌면 현재 분리 범위를 넘어서는 view props 재설계가 된다.
+- handler가 store action과 너무 가까워지면 hook이 데이터 계층 책임까지 가져갈 수 있다.
+
+안전한 코드 분리 순서:
+
+1. `handleStartEditProject`와 `handleCancelEditProject`는 이미 form state hook을 호출하는 얇은 wrapper이므로, 바로 추가 분리하지 않아도 된다.
+2. 첫 코드 분리 후보는 `handleAddProject`와 `handleSaveEditProject`의 submit orchestration이다.
+3. 추가/수정 submit을 옮기기 전에 hook 인자로 필요한 값과 함수 목록을 명확히 정한다.
+   - `newProjectName`
+   - `newProjectDescription`
+   - `editProjectName`
+   - `editProjectDescription`
+   - `addProject`
+   - `updateProject`
+   - `resetNewProjectForm`
+   - `resetEditProjectForm`
+4. 삭제 handler는 마지막에 검토한다.
+5. 삭제 handler를 옮기기 전에는 삭제 가능 여부를 순수 helper로 먼저 분리할 수 있는지 검토한다.
+   - 예: `canDeleteProject(projectId, tasks)` 또는 `getProjectDeleteBlockReason(projectId, tasks)`
+6. 삭제 방지 helper를 분리한다면 `ProjectCard` 버튼 disabled 조건과 App handler 조건이 같은 기준을 쓰도록 맞춘다.
+7. 각 단계마다 `npm run build`와 프로젝트 수동 테스트를 통과한 뒤 다음 단계로 넘어간다.
+
+중단 조건:
+
+- `useProjectActions`가 store action과 같은 IndexedDB 저장 로직을 직접 구현하기 시작한다.
+- 삭제 방지 정책이 hook 내부에서만 보이고 `ProjectCard`의 disabled 표시 기준과 어긋난다.
+- hook 인자가 너무 많아져 `App.tsx` props 조립보다 이해하기 어려워진다.
+- `ProjectsView` 또는 `ProjectForm` 구조 변경이 필요해진다.
+- 삭제 확인창, 기본 프로젝트 방지, 업무 연결 프로젝트 방지 중 하나라도 동작 기준이 불명확해진다.
+- 프로젝트 handler 이동만으로 끝나지 않고 업무 form/handler까지 함께 건드려야 하는 상황이 된다.
+
+향후 코드 분리 시 수동 테스트 항목:
+
+- 프로젝트 이름만 입력해 추가된다.
+- 프로젝트 이름과 설명을 입력해 추가된다.
+- 빈 이름으로는 프로젝트가 추가되지 않는다.
+- 추가 저장 후 form 입력값이 reset된다.
+- 프로젝트 수정 시작 시 기존 이름/설명이 form에 채워진다.
+- 프로젝트 수정 취소 시 입력값이 남지 않는다.
+- 프로젝트 수정 저장 후 프로젝트 통계가 유지된다.
+- 기본 프로젝트는 삭제되지 않는다.
+- 업무가 있는 프로젝트는 삭제되지 않는다.
+- 업무가 없는 사용자 프로젝트는 확인 후 삭제된다.
+- 삭제 취소 시 프로젝트가 유지된다.
+- 프로젝트 삭제/수정 후 오늘 화면과 업무 화면의 프로젝트 이름 표시가 유지된다.
