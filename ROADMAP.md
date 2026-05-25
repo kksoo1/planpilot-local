@@ -1,5 +1,57 @@
 # PlanPilot Local Roadmap
 
+## 24. Theme 확장 정책
+
+현재 상태:
+
+- `AppSettings.theme`의 허용 값은 `"light"` 하나뿐이다.
+- `SettingsView`의 theme 컨트롤은 현재 값 표시와 `updateAppSettings` 저장 경로 확인용이다.
+- 현재 구현은 실제 앱 색상이나 layout을 theme 값에 따라 바꾸지 않는다.
+- `updateAppSettings`는 저장 시 `updatedAt`을 자동 갱신한다.
+- `SettingsView`는 값이 바뀌지 않은 theme 선택에서는 저장을 호출하지 않는다.
+
+다중 테마를 추가하려면 필요한 작업:
+
+- `src/types.ts`의 `AppSettings.theme` union을 예: `"light" | "dark"`처럼 확장한다.
+- `src/db.ts`의 기본 설정 생성 값이 계속 안전한지 확인한다. 기본값은 기존 사용자 데이터와 충돌하지 않는 `light`를 우선 유지한다.
+- 기존 IndexedDB 데이터에 이미 저장된 `light` 값이 그대로 유효한지 확인한다.
+- `SettingsView`의 theme 선택지에 신규 값을 추가한다.
+- 실제 앱 스타일 적용 방식을 결정한다. 예: root class, data attribute, CSS 변수 중 하나를 선택한다.
+- `App.css`는 사용자가 직접 관리한다는 규칙이 있으므로, 색상 체계 변경은 사용자의 명시 요청 또는 별도 승인 후 진행한다.
+- 다중 테마가 단순 저장 값인지, 실제 화면 색상 전환 기능인지 범위를 먼저 구분한다.
+
+MVP 포함 여부:
+
+- MVP에서는 다중 테마를 필수 기능으로 보지 않는다.
+- 현재 MVP 범위에서는 `light` 단일 값 유지와 저장 경로 검증까지만 완료 기준으로 둔다.
+- `dark` 같은 다중 테마는 1차 정식 버전 이후 개선 후보로 미루는 것을 기본 제안으로 한다.
+- 사용자가 명시적으로 요청하면 별도 작은 작업으로 타입 확장, UI 선택지 추가, 스타일 적용 정책 문서화, 스타일 구현 순서로 진행한다.
+
+App.css 규칙과 충돌하지 않는 구현 방식:
+
+- 먼저 타입과 저장 정책을 확정하고, 실제 스타일 변경은 별도 작업으로 분리한다.
+- `App.css` 수정이 필요한 경우 수정 범위와 색상 토큰 정책을 먼저 제안한다.
+- `App.css` 대규모 재작성, 전체 색상 체계 재설계, layout 변경이 필요하면 구현을 중단하고 디자인/테마 계획 문서부터 작성한다.
+- theme 값 저장만 필요한 작업에서는 `App.css`를 수정하지 않는다.
+
+다중 테마 구현 전 중단 조건:
+
+- `App.css` 대규모 변경이 필요하다.
+- 기존 UI 색상 체계나 layout 재설계가 필요하다.
+- `AppSettings` 타입 확장 외에 Dexie schema version 변경이 필요하다.
+- 기존 IndexedDB 설정 데이터의 migration 기준이 불명확하다.
+- theme 변경 과정에서 서버 API, `localStorage`, 로그인, cloud sync, 알림 권한 요청, Capacitor가 필요해진다.
+
+향후 안전한 구현 순서:
+
+1. 다중 테마가 MVP인지 1차 정식 버전 이후 개선인지 결정한다.
+2. `AppSettings.theme` 허용 값 확장안을 문서화한다.
+3. 기본 설정 값과 기존 IndexedDB 데이터 호환성을 확인한다.
+4. `SettingsView` 선택지만 먼저 확장하고 `npm run build`로 확인한다.
+5. 실제 스타일 적용 방식을 별도 문서로 정한다.
+6. 사용자가 `App.css` 수정을 명시적으로 허용한 뒤 최소 스타일 변경을 진행한다.
+7. 수동 테스트 체크리스트의 다중 테마 항목을 기준으로 새로고침 후 값 유지, `updatedAt` 갱신, 금지 기능 미추가를 확인한다.
+
 이 문서는 PlanPilot Local의 현재 상태와 앞으로의 개발 순서를 정리한다.
 
 ## 1. 현재 MVP 상태

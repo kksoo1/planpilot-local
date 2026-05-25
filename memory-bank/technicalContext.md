@@ -20,7 +20,7 @@
 - 서버 API 사용 금지
 - appSettings는 Dexie `appSettings` 테이블에 `id: "app-settings"` 단일 레코드로 저장
 - store에서는 저장용 `id`를 제거한 `AppSettings` 상태를 사용
-- 현재 `updateAppSettings`는 `updatedAt`을 자동 갱신하지 않으므로 설정 편집 구현 시 갱신 주체를 명확히 정해야 함
+- 현재 `updateAppSettings`는 설정 저장 시 `updatedAt`을 자동 갱신하므로 설정 UI는 기존 `createdAt`을 유지한 설정 객체를 전달해야 함
 
 ## Current Architecture
 - `src/types.ts`
@@ -110,5 +110,6 @@
 - `StoredAppSettings`는 `AppSettings`에 `id`를 더한 IndexedDB 저장 타입이다.
 - `db.ensureDefaultData()`는 `app-settings` 레코드가 없을 때 기본 설정을 생성한다.
 - 설정 화면 편집 기능은 DB schema 변경 없이 가능한 범위부터 검토한다.
-- MVP에서 `theme`, `language`, `aiProvider`, `enableNotifications`는 표시 우선이며 선택지 확장은 별도 작업으로 분리한다.
+- MVP에서 `theme`은 현재 허용 값 `light`를 선택 컨트롤로 표시하고 저장 경로를 확인하는 범위에 머문다.
+- `language`, `aiProvider`, `enableNotifications`는 표시 우선이며 선택지 확장은 별도 작업으로 분리한다.
 - `firstLaunchCompleted`는 schema 변경 없이 수정 가능하지만 사용자-facing 설정으로 노출할지 먼저 UX 의도를 확인한다.

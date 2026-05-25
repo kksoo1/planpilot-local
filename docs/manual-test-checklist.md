@@ -180,3 +180,17 @@
 - [ ] MVP 범위에서 theme, language, aiProvider, enableNotifications 선택지가 타입에 없는 값으로 확장되지 않는다.
 - [ ] 알림 설정을 통해 브라우저 알림 권한 요청이 발생하지 않는다.
 - [ ] 설정 편집 기능 구현 후에도 서버 API, `localStorage`, 로그인, cloud sync, Capacitor가 추가되지 않는다.
+
+## 13. 향후 다중 테마 도입 전후 테스트
+
+다중 테마는 현재 구현 범위가 아니며, `theme` 타입이 `light` 단일 값인 상태를 기준으로 아래 항목을 먼저 확인한다.
+
+- [ ] 현재 `theme` 허용 값은 `light` 하나뿐이다.
+- [ ] 현재 theme 컨트롤은 `light` 값 표시와 저장 경로 확인용이며 실제 앱 색상 전환을 수행하지 않는다.
+- [ ] `dark` 같은 신규 값을 추가하기 전 `AppSettings` 타입 확장 범위가 문서화되어 있다.
+- [ ] 신규 theme 값을 추가할 경우 기본 설정 생성 값과 기존 IndexedDB 데이터 처리 기준이 정해져 있다.
+- [ ] 신규 theme 값을 추가할 경우 `SettingsView` 선택지, 실제 스타일 적용 방식, `App.css` 수정 범위가 먼저 확정되어 있다.
+- [ ] `App.css` 대규모 변경이나 기존 색상 체계 재설계가 필요하면 구현을 중단하고 별도 디자인 작업으로 분리한다.
+- [ ] 다중 테마 구현 후 새로고침해도 선택한 theme 값이 IndexedDB에 유지된다.
+- [ ] 다중 테마 구현 후 `updatedAt`은 실제 theme 변경 저장 시에만 갱신되고 `createdAt`은 유지된다.
+- [ ] 다중 테마 구현 후에도 서버 API, `localStorage`, 로그인, cloud sync, 알림 권한 요청, Capacitor가 추가되지 않는다.
