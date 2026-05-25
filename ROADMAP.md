@@ -109,6 +109,67 @@ MVP 포함 여부:
 7. 모든 화면으로 확장하기 전 모바일 폭과 긴 영어 문자열의 layout 영향을 확인한다.
 8. 수동 테스트 체크리스트의 다국어 항목을 기준으로 language 값 유지, 화면 문구 전환, 금지 기능 미추가를 확인한다.
 
+## 26. AI Provider 확장 정책
+
+현재 상태:
+
+- `AppSettings.aiProvider`의 허용 값은 `"rule_based"` 하나뿐이다.
+- 현재 `RuleBasedAIProvider`는 서버 호출 없이 브라우저 안에서 업무 배열을 계산하는 로컬 rule-based provider다.
+- 추천 업무, 지난 마감 업무, 예정 업무, 업무 요약 문자열은 모두 로컬 데이터만 사용한다.
+- 현재 구현에는 외부 AI API 호출, API Key 입력, API Key 저장, 서버 API 계층이 없다.
+
+MVP 정책:
+
+- MVP에서는 `rule_based`만 유지한다.
+- 사용자의 업무 데이터가 외부 서버로 나가지 않는 privacy-first 원칙을 우선한다.
+- `aiProvider` 설정은 현재 provider 값을 표시하는 용도이며, provider 전환 UI나 네트워크 호출 기능을 의미하지 않는다.
+- 외부 AI provider 또는 로컬 LLM provider는 1차 정식 버전 이후 확장 후보로 둔다.
+
+외부 AI provider 추가 전 필요한 정책:
+
+- 네트워크 호출을 허용할지 먼저 결정한다.
+- 서버 API 없이 브라우저에서 직접 외부 AI API를 호출할지, 별도 proxy/server 계층을 둘지 결정한다.
+- 브라우저 직접 호출은 API Key 노출, CORS, 요금 악용, 사용량 추적 문제를 만든다.
+- API Key를 IndexedDB에 저장할지 여부는 별도 보안 정책이 필요하다.
+- `localStorage` 사용 금지 원칙은 유지한다.
+- 사용자가 직접 API Key를 입력하는 구조를 만들 경우, 저장 여부, 삭제 기능, 마스킹 표시, export/backup 포함 여부를 먼저 정한다.
+- 외부 provider가 업무 제목, 메모, 마감일 같은 개인 데이터를 전송하는지 명확히 표시해야 한다.
+
+로컬 LLM provider 추가 전 필요한 정책:
+
+- 사용자가 로컬 endpoint URL을 직접 입력하는 방식을 검토할 수 있다.
+- 로컬 endpoint도 브라우저 기준으로는 네트워크 접근이므로 CORS와 연결 실패 처리가 필요하다.
+- 서버 없는 MVP 범위와 충돌하는지 먼저 결정한다.
+- 로컬 LLM이 실행 중이지 않을 때 fallback을 `rule_based`로 유지할지 정한다.
+- endpoint URL 저장 여부와 저장 위치는 API Key 정책과 분리해서 검토한다.
+
+1차 정식 버전 이후 확장 후보:
+
+- `rule_based`: 기본 provider. 서버 호출 없이 항상 동작해야 한다.
+- `local_llm`: 사용자가 직접 입력한 로컬 endpoint를 호출하는 후보. 네트워크/CORS/장애 처리 정책이 필요하다.
+- `external_api`: 외부 AI API를 호출하는 후보. API Key, 개인정보 전송, 요금, 보안 정책이 필요하다.
+
+AI Provider 확장 전 중단 조건:
+
+- API Key 입력 또는 저장이 필요하다.
+- 외부 네트워크 호출이 필요하다.
+- 서버/API 계층이 필요하다.
+- API Key 보안, 개인정보 전송 범위, 사용량/요금 정책이 정해져 있지 않다.
+- IndexedDB에 민감정보를 저장해야 하는데 암호화/삭제/백업 제외 정책이 없다.
+- `localStorage`, 로그인, cloud sync, 알림 권한 요청, Capacitor 변경이 필요해진다.
+
+향후 안전한 구현 순서:
+
+1. `rule_based`, `local_llm`, `external_api` 중 MVP 이후에 실제로 필요한 provider 범위를 결정한다.
+2. API Key와 endpoint 저장 정책을 문서화한다.
+3. 개인정보가 provider로 전송되는 범위를 문서화한다.
+4. `AppSettings.aiProvider` 타입 확장안을 문서화한다.
+5. API Key 저장이 필요하면 IndexedDB 저장 위험과 삭제/초기화 흐름을 먼저 설계한다.
+6. provider interface가 현재 `AIProvider`로 충분한지 검토한다.
+7. `SettingsView` 선택지만 먼저 확장할지, 실제 provider 연결과 함께 진행할지 결정한다.
+8. `rule_based` fallback을 유지한 상태로 작은 provider adapter를 추가한다.
+9. 수동 테스트 체크리스트의 AI Provider 항목을 기준으로 금지 기능, 개인정보 전송, fallback 동작을 확인한다.
+
 이 문서는 PlanPilot Local의 현재 상태와 앞으로의 개발 순서를 정리한다.
 
 ## 1. 현재 MVP 상태

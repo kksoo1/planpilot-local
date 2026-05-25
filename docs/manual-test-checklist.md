@@ -209,3 +209,18 @@
 - [ ] 다국어 구현 후 새로고침해도 선택한 language 값이 IndexedDB에 유지된다.
 - [ ] 다국어 구현 후 `updatedAt`은 실제 language 변경 저장 시에만 갱신되고 `createdAt`은 유지된다.
 - [ ] 다국어 구현 후에도 서버 API, 외부 번역 API, `localStorage`, 로그인, cloud sync, 알림 권한 요청, Capacitor가 추가되지 않는다.
+
+## 15. 향후 AI Provider 확장 전후 테스트
+
+AI Provider 확장은 현재 구현 범위가 아니며, `aiProvider` 타입이 `rule_based` 단일 값인 상태를 기준으로 아래 항목을 먼저 확인한다.
+
+- [ ] 현재 `aiProvider` 허용 값은 `rule_based` 하나뿐이다.
+- [ ] `RuleBasedAIProvider`는 서버 호출 없이 로컬 업무 데이터만 사용한다.
+- [ ] 외부 AI provider 추가 전 API Key 입력/저장 정책이 문서화되어 있다.
+- [ ] 외부 AI provider 추가 전 개인정보 전송 범위와 사용자 고지 방식이 정해져 있다.
+- [ ] API Key를 IndexedDB에 저장할 경우 저장 위험, 삭제 기능, backup/export 포함 여부가 정해져 있다.
+- [ ] `localStorage`에 API Key나 endpoint를 저장하지 않는다.
+- [ ] local LLM provider 추가 전 endpoint 입력 방식, CORS, 연결 실패 fallback 기준이 정해져 있다.
+- [ ] provider 전환 후에도 `rule_based` fallback이 동작한다.
+- [ ] AI Provider 확장 후에도 로그인, cloud sync, 알림 권한 요청, Capacitor가 추가되지 않는다.
+- [ ] 네트워크 호출이 생기는 경우 사용자가 명시적으로 허용한 범위에서만 동작한다.
