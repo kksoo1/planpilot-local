@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { RuleBasedAIProvider } from "./ai/RuleBasedAIProvider";
+import { useProjectActions } from "./hooks/useProjectActions";
 import { useProjectFormState } from "./hooks/useProjectFormState";
 import { useStore } from "./store";
 import { startOfToday } from "./utils/dateUtils";
@@ -53,6 +54,16 @@ function App() {
     resetEditProjectForm,
     startEditProject,
   } = projectFormState;
+  const { handleAddProject, handleSaveEditProject } = useProjectActions({
+    addProject,
+    updateProject,
+    newProjectName,
+    newProjectDescription,
+    editProjectName,
+    editProjectDescription,
+    resetNewProjectForm,
+    resetEditProjectForm,
+  });
 
   const today = startOfToday();
 
@@ -168,33 +179,6 @@ function App() {
 
   function handleCancelEditProject() {
     resetEditProjectForm();
-  }
-
-  function handleSaveEditProject(project: Project) {
-    const name = editProjectName.trim();
-    if (!name) return;
-
-    void updateProject({
-      ...project,
-      name,
-      description: editProjectDescription.trim() || undefined,
-    });
-
-    resetEditProjectForm();
-  }
-
-  async function handleAddProject(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    const name = newProjectName.trim();
-    if (!name) return;
-
-    await addProject({
-      name,
-      description: newProjectDescription.trim() || undefined,
-    });
-
-    resetNewProjectForm();
   }
 
   return (
