@@ -41,7 +41,7 @@ function App() {
   const [taskSearchQuery, setTaskSearchQuery] = useState("");
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
 
-  const { tasks, projects, appSettings, initializeApp, addTask, updateTask, deleteTask, deleteProject, addProject, updateProject } = useStore();
+  const { tasks, projects, appSettings, initializeApp, addTask, updateTask, deleteTask, deleteProject, addProject, updateProject, updateAppSettings } = useStore();
 
   const today = startOfToday();
 
@@ -280,7 +280,12 @@ function App() {
           />
         )}
 
-        {activeTab === "settings" && <SettingsView appSettings={appSettings} />}
+        {activeTab === "settings" && (
+          <SettingsView
+            appSettings={appSettings}
+            onUpdateAppSettings={updateAppSettings}
+          />
+        )}
       </main>
 
       <nav className="bottom-nav" aria-label="하단 메뉴">
