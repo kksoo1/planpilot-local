@@ -54,12 +54,15 @@
 - `dateUtils`에 `startOfToday`, `parseDueDate`, `isOverdueTask`, `isUpcomingTask` 공용 날짜 helper 정리
 - `recommendationScore`에 `priorityScore`, `getTaskScore`, `compareRecommendedTasks` 추천 점수/정렬 helper 정리
 - `RuleBasedAIProvider`는 추천 흐름 조립, 지난 마감/예정 업무 목록 제공, 업무 요약 문자열 생성을 담당하도록 정리
+- `useProjectFormState`로 프로젝트 추가/수정 form state, reset, 수정 시작/취소 흐름 분리
+- `projectDeletion`으로 기본 프로젝트 삭제 방지와 업무 연결 프로젝트 삭제 방지 기준 분리
+- `useProjectActions`로 프로젝트 추가/수정 submit orchestration 분리
 - ROADMAP에 앱 완성 기준과 리팩터링 진행 상태 보강
 
 ### Next
-1. 프로젝트 submit/delete handler를 `useProjectActions` 같은 hook으로 옮길지 검토
-2. 삭제 handler 이동 전 기본 프로젝트 삭제 방지와 업무 연결 프로젝트 삭제 방지를 순수 helper로 분리할 수 있는지 확인
-3. 업무 form state는 프로젝트 action 분리 기준이 안정화된 뒤 별도 작업으로 검토
+1. 프로젝트 삭제 handler는 아직 `App.tsx`에 유지하고, 삭제 방지 정책과 confirm 흐름을 수동 테스트로 확인
+2. 삭제 handler를 hook으로 옮길지는 추가 문서화 또는 수동 테스트 이후 별도 작업으로 검토
+3. 업무 form state는 `useTaskFormState` 후보로 별도 작업에서 작게 분리 검토
 4. 설정 화면은 현재 읽기 전용 상태 확인 화면으로 유지하고, 실제 편집 기능은 별도 정책 확정 후 검토
 5. 추천 로직 수동 테스트 후 기능 추가 진입 여부 결정
 6. DB migration 규칙 문서화

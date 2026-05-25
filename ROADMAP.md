@@ -1432,3 +1432,59 @@ custom hook 후보:
 - 업무가 없는 사용자 프로젝트는 확인 후 삭제된다.
 - 삭제 취소 시 프로젝트가 유지된다.
 - 프로젝트 삭제/수정 후 오늘 화면과 업무 화면의 프로젝트 이름 표시가 유지된다.
+
+## 31. 프로젝트 hook/helper 현재 구조
+
+프로젝트 영역은 `App.tsx` 비대화를 줄이기 위해 form state, submit orchestration, 삭제 가능 여부 판단을 작은 단위로 분리한 상태다. 이번 기준에서는 삭제 handler 자체는 아직 `App.tsx`에 남겨 둔다.
+
+현재 분리된 책임:
+
+- `useProjectFormState`
+  - 프로젝트 추가 form 입력값을 관리한다.
+  - 프로젝트 수정 form 입력값과 수정 대상 id를 관리한다.
+  - `resetNewProjectForm`, `resetEditProjectForm`, `startEditProject`로 추가/수정 form의 reset, 수정 시작, 수정 취소 흐름을 담당한다.
+- `useProjectActions`
+  - 프로젝트 추가 submit orchestration을 담당한다.
+  - 프로젝트 수정 submit orchestration을 담당한다.
+  - 프로젝트 이름 trim과 빈 이름 저장 방지를 유지한다.
+  - 저장 성공 후 기존 reset 시점을 유지한다.
+  - 삭제 handler와 삭제 확인창은 담당하지 않는다.
+- `projectDeletion`
+  - 기본 프로젝트 삭제 방지 기준을 제공한다.
+  - 업무가 연결된 프로젝트 삭제 방지 기준을 제공한다.
+  - `ProjectCard`의 삭제 버튼 disabled 기준과 `App.tsx`의 handler 방어 기준을 같은 helper로 통일한다.
+
+`App.tsx`에 남아 있는 프로젝트 책임:
+
+- `handleDeleteProject`
+- 삭제 대상 프로젝트 조회
+- `getProjectDeleteBlockReason(project, tasks)`를 통한 최종 삭제 방어
+- `window.confirm("정말로 이 프로젝트를 삭제하시겠습니까?")` 확인 흐름
+- 실제 `deleteProject(projectId)` store action 호출
+- `ProjectsView`에 프로젝트 form state와 handler props를 조립해 전달하는 책임
+
+프로젝트 삭제 handler를 아직 `App.tsx`에 유지하는 이유:
+
+- 삭제는 파괴적인 동작이므로 confirm 위치와 store action 호출 시점이 바뀌면 회귀 위험이 크다.
+- 삭제 방지 정책은 버튼 disabled와 handler 방어가 함께 맞아야 하므로, helper 분리 후 수동 테스트를 먼저 통과해야 한다.
+- 삭제 handler까지 hook으로 옮기면 `tasks`, `projects`, `deleteProject`, confirm 흐름이 한 hook에 모여 책임이 커질 수 있다.
+- `useProjectActions`는 현재 추가/수정 submit만 담당하는 작은 hook으로 유지하는 편이 이해하기 쉽다.
+
+다음 작업 후보:
+
+1. 프로젝트 삭제 handler를 옮기기 전에 `docs/manual-test-checklist.md`의 프로젝트 삭제 방지 항목을 실제 화면에서 확인한다.
+2. 삭제 handler를 hook으로 옮긴다면 `useProjectActions`에 바로 합치기보다, confirm 흐름과 삭제 방지 helper를 인자로 받는 작은 확장으로 검토한다.
+3. 프로젝트 영역보다 업무 form state가 더 크므로, 다음 코드 리팩터링 후보는 `useTaskFormState`를 별도 작업으로 작게 분리하는 것이다.
+4. 삭제 handler 분리 중 `ProjectsView` props가 더 커지거나 삭제 정책이 hook 내부에서만 보이게 되면 중단하고 문서화로 되돌린다.
+
+향후 수동 테스트 기준:
+
+- 프로젝트 이름만 입력해 추가했을 때 정상 생성되고 추가 form이 reset된다.
+- 프로젝트 이름과 설명을 입력해 추가했을 때 값이 유지된다.
+- 빈 이름으로 저장하면 프로젝트가 생성되지 않는다.
+- 프로젝트 수정 저장 후 수정 form이 닫히고 변경값이 반영된다.
+- 기본 프로젝트 삭제 버튼은 비활성 상태이고 handler로 전달되어도 삭제되지 않는다.
+- 업무가 연결된 프로젝트 삭제 버튼은 비활성 상태이고 handler로 전달되어도 삭제되지 않는다.
+- 업무가 없는 사용자 프로젝트는 확인창에서 확인한 경우에만 삭제된다.
+- 삭제 취소 시 프로젝트가 유지된다.
+- 프로젝트 삭제/수정 후 Today/Tasks 화면의 프로젝트 이름과 통계가 깨지지 않는다.

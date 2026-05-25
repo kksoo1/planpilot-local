@@ -68,14 +68,27 @@
   - 앱 초기화
   - 하단 탭 상태
   - 화면 컴포넌트 조립
-  - 업무/프로젝트 form 상태
-  - 업무/프로젝트 CRUD 핸들러
+  - 업무 form 상태와 업무 CRUD 핸들러
+  - 프로젝트 삭제 handler, confirm 흐름, 실제 deleteProject store action 호출
   - RuleBasedAIProvider 추천 업무 연결
   - 다음 리팩터링 후보는 form state와 CRUD orchestration을 custom hook으로 나누는 작업이다.
   - 첫 단계에서는 `useTaskFormState` 또는 `useProjectFormState`처럼 상태/reset/start/cancel만 분리하고, submit/삭제/토글 handler 이동은 별도 단계로 검토한다.
   - hook은 store action을 중복 구현하지 않고 기존 `addTask`, `updateTask`, `deleteTask`, `addProject`, `updateProject`, `deleteProject`를 호출하는 방향을 유지한다.
   - `useProjectFormState`는 프로젝트 입력값, 수정 대상 id, 수정 시작/취소/reset만 담당한다.
-  - 프로젝트 추가/수정/삭제 handler와 삭제 방지 정책은 아직 `App.tsx`에 있으며, `useProjectActions`로 옮기기 전 삭제 방지 기준을 먼저 고정해야 한다.
+  - `useProjectActions`는 프로젝트 추가/수정 submit orchestration만 담당한다.
+  - `projectDeletion`은 기본 프로젝트와 업무 연결 프로젝트 삭제 방지 기준을 제공한다.
+  - 프로젝트 삭제 handler는 아직 `App.tsx`에 있으며, 삭제 확인창과 실제 `deleteProject` 호출을 유지한다.
+
+- `src/hooks`
+  - `useProjectFormState`
+    - 프로젝트 추가/수정 form 입력값
+    - 수정 대상 id
+    - 수정 시작, 수정 취소, 추가/수정 form reset
+  - `useProjectActions`
+    - 프로젝트 추가 submit
+    - 프로젝트 수정 submit
+    - 이름 trim, 빈 이름 방지, 저장 후 reset 시점 유지
+    - 프로젝트 삭제 handler는 담당하지 않음
 
 - `src/views`
   - SettingsView
@@ -97,6 +110,7 @@
   - taskSummary
   - projectLookup
   - projectStats
+  - projectDeletion
 
 ## Codex Rules
 - AGENTS.md를 우선 기준으로 작업

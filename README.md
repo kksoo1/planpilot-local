@@ -148,3 +148,20 @@ npm run preview
   - Today 화면에서 사용할 지난 마감 업무와 7일 이내 마감 업무 목록 계산을 담당한다.
 
 다음 리팩터링은 `App.tsx`에 남은 unused import/state/helper 정리, 읽기 전용 설정 화면 문서 동기화, 추천 로직 수동 테스트 후 기능 추가 진입 순서로 검토한다.
+
+## 프로젝트 hook/helper 구조
+
+최근 리팩터링 기준으로 프로젝트 화면의 form state와 submit orchestration은 `src/hooks`로 일부 분리되어 있습니다.
+
+- `src/hooks/useProjectFormState.ts`
+  - 프로젝트 추가/수정 form 입력값을 관리합니다.
+  - 수정 대상 id, 수정 시작, 수정 취소, 추가/수정 form reset을 담당합니다.
+- `src/hooks/useProjectActions.ts`
+  - 프로젝트 추가 submit과 프로젝트 수정 submit만 담당합니다.
+  - 이름 trim, 빈 이름 방지, 저장 후 form reset 시점을 유지합니다.
+  - 프로젝트 삭제 handler는 아직 담당하지 않습니다.
+- `src/utils/projectDeletion.ts`
+  - 기본 프로젝트 삭제 방지와 업무가 연결된 프로젝트 삭제 방지 기준을 제공합니다.
+  - `ProjectCard`의 삭제 버튼 비활성 기준과 `App.tsx`의 삭제 handler 방어 기준을 같은 helper로 맞춥니다.
+
+`src/App.tsx`에는 아직 프로젝트 삭제 확인창, 삭제 가능 여부 최종 방어, 실제 `deleteProject` store action 호출 책임이 남아 있습니다. 삭제는 파괴적인 동작이므로 다음 리팩터링 전 수동 테스트 기준을 먼저 확인합니다.

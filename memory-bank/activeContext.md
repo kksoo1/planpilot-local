@@ -26,6 +26,8 @@
 - TaskForm, ProjectForm 폼 컴포넌트 분리
 - taskLabels, taskDates, taskFilters, projectStats 유틸 분리
 - taskSummary, projectLookup, dateUtils, recommendationScore 유틸 분리
+- useProjectFormState, useProjectActions 프로젝트 hook 분리
+- projectDeletion 삭제 가능 여부 helper 분리
 - RuleBasedAIProvider가 추천 흐름 조립, 지난 마감/예정 업무 목록, 요약 문자열 생성을 담당하도록 정리
 - recommendationScore가 priorityScore, getTaskScore, compareRecommendedTasks를 담당하도록 정리
 - README.md를 PlanPilot Local 전용 문서로 갱신
@@ -50,12 +52,12 @@ Codex는 AGENTS.md와 ROADMAP.md를 기준으로 작업한다.
 - git 명령은 사용자가 "커밋까지 진행"을 명시한 작업에서만 제한적으로 실행
 
 ## Next Recommended Task
-프로젝트 submit/delete handler를 `useProjectActions` 같은 hook으로 옮길지 검토한다.
+프로젝트 삭제 handler를 옮기기 전에 현재 `useProjectFormState`, `useProjectActions`, `projectDeletion` 구조를 수동 테스트 기준으로 확인한다. 코드 리팩터링을 계속한다면 다음 후보는 `useTaskFormState`를 작은 범위로 분리하는 작업이다.
 
 ## Next Task Scope
-- 우선 후보: 프로젝트 추가/수정 submit handler 분리 가능성 문서 기준 확인
-- 보조 후보: 프로젝트 삭제 방지 정책을 순수 helper로 먼저 분리할지 검토
-- 목표: 기본 프로젝트 삭제 방지와 업무 연결 프로젝트 삭제 방지를 유지하면서 `App.tsx`의 프로젝트 orchestration 책임을 줄일 수 있는지 판단
+- 우선 후보: 프로젝트 삭제 handler를 `App.tsx`에 유지한 상태에서 수동 테스트 체크리스트로 삭제 방지 정책 확인
+- 보조 후보: 업무 추가/수정 form state를 `useTaskFormState`로 분리할지 검토
+- 목표: 프로젝트 추가/수정 submit은 hook에 두고, 파괴적인 삭제 confirm 흐름은 안전성이 확인될 때까지 `App.tsx`에 유지
 - 검증: `npm run build`
 - 금지:
   - `src/App.css` 수정
