@@ -9,6 +9,8 @@ export function SettingsView({ appSettings }: SettingsViewProps) {
     <section className="screen-card">
       <h2>설정</h2>
       <div className="settings-list">
+        <h3>현재 설정 상태</h3>
+        <p>현재 MVP에서는 설정 값을 읽기 전용으로 확인합니다.</p>
         <p>테마: {appSettings.theme}</p>
         <p>언어: {appSettings.language}</p>
         <p>AI Provider: {appSettings.aiProvider}</p>
