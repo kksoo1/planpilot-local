@@ -224,3 +224,20 @@ AI Provider 확장은 현재 구현 범위가 아니며, `aiProvider` 타입이 
 - [ ] provider 전환 후에도 `rule_based` fallback이 동작한다.
 - [ ] AI Provider 확장 후에도 로그인, cloud sync, 알림 권한 요청, Capacitor가 추가되지 않는다.
 - [ ] 네트워크 호출이 생기는 경우 사용자가 명시적으로 허용한 범위에서만 동작한다.
+
+## 16. 향후 알림 기능 도입 전후 테스트
+
+알림 기능은 현재 구현 범위가 아니며, `enableNotifications` 타입이 `false` 단일 값인 상태를 기준으로 아래 항목을 먼저 확인한다.
+
+- [ ] 현재 알림 설정 필드명은 `enableNotifications`다.
+- [ ] 현재 `enableNotifications` 허용 값은 `false` 하나뿐이다.
+- [ ] 설정 화면은 알림 상태를 표시하지만 브라우저 알림 권한을 요청하지 않는다.
+- [ ] 브라우저 `Notification` API가 호출되지 않는다.
+- [ ] Android notification 권한 요청이 발생하지 않는다.
+- [ ] Capacitor 알림 기능, 패키지, 설정이 추가되지 않는다.
+- [ ] 값 토글만 구현할 경우 실제 알림이 울리지 않는다는 사용자-facing 문구가 준비되어 있다.
+- [ ] 알림 권한 요청 시점과 사용자 고지 문구가 문서화되어 있다.
+- [ ] 로컬 알림, Android 로컬 알림, 서버 push 알림의 범위가 구분되어 있다.
+- [ ] 알림 설정 변경 후 새로고침해도 값이 IndexedDB에 유지된다.
+- [ ] 알림 설정 변경 후 `updatedAt`은 실제 값 변경 저장 시에만 갱신되고 `createdAt`은 유지된다.
+- [ ] 알림 기능 구현 후에도 서버 API, 로그인, cloud sync, `localStorage`가 추가되지 않는다.

@@ -112,6 +112,7 @@ npm run preview
 - 클라우드 동기화 구현 금지
 - `localStorage` 사용 금지
 - MVP 단계에서 알림 기능 구현 금지
+- 현재 알림 설정은 `enableNotifications: false` 표시용이며 권한 요청을 하지 않음
 - Android notification 권한 요청 금지
 - 명시 요청 전까지 Capacitor 추가 금지
 - `src/App.css`는 사용자가 직접 관리

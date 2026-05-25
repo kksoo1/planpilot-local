@@ -170,6 +170,60 @@ AI Provider 확장 전 중단 조건:
 8. `rule_based` fallback을 유지한 상태로 작은 provider adapter를 추가한다.
 9. 수동 테스트 체크리스트의 AI Provider 항목을 기준으로 금지 기능, 개인정보 전송, fallback 동작을 확인한다.
 
+## 27. Notification 확장 정책
+
+현재 상태:
+
+- 설정 필드명은 `enableNotifications`다.
+- `AppSettings.enableNotifications`의 허용 값은 `false` 하나뿐이다.
+- `SettingsView`는 알림 상태를 표시하지만 편집 기능이나 권한 요청은 제공하지 않는다.
+- 현재 구현에는 브라우저 `Notification` API, Android notification, Capacitor 알림 기능, 서버 push 알림이 없다.
+
+MVP 정책:
+
+- MVP에서는 알림 기능을 구현하지 않는다.
+- 알림 권한 요청은 MVP에서 발생하지 않아야 한다.
+- 설정 화면의 알림 항목은 현재 상태 표시용이며, 실제 알림 예약/발송 기능을 의미하지 않는다.
+- `enableNotifications`는 현재 `false`로 유지한다.
+
+알림 기능 추가 전 필요한 정책:
+
+- 브라우저 `Notification` API를 사용할지 결정한다.
+- Android/Capacitor 전환 이후 로컬 알림으로 구현할지 결정한다.
+- 알림 권한 요청 시점을 정한다. 앱 시작 시 자동 요청하지 않고, 사용자의 명시적 동작 후 요청하는 방향을 우선한다.
+- 권한 요청 전 사용자 고지 문구를 정한다.
+- 로컬 알림, Android 로컬 알림, 서버 push 알림을 명확히 구분한다.
+- 서버 push 알림은 서버 API, 사용자 식별, 토큰 저장, 개인정보 정책이 필요하므로 현재 범위에서 제외한다.
+- 오프라인/백그라운드 동작 한계를 문서화한다.
+
+권한 요청 없이 값만 토글할지 여부:
+
+- 권한 요청 없이 `enableNotifications` 값만 토글하는 기능은 사용자가 실제 알림이 울린다고 오해할 수 있다.
+- 값 토글만 허용한다면 "알림 기능은 아직 동작하지 않음" 같은 사용자-facing 문구가 필요하다.
+- 값이 실제로 변경될 때만 `updatedAt`이 갱신되어야 한다.
+- 값 토글은 실제 Notification API 호출, 권한 요청, 예약 작업과 분리되어야 한다.
+- 현재 타입이 `false` 단일 값이므로 값 토글을 구현하려면 먼저 타입 확장 정책을 별도 작업으로 확정해야 한다.
+
+알림 구현 전 중단 조건:
+
+- 브라우저 권한 요청이 필요하다.
+- Capacitor 또는 Android notification 권한이 필요하다.
+- 서버 push, 사용자 계정, 로그인, cloud sync가 필요하다.
+- 알림 UX 문구, 권한 요청 시점, 실패/거부 처리 기준이 정해져 있지 않다.
+- `AppSettings.enableNotifications` 타입 확장 외에 Dexie schema version 변경이 필요하다.
+- 백그라운드 동작이나 반복 알림을 보장해야 하는 요구가 생긴다.
+
+향후 안전한 구현 순서:
+
+1. 알림이 MVP 범위인지 1차 정식 버전 이후 개선인지 결정한다.
+2. 브라우저 로컬 알림, Android 로컬 알림, 서버 push 중 구현 범위를 결정한다.
+3. 권한 요청 시점과 사용자 고지 문구를 문서화한다.
+4. `AppSettings.enableNotifications` 타입 확장안을 문서화한다.
+5. 값 토글만 먼저 제공할지, 실제 알림 기능과 함께 제공할지 결정한다.
+6. 값 토글만 제공한다면 실제 알림이 울리지 않는다는 문구를 SettingsView에 표시하는 계획을 세운다.
+7. 실제 알림 기능은 별도 작업으로 분리하고, Notification API 또는 Capacitor 변경이 필요한 경우 사용자에게 명시적으로 승인받는다.
+8. 수동 테스트 체크리스트의 알림 항목을 기준으로 권한 요청 미발생, 값 유지, 금지 기능 미추가를 확인한다.
+
 이 문서는 PlanPilot Local의 현재 상태와 앞으로의 개발 순서를 정리한다.
 
 ## 1. 현재 MVP 상태
