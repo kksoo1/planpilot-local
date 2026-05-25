@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { RuleBasedAIProvider } from "./ai/RuleBasedAIProvider";
 import { useProjectActions } from "./hooks/useProjectActions";
 import { useProjectFormState } from "./hooks/useProjectFormState";
+import { useTaskFormState } from "./hooks/useTaskFormState";
 import { useStore } from "./store";
 import { startOfToday } from "./utils/dateUtils";
 import { getProjectDeleteBlockReason } from "./utils/projectDeletion";
@@ -20,25 +21,42 @@ type Tab = "today" | "tasks" | "projects" | "settings";
 
 function App() {
   const [activeTab, setActiveTab] = useState<Tab>("today");
-  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
-  const [editTaskTitle, setEditTaskTitle] = useState("");
-  const [editTaskDueDate, setEditTaskDueDate] = useState("");
-  const [editTaskPriority, setEditTaskPriority] = useState<Task["priority"]>("medium");
-  const [editTaskMemo, setEditTaskMemo] = useState("");
-  const [editTaskProjectId, setEditTaskProjectId] = useState("default");
   const [recommendedTasks, setRecommendedTasks] = useState<Task[]>([]);
-  const [newTaskTitle, setNewTaskTitle] = useState("");
-  const [newTaskDueDate, setNewTaskDueDate] = useState("");
-  const [newTaskPriority, setNewTaskPriority] = useState<Task["priority"]>("medium");
-  const [newTaskProjectId, setNewTaskProjectId] = useState("default");
-  const [newTaskMemo, setNewTaskMemo] = useState("");
   const [selectedProjectFilter, setSelectedProjectFilter] = useState("all");
   const [showCompletedTasks, setShowCompletedTasks] = useState(true);
   const [taskSortOrder, setTaskSortOrder] = useState<TaskSortOrder>("none");
   const [taskSearchQuery, setTaskSearchQuery] = useState("");
-  const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
 
   const { tasks, projects, appSettings, initializeApp, addTask, updateTask, deleteTask, deleteProject, addProject, updateProject } = useStore();
+  const taskFormState = useTaskFormState();
+  const {
+    editingTaskId,
+    editTaskTitle,
+    editTaskDueDate,
+    editTaskPriority,
+    editTaskMemo,
+    editTaskProjectId,
+    newTaskTitle,
+    newTaskDueDate,
+    newTaskPriority,
+    newTaskProjectId,
+    newTaskMemo,
+    isTaskFormOpen,
+    setEditTaskTitle,
+    setEditTaskDueDate,
+    setEditTaskPriority,
+    setEditTaskMemo,
+    setEditTaskProjectId,
+    setNewTaskTitle,
+    setNewTaskDueDate,
+    setNewTaskPriority,
+    setNewTaskProjectId,
+    setNewTaskMemo,
+    setIsTaskFormOpen,
+    resetNewTaskForm,
+    resetEditTaskForm,
+    startEditTask,
+  } = taskFormState;
   const projectFormState = useProjectFormState();
   const {
     editingProjectId,
@@ -105,12 +123,7 @@ function App() {
       projectId: newTaskProjectId,
     });
 
-    setIsTaskFormOpen(false);
-    setNewTaskTitle("");
-    setNewTaskDueDate("");
-    setNewTaskPriority("medium");
-    setNewTaskProjectId("default");
-    setNewTaskMemo("");
+    resetNewTaskForm();
   }
 
   function handleToggleTaskDone(task: Task) {
@@ -125,21 +138,11 @@ function App() {
   }
 
   function handleStartEditTask(task: Task) {
-    setEditingTaskId(task.id);
-    setEditTaskTitle(task.title);
-    setEditTaskMemo(task.memo || "");
-    setEditTaskDueDate(task.dueDate || "");
-    setEditTaskPriority(task.priority);
-    setEditTaskProjectId(task.projectId);
+    startEditTask(task);
   }
 
   function handleCancelEditTask() {
-    setEditingTaskId(null);
-    setEditTaskTitle("");
-    setEditTaskMemo("");
-    setEditTaskDueDate("");
-    setEditTaskPriority("medium");
-    setEditTaskProjectId("default");
+    resetEditTaskForm();
   }
 
   function handleSaveEditTask(task: Task) {
@@ -156,12 +159,7 @@ function App() {
       priority: editTaskPriority,
       projectId: editTaskProjectId,
     });
-    setEditingTaskId(null);
-    setEditTaskTitle("");
-    setEditTaskMemo("");
-    setEditTaskDueDate("");
-    setEditTaskPriority("medium");
-    setEditTaskProjectId("default");
+    resetEditTaskForm();
   }
 
   function handleDeleteProject(projectId: string) {
