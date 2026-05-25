@@ -54,7 +54,7 @@ Codex는 AGENTS.md와 ROADMAP.md를 기준으로 작업한다.
 
 ## Next Task Scope
 - 우선 후보: App.tsx 잔여 import/state/helper 정리
-- 보조 후보: 설정 화면 실제 편집 기능 검토, 추천 로직 수동 테스트 후 기능 추가 진입
+- 보조 후보: 읽기 전용 설정 화면 문서 동기화, 추천 로직 수동 테스트 후 기능 추가 진입
 - 목표: 동작 변경 없이 `App.tsx`의 남은 책임을 작은 단위로 줄이기
 - 검증: `npm run build`
 - 금지:

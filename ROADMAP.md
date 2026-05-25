@@ -5,10 +5,9 @@
 현재 상태:
 
 - `AppSettings.theme`의 허용 값은 `"light"` 하나뿐이다.
-- `SettingsView`의 theme 컨트롤은 현재 값 표시와 `updateAppSettings` 저장 경로 확인용이다.
+- `SettingsView`는 theme 값을 읽기 전용으로 표시한다.
 - 현재 구현은 실제 앱 색상이나 layout을 theme 값에 따라 바꾸지 않는다.
-- `updateAppSettings`는 저장 시 `updatedAt`을 자동 갱신한다.
-- `SettingsView`는 값이 바뀌지 않은 theme 선택에서는 저장을 호출하지 않는다.
+- `updateAppSettings`는 저장 시 `updatedAt`을 자동 갱신하지만, 현재 SettingsView에서는 직접 호출하지 않는다.
 
 다중 테마를 추가하려면 필요한 작업:
 
@@ -230,8 +229,8 @@ MVP 정책:
 
 - `AppSettings.firstLaunchCompleted`는 boolean 값이다.
 - 기본값은 `false`이며, `appSettings` 단일 레코드에 함께 저장된다.
-- 현재 `SettingsView`에는 첫 실행 완료 상태 표시와 체크박스 토글이 있다.
-- 토글 시 기존 `updateAppSettings`를 사용하므로 값이 바뀌면 `updatedAt`이 갱신되고 `createdAt`은 유지된다.
+- 현재 `SettingsView`에는 첫 실행 완료 상태가 읽기 전용으로 표시된다.
+- 현재 SettingsView에서는 firstLaunchCompleted 변경을 위해 `updateAppSettings`를 호출하지 않는다.
 - 현재 앱에는 별도 onboarding 화면이나 첫 실행 흐름이 구현되어 있지 않다.
 
 사용자 설정으로 계속 노출할 때의 장점:
@@ -261,8 +260,8 @@ MVP 정책:
 
 MVP 기준 권장안:
 
-- MVP에서는 현재 토글을 개발/검증용 설정으로 임시 유지할 수 있다.
-- 단, 일반 사용자용 1차 정식 버전에서는 `firstLaunchCompleted`를 내부 onboarding 상태로 숨기는 방향을 권장한다.
+- MVP에서는 현재 값을 읽기 전용으로 표시하되, 일반 사용자 직접 토글은 제공하지 않는다.
+- 일반 사용자용 1차 정식 버전에서는 `firstLaunchCompleted`를 내부 onboarding 상태로 숨기는 방향을 권장한다.
 - 실제 onboarding 화면이 생기기 전까지는 이 값이 앱 동작에 미치는 효과를 과장하지 않는다.
 - 사용자에게 계속 노출한다면 "개발용 상태" 또는 "초기 안내 완료 여부"처럼 효과가 분명한 문구가 필요하다.
 
@@ -367,7 +366,7 @@ PlanPilot Local은 "서버 없이 로컬에서 개인 업무와 프로젝트를 
 - 사용자는 프로젝트를 추가, 수정, 삭제할 수 있고, 업무가 있는 프로젝트는 실수로 삭제되지 않는다.
 - 오늘 화면은 추천 업무, 지난 마감 업무, 7일 이내 마감 업무를 일관되게 표시한다.
 - 전체 업무 화면은 검색, 프로젝트 필터, 완료 업무 표시/숨김, 마감일 정렬을 제공한다.
-- 설정 화면은 현재 앱 설정을 이해할 수 있게 표시하고, 정식 버전 전에는 필요한 설정 편집 범위를 결정한다.
+- 설정 화면은 현재 앱 설정을 읽기 전용으로 이해할 수 있게 표시하고, 정식 버전 전에는 필요한 설정 편집 범위를 별도로 결정한다.
 - 로컬 저장은 IndexedDB + Dexie.js만 사용하며 `localStorage` fallback을 만들지 않는다.
 - 서버 API, 로그인, 클라우드 동기화, 알림, Capacitor는 명시된 단계 전까지 포함하지 않는다.
 - `npm run build`가 성공한다.
@@ -454,7 +453,7 @@ MVP 완료 조건:
 설정 화면:
 
 - 현재 설정 값을 표시한다.
-- 설정 편집 기능을 추가할 경우 저장 방식, 기본값, `updatedAt` 갱신 기준을 먼저 정한다.
+- 설정 편집 기능을 추가할 경우 저장 방식, 기본값, `updatedAt` 갱신 기준을 먼저 정하고 별도 작업으로 진행한다.
 - 알림 기능은 MVP에서 켜지지 않으며 권한 요청도 하지 않는다.
 
 AI Provider:
@@ -495,7 +494,7 @@ AI Provider:
 - 업무/프로젝트가 없을 때는 빈 상태 메시지를 보여준다.
 - 긴 텍스트가 버튼이나 카드 밖으로 튀어나오지 않아야 한다.
 - 모바일 폭에서 입력 폼, 목록, 하단 탭이 겹치지 않아야 한다.
-- 설정 화면은 기능 설명이 아니라 현재 상태와 조작 가능한 항목 중심으로 구성한다.
+- 설정 화면은 현재 MVP에서 기능 설명이나 편집 UI가 아니라 현재 상태 확인 중심으로 구성한다.
 - 색상과 layout 변경은 `App.css`를 사용자가 관리한다는 전제를 깨지 않는다.
 
 ## 11. 수동 테스트 체크리스트
@@ -1072,8 +1071,8 @@ comparator 분리 시 바뀌면 안 되는 동작:
 - `dueDate` 기반 조회가 많으므로 인덱스 추가가 필요한지 검토한다.
 - 프로젝트 삭제 시 관련 업무 처리 정책을 명확히 한다.
 - 업무가 없는 프로젝트만 삭제하는 현재 UI 정책을 store/문서에서도 명확히 유지한다.
-- `updateAppSettings`에서 `updatedAt` 갱신이 필요한지 검토한다.
-- settings의 `firstLaunchCompleted` 사용 시점을 정의한다.
+- `updateAppSettings`는 `updatedAt`을 자동 갱신한다는 현재 정책을 유지한다.
+- settings의 `firstLaunchCompleted`는 현재 읽기 전용 표시이며, 향후 내부 onboarding 상태로 숨길지 결정한다.
 - 날짜 값은 `YYYY-MM-DD` 문자열로 유지할지, 별도 날짜 유틸을 둘지 결정한다.
 - future schema version 추가 시 기존 IndexedDB 데이터 보존을 우선한다.
 
@@ -1158,12 +1157,12 @@ App.tsx 리팩터링 진행 상태:
 다음 추천 작업 후보:
 
 1. `App.tsx`에 남은 unused import/state/helper를 정리한다.
-2. 설정 화면을 실제 편집 기능으로 확장할지 검토하되, 저장 방식과 `updatedAt` 갱신 기준을 먼저 문서화한다.
+2. 설정 화면은 현재 읽기 전용 상태 확인 화면이며, 실제 편집 기능은 별도 정책과 수동 테스트 기준이 확정된 뒤 검토한다.
 3. 추천 로직은 수동 테스트 체크리스트로 점수/정렬 회귀를 확인한 뒤 기능 추가 여부를 결정한다.
 
 ## 23. 설정 저장 정책과 편집 기능 진입 기준
 
-설정 화면을 실제 편집 가능하게 만들기 전에 현재 저장 구조와 갱신 기준을 아래처럼 고정한다.
+설정 화면은 현재 읽기 전용 상태 확인 화면이다. 향후 실제 편집 기능을 추가하기 전에 현재 저장 구조와 갱신 기준을 아래처럼 고정한다.
 
 현재 타입과 저장 구조:
 
@@ -1189,10 +1188,10 @@ App.tsx 리팩터링 진행 상태:
 
 현재 `updateAppSettings` 동작:
 
-- `updateAppSettings(settings)`는 전달받은 `settings`에 `id: "app-settings"`를 붙여 `db.appSettings.put()`으로 저장한다.
-- 저장 후 Zustand `appSettings` 상태를 전달받은 `settings`로 교체한다.
-- 현재 구현은 `updatedAt`을 내부에서 자동 갱신하지 않는다.
-- 따라서 실제 편집 기능을 구현할 때는 호출자가 변경 직전에 `updatedAt: new Date().toISOString()`을 명시적으로 넣거나, 별도 작업에서 store가 자동 갱신하도록 정책을 먼저 바꿔야 한다.
+- `updateAppSettings(settings)`는 전달받은 `settings`에 현재 시각의 `updatedAt`을 더한 뒤 `id: "app-settings"`를 붙여 `db.appSettings.put()`으로 저장한다.
+- 저장 후 Zustand `appSettings` 상태를 `updatedAt`이 갱신된 설정 값으로 교체한다.
+- 현재 SettingsView는 읽기 전용 화면이므로 `updateAppSettings`를 직접 호출하지 않는다.
+- 향후 실제 편집 기능을 구현할 때는 값이 실제로 바뀐 경우에만 `updateAppSettings`를 호출한다.
 
 `updatedAt` 갱신 기준:
 
@@ -1204,11 +1203,11 @@ App.tsx 리팩터링 진행 상태:
 
 편집 후보와 MVP 범위:
 
-- `theme`: 현재 타입은 `"light"`만 허용하므로 MVP에서는 표시만 유지한다. dark theme을 추가하려면 타입, UI, CSS, 저장 정책이 함께 필요하므로 별도 작업으로 분리한다.
-- `language`: 현재 타입은 `"ko"`만 허용하므로 MVP에서는 표시만 유지한다. 다국어를 추가하려면 문자열 리소스 구조가 먼저 필요하다.
-- `aiProvider`: 현재 타입은 `"rule_based"`만 허용하므로 MVP에서는 표시만 유지한다. 외부 AI provider는 서버 API/네트워크 정책과 충돌할 수 있어 현재 범위에서 제외한다.
-- `enableNotifications`: 현재 타입은 `false`만 허용하므로 MVP에서는 표시만 유지한다. 알림 권한 요청과 Android notification은 금지 상태이므로 편집 기능으로 켜지 않게 한다.
-- `firstLaunchCompleted`: 현재 boolean으로 저장 가능하다. DB schema 변경 없이 편집 가능하지만, 실제 사용자 설정으로 노출할지 먼저 UX 의도를 정해야 한다.
+- `theme`: 현재 타입은 `"light"`만 허용하므로 MVP에서는 읽기 전용 표시만 유지한다. dark theme을 추가하려면 타입, UI, CSS, 저장 정책이 함께 필요하므로 별도 작업으로 분리한다.
+- `language`: 현재 타입은 `"ko"`만 허용하므로 MVP에서는 읽기 전용 표시만 유지한다. 다국어를 추가하려면 문자열 리소스 구조가 먼저 필요하다.
+- `aiProvider`: 현재 타입은 `"rule_based"`만 허용하므로 MVP에서는 읽기 전용 표시만 유지한다. 외부 AI provider는 서버 API/네트워크 정책과 충돌할 수 있어 현재 범위에서 제외한다.
+- `enableNotifications`: 현재 타입은 `false`만 허용하므로 MVP에서는 읽기 전용 표시만 유지한다. 알림 권한 요청과 Android notification은 금지 상태이므로 편집 기능으로 켜지 않게 한다.
+- `firstLaunchCompleted`: 현재 boolean으로 저장 가능하지만 SettingsView에서는 읽기 전용으로만 표시한다. 향후 일반 설정에서 숨기고 내부 onboarding 상태로 관리할지 별도 작업에서 결정한다.
 
 DB schema 변경 없이 구현 가능한 범위:
 
@@ -1226,12 +1225,12 @@ DB schema 변경 없이 구현 가능한 범위:
 - 서버 API, 로그인, cloud sync, localStorage가 필요하면 중단한다.
 - `App.css` 수정 없이는 UI가 불안정하면 구현하지 말고 디자인/컴포넌트 계획만 문서화한다.
 
-설정 편집 기능 구현 전 수동 테스트 항목:
+설정 읽기 전용 화면 및 향후 편집 기능 구현 전 수동 테스트 항목:
 
 - 설정 화면에서 현재 theme, language, AI Provider, 알림, 첫 실행 상태가 표시된다.
 - 새로고침 후 기존 설정 값이 유지된다.
-- 설정 값을 변경한 경우 IndexedDB와 화면 상태가 같은 값으로 갱신된다.
-- `updatedAt`은 실제 값 변경 저장 시에만 바뀐다.
-- `createdAt`은 설정 변경 후에도 유지된다.
+- 현재 SettingsView에서는 사용자가 설정 값을 직접 변경할 수 없다.
+- `updatedAt`은 SettingsView 표시만으로 바뀌지 않는다.
+- `createdAt`은 향후 설정 변경 기능을 추가하더라도 유지된다.
 - 알림 권한 요청이 발생하지 않는다.
 - 서버 API, localStorage, 로그인, cloud sync, Capacitor가 추가되지 않는다.

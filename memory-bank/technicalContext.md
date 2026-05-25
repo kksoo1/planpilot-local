@@ -109,12 +109,12 @@
 - `AppSettings`는 현재 `theme: "light"`, `language: "ko"`, `aiProvider: "rule_based"`, `enableNotifications: false`, `firstLaunchCompleted`, `createdAt`, `updatedAt`으로 구성된다.
 - `StoredAppSettings`는 `AppSettings`에 `id`를 더한 IndexedDB 저장 타입이다.
 - `db.ensureDefaultData()`는 `app-settings` 레코드가 없을 때 기본 설정을 생성한다.
-- 설정 화면 편집 기능은 DB schema 변경 없이 가능한 범위부터 검토한다.
-- MVP에서 `theme`은 현재 허용 값 `light`를 선택 컨트롤로 표시하고 저장 경로를 확인하는 범위에 머문다.
+- 설정 화면은 현재 읽기 전용 상태 확인 화면이며, 편집 기능은 DB schema 변경 없이 가능한 범위부터 별도 작업으로 검토한다.
+- MVP에서 `theme`은 현재 허용 값 `light`를 읽기 전용으로 표시하는 범위에 머문다.
 - `language`는 현재 허용 값 `ko`만 표시하며 실제 다국어 전환 기능은 없다.
 - `aiProvider`는 현재 허용 값 `rule_based`만 표시하며 외부 AI API나 로컬 LLM 호출 기능은 없다.
 - `enableNotifications`는 현재 허용 값 `false`만 표시하며 브라우저 Notification API, Android notification, Capacitor 알림 기능은 없다.
 - 다국어 확장은 `AppSettings.language` 타입 확장, 기본값/IndexedDB 호환성 확인, 문자열 리소스 구조 결정 후 별도 작업으로 진행한다.
 - AI provider 확장은 API Key 저장, 네트워크 호출, 개인정보 전송, local LLM endpoint 정책을 먼저 문서화한 뒤 별도 작업으로 진행한다.
 - 알림 확장은 권한 요청 시점, 사용자 고지 문구, 로컬 알림/Android 알림/server push 범위 구분을 먼저 문서화한 뒤 별도 작업으로 진행한다.
-- `firstLaunchCompleted`는 현재 SettingsView에서 토글 가능하지만, 1차 정식 버전 전에는 사용자 설정으로 유지할지 내부 onboarding 상태로 숨길지 UX 정책을 확정해야 한다.
+- `firstLaunchCompleted`는 현재 SettingsView에서 읽기 전용으로 표시하며, 1차 정식 버전 전에는 내부 onboarding 상태로 완전히 숨길지 결정해야 한다.
