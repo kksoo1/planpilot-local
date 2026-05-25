@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { RuleBasedAIProvider } from "./ai/RuleBasedAIProvider";
+import { useProjectFormState } from "./hooks/useProjectFormState";
 import { useStore } from "./store";
 import { startOfToday } from "./utils/dateUtils";
 import { getProjectName } from "./utils/projectLookup";
@@ -18,9 +19,6 @@ type Tab = "today" | "tasks" | "projects" | "settings";
 
 function App() {
   const [activeTab, setActiveTab] = useState<Tab>("today");
-  const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
-  const [editProjectName, setEditProjectName] = useState("");
-  const [editProjectDescription, setEditProjectDescription] = useState("");
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [editTaskTitle, setEditTaskTitle] = useState("");
   const [editTaskDueDate, setEditTaskDueDate] = useState("");
@@ -33,8 +31,6 @@ function App() {
   const [newTaskPriority, setNewTaskPriority] = useState<Task["priority"]>("medium");
   const [newTaskProjectId, setNewTaskProjectId] = useState("default");
   const [newTaskMemo, setNewTaskMemo] = useState("");
-  const [newProjectName, setNewProjectName] = useState("");
-  const [newProjectDescription, setNewProjectDescription] = useState("");
   const [selectedProjectFilter, setSelectedProjectFilter] = useState("all");
   const [showCompletedTasks, setShowCompletedTasks] = useState(true);
   const [taskSortOrder, setTaskSortOrder] = useState<TaskSortOrder>("none");
@@ -42,6 +38,21 @@ function App() {
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
 
   const { tasks, projects, appSettings, initializeApp, addTask, updateTask, deleteTask, deleteProject, addProject, updateProject } = useStore();
+  const projectFormState = useProjectFormState();
+  const {
+    editingProjectId,
+    editProjectName,
+    editProjectDescription,
+    newProjectName,
+    newProjectDescription,
+    setEditProjectName,
+    setEditProjectDescription,
+    setNewProjectName,
+    setNewProjectDescription,
+    resetNewProjectForm,
+    resetEditProjectForm,
+    startEditProject,
+  } = projectFormState;
 
   const today = startOfToday();
 
@@ -152,15 +163,11 @@ function App() {
   }
 
   function handleStartEditProject(project: Project) {
-    setEditingProjectId(project.id);
-    setEditProjectName(project.name);
-    setEditProjectDescription(project.description || "");
+    startEditProject(project);
   }
 
   function handleCancelEditProject() {
-    setEditingProjectId(null);
-    setEditProjectName("");
-    setEditProjectDescription("");
+    resetEditProjectForm();
   }
 
   function handleSaveEditProject(project: Project) {
@@ -173,9 +180,7 @@ function App() {
       description: editProjectDescription.trim() || undefined,
     });
 
-    setEditingProjectId(null);
-    setEditProjectName("");
-    setEditProjectDescription("");
+    resetEditProjectForm();
   }
 
   async function handleAddProject(event: React.FormEvent<HTMLFormElement>) {
@@ -189,8 +194,7 @@ function App() {
       description: newProjectDescription.trim() || undefined,
     });
 
-    setNewProjectName("");
-    setNewProjectDescription("");
+    resetNewProjectForm();
   }
 
   return (
