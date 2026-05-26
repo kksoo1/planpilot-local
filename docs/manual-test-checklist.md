@@ -357,3 +357,21 @@ AI Provider 확장은 현재 구현 범위가 아니며, `aiProvider` 타입이 
 - [ ] `TasksView`, `TaskForm`, `TaskCard` JSX 구조를 대규모로 재작성하지 않는다.
 - [ ] 프로젝트 hook/helper 파일은 업무 submit handler 분리 작업에서 수정하지 않는다.
 - [ ] 분리 후에도 `src/App.css`, DB schema, `types.ts`, `store.ts` 구조 변경이 없다.
+
+## 22. 업무 hook 현재 구조 확인
+
+이 항목은 `useTaskFormState`와 `useTaskActions`가 추가된 현재 구조가 화면 동작과 맞는지 확인하기 위한 체크리스트다.
+
+- [ ] 업무 추가 form state는 `useTaskFormState`가 담당하고, 업무 추가 submit은 `useTaskActions`가 담당한다.
+- [ ] 업무 수정 form state는 `useTaskFormState`가 담당하고, 업무 수정 submit은 `useTaskActions`가 담당한다.
+- [ ] 업무 추가 submit 후 추가 form이 닫히고 입력값이 reset된다.
+- [ ] 업무 수정 submit 후 수정 form이 닫히고 입력값이 reset된다.
+- [ ] 빈 제목과 공백 제목은 추가/수정 submit에서 저장되지 않는다.
+- [ ] memo, dueDate, priority, projectId 값은 추가/수정 submit 후 기존과 동일하게 반영된다.
+- [ ] 업무 삭제 handler는 아직 `App.tsx`에 남아 있다.
+- [ ] 완료/미완료 토글 handler는 아직 `App.tsx`에 남아 있다.
+- [ ] 업무 삭제 확인창에서 취소하면 업무가 유지된다.
+- [ ] 업무 삭제 확인창에서 확인하면 업무가 삭제되고 Today/Projects 통계가 갱신된다.
+- [ ] 완료/미완료 토글 후 Today 완료 업무 수와 Projects 완료/미완료 통계가 갱신된다.
+- [ ] 업무 hook 구조 동기화 후에도 `TasksView`, `TaskForm`, `TaskCard` JSX 구조 변경이 없다.
+- [ ] 문서 동기화 작업에서 `src` 코드, `App.css`, DB schema, `types.ts`, `store.ts` 변경이 없다.

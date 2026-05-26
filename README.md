@@ -165,3 +165,18 @@ npm run preview
   - `ProjectCard`의 삭제 버튼 비활성 기준과 `App.tsx`의 삭제 handler 방어 기준을 같은 helper로 맞춥니다.
 
 `src/App.tsx`에는 아직 프로젝트 삭제 확인창, 삭제 가능 여부 최종 방어, 실제 `deleteProject` store action 호출 책임이 남아 있습니다. 삭제는 파괴적인 동작이므로 다음 리팩터링 전 수동 테스트 기준을 먼저 확인합니다.
+
+## 업무 hook 구조
+
+최근 리팩터링 기준으로 업무 form state와 업무 추가/수정 submit orchestration은 `src/hooks`로 일부 분리되어 있습니다.
+
+- `src/hooks/useTaskFormState.ts`
+  - 업무 추가 form 입력값과 form open 상태를 관리합니다.
+  - 업무 수정 form 입력값과 수정 대상 id를 관리합니다.
+  - 수정 시작, 수정 취소, 추가/수정 form reset을 담당합니다.
+- `src/hooks/useTaskActions.ts`
+  - 업무 추가 submit과 업무 수정 submit만 담당합니다.
+  - 빈 제목 방지, 제목 trim, dueDate 길이 방어, memo/priority/projectId 반영, 저장 후 reset 시점을 유지합니다.
+  - 업무 삭제 handler와 완료/미완료 토글 handler는 아직 담당하지 않습니다.
+
+`src/App.tsx`에는 아직 업무 삭제 확인창, 실제 `deleteTask` 호출, 완료/미완료 토글 status 계산과 `updateTask` 호출 책임이 남아 있습니다. 삭제와 완료 토글은 Today/Projects 통계와 함께 회귀 범위가 넓으므로 별도 문서화와 수동 테스트 후 분리 여부를 결정합니다.

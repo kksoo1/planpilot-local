@@ -1594,3 +1594,52 @@ custom hook 후보:
 - 업무 수정 저장 후 변경값 반영과 수정 form 닫힘
 - 업무 삭제 확인창 취소/확인
 - 완료/미완료 토글 후 Today 통계, Projects 통계, 필터/정렬 유지
+
+## 33. 업무 hook 현재 구조
+
+`useTaskFormState`와 `useTaskActions`가 추가되어 업무 영역의 form state와 추가/수정 submit orchestration은 `App.tsx` 밖으로 일부 분리되었다. 이번 기준에서 업무 삭제 handler와 완료/미완료 토글 handler는 아직 `App.tsx`에 유지한다.
+
+현재 분리된 책임:
+
+- `useTaskFormState`
+  - 업무 추가 form 입력값과 form open 상태를 관리한다.
+  - 업무 수정 form 입력값과 수정 대상 id를 관리한다.
+  - `resetNewTaskForm`, `resetEditTaskForm`, `startEditTask`로 추가/수정 form의 reset, 수정 시작, 수정 취소 흐름을 담당한다.
+- `useTaskActions`
+  - 업무 추가 submit orchestration을 담당한다.
+  - 업무 수정 submit orchestration을 담당한다.
+  - 제목 trim과 빈 제목 저장 방지를 유지한다.
+  - dueDate 길이 방어, memo trim, priority, projectId 반영 기준을 유지한다.
+  - 저장 성공 후 기존 reset 시점을 유지한다.
+  - 업무 삭제 handler와 완료/미완료 토글 handler는 담당하지 않는다.
+
+`App.tsx`에 남아 있는 업무 책임:
+
+- `handleDeleteTask`
+- 업무 삭제 확인창 표시
+- 실제 `deleteTask(task.id)` store action 호출
+- `handleToggleTaskDone`
+- `done`과 `todo` 사이의 status 전환 계산
+- 실제 `updateTask({ ...task, status })` store action 호출
+- `handleStartEditTask`와 `handleCancelEditTask`의 얇은 wrapper
+- `TasksView`에 업무 form state, 필터 state, 정렬 state, handler props를 조립해 전달하는 책임
+
+업무 삭제 handler와 완료 토글을 아직 `App.tsx`에 유지하는 이유:
+
+- 삭제는 확인창 위치와 실제 삭제 호출 시점이 바뀌면 회귀 위험이 크다.
+- 삭제 후 Today 통계, Projects 통계, 업무 목록, 프로젝트별 업무 수가 함께 바뀐다.
+- 완료/미완료 토글은 단순 status 변경이지만 Today 완료 수, Projects 완료/미완료 통계, 완료 업무 표시/숨김 필터에 즉시 영향을 준다.
+- `useTaskActions`는 현재 추가/수정 submit만 담당하는 작은 hook으로 유지하는 편이 책임이 명확하다.
+
+다음 작업 후보:
+
+1. 업무 삭제 handler를 hook으로 옮기기 전에 삭제 확인창, 삭제 취소, 삭제 확정, 통계 갱신 수동 테스트를 먼저 확인한다.
+2. 완료/미완료 토글 handler를 hook으로 옮기기 전에 Today/Projects 통계와 완료 업무 필터 회귀 테스트를 먼저 확인한다.
+3. 삭제와 토글을 `useTaskActions`에 바로 합칠지, 별도 작은 helper/hook으로 분리할지 문서로 먼저 결정한다.
+4. 삭제/토글 분리 중 `TasksView` props가 커지거나 handler 책임이 불명확해지면 중단하고 문서화로 되돌린다.
+
+수동 테스트 체크리스트와의 일치 기준:
+
+- `docs/manual-test-checklist.md`의 업무 추가/수정 submit 항목은 현재 `useTaskActions` 구조 기준으로 유지한다.
+- 삭제 handler와 완료/미완료 토글 항목은 아직 `App.tsx` 잔여 책임 검증 항목으로 본다.
+- 다음 코드 분리 전에는 삭제/토글 항목을 실제 화면에서 먼저 확인한다.
