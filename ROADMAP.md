@@ -1643,3 +1643,45 @@ custom hook 후보:
 - `docs/manual-test-checklist.md`의 업무 추가/수정 submit 항목은 현재 `useTaskActions` 구조 기준으로 유지한다.
 - 삭제 handler와 완료/미완료 토글 항목은 아직 `App.tsx` 잔여 책임 검증 항목으로 본다.
 - 다음 코드 분리 전에는 삭제/토글 항목을 실제 화면에서 먼저 확인한다.
+
+## 34. 업무 삭제 handler 분리 전 기준
+
+현재 `handleDeleteTask`는 아직 `App.tsx`에 남겨 둔다. 이 handler는 단순히 `deleteTask`를 호출하는 함수가 아니라, 삭제 확인창과 실제 삭제 실행 시점을 함께 조율한다.
+
+현재 책임:
+
+- `TaskCard`의 삭제 버튼에서 전달된 업무를 받는다.
+- `window.confirm("정말로 이 업무를 삭제하시겠습니까?")`로 삭제 확인창을 표시한다.
+- 사용자가 취소하면 `deleteTask`를 호출하지 않는다.
+- 사용자가 확인하면 `deleteTask(task.id)` store action을 호출한다.
+
+업무 삭제 후 회귀 영향 범위:
+
+- 전체 업무 화면의 업무 목록에서 해당 업무가 제거되어야 한다.
+- 검색, 프로젝트 필터, 완료 업무 표시/숨김, 마감일 빠른 순 정렬 상태에서 목록이 깨지지 않아야 한다.
+- 오늘 화면의 전체 업무 수, 완료 업무 수, 지난 마감 업무, 7일 이내 마감 업무가 삭제 결과를 반영해야 한다.
+- 추천 업무 목록에 삭제된 업무가 남지 않아야 한다.
+- 프로젝트 화면의 프로젝트별 전체/완료/미완료 업무 수가 삭제 결과를 반영해야 한다.
+
+바로 `useTaskActions`로 옮기지 않는 이유:
+
+- 삭제는 파괴적 동작이라 확인창 흐름이 조금만 바뀌어도 사용자 실수 위험이 커진다.
+- 확인창 취소 시 `deleteTask`를 호출하지 않는 방어 조건을 유지해야 한다.
+- 삭제 후 TodayView, TasksView, ProjectsView, 추천 업무가 동시에 영향을 받으므로 회귀 확인 범위가 넓다.
+- `useTaskActions`는 현재 추가/수정 submit만 담당하는 작은 hook이므로 삭제까지 넣기 전에 책임 경계를 다시 확인해야 한다.
+
+향후 안전한 분리 순서:
+
+1. 삭제 확인창 문구와 취소/확인 흐름을 문서와 수동 테스트 기준으로 고정한다.
+2. 삭제 후 Today/Projects/추천 업무 회귀 항목을 먼저 수동으로 확인한다.
+3. 코드로 옮길 경우 `handleDeleteTask`만 `useTaskActions`에 추가하고, 완료/미완료 토글은 함께 옮기지 않는다.
+4. confirm 문구, confirm 위치, `deleteTask(task.id)` 호출 조건은 그대로 유지한다.
+5. 완료/미완료 토글 handler는 삭제 handler 안정화 이후 별도 작업으로 검토한다.
+
+중단 조건:
+
+- 삭제 확인창 문구를 변경해야 하는 경우
+- 삭제 후 통계 계산 방식이 바뀌는 경우
+- `deleteTask` store action 책임과 hook orchestration 책임이 섞이는 경우
+- `TasksView`, `TodayView`, `ProjectsView` props 구조가 동시에 크게 바뀌는 경우
+- 수동 테스트 범위가 업무 삭제를 넘어 완료 토글, 필터, 추천 로직 재작업으로 커지는 경우

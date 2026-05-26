@@ -59,10 +59,11 @@
 - `useProjectActions`로 프로젝트 추가/수정 submit orchestration 분리
 - `useTaskFormState`로 업무 추가/수정 form state, reset, 수정 시작/취소 흐름 분리
 - `useTaskActions`로 업무 추가/수정 submit orchestration 분리
+- 업무 삭제 handler 분리 전 삭제 확인창, 삭제 취소/확인, Today/Projects 통계 회귀 기준 문서화
 - ROADMAP에 앱 완성 기준과 리팩터링 진행 상태 보강
 
 ### Next
-1. 업무 삭제 handler는 아직 `App.tsx`에 유지하고, 삭제 확인창과 Today/Projects 통계 회귀를 수동 테스트로 확인
+1. 업무 삭제 handler는 아직 `App.tsx`에 유지하고, 삭제 확인창 취소/확인, Today/Projects 통계, 추천 업무 회귀를 수동 테스트로 확인
 2. 완료/미완료 토글 handler는 아직 `App.tsx`에 유지하고, Today/Projects 통계와 필터 회귀 기준을 문서화 후 검토
 3. 프로젝트 삭제 handler는 아직 `App.tsx`에 유지하고, 삭제 방지 정책과 confirm 흐름을 수동 테스트로 확인
 4. 설정 화면은 현재 읽기 전용 상태 확인 화면으로 유지하고, 실제 편집 기능은 별도 정책 확정 후 검토
