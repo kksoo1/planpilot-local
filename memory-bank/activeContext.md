@@ -28,7 +28,7 @@
 - taskSummary, projectLookup, dateUtils, recommendationScore 유틸 분리
 - useProjectFormState, useProjectActions 프로젝트 hook 분리
 - useTaskFormState 업무 form state hook 분리
-- useTaskActions 업무 추가/수정 submit hook 분리
+- useTaskActions 업무 추가/수정 submit 및 완료/미완료 토글 hook 분리
 - projectDeletion 삭제 가능 여부 helper 분리
 - RuleBasedAIProvider가 추천 흐름 조립, 지난 마감/예정 업무 목록, 요약 문자열 생성을 담당하도록 정리
 - recommendationScore가 priorityScore, getTaskScore, compareRecommendedTasks를 담당하도록 정리
@@ -54,12 +54,12 @@ Codex는 AGENTS.md와 ROADMAP.md를 기준으로 작업한다.
 - git 명령은 사용자가 "커밋까지 진행"을 명시한 작업에서만 제한적으로 실행
 
 ## Next Recommended Task
-업무 삭제 handler와 완료/미완료 토글 handler를 옮기기 전에 현재 `useTaskFormState`, `useTaskActions` 구조를 수동 테스트 기준으로 확인한다. 삭제 handler는 확인창과 삭제 후 Today/Projects 통계 회귀 범위가 넓고, 토글 handler는 완료 필터, 날짜 기반 목록, 추천 업무 회귀 범위가 넓으므로 문서화된 체크리스트를 기준으로 수동 확인한 뒤 작은 범위로 검토한다.
+업무 추가/수정 submit과 완료/미완료 토글은 `useTaskActions`가 담당한다. 업무 삭제 handler는 아직 `App.tsx`에 남아 있으며 확인창과 삭제 후 Today/Projects 통계 회귀 범위가 넓으므로, 문서화된 체크리스트를 기준으로 수동 확인한 뒤 작은 범위로 검토한다.
 
 ## Next Task Scope
 - 우선 후보: 업무 삭제 handler를 `App.tsx`에 유지한 상태에서 삭제 확인창 취소/확인, Today 통계, Projects 통계, 추천 업무 회귀를 수동 테스트로 확인
-- 보조 후보: 완료/미완료 토글 handler를 `App.tsx`에 유지한 상태에서 완료 업무 표시/숨김 필터, Today 날짜 목록, Projects 통계, 추천 업무 회귀를 수동 테스트로 확인
-- 목표: 업무 추가/수정 submit은 `useTaskActions`에 두고, 삭제와 완료 토글은 안전성이 확인될 때까지 `App.tsx`에 유지
+- 보조 후보: `useTaskActions`의 완료/미완료 토글이 완료 업무 표시/숨김 필터, Today 날짜 목록, Projects 통계, 추천 업무에서 회귀 없이 동작하는지 수동 테스트로 확인
+- 목표: 업무 추가/수정 submit과 완료/미완료 토글은 `useTaskActions`에 두고, 삭제는 안전성이 확인될 때까지 `App.tsx`에 유지
 - 검증: `npm run build`
 - 금지:
   - `src/App.css` 수정

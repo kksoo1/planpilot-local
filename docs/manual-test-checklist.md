@@ -369,7 +369,7 @@ AI Provider 확장은 현재 구현 범위가 아니며, `aiProvider` 타입이 
 - [ ] 빈 제목과 공백 제목은 추가/수정 submit에서 저장되지 않는다.
 - [ ] memo, dueDate, priority, projectId 값은 추가/수정 submit 후 기존과 동일하게 반영된다.
 - [ ] 업무 삭제 handler는 아직 `App.tsx`에 남아 있다.
-- [ ] 완료/미완료 토글 handler는 아직 `App.tsx`에 남아 있다.
+- [ ] 완료/미완료 토글 handler는 `useTaskActions`가 담당한다.
 - [ ] 업무 삭제 확인창에서 취소하면 업무가 유지된다.
 - [ ] 업무 삭제 확인창에서 확인하면 업무가 삭제되고 Today/Projects 통계가 갱신된다.
 - [ ] 완료/미완료 토글 후 Today 완료 업무 수와 Projects 완료/미완료 통계가 갱신된다.
@@ -398,7 +398,7 @@ AI Provider 확장은 현재 구현 범위가 아니며, `aiProvider` 타입이 
 
 ## 24. 업무 완료/미완료 토글 handler 분리 전후 회귀 테스트
 
-이 항목은 `handleToggleTaskDone`을 hook으로 옮기기 전후에 동일하게 확인한다. 토글은 `todo`와 `done` 상태 전환만 수행해야 하며, 삭제 handler는 같은 작업에서 이동하지 않는다.
+이 항목은 `handleToggleTaskDone`을 hook으로 옮긴 이후에도 동일하게 확인한다. 토글은 `todo`와 `done` 상태 전환만 수행해야 하며, 삭제 handler는 아직 `App.tsx`에 남아 있어야 한다.
 
 - [ ] 미완료 업무의 완료 토글을 누르면 상태가 완료로 바뀐다.
 - [ ] 완료 업무의 토글을 다시 누르면 상태가 미완료로 바뀐다.
