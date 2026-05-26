@@ -335,7 +335,7 @@ AI Provider 확장은 현재 구현 범위가 아니며, `aiProvider` 타입이 
 
 ## 21. useTaskActions 분리 전후 회귀 테스트
 
-이 항목은 `useTaskFormState` 적용 이후, 업무 추가/수정 submit handler를 `useTaskActions` 같은 hook으로 분리할 때 확인할 수동 테스트 기준이다. 삭제와 완료/미완료 토글은 초기 submit hook 분리 범위에 포함하지 않는다.
+이 항목은 `useTaskFormState` 적용 이후, 업무 추가/수정 submit handler와 이후 확장된 업무 action handler가 `useTaskActions`에서 기존 동작을 유지하는지 확인할 수동 테스트 기준이다.
 
 - [ ] 업무 추가 form을 열고 닫을 수 있다.
 - [ ] 업무 추가 form에 제목만 입력해 저장하면 업무가 생성된다.
@@ -348,8 +348,8 @@ AI Provider 확장은 현재 구현 범위가 아니며, `aiProvider` 타입이 
 - [ ] 업무 수정 저장 후 변경값만 반영되고 수정 form이 닫힌다.
 - [ ] 업무 수정 저장 시 빈 제목은 저장되지 않는다.
 - [ ] 업무 수정 저장 시 잘못된 길이의 마감일 값은 저장되지 않는다.
-- [ ] 업무 삭제 handler는 submit hook 분리 작업에서 이동하지 않는다.
-- [ ] 완료/미완료 토글 handler는 submit hook 분리 작업에서 이동하지 않는다.
+- [ ] 업무 삭제 handler는 현재 `useTaskActions`가 담당한다.
+- [ ] 완료/미완료 토글 handler는 현재 `useTaskActions`가 담당한다.
 - [ ] 업무 삭제 확인창에서 취소하면 업무가 유지된다.
 - [ ] 업무 삭제 확인창에서 확인하면 업무가 삭제되고 Today/Projects 통계가 갱신된다.
 - [ ] 완료/미완료 토글 후 Today 완료 업무 수와 Projects 완료/미완료 통계가 갱신된다.
@@ -393,12 +393,12 @@ AI Provider 확장은 현재 구현 범위가 아니며, `aiProvider` 타입이 
 - [ ] 7일 이내 마감 업무를 삭제하면 오늘 화면의 7일 이내 마감 업무 목록과 수가 갱신된다.
 - [ ] 추천 업무에 포함된 업무를 삭제하면 추천 업무 목록에 삭제된 업무가 남지 않는다.
 - [ ] 프로젝트 화면의 프로젝트별 전체/완료/미완료 업무 수가 삭제 결과를 반영한다.
-- [ ] 삭제 handler를 hook으로 옮기더라도 완료/미완료 토글 handler는 같은 작업에서 이동하지 않는다.
-- [ ] 삭제 handler 분리 작업에서 `src/App.css`, DB schema, `types.ts`, `store.ts` 구조 변경이 없다.
+- [ ] 업무 삭제 handler와 완료/미완료 토글 handler는 모두 `useTaskActions`가 담당한다.
+- [ ] 삭제 handler hook 이동 후에도 `src/App.css`, DB schema, `types.ts`, `store.ts` 구조 변경이 없다.
 
 ## 24. 업무 완료/미완료 토글 handler 분리 전후 회귀 테스트
 
-이 항목은 `handleToggleTaskDone`을 hook으로 옮긴 이후에도 동일하게 확인한다. 토글은 `todo`와 `done` 상태 전환만 수행해야 하며, 삭제 handler는 아직 `App.tsx`에 남아 있어야 한다.
+이 항목은 `handleToggleTaskDone`을 hook으로 옮긴 이후에도 동일하게 확인한다. 토글은 `todo`와 `done` 상태 전환만 수행해야 하며, 삭제 handler도 현재 `useTaskActions`가 담당한다.
 
 - [ ] 미완료 업무의 완료 토글을 누르면 상태가 완료로 바뀐다.
 - [ ] 완료 업무의 토글을 다시 누르면 상태가 미완료로 바뀐다.
@@ -416,5 +416,5 @@ AI Provider 확장은 현재 구현 범위가 아니며, `aiProvider` 타입이 
 - [ ] 완료로 바꾼 업무는 추천 업무 목록에서 제외된다.
 - [ ] 미완료로 되돌린 업무는 추천 점수 기준에 따라 추천 업무 후보가 될 수 있다.
 - [ ] 프로젝트 화면의 프로젝트별 전체/완료/미완료 업무 수가 토글 결과를 반영한다.
-- [ ] 토글 handler를 hook으로 옮기더라도 업무 삭제 handler는 같은 작업에서 이동하지 않는다.
-- [ ] 토글 handler 분리 작업에서 `src/App.css`, DB schema, `types.ts`, `store.ts` 구조 변경이 없다.
+- [ ] 완료/미완료 토글 handler와 업무 삭제 handler는 모두 `useTaskActions`가 담당한다.
+- [ ] 토글 handler hook 이동 후에도 `src/App.css`, DB schema, `types.ts`, `store.ts` 구조 변경이 없다.

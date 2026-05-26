@@ -79,9 +79,8 @@
   - `projectDeletion`은 기본 프로젝트와 업무 연결 프로젝트 삭제 방지 기준을 제공한다.
   - 프로젝트 삭제 handler는 아직 `App.tsx`에 있으며, 삭제 확인창과 실제 `deleteProject` 호출을 유지한다.
   - `useTaskFormState`는 업무 추가/수정 form state와 reset/start/cancel만 담당한다.
-  - `useTaskActions`는 업무 추가/수정 submit orchestration과 완료/미완료 토글을 담당한다.
-  - 업무 삭제 handler는 아직 `App.tsx`에 있으며, 삭제 확인창과 실제 `deleteTask` 호출 흐름을 유지한다.
-  - 업무 삭제 handler는 `window.confirm("정말로 이 업무를 삭제하시겠습니까?")` 취소/확인 흐름과 `deleteTask(task.id)` 호출 시점을 담당한다.
+  - `useTaskActions`는 업무 추가/수정 submit orchestration, 완료/미완료 토글, 업무 삭제를 담당한다.
+  - 업무 삭제 handler는 `useTaskActions`에서 `window.confirm("정말로 이 업무를 삭제하시겠습니까?")` 취소/확인 흐름과 `deleteTask(task.id)` 호출 시점을 담당한다.
   - 업무 삭제는 TasksView 목록뿐 아니라 TodayView 전체/완료/지난 마감/7일 이내/추천 업무, ProjectsView 프로젝트별 통계에 영향을 주므로 hook 이동 전 수동 회귀 확인이 필요하다.
   - 완료/미완료 토글 handler는 `useTaskActions`에서 `todo`와 `done` 상태 전환을 계산하고 `updateTask({ ...task, status })` 호출 시점을 담당한다.
   - 완료 상태는 완료 업무 표시/숨김 필터, TodayView 완료 수와 날짜 기반 목록, 추천 업무 제외 기준, ProjectsView 프로젝트별 완료/미완료 통계에 영향을 주므로 hook 이동 전 수동 회귀 확인이 필요하다.
@@ -99,7 +98,7 @@
     - memo, priority, projectId 반영
     - 저장 후 reset 시점 유지
     - 완료/미완료 토글
-    - 업무 삭제 handler는 담당하지 않음
+    - 업무 삭제 확인창과 확인 시 `deleteTask(task.id)` 호출
   - `useProjectFormState`
     - 프로젝트 추가/수정 form 입력값
     - 수정 대상 id

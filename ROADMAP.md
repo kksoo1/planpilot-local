@@ -1491,7 +1491,7 @@ custom hook 후보:
 
 ## 32. useTaskActions 분리 검토 기준
 
-`useTaskFormState` 분리는 완료되었고, 업무 추가/수정 form 입력값, 수정 대상 id, 추가 form 열림 상태, reset/start/cancel 흐름은 hook이 담당한다. 아직 `App.tsx`에는 실제 업무 CRUD orchestration handler가 남아 있다. 이번 기준에서는 코드를 바로 옮기지 않고, `useTaskActions`를 만들 경우 어떤 순서와 범위가 안전한지 먼저 고정한다.
+`useTaskFormState` 분리는 완료되었고, 업무 추가/수정 form 입력값, 수정 대상 id, 추가 form 열림 상태, reset/start/cancel 흐름은 hook이 담당한다. 현재 업무 추가/수정 submit, 완료/미완료 토글, 업무 삭제 orchestration은 `useTaskActions`가 담당한다. 이 섹션은 `useTaskActions`를 만들 때 고정했던 순서와 범위의 기록으로 유지한다.
 
 현재 `App.tsx`에 남아 있는 업무 handler:
 
@@ -1552,8 +1552,8 @@ custom hook 후보:
 - 1차 후보는 업무 추가 submit과 업무 수정 submit만 담당한다.
 - `addTask`, `updateTask`, 현재 form state 값, reset 함수를 인자로 받아 orchestration만 수행한다.
 - store action 자체를 중복 구현하지 않는다.
-- 삭제와 완료/미완료 토글은 초기 `useTaskActions` 범위에 포함하지 않는다.
-- 삭제 handler와 완료 토글은 회귀 영향이 작게 분리 가능한지 별도 문서화 후 검토한다.
+- 완료/미완료 토글과 업무 삭제는 현재 `useTaskActions`에 포함되어 있다.
+- 삭제 handler와 완료 토글은 수동 테스트 체크리스트 기준으로 회귀 여부를 확인한다.
 
 바로 hook으로 옮기면 위험한 이유:
 
@@ -1597,7 +1597,7 @@ custom hook 후보:
 
 ## 33. 업무 hook 현재 구조
 
-`useTaskFormState`와 `useTaskActions`가 추가되어 업무 영역의 form state, 추가/수정 submit orchestration, 완료/미완료 토글은 `App.tsx` 밖으로 일부 분리되었다. 이번 기준에서 업무 삭제 handler는 아직 `App.tsx`에 유지한다.
+`useTaskFormState`와 `useTaskActions`가 추가되어 업무 영역의 form state, 추가/수정 submit orchestration, 완료/미완료 토글, 업무 삭제는 `App.tsx` 밖으로 일부 분리되었다.
 
 현재 분리된 책임:
 
@@ -1612,17 +1612,14 @@ custom hook 후보:
   - dueDate 길이 방어, memo trim, priority, projectId 반영 기준을 유지한다.
   - 저장 성공 후 기존 reset 시점을 유지한다.
   - 완료/미완료 토글에서 `todo`와 `done` 상태 전환을 계산하고 `updateTask`를 호출한다.
-  - 업무 삭제 handler는 담당하지 않는다.
+  - 업무 삭제 확인창을 표시하고, 확인한 경우에만 `deleteTask(task.id)`를 호출한다.
 
 `App.tsx`에 남아 있는 업무 책임:
 
-- `handleDeleteTask`
-- 업무 삭제 확인창 표시
-- 실제 `deleteTask(task.id)` store action 호출
 - `handleStartEditTask`와 `handleCancelEditTask`의 얇은 wrapper
 - `TasksView`에 업무 form state, 필터 state, 정렬 state, handler props를 조립해 전달하는 책임
 
-업무 삭제 handler를 아직 `App.tsx`에 유지하는 이유:
+업무 삭제 handler를 `useTaskActions`로 이동한 뒤 확인할 이유:
 
 - 삭제는 확인창 위치와 실제 삭제 호출 시점이 바뀌면 회귀 위험이 크다.
 - 삭제 후 Today 통계, Projects 통계, 업무 목록, 프로젝트별 업무 수가 함께 바뀐다.
@@ -1640,12 +1637,12 @@ custom hook 후보:
 
 - `docs/manual-test-checklist.md`의 업무 추가/수정 submit 항목은 현재 `useTaskActions` 구조 기준으로 유지한다.
 - 완료/미완료 토글 항목은 현재 `useTaskActions` 회귀 검증 항목으로 본다.
-- 삭제 handler 항목은 아직 `App.tsx` 잔여 책임 검증 항목으로 본다.
-- 다음 코드 분리 전에는 삭제 항목을 실제 화면에서 먼저 확인한다.
+- 삭제 handler 항목도 현재 `useTaskActions` 회귀 검증 항목으로 본다.
+- 다음 코드 분리 전에는 업무 추가/수정/삭제/완료 토글 전체 항목을 실제 화면에서 먼저 확인한다.
 
-## 34. 업무 삭제 handler 분리 전 기준
+## 34. 업무 삭제 handler 분리 후 기준
 
-현재 `handleDeleteTask`는 아직 `App.tsx`에 남겨 둔다. 이 handler는 단순히 `deleteTask`를 호출하는 함수가 아니라, 삭제 확인창과 실제 삭제 실행 시점을 함께 조율한다.
+현재 `handleDeleteTask`는 `useTaskActions`로 이동했다. 이 handler는 단순히 `deleteTask`를 호출하는 함수가 아니라, 삭제 확인창과 실제 삭제 실행 시점을 함께 조율한다.
 
 현재 책임:
 
@@ -1662,14 +1659,14 @@ custom hook 후보:
 - 추천 업무 목록에 삭제된 업무가 남지 않아야 한다.
 - 프로젝트 화면의 프로젝트별 전체/완료/미완료 업무 수가 삭제 결과를 반영해야 한다.
 
-바로 `useTaskActions`로 옮기지 않는 이유:
+`useTaskActions` 이동 후 회귀 확인이 필요한 이유:
 
 - 삭제는 파괴적 동작이라 확인창 흐름이 조금만 바뀌어도 사용자 실수 위험이 커진다.
 - 확인창 취소 시 `deleteTask`를 호출하지 않는 방어 조건을 유지해야 한다.
 - 삭제 후 TodayView, TasksView, ProjectsView, 추천 업무가 동시에 영향을 받으므로 회귀 확인 범위가 넓다.
 - `useTaskActions`는 현재 추가/수정 submit과 완료/미완료 토글을 담당하므로, 삭제까지 넣기 전에 책임 경계를 다시 확인해야 한다.
 
-향후 안전한 분리 순서:
+향후 안전한 확인 순서:
 
 1. 삭제 확인창 문구와 취소/확인 흐름을 문서와 수동 테스트 기준으로 고정한다.
 2. 삭제 후 Today/Projects/추천 업무 회귀 항목을 먼저 수동으로 확인한다.
@@ -1707,14 +1704,14 @@ custom hook 후보:
 - `todo`로 되돌린 업무는 추천 점수 기준에 따라 추천 업무 후보가 될 수 있어야 한다.
 - 프로젝트 화면의 프로젝트별 전체/완료/미완료 업무 수가 토글 결과를 반영해야 한다.
 
-바로 `useTaskActions`로 옮기지 않는 이유:
+`useTaskActions` 이동 후 회귀 확인이 필요한 이유:
 
 - 토글은 단순 status 변경처럼 보이지만 TodayView, TasksView, ProjectsView, 추천 업무에 동시에 영향을 준다.
 - 완료 업무 표시/숨김 필터와 날짜 기반 목록의 회귀를 함께 확인해야 한다.
 - 추천 로직은 `done` 업무를 제외하므로 토글 변경 후 추천 목록 회귀 확인이 필요하다.
 - `useTaskActions`는 현재 추가/수정 submit과 완료/미완료 토글을 담당하므로, 이후 삭제 handler를 더할 때 hook 책임 범위를 다시 검증해야 한다.
 
-향후 안전한 분리 순서:
+향후 안전한 확인 순서:
 
 1. 토글 후 통계, 필터, 날짜 목록, 추천 업무 회귀 기준을 먼저 문서화한다.
 2. 실제 화면에서 완료/미완료 토글 수동 테스트를 수행한다.
@@ -1728,3 +1725,39 @@ custom hook 후보:
 - 추천 로직 또는 추천 정렬 기준을 변경해야 하는 경우
 - 완료 업무 표시/숨김 필터 동작을 바꿔야 하는 경우
 - 삭제 handler와 토글 handler를 한 작업에서 함께 옮겨야 하는 경우
+
+## 36. 업무 hook/action 현재 구조
+
+현재 업무 영역은 form state와 action orchestration이 다음처럼 분리되어 있다.
+
+- `useTaskFormState`
+  - 업무 추가 form state를 담당한다.
+  - 업무 수정 form state를 담당한다.
+  - 추가/수정 form reset, 수정 시작, 수정 취소 흐름을 담당한다.
+- `useTaskActions`
+  - 업무 추가 submit을 담당한다.
+  - 업무 수정 submit을 담당한다.
+  - 완료/미완료 토글을 담당한다.
+  - 업무 삭제를 담당한다.
+  - 삭제 확인창을 표시하고, 사용자가 확인한 경우에만 `deleteTask(task.id)`를 호출한다.
+
+`App.tsx`에 남아 있는 업무 관련 책임:
+
+- `useTaskFormState`와 `useTaskActions`에 필요한 store action, form state, reset 함수를 조립한다.
+- `TasksView`에 업무 form state, filter state, sort state, handler props를 전달한다.
+- 앱 탭 상태, 검색/필터/정렬 상태, Today 화면용 파생 데이터와 추천 업무 상태를 조립한다.
+- `handleStartEditTask`, `handleCancelEditTask`처럼 form state hook을 호출하는 얇은 wrapper를 유지한다.
+
+`App.tsx`에서 제거된 업무 관련 책임:
+
+- 업무 추가 submit 직접 처리
+- 업무 수정 submit 직접 처리
+- 완료/미완료 토글 직접 처리
+- 업무 삭제 확인창과 `deleteTask(task.id)` 직접 호출
+
+다음 작업 후보:
+
+1. 수동 테스트 체크리스트 기준으로 업무 추가/수정/삭제/완료 토글 전체 회귀를 확인한다.
+2. App.tsx에 남은 업무 관련 wrapper와 props 조립이 더 줄어들 수 있는지 점검한다.
+3. 프로젝트 삭제 handler 분리 여부를 별도 작업으로 검토한다.
+4. 기능 고도화 단계로 들어가기 전 README, ROADMAP, memory-bank가 현재 hook 구조와 계속 일치하는지 확인한다.

@@ -168,7 +168,7 @@ npm run preview
 
 ## 업무 hook 구조
 
-최근 리팩터링 기준으로 업무 form state와 업무 추가/수정 submit orchestration, 완료/미완료 토글은 `src/hooks`로 일부 분리되어 있습니다.
+최근 리팩터링 기준으로 업무 form state와 업무 action orchestration은 `src/hooks`로 일부 분리되어 있습니다.
 
 - `src/hooks/useTaskFormState.ts`
   - 업무 추가 form 입력값과 form open 상태를 관리합니다.
@@ -178,6 +178,6 @@ npm run preview
   - 업무 추가 submit과 업무 수정 submit을 담당합니다.
   - 빈 제목 방지, 제목 trim, dueDate 길이 방어, memo/priority/projectId 반영, 저장 후 reset 시점을 유지합니다.
   - 완료/미완료 토글에서 `todo`와 `done` 상태 전환을 계산하고 `updateTask`를 호출합니다.
-  - 업무 삭제 handler는 아직 담당하지 않습니다.
+  - 업무 삭제 확인창을 표시하고, 확인한 경우에만 `deleteTask(task.id)`를 호출합니다.
 
-`src/App.tsx`에는 아직 업무 삭제 확인창과 실제 `deleteTask` 호출 책임이 남아 있습니다. 삭제는 파괴적 동작이고 Today/Projects 통계와 함께 회귀 범위가 넓으므로 별도 수동 테스트 후 분리 여부를 결정합니다.
+`src/App.tsx`에는 업무 form/action hook 조립, `TasksView` props 전달, 탭/필터/검색/정렬 상태와 Today/Projects 파생 데이터 조립 책임이 남아 있습니다. 업무 추가/수정 submit, 완료/미완료 토글, 업무 삭제 직접 처리 책임은 `useTaskActions`로 이동했습니다.
