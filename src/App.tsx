@@ -58,9 +58,10 @@ function App() {
     resetEditTaskForm,
     startEditTask,
   } = taskFormState;
-  const { handleAddTask, handleSaveEditTask, handleToggleTaskDone } = useTaskActions({
+  const { handleAddTask, handleSaveEditTask, handleToggleTaskDone, handleDeleteTask } = useTaskActions({
     addTask,
     updateTask,
+    deleteTask,
     newTaskTitle,
     newTaskDueDate,
     newTaskPriority,
@@ -123,12 +124,6 @@ function App() {
   useEffect(() => {
     void aiProvider.suggestTodayTasks(tasks, 3).then(setRecommendedTasks);
   }, [aiProvider, tasks]);
-
-  function handleDeleteTask(task: Task) {
-    if (window.confirm('정말로 이 업무를 삭제하시겠습니까?')) {
-      void deleteTask(task.id);
-    }
-  }
 
   function handleStartEditTask(task: Task) {
     startEditTask(task);

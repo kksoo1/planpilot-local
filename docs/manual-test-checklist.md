@@ -368,7 +368,7 @@ AI Provider 확장은 현재 구현 범위가 아니며, `aiProvider` 타입이 
 - [ ] 업무 수정 submit 후 수정 form이 닫히고 입력값이 reset된다.
 - [ ] 빈 제목과 공백 제목은 추가/수정 submit에서 저장되지 않는다.
 - [ ] memo, dueDate, priority, projectId 값은 추가/수정 submit 후 기존과 동일하게 반영된다.
-- [ ] 업무 삭제 handler는 아직 `App.tsx`에 남아 있다.
+- [ ] 업무 삭제 handler는 `useTaskActions`가 담당한다.
 - [ ] 완료/미완료 토글 handler는 `useTaskActions`가 담당한다.
 - [ ] 업무 삭제 확인창에서 취소하면 업무가 유지된다.
 - [ ] 업무 삭제 확인창에서 확인하면 업무가 삭제되고 Today/Projects 통계가 갱신된다.
@@ -378,7 +378,7 @@ AI Provider 확장은 현재 구현 범위가 아니며, `aiProvider` 타입이 
 
 ## 23. 업무 삭제 handler 분리 전후 회귀 테스트
 
-이 항목은 `handleDeleteTask`를 hook으로 옮기기 전후에 동일하게 확인한다. 삭제 확인창 문구와 삭제/취소 흐름은 기존 동작을 유지해야 한다.
+이 항목은 `handleDeleteTask`를 hook으로 옮긴 이후에도 동일하게 확인한다. 삭제 확인창 문구와 삭제/취소 흐름은 기존 동작을 유지해야 한다.
 
 - [ ] 업무 삭제 버튼을 누르면 삭제 확인창이 표시된다.
 - [ ] 삭제 확인창에서 취소하면 업무가 목록에 그대로 남아 있다.

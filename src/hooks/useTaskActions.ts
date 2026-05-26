@@ -10,6 +10,7 @@ type TaskActionStore = {
     projectId: string;
   }) => Promise<void>;
   updateTask: (task: Task) => Promise<void>;
+  deleteTask: (taskId: string) => Promise<void>;
 };
 
 type TaskActionFormState = {
@@ -32,6 +33,7 @@ type UseTaskActionsParams = TaskActionStore & TaskActionFormState;
 export function useTaskActions({
   addTask,
   updateTask,
+  deleteTask,
   newTaskTitle,
   newTaskDueDate,
   newTaskPriority,
@@ -86,9 +88,16 @@ export function useTaskActions({
     void updateTask({ ...task, status: nextStatus });
   }
 
+  function handleDeleteTask(task: Task) {
+    if (window.confirm("정말로 이 업무를 삭제하시겠습니까?")) {
+      void deleteTask(task.id);
+    }
+  }
+
   return {
     handleAddTask,
     handleSaveEditTask,
     handleToggleTaskDone,
+    handleDeleteTask,
   };
 }
