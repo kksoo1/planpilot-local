@@ -1685,3 +1685,48 @@ custom hook 후보:
 - `deleteTask` store action 책임과 hook orchestration 책임이 섞이는 경우
 - `TasksView`, `TodayView`, `ProjectsView` props 구조가 동시에 크게 바뀌는 경우
 - 수동 테스트 범위가 업무 삭제를 넘어 완료 토글, 필터, 추천 로직 재작업으로 커지는 경우
+
+## 35. 업무 완료/미완료 토글 handler 분리 전 기준
+
+현재 `handleToggleTaskDone`은 아직 `App.tsx`에 남겨 둔다. 이 handler는 업무의 `status`를 `todo`와 `done` 사이에서 전환하고, 기존 `updateTask` store action을 호출한다.
+
+현재 책임:
+
+- `TaskCard`의 완료/미완료 토글 버튼에서 전달된 업무를 받는다.
+- 현재 상태가 `done`이면 다음 상태를 `todo`로 계산한다.
+- 현재 상태가 `done`이 아니면 다음 상태를 `done`으로 계산한다.
+- `updateTask({ ...task, status: nextStatus })` store action을 호출한다.
+
+토글 후 회귀 영향 범위:
+
+- 전체 업무 화면의 업무 카드 상태 라벨과 토글 버튼 상태가 갱신되어야 한다.
+- 완료 업무 표시/숨김 필터가 현재 설정대로 동작해야 한다.
+- 오늘 화면의 완료 업무 수가 즉시 갱신되어야 한다.
+- `done` 업무는 지난 마감 업무와 7일 이내 마감 업무 목록에서 제외되어야 한다.
+- `todo`로 되돌린 업무는 마감일 기준에 따라 지난 마감 또는 7일 이내 마감 목록에 다시 포함될 수 있어야 한다.
+- `done` 업무는 추천 업무에서 제외되어야 한다.
+- `todo`로 되돌린 업무는 추천 점수 기준에 따라 추천 업무 후보가 될 수 있어야 한다.
+- 프로젝트 화면의 프로젝트별 전체/완료/미완료 업무 수가 토글 결과를 반영해야 한다.
+
+바로 `useTaskActions`로 옮기지 않는 이유:
+
+- 토글은 단순 status 변경처럼 보이지만 TodayView, TasksView, ProjectsView, 추천 업무에 동시에 영향을 준다.
+- 완료 업무 표시/숨김 필터와 날짜 기반 목록의 회귀를 함께 확인해야 한다.
+- 추천 로직은 `done` 업무를 제외하므로 토글 변경 후 추천 목록 회귀 확인이 필요하다.
+- `useTaskActions`는 현재 추가/수정 submit만 담당하므로 토글까지 포함하기 전에 hook 책임 범위를 작게 검증해야 한다.
+
+향후 안전한 분리 순서:
+
+1. 토글 후 통계, 필터, 날짜 목록, 추천 업무 회귀 기준을 먼저 문서화한다.
+2. 실제 화면에서 완료/미완료 토글 수동 테스트를 수행한다.
+3. 코드로 옮길 경우 `handleToggleTaskDone`만 `useTaskActions`에 추가하고, 업무 삭제 handler는 같은 작업에서 옮기지 않는다.
+4. `todo`/`done` enum 의미와 `updateTask({ ...task, status })` 호출 구조는 그대로 유지한다.
+5. 토글 안정화 이후 삭제 handler 분리 여부를 별도 작업으로 검토한다.
+
+중단 조건:
+
+- `Task.status` enum 의미나 허용 값이 바뀌는 경우
+- Today/Projects 통계 계산을 함께 변경해야 하는 경우
+- 추천 로직 또는 추천 정렬 기준을 변경해야 하는 경우
+- 완료 업무 표시/숨김 필터 동작을 바꿔야 하는 경우
+- 삭제 handler와 토글 handler를 한 작업에서 함께 옮겨야 하는 경우

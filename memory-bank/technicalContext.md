@@ -83,6 +83,8 @@
   - 업무 삭제 handler와 완료/미완료 토글 handler는 아직 `App.tsx`에 있으며, 삭제 확인창과 status 전환 흐름을 유지한다.
   - 업무 삭제 handler는 `window.confirm("정말로 이 업무를 삭제하시겠습니까?")` 취소/확인 흐름과 `deleteTask(task.id)` 호출 시점을 담당한다.
   - 업무 삭제는 TasksView 목록뿐 아니라 TodayView 전체/완료/지난 마감/7일 이내/추천 업무, ProjectsView 프로젝트별 통계에 영향을 주므로 hook 이동 전 수동 회귀 확인이 필요하다.
+  - 완료/미완료 토글 handler는 `todo`와 `done` 상태 전환을 계산하고 `updateTask({ ...task, status })` 호출 시점을 담당한다.
+  - 완료 상태는 완료 업무 표시/숨김 필터, TodayView 완료 수와 날짜 기반 목록, 추천 업무 제외 기준, ProjectsView 프로젝트별 완료/미완료 통계에 영향을 주므로 hook 이동 전 수동 회귀 확인이 필요하다.
 
 - `src/hooks`
   - `useTaskFormState`
