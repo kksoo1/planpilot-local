@@ -81,8 +81,14 @@ export function useTaskActions({
     resetEditTaskForm();
   }
 
+  function handleToggleTaskDone(task: Task) {
+    const nextStatus = task.status === "done" ? "todo" : "done";
+    void updateTask({ ...task, status: nextStatus });
+  }
+
   return {
     handleAddTask,
     handleSaveEditTask,
+    handleToggleTaskDone,
   };
 }
