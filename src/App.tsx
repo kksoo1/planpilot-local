@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { RuleBasedAIProvider } from "./ai/RuleBasedAIProvider";
 import { useProjectActions } from "./hooks/useProjectActions";
 import { useProjectFormState } from "./hooks/useProjectFormState";
+import { useTaskActions } from "./hooks/useTaskActions";
 import { useTaskFormState } from "./hooks/useTaskFormState";
 import { useStore } from "./store";
 import { startOfToday } from "./utils/dateUtils";
@@ -57,6 +58,22 @@ function App() {
     resetEditTaskForm,
     startEditTask,
   } = taskFormState;
+  const { handleAddTask, handleSaveEditTask } = useTaskActions({
+    addTask,
+    updateTask,
+    newTaskTitle,
+    newTaskDueDate,
+    newTaskPriority,
+    newTaskProjectId,
+    newTaskMemo,
+    editTaskTitle,
+    editTaskDueDate,
+    editTaskPriority,
+    editTaskMemo,
+    editTaskProjectId,
+    resetNewTaskForm,
+    resetEditTaskForm,
+  });
   const projectFormState = useProjectFormState();
   const {
     editingProjectId,
@@ -107,25 +124,6 @@ function App() {
     void aiProvider.suggestTodayTasks(tasks, 3).then(setRecommendedTasks);
   }, [aiProvider, tasks]);
 
-  async function handleAddTask(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    const title = newTaskTitle.trim();
-    if (!title) return;
-
-    if (newTaskDueDate && newTaskDueDate.length !== 10) return;
-
-    await addTask({
-      title,
-      memo: newTaskMemo.trim() || undefined,
-      dueDate: newTaskDueDate || undefined,
-      priority: newTaskPriority,
-      projectId: newTaskProjectId,
-    });
-
-    resetNewTaskForm();
-  }
-
   function handleToggleTaskDone(task: Task) {
     const nextStatus = task.status === 'done' ? 'todo' : 'done';
     void updateTask({ ...task, status: nextStatus });
@@ -142,23 +140,6 @@ function App() {
   }
 
   function handleCancelEditTask() {
-    resetEditTaskForm();
-  }
-
-  function handleSaveEditTask(task: Task) {
-    const title = editTaskTitle.trim();
-    if (!title) return;
-
-    if (editTaskDueDate && editTaskDueDate.length !== 10) return;
-
-    void updateTask({
-      ...task,
-      title,
-      memo: editTaskMemo.trim() || undefined,
-      dueDate: editTaskDueDate || undefined,
-      priority: editTaskPriority,
-      projectId: editTaskProjectId,
-    });
     resetEditTaskForm();
   }
 
