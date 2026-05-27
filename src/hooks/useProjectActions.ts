@@ -1,12 +1,16 @@
 import type { FormEvent } from "react";
-import type { Project } from "../types";
+import type { Project, Task } from "../types";
+import { getProjectDeleteBlockReason } from "../utils/projectDeletion";
 
 type ProjectActionStore = {
   addProject: (input: { name: string; description?: string }) => Promise<void>;
   updateProject: (project: Project) => Promise<void>;
+  deleteProject: (projectId: string) => Promise<void>;
 };
 
 type ProjectActionFormState = {
+  projects: Project[];
+  tasks: Task[];
   newProjectName: string;
   newProjectDescription: string;
   editProjectName: string;
@@ -20,6 +24,9 @@ type UseProjectActionsParams = ProjectActionStore & ProjectActionFormState;
 export function useProjectActions({
   addProject,
   updateProject,
+  deleteProject,
+  projects,
+  tasks,
   newProjectName,
   newProjectDescription,
   editProjectName,
@@ -54,8 +61,18 @@ export function useProjectActions({
     resetEditProjectForm();
   }
 
+  function handleDeleteProject(projectId: string) {
+    const project = projects.find((item) => item.id === projectId);
+    if (!project) return;
+    if (getProjectDeleteBlockReason(project, tasks)) return;
+    if (window.confirm("정말로 이 프로젝트를 삭제하시겠습니까?")) {
+      void deleteProject(projectId);
+    }
+  }
+
   return {
     handleAddProject,
     handleSaveEditProject,
+    handleDeleteProject,
   };
 }

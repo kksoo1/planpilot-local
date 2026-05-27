@@ -6,7 +6,6 @@ import { useTaskActions } from "./hooks/useTaskActions";
 import { useTaskFormState } from "./hooks/useTaskFormState";
 import { useStore } from "./store";
 import { startOfToday } from "./utils/dateUtils";
-import { getProjectDeleteBlockReason } from "./utils/projectDeletion";
 import { getProjectName } from "./utils/projectLookup";
 import { getOverdueTasks, getUpcomingTasks } from "./utils/taskDates";
 import { filterTasks, sortTasks, type TaskSortOrder } from "./utils/taskFilters";
@@ -90,9 +89,12 @@ function App() {
     resetEditProjectForm,
     startEditProject,
   } = projectFormState;
-  const { handleAddProject, handleSaveEditProject } = useProjectActions({
+  const { handleAddProject, handleSaveEditProject, handleDeleteProject } = useProjectActions({
     addProject,
     updateProject,
+    deleteProject,
+    projects,
+    tasks,
     newProjectName,
     newProjectDescription,
     editProjectName,
@@ -124,15 +126,6 @@ function App() {
   useEffect(() => {
     void aiProvider.suggestTodayTasks(tasks, 3).then(setRecommendedTasks);
   }, [aiProvider, tasks]);
-
-  function handleDeleteProject(projectId: string) {
-    const project = projects.find((item) => item.id === projectId);
-    if (!project) return;
-    if (getProjectDeleteBlockReason(project, tasks)) return;
-    if (window.confirm('정말로 이 프로젝트를 삭제하시겠습니까?')) {
-      void deleteProject(projectId);
-    }
-  }
 
   return (
     <div className="app-shell">
