@@ -15,7 +15,7 @@ import { SettingsView } from "./views/SettingsView";
 import { TasksView } from "./views/TasksView";
 import { ProjectsView } from "./views/ProjectsView";
 import { TodayView } from "./views/TodayView";
-import type { Project, Task } from "./types";
+import type { Task } from "./types";
 import "./App.css";
 
 type Tab = "today" | "tasks" | "projects" | "settings";
@@ -125,14 +125,6 @@ function App() {
     void aiProvider.suggestTodayTasks(tasks, 3).then(setRecommendedTasks);
   }, [aiProvider, tasks]);
 
-  function handleStartEditTask(task: Task) {
-    startEditTask(task);
-  }
-
-  function handleCancelEditTask() {
-    resetEditTaskForm();
-  }
-
   function handleDeleteProject(projectId: string) {
     const project = projects.find((item) => item.id === projectId);
     if (!project) return;
@@ -140,14 +132,6 @@ function App() {
     if (window.confirm('정말로 이 프로젝트를 삭제하시겠습니까?')) {
       void deleteProject(projectId);
     }
-  }
-
-  function handleStartEditProject(project: Project) {
-    startEditProject(project);
-  }
-
-  function handleCancelEditProject() {
-    resetEditProjectForm();
   }
 
   return (
@@ -209,10 +193,10 @@ function App() {
             onEditTaskProjectIdChange={setEditTaskProjectId}
             onAddTask={handleAddTask}
             onSaveEditTask={handleSaveEditTask}
-            onCancelEditTask={handleCancelEditTask}
+            onCancelEditTask={resetEditTaskForm}
             onToggleTaskDone={handleToggleTaskDone}
             onDeleteTask={handleDeleteTask}
-            onStartEditTask={handleStartEditTask}
+            onStartEditTask={startEditTask}
           />
         )}
 
@@ -231,9 +215,9 @@ function App() {
             onEditProjectDescriptionChange={setEditProjectDescription}
             onAddProject={handleAddProject}
             onSaveEditProject={handleSaveEditProject}
-            onCancelEditProject={handleCancelEditProject}
+            onCancelEditProject={resetEditProjectForm}
             onDeleteProject={handleDeleteProject}
-            onStartEditProject={handleStartEditProject}
+            onStartEditProject={startEditProject}
           />
         )}
 
