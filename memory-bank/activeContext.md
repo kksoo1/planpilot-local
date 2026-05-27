@@ -26,7 +26,8 @@
 - TaskForm, ProjectForm 폼 컴포넌트 분리
 - taskLabels, taskDates, taskFilters, projectStats 유틸 분리
 - taskSummary, projectLookup, dateUtils, recommendationScore 유틸 분리
-- useProjectFormState, useProjectActions 프로젝트 hook 분리
+- useProjectFormState 프로젝트 form state hook 분리
+- useProjectActions 프로젝트 추가/수정 submit, 프로젝트 삭제 hook 분리
 - useTaskFormState 업무 form state hook 분리
 - useTaskActions 업무 추가/수정 submit, 완료/미완료 토글, 업무 삭제 hook 분리
 - projectDeletion 삭제 가능 여부 helper 분리
@@ -54,12 +55,13 @@ Codex는 AGENTS.md와 ROADMAP.md를 기준으로 작업한다.
 - git 명령은 사용자가 "커밋까지 진행"을 명시한 작업에서만 제한적으로 실행
 
 ## Next Recommended Task
-업무 추가/수정 submit, 완료/미완료 토글, 업무 삭제는 `useTaskActions`가 담당한다. `App.tsx`에는 업무 form/action hook 조립, `TasksView` props 전달, 탭/필터/검색/정렬 상태와 Today/Projects 파생 데이터 조립 책임이 남아 있다.
+업무 추가/수정 submit, 완료/미완료 토글, 업무 삭제는 `useTaskActions`가 담당한다. 프로젝트 추가/수정 submit과 프로젝트 삭제는 `useProjectActions`가 담당한다. `App.tsx`에는 업무/프로젝트 hook 조립, view props 전달, 탭/필터/검색/정렬 상태와 Today/Projects 파생 데이터 조립 책임이 남아 있다.
 
 ## Next Task Scope
 - 우선 후보: `useTaskActions`의 업무 삭제 확인창 취소/확인, Today 통계, Projects 통계, 추천 업무 회귀를 수동 테스트로 확인
 - 보조 후보: `useTaskActions`의 완료/미완료 토글이 완료 업무 표시/숨김 필터, Today 날짜 목록, Projects 통계, 추천 업무에서 회귀 없이 동작하는지 수동 테스트로 확인
-- 목표: 업무 CRUD action orchestration은 `useTaskActions`에 두고, `App.tsx`는 화면 상태와 props 조립 책임 중심으로 유지
+- 추가 후보: `useProjectActions`의 프로젝트 삭제 확인창 취소/확인, 기본 프로젝트 삭제 방지, 업무 연결 프로젝트 삭제 방지 회귀를 수동 테스트로 확인
+- 목표: 업무 CRUD action orchestration은 `useTaskActions`에, 프로젝트 action orchestration은 `useProjectActions`에 두고, `App.tsx`는 화면 상태와 props 조립 책임 중심으로 유지
 - 검증: `npm run build`
 - 금지:
   - `src/App.css` 수정

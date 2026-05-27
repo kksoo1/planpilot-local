@@ -71,7 +71,7 @@ PlanPilot Local은 Dexie.js를 통해 IndexedDB에 데이터를 저장합니다.
 ## 주요 파일
 
 - `src/App.tsx`
-  - 앱 초기화, 탭 상태, 화면 조립, 주요 CRUD 핸들러를 담당합니다.
+  - 앱 초기화, 탭 상태, 화면 조립, hook 조립, 화면 props 전달을 담당합니다.
   - 화면 JSX와 반복 UI는 `src/views`, `src/components`, `src/utils`로 분리 중입니다.
 - `src/store.ts`
   - Zustand store와 업무/프로젝트/설정 액션을 정의합니다.
@@ -157,14 +157,14 @@ npm run preview
   - 프로젝트 추가/수정 form 입력값을 관리합니다.
   - 수정 대상 id, 수정 시작, 수정 취소, 추가/수정 form reset을 담당합니다.
 - `src/hooks/useProjectActions.ts`
-  - 프로젝트 추가 submit과 프로젝트 수정 submit만 담당합니다.
+  - 프로젝트 추가 submit, 프로젝트 수정 submit, 프로젝트 삭제를 담당합니다.
   - 이름 trim, 빈 이름 방지, 저장 후 form reset 시점을 유지합니다.
-  - 프로젝트 삭제 handler는 아직 담당하지 않습니다.
+  - 프로젝트 삭제 확인창을 표시하고, 확인한 경우에만 `deleteProject(projectId)`를 호출합니다.
 - `src/utils/projectDeletion.ts`
   - 기본 프로젝트 삭제 방지와 업무가 연결된 프로젝트 삭제 방지 기준을 제공합니다.
-  - `ProjectCard`의 삭제 버튼 비활성 기준과 `App.tsx`의 삭제 handler 방어 기준을 같은 helper로 맞춥니다.
+  - `ProjectCard`의 삭제 버튼 비활성 기준과 `useProjectActions`의 삭제 handler 방어 기준을 같은 helper로 맞춥니다.
 
-`src/App.tsx`에는 아직 프로젝트 삭제 확인창, 삭제 가능 여부 최종 방어, 실제 `deleteProject` store action 호출 책임이 남아 있습니다. 삭제는 파괴적인 동작이므로 다음 리팩터링 전 수동 테스트 기준을 먼저 확인합니다.
+`src/App.tsx`에는 프로젝트 form/action hook 조립, `ProjectsView` props 전달, 탭 상태와 Today/Tasks/Projects 파생 데이터 조립 책임이 남아 있습니다. 프로젝트 추가/수정 submit과 프로젝트 삭제 직접 처리 책임은 `useProjectActions`로 이동했습니다.
 
 ## 업무 hook 구조
 

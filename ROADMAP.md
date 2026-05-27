@@ -1435,7 +1435,7 @@ custom hook 후보:
 
 ## 31. 프로젝트 hook/helper 현재 구조
 
-프로젝트 영역은 `App.tsx` 비대화를 줄이기 위해 form state, submit orchestration, 삭제 가능 여부 판단을 작은 단위로 분리한 상태다. 이번 기준에서는 삭제 handler 자체는 아직 `App.tsx`에 남겨 둔다.
+프로젝트 영역은 `App.tsx` 비대화를 줄이기 위해 form state, action orchestration, 삭제 가능 여부 판단을 작은 단위로 분리한 상태다. 현재 삭제 handler는 `useProjectActions`로 이동했다.
 
 현재 분리된 책임:
 
@@ -1759,5 +1759,45 @@ custom hook 후보:
 
 1. 수동 테스트 체크리스트 기준으로 업무 추가/수정/삭제/완료 토글 전체 회귀를 확인한다.
 2. App.tsx에 남은 업무 관련 wrapper와 props 조립이 더 줄어들 수 있는지 점검한다.
-3. 프로젝트 삭제 handler 분리 여부를 별도 작업으로 검토한다.
+3. 프로젝트 삭제 handler는 `useProjectActions`로 이동했으므로 수동 테스트 체크리스트 기준 회귀를 확인한다.
+4. 기능 고도화 단계로 들어가기 전 README, ROADMAP, memory-bank가 현재 hook 구조와 계속 일치하는지 확인한다.
+
+## 37. 프로젝트 hook/action 현재 구조
+
+현재 프로젝트 영역은 form state, action orchestration, 삭제 가능 여부 판단이 다음처럼 분리되어 있다.
+
+- `useProjectFormState`
+  - 프로젝트 추가 form state를 담당한다.
+  - 프로젝트 수정 form state를 담당한다.
+  - 추가/수정 form reset, 수정 시작, 수정 취소 흐름을 담당한다.
+- `useProjectActions`
+  - 프로젝트 추가 submit을 담당한다.
+  - 프로젝트 수정 submit을 담당한다.
+  - 프로젝트 삭제를 담당한다.
+  - 삭제 확인창을 표시하고, 사용자가 확인한 경우에만 `deleteProject(projectId)`를 호출한다.
+  - `projectDeletion` helper를 사용해 기본 프로젝트와 업무가 연결된 프로젝트 삭제를 방어한다.
+- `projectDeletion`
+  - 기본 프로젝트 삭제 방지 기준을 제공한다.
+  - 업무가 연결된 프로젝트 삭제 방지 기준을 제공한다.
+  - `ProjectCard`의 삭제 버튼 disabled 기준과 `useProjectActions`의 handler 방어 기준을 통일한다.
+
+`App.tsx`에 남아 있는 프로젝트 관련 책임:
+
+- `useProjectFormState`와 `useProjectActions`에 필요한 store action, form state, tasks/projects를 조립한다.
+- `ProjectsView`에 프로젝트 form state와 handler props를 전달한다.
+- 앱 탭 상태, 업무/프로젝트 데이터, Today/Tasks/Projects 파생 데이터 조립을 유지한다.
+- `startEditProject`, `resetEditProjectForm`처럼 form state hook이 제공하는 함수를 view props로 전달한다.
+
+`App.tsx`에서 제거된 프로젝트 관련 책임:
+
+- 프로젝트 추가 submit 직접 처리
+- 프로젝트 수정 submit 직접 처리
+- 프로젝트 삭제 가능 여부 최종 방어 직접 처리
+- 프로젝트 삭제 확인창과 `deleteProject(projectId)` 직접 호출
+
+다음 작업 후보:
+
+1. 수동 테스트 체크리스트 기준으로 프로젝트 추가/수정/삭제 전체 회귀를 확인한다.
+2. App.tsx에 남은 프로젝트 관련 props 조립이 더 줄어들 수 있는지 점검한다.
+3. 전체 수동 테스트 체크리스트 기준으로 업무/프로젝트/오늘/설정 화면 회귀를 확인한다.
 4. 기능 고도화 단계로 들어가기 전 README, ROADMAP, memory-bank가 현재 hook 구조와 계속 일치하는지 확인한다.

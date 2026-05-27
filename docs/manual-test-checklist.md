@@ -328,7 +328,7 @@ AI Provider 확장은 현재 구현 범위가 아니며, `aiProvider` 타입이 
 - [ ] 업무가 연결된 프로젝트 id가 삭제 handler로 전달되어도 삭제되지 않는다.
 - [ ] 업무가 없는 사용자 프로젝트는 삭제 확인창에서 취소하면 유지된다.
 - [ ] 업무가 없는 사용자 프로젝트는 삭제 확인창에서 확인하면 삭제된다.
-- [ ] 삭제 가능 여부 기준은 `ProjectCard` disabled 표시와 `App.tsx` handler 방어에서 동일하게 적용된다.
+- [ ] 삭제 가능 여부 기준은 `ProjectCard` disabled 표시와 `useProjectActions` handler 방어에서 동일하게 적용된다.
 - [ ] 프로젝트 추가/수정 submit 분리 후에도 `ProjectsView`, `ProjectForm`, `ProjectCard`의 화면 구조와 문구가 유지된다.
 - [ ] 프로젝트 리팩터링 후 업무 form state와 업무 CRUD handler 동작이 바뀌지 않는다.
 - [ ] 리팩터링 후 `src/App.css`, DB schema, `types.ts`, `store.ts` 구조 변경이 없다.

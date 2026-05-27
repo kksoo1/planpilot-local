@@ -68,16 +68,14 @@
   - 앱 초기화
   - 하단 탭 상태
   - 화면 컴포넌트 조립
-  - 업무 form 상태와 업무 CRUD 핸들러
-  - 프로젝트 삭제 handler, confirm 흐름, 실제 deleteProject store action 호출
+  - 업무/프로젝트 hook 조립
+  - view props 전달
   - RuleBasedAIProvider 추천 업무 연결
-  - 다음 리팩터링 후보는 form state와 CRUD orchestration을 custom hook으로 나누는 작업이다.
-  - 첫 단계에서는 `useTaskFormState` 또는 `useProjectFormState`처럼 상태/reset/start/cancel만 분리하고, submit/삭제/토글 handler 이동은 별도 단계로 검토한다.
   - hook은 store action을 중복 구현하지 않고 기존 `addTask`, `updateTask`, `deleteTask`, `addProject`, `updateProject`, `deleteProject`를 호출하는 방향을 유지한다.
   - `useProjectFormState`는 프로젝트 입력값, 수정 대상 id, 수정 시작/취소/reset만 담당한다.
-  - `useProjectActions`는 프로젝트 추가/수정 submit orchestration만 담당한다.
+  - `useProjectActions`는 프로젝트 추가/수정 submit orchestration과 프로젝트 삭제를 담당한다.
   - `projectDeletion`은 기본 프로젝트와 업무 연결 프로젝트 삭제 방지 기준을 제공한다.
-  - 프로젝트 삭제 handler는 아직 `App.tsx`에 있으며, 삭제 확인창과 실제 `deleteProject` 호출을 유지한다.
+  - 프로젝트 삭제 handler는 `useProjectActions`에서 `projectDeletion` 방어 기준, 삭제 확인창, 실제 `deleteProject(projectId)` 호출 시점을 담당한다.
   - `useTaskFormState`는 업무 추가/수정 form state와 reset/start/cancel만 담당한다.
   - `useTaskActions`는 업무 추가/수정 submit orchestration, 완료/미완료 토글, 업무 삭제를 담당한다.
   - 업무 삭제 handler는 `useTaskActions`에서 `window.confirm("정말로 이 업무를 삭제하시겠습니까?")` 취소/확인 흐름과 `deleteTask(task.id)` 호출 시점을 담당한다.
@@ -107,7 +105,8 @@
     - 프로젝트 추가 submit
     - 프로젝트 수정 submit
     - 이름 trim, 빈 이름 방지, 저장 후 reset 시점 유지
-    - 프로젝트 삭제 handler는 담당하지 않음
+    - 프로젝트 삭제 확인창과 확인 시 `deleteProject(projectId)` 호출
+    - `projectDeletion`을 사용해 기본 프로젝트와 업무 연결 프로젝트 삭제를 방어
 
 - `src/views`
   - SettingsView

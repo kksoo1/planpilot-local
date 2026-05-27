@@ -56,7 +56,7 @@
 - `RuleBasedAIProvider`는 추천 흐름 조립, 지난 마감/예정 업무 목록 제공, 업무 요약 문자열 생성을 담당하도록 정리
 - `useProjectFormState`로 프로젝트 추가/수정 form state, reset, 수정 시작/취소 흐름 분리
 - `projectDeletion`으로 기본 프로젝트 삭제 방지와 업무 연결 프로젝트 삭제 방지 기준 분리
-- `useProjectActions`로 프로젝트 추가/수정 submit orchestration 분리
+- `useProjectActions`로 프로젝트 추가/수정 submit orchestration과 프로젝트 삭제 분리
 - `useTaskFormState`로 업무 추가/수정 form state, reset, 수정 시작/취소 흐름 분리
 - `useTaskActions`로 업무 추가/수정 submit orchestration, 완료/미완료 토글, 업무 삭제 분리
 - 업무 삭제 handler 분리 전 삭제 확인창, 삭제 취소/확인, Today/Projects 통계 회귀 기준 문서화
@@ -66,7 +66,7 @@
 ### Next
 1. `useTaskActions`의 업무 삭제 확인창 취소/확인, Today/Projects 통계, 추천 업무 회귀를 수동 테스트로 확인
 2. `useTaskActions`의 완료/미완료 토글은 완료 업무 표시/숨김 필터, Today 날짜 목록, Projects 통계, 추천 업무 회귀를 수동 테스트로 확인
-3. 프로젝트 삭제 handler는 아직 `App.tsx`에 유지하고, 삭제 방지 정책과 confirm 흐름을 수동 테스트로 확인
+3. `useProjectActions`의 프로젝트 삭제 확인창 취소/확인, 기본 프로젝트 삭제 방지, 업무 연결 프로젝트 삭제 방지 회귀를 수동 테스트로 확인
 4. 설정 화면은 현재 읽기 전용 상태 확인 화면으로 유지하고, 실제 편집 기능은 별도 정책 확정 후 검토
 5. 추천 로직 수동 테스트 후 기능 추가 진입 여부 결정
 6. DB migration 규칙 문서화
