@@ -118,6 +118,15 @@ npm run preview
 - 명시 요청 전까지 Capacitor 추가 금지
 - `src/App.css`는 사용자가 직접 관리
 
+## MVP 완료 판정
+
+현재 구현은 코드 구조와 핵심 기능 기준으로 MVP 완료 후보 상태입니다. 최종 MVP 완료 판정은 `docs/manual-test-checklist.md`의 핵심 수동 회귀 항목을 사람이 확인한 뒤 기록합니다.
+
+- 완료된 MVP 범위: Today, 전체 업무, 프로젝트, 설정 상태 화면, 업무/프로젝트 CRUD, 검색/필터/정렬, rule-based 추천, IndexedDB 저장
+- 완료된 리팩터링 범위: view 분리, card/form component 분리, utils 분리, task/project form/action hook 분리, `App.tsx` orchestration 책임 정리
+- MVP 제외 범위: 서버 API, 로그인, 클라우드 동기화, 알림, Capacitor/Android, 외부 AI API, 다국어 전환, 다중 테마, 설정 직접 편집
+- 확인 필요: 전체 수동 회귀 테스트, 데이터 백업/내보내기 정책, 오류/로딩 상태 보강, 모바일 폭 UI 확인
+
 ## 다음 개발 방향
 
 우선순위는 `ROADMAP.md`를 따릅니다.

@@ -1801,3 +1801,92 @@ custom hook 후보:
 2. App.tsx에 남은 프로젝트 관련 props 조립이 더 줄어들 수 있는지 점검한다.
 3. 전체 수동 테스트 체크리스트 기준으로 업무/프로젝트/오늘/설정 화면 회귀를 확인한다.
 4. 기능 고도화 단계로 들어가기 전 README, ROADMAP, memory-bank가 현재 hook 구조와 계속 일치하는지 확인한다.
+
+## 38. MVP 완료 판정
+
+현재 구현 기준으로 PlanPilot Local은 코드 구조와 핵심 기능 측면에서 MVP 완료 후보 상태로 본다. 다만 실제 화면에서 `docs/manual-test-checklist.md`의 핵심 항목을 사람이 한 번 통과시키기 전까지는 "MVP 완료 확인 전" 상태로 남긴다.
+
+현재 MVP에서 구현 완료로 보는 기능:
+
+- Today 화면
+  - 전체 업무 수, 완료 업무 수, 지난 마감 업무, 7일 이내 마감 업무, 추천 업무를 표시한다.
+  - 추천 업무는 서버 호출 없는 `RuleBasedAIProvider`와 `recommendationScore` 기준으로 계산한다.
+- 전체 업무 화면
+  - 업무 추가, 수정, 삭제, 완료/미완료 토글을 제공한다.
+  - 검색, 프로젝트 필터, 완료 업무 표시/숨김, 마감일 빠른 순 정렬을 제공한다.
+- 프로젝트 화면
+  - 프로젝트 추가, 수정, 삭제를 제공한다.
+  - 기본 프로젝트 삭제 방지와 업무가 연결된 프로젝트 삭제 방지를 제공한다.
+  - 프로젝트별 전체/완료/미완료 업무 수를 표시한다.
+- 설정 화면
+  - 현재 설정 상태를 읽기 전용으로 표시한다.
+  - theme, language, aiProvider, enableNotifications, firstLaunchCompleted는 직접 편집하지 않는다.
+- 데이터 저장
+  - Dexie.js + IndexedDB에 tasks, projects, appSettings를 저장한다.
+  - `localStorage` fallback은 사용하지 않는다.
+
+현재 MVP에서 의도적으로 제외한 기능:
+
+- 서버 API
+- 로그인
+- 클라우드 동기화
+- 알림과 Notification API 권한 요청
+- Capacitor/Android 전환
+- 외부 AI API와 API Key 저장
+- 다국어 전환
+- 다중 테마와 실제 테마 전환
+- 설정 화면의 직접 편집 기능
+
+리팩터링 1차 완료 상태:
+
+- `TodayView`, `TasksView`, `ProjectsView`, `SettingsView` 화면 분리를 완료했다.
+- `TaskCard`, `ProjectCard`, `TaskForm`, `ProjectForm` 컴포넌트 분리를 완료했다.
+- 날짜, 필터/정렬, 프로젝트 조회/통계/삭제 방지, 업무 요약, 추천 점수/정렬 유틸 분리를 완료했다.
+- `useTaskFormState`, `useTaskActions`, `useProjectFormState`, `useProjectActions` hook 분리를 완료했다.
+- `App.tsx`에는 앱 초기화, 탭 상태, 검색/필터/정렬 상태, Today 파생 데이터 조립, 추천 업무 로딩, hook 조립, view props 전달 같은 orchestration 책임만 남기는 것을 현재 기준으로 인정한다.
+
+MVP 완료로 볼 수 있는 조건:
+
+- `npm run build`가 성공한다.
+- 수동 테스트 체크리스트의 앱 시작, Today, 전체 업무, 프로젝트, 설정, 데이터 유지, 금지 기능 확인 항목을 통과한다.
+- 업무와 프로젝트 CRUD가 새로고침 후에도 IndexedDB 기준으로 유지된다.
+- 기본 프로젝트와 업무 연결 프로젝트 삭제 방지가 화면 비활성 표시와 handler 방어 기준에서 모두 유지된다.
+- rule-based 추천 업무가 완료 업무를 제외하고 우선순위/마감일 기준을 유지한다.
+- 서버 API, 로그인, 클라우드 동기화, 알림 권한 요청, Capacitor, localStorage가 추가되지 않는다.
+
+MVP 완료 전 반드시 수동 확인해야 할 항목:
+
+- 업무 추가/수정/삭제/완료 토글
+- 검색, 프로젝트 필터, 완료 업무 표시/숨김, 마감일 정렬
+- Today 전체/완료/지난 마감/7일 이내/추천 업무 표시
+- 프로젝트 추가/수정/삭제
+- 기본 프로젝트 삭제 방지
+- 업무가 있는 프로젝트 삭제 방지
+- 새로고침과 브라우저 재실행 후 IndexedDB 데이터 유지
+- 설정 화면이 읽기 전용 상태 표시로 유지되는지 확인
+- 금지 기능이 추가되지 않았는지 확인
+
+아직 완료가 아니라 확인 필요로 남길 항목:
+
+- 전체 수동 회귀 테스트 실제 수행 여부
+- 데이터 백업/내보내기 정책
+- IndexedDB schema migration 실전 절차
+- 오류/로딩 상태 보강
+- 모바일 폭과 긴 문구에서 UI 겹침 여부
+- README, ROADMAP, memory-bank의 인코딩/표시 품질 정리 여부
+
+다음 단계 후보:
+
+1. `docs/manual-test-checklist.md` 기준 전체 수동 회귀 테스트를 수행한다.
+2. 데이터 백업/내보내기 정책을 문서화한다.
+3. 업무 필터/정렬 UX 개선 후보를 정리한다.
+4. 오류/로딩 상태 보강 범위를 문서화한다.
+5. 기능 고도화에 들어가기 전 MVP 완료 체크 결과를 기록한다.
+
+기능 고도화에 들어가기 전 중단 조건:
+
+- 수동 테스트에서 업무/프로젝트 CRUD, Today 통계, 추천 업무, 데이터 유지 중 하나라도 회귀가 확인되는 경우
+- DB schema 변경이나 데이터 migration이 필요해지는 경우
+- App.css 대규모 수정이 필요한 UI 변경이 필요한 경우
+- 서버 API, 로그인, 클라우드 동기화, 알림, Capacitor, 외부 AI API가 필요해지는 경우
+- 현재 문서와 코드 구조가 다시 어긋나는 경우

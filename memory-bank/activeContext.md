@@ -1,8 +1,9 @@
 ﻿# Active Context
 
 ## Current Status
-기본 MVP 구조는 생성되어 있고, 화면/카드/폼/유틸 분리를 통해 `App.tsx` 책임을 줄이는 단계다.
+기본 MVP 구조는 생성되어 있고, 화면/카드/폼/유틸/hook 분리를 통해 `App.tsx` 책임을 orchestration 중심으로 줄인 상태다.
 최근 확인 기준으로 `npm run build`는 성공했다.
+현재 구현은 MVP 완료 후보 상태이며, 최종 완료 판정 전에는 `docs/manual-test-checklist.md` 기준 전체 수동 회귀 확인이 필요하다.
 
 ## Completed
 - React + Vite + TypeScript 프로젝트 생성
@@ -55,13 +56,13 @@ Codex는 AGENTS.md와 ROADMAP.md를 기준으로 작업한다.
 - git 명령은 사용자가 "커밋까지 진행"을 명시한 작업에서만 제한적으로 실행
 
 ## Next Recommended Task
-업무 추가/수정 submit, 완료/미완료 토글, 업무 삭제는 `useTaskActions`가 담당한다. 프로젝트 추가/수정 submit과 프로젝트 삭제는 `useProjectActions`가 담당한다. `App.tsx`에는 업무/프로젝트 hook 조립, view props 전달, 탭/필터/검색/정렬 상태와 Today/Projects 파생 데이터 조립 책임이 남아 있다.
+기능 고도화에 들어가기 전 `docs/manual-test-checklist.md` 기준으로 MVP 전체 수동 회귀 테스트를 수행한다. 현재 구현은 코드 구조와 핵심 기능 기준으로 MVP 완료 후보 상태다.
 
 ## Next Task Scope
-- 우선 후보: `useTaskActions`의 업무 삭제 확인창 취소/확인, Today 통계, Projects 통계, 추천 업무 회귀를 수동 테스트로 확인
-- 보조 후보: `useTaskActions`의 완료/미완료 토글이 완료 업무 표시/숨김 필터, Today 날짜 목록, Projects 통계, 추천 업무에서 회귀 없이 동작하는지 수동 테스트로 확인
-- 추가 후보: `useProjectActions`의 프로젝트 삭제 확인창 취소/확인, 기본 프로젝트 삭제 방지, 업무 연결 프로젝트 삭제 방지 회귀를 수동 테스트로 확인
-- 목표: 업무 CRUD action orchestration은 `useTaskActions`에, 프로젝트 action orchestration은 `useProjectActions`에 두고, `App.tsx`는 화면 상태와 props 조립 책임 중심으로 유지
+- 우선 후보: 전체 수동 회귀 테스트를 수행하고 MVP 완료 여부를 기록
+- 보조 후보: 데이터 백업/내보내기 정책 문서화
+- 추가 후보: 오류/로딩 상태 보강 범위 문서화
+- 목표: 기능 고도화 전 현재 MVP 안정성을 사람 기준으로 확인
 - 검증: `npm run build`
 - 금지:
   - `src/App.css` 수정
