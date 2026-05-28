@@ -2173,3 +2173,38 @@ MVP 이후 우선순위:
 - 추천 업무 없음, 지난 마감 업무 없음, 7일 이내 마감 업무 없음 상태를 확인한다.
 - DB 오류는 일반 수동 재현이 어려우므로 정책 문서상 보류하거나 별도 개발용 재현 절차를 마련한다.
 - 백업/내보내기 오류는 JSON 내보내기 기능 구현 후 확인한다.
+
+## 46. 최소 empty/error/loading 적용 범위
+
+`docs/error-loading-state-policy.md`의 전체 후보 중 다음 코드 작업에서 바로 적용할 범위는 기존 화면의 빈 상태 보강으로 좁힌다.
+
+다음 코드 작업 적용 후보:
+
+- 업무 없음
+- 검색 결과 없음
+- 필터 결과 없음
+- 추천 업무 없음
+- 지난 마감 업무 없음
+- 7일 이내 마감 업무 없음
+
+아직 보류할 항목:
+
+- IndexedDB 오류 UI
+- CRUD 실패 error boundary
+- JSON export 실패 UI
+- JSON import 실패 UI
+- 전역 loading overlay
+
+판단 기준:
+
+- JSON export는 단독 버튼/파일 생성 흐름으로 구현할 수 있으므로 전체 앱 공통 error/loading 체계를 먼저 완성해야 하는 기능은 아니다.
+- JSON export 전에는 기존 화면의 빈 상태 문구와 조건을 먼저 점검한다.
+- JSON export 구현 시에는 export 전용 성공/실패 메시지를 우선 고려한다.
+- JSON import는 기존 데이터 손상 위험이 있으므로 export 이후 별도 오류/검증 UI 정책을 확정한다.
+
+다음 구현 우선순위:
+
+1. 현재 화면의 빈 상태 문구 점검/보강
+2. JSON export 전용 성공/실패 메시지 정책 정리
+3. JSON export 구현
+4. import 전 오류/검증 UI 정책 정리

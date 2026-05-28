@@ -210,3 +210,4 @@ MVP 이후 JSON 내보내기 기능을 구현하기 전에 오류/로딩/빈 상
 - 오류 후보: IndexedDB 읽기/쓰기 실패, 업무/프로젝트 CRUD 실패, 추천 업무 생성 실패, 향후 백업 파일 생성/가져오기 파싱 실패
 - 빈 상태 후보: 업무 없음, 검색 결과 없음, 필터 결과 없음, 추천 업무 없음, 지난 마감 업무 없음, 7일 이내 마감 업무 없음
 - 구현 전에는 `App.css` 대규모 수정, DB schema 변경, store API 구조 변경, 서버 API, `localStorage`, 로그인, 클라우드 동기화, 알림 권한 요청, Capacitor가 필요해지는지 먼저 확인합니다.
+- 다음 코드 작업의 최소 범위는 기존 화면의 빈 상태 문구 점검/보강이며, IndexedDB 오류 UI, CRUD 실패 error boundary, JSON export/import 실패 UI, 전역 loading overlay는 보류합니다.
