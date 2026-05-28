@@ -66,12 +66,14 @@
 - MVP 수동 회귀 테스트 결과 기록용 `docs/manual-regression-test-result.md` 템플릿 준비
 - `docs/manual-regression-test-result.md` 확인 결과 실제 수동 테스트 결과는 아직 기록되지 않아 MVP 판정은 미수행으로 유지
 - 수동 회귀 테스트 결과 문서를 재확인했지만 통과로 기록된 항목이 없어 MVP 완료 판정은 계속 미수행으로 유지
+- 최신 수동 회귀 테스트 결과 기준으로 대부분 핵심 항목은 통과했지만 추천 업무 rule-based 기준과 완료 업무 표시/숨김이 보류로 남아 MVP 완료 판정은 보류
 
 ### Next
-1. `docs/manual-test-checklist.md` 기준 전체 수동 회귀 테스트를 수행
-2. `docs/manual-regression-test-result.md`에 실제 테스트 일자, 브랜치, 커밋, 환경, 결과를 기록
-3. 테스트 실패 항목이 있으면 MVP 완료 판정을 보류하고 수정 후보로 올림
-4. 데이터 백업/내보내기 정책 문서화
-5. 오류/로딩 상태 보강 범위 문서화
-6. 기능 고도화 단계 진입 여부 결정
-7. DB migration 규칙 문서화
+1. 보류 항목인 추천 업무 rule-based 기준 표시를 실제 화면에서 확인
+2. 보류 항목인 완료 업무 표시/숨김 동작을 실제 화면에서 확인
+3. `docs/manual-regression-test-result.md`의 발견 이슈와 후속 조치를 "없음", "보류", 또는 구체 이슈로 정리
+4. 보류 항목이 모두 통과하면 MVP 완료 확정 후보로 ROADMAP과 memory-bank를 갱신
+5. 데이터 백업/내보내기 정책 문서화
+6. 오류/로딩 상태 보강 범위 문서화
+7. 기능 고도화 단계 진입 여부 결정
+8. DB migration 규칙 문서화
