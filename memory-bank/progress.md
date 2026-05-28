@@ -63,11 +63,13 @@
 - 업무 완료/미완료 토글 handler 분리 전 완료 필터, Today 날짜 목록, Projects 통계, 추천 업무 회귀 기준 문서화
 - ROADMAP에 앱 완성 기준과 리팩터링 진행 상태 보강
 - 현재 구현 기준 MVP 완료 후보 상태 문서화
+- MVP 수동 회귀 테스트 결과 기록용 `docs/manual-regression-test-result.md` 템플릿 준비
 
 ### Next
 1. `docs/manual-test-checklist.md` 기준 전체 수동 회귀 테스트를 수행
-2. MVP 완료 여부를 테스트 결과와 함께 기록
-3. 데이터 백업/내보내기 정책 문서화
-4. 오류/로딩 상태 보강 범위 문서화
-5. 기능 고도화 단계 진입 여부 결정
-6. DB migration 규칙 문서화
+2. `docs/manual-regression-test-result.md`에 실제 테스트 일자, 브랜치, 커밋, 환경, 결과를 기록
+3. 테스트 실패 항목이 있으면 MVP 완료 판정을 보류하고 수정 후보로 올림
+4. 데이터 백업/내보내기 정책 문서화
+5. 오류/로딩 상태 보강 범위 문서화
+6. 기능 고도화 단계 진입 여부 결정
+7. DB migration 규칙 문서화
