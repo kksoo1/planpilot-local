@@ -2,8 +2,8 @@
 
 ## Current Status
 기본 MVP 구조는 생성되어 있고, 화면/카드/폼/유틸/hook 분리를 통해 `App.tsx` 책임을 orchestration 중심으로 줄인 상태다.
-최근 확인 기준으로 `npm run build`는 성공했다.
-현재 구현은 MVP 완료 후보 상태이며, 최종 완료 판정 전에는 `docs/manual-test-checklist.md` 기준 전체 수동 회귀 확인이 필요하다.
+`docs/manual-regression-test-result.md` 기준 핵심 수동 회귀 테스트가 통과로 기록되어 MVP 완료 상태로 판정했다.
+현재 단계는 MVP 이후 기능 고도화이며, JSON 내보내기 구현 전에 데이터 백업/내보내기 정책과 오류/로딩/빈 상태 정책을 문서화하는 흐름이다.
 
 ## Completed
 - React + Vite + TypeScript 프로젝트 생성
@@ -56,13 +56,13 @@ Codex는 AGENTS.md와 ROADMAP.md를 기준으로 작업한다.
 - git 명령은 사용자가 "커밋까지 진행"을 명시한 작업에서만 제한적으로 실행
 
 ## Next Recommended Task
-기능 고도화에 들어가기 전 `docs/manual-test-checklist.md` 기준으로 MVP 전체 수동 회귀 테스트를 수행한다. 현재 구현은 코드 구조와 핵심 기능 기준으로 MVP 완료 후보 상태다.
+JSON 내보내기 기능을 바로 구현하기 전에 공통 오류/로딩/빈 상태 표시 기준을 실제 화면에 어떻게 적용할지 검토한다. 구현 범위가 커지면 먼저 문서화하고, 작은 단위로 진행한다.
 
 ## Next Task Scope
-- 우선 후보: 전체 수동 회귀 테스트를 수행하고 MVP 완료 여부를 기록
-- 보조 후보: 데이터 백업/내보내기 정책 문서화
-- 추가 후보: 오류/로딩 상태 보강 범위 문서화
-- 목표: 기능 고도화 전 현재 MVP 안정성을 사람 기준으로 확인
+- 우선 후보: 공통 empty/error/loading 표시 기준 구체화
+- 보조 후보: JSON 내보내기 전용 기능 구현 여부 검토
+- 추가 후보: 업무 필터/정렬 UX 개선 후보 정리
+- 목표: MVP 이후 기능 고도화에서 데이터 손상이나 회귀 없이 작은 단위로 안정화
 - 검증: `npm run build`
 - 금지:
   - `src/App.css` 수정

@@ -200,3 +200,13 @@ npm run preview
   - 업무 삭제 확인창을 표시하고, 확인한 경우에만 `deleteTask(task.id)`를 호출합니다.
 
 `src/App.tsx`에는 업무 form/action hook 조립, `TasksView` props 전달, 탭/필터/검색/정렬 상태와 Today/Projects 파생 데이터 조립 책임이 남아 있습니다. 업무 추가/수정 submit, 완료/미완료 토글, 업무 삭제 직접 처리 책임은 `useTaskActions`로 이동했습니다.
+
+## 오류/로딩/빈 상태 정책
+
+MVP 이후 JSON 내보내기 기능을 구현하기 전에 오류/로딩/빈 상태 보강 범위를 문서화했습니다.
+
+- 정책 문서: `docs/error-loading-state-policy.md`
+- 로딩 후보: 앱 초기 데이터 로딩, IndexedDB 초기화, rule-based 추천 업무 생성, 향후 JSON 내보내기/가져오기
+- 오류 후보: IndexedDB 읽기/쓰기 실패, 업무/프로젝트 CRUD 실패, 추천 업무 생성 실패, 향후 백업 파일 생성/가져오기 파싱 실패
+- 빈 상태 후보: 업무 없음, 검색 결과 없음, 필터 결과 없음, 추천 업무 없음, 지난 마감 업무 없음, 7일 이내 마감 업무 없음
+- 구현 전에는 `App.css` 대규모 수정, DB schema 변경, store API 구조 변경, 서버 API, `localStorage`, 로그인, 클라우드 동기화, 알림 권한 요청, Capacitor가 필요해지는지 먼저 확인합니다.
