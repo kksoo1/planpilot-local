@@ -64,6 +64,7 @@
 - ROADMAP에 앱 완성 기준과 리팩터링 진행 상태 보강
 - 현재 구현 기준 MVP 완료 후보 상태 문서화
 - MVP 수동 회귀 테스트 결과 기록용 `docs/manual-regression-test-result.md` 템플릿 준비
+- `docs/manual-regression-test-result.md` 확인 결과 실제 수동 테스트 결과는 아직 기록되지 않아 MVP 판정은 미수행으로 유지
 
 ### Next
 1. `docs/manual-test-checklist.md` 기준 전체 수동 회귀 테스트를 수행
