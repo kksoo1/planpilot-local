@@ -131,11 +131,20 @@
   - projectDeletion
 
 ## MVP Completion Status
-- 현재 구현은 코드 구조와 핵심 기능 기준으로 MVP 완료 후보 상태다.
-- 최종 MVP 완료 판정 전에는 `docs/manual-test-checklist.md` 기준 전체 수동 회귀 테스트가 필요하다.
+- 현재 구현은 코드 구조와 핵심 기능 기준으로 MVP 완료 상태다.
+- `docs/manual-regression-test-result.md` 기준 수동 회귀 테스트 핵심 항목이 통과로 기록되었다.
 - MVP 포함 범위는 Today, 전체 업무, 프로젝트, 설정 상태 화면, 업무/프로젝트 CRUD, 검색/필터/정렬, rule-based 추천, IndexedDB 저장이다.
 - MVP 제외 범위는 서버 API, 로그인, 클라우드 동기화, 알림, Capacitor/Android, 외부 AI API, 다국어 전환, 다중 테마, 설정 직접 편집이다.
 - 기능 고도화 전에는 데이터 백업/내보내기 정책, 오류/로딩 상태, 모바일 폭 UI 확인 범위를 별도 작업으로 검토한다.
+
+## Data Backup / Export Policy
+- 백업/내보내기 정책은 `docs/data-backup-export-policy.md`를 기준으로 한다.
+- 1차 대상 데이터는 IndexedDB의 `tasks`, `projects`, `appSettings`다.
+- 1차 내보내기 형식 후보는 사람이 읽기 쉬운 JSON이다.
+- JSON에는 `format`, `version`, `exportedAt`, `data.tasks`, `data.projects`, `data.appSettings` 같은 구조를 포함하는 후보를 둔다.
+- 가져오기/복원은 데이터 손상 위험이 있으므로 내보내기 이후 별도 단계로 분리한다.
+- 가져오기 전에는 중복 ID 처리, 프로젝트 참조 무결성, 필수 필드 검증, appSettings의 `createdAt`/`updatedAt` 처리 기준을 확정해야 한다.
+- 서버 API, `localStorage`, 로그인, 클라우드 동기화는 백업/내보내기 기능에서도 사용하지 않는다.
 
 ## Codex Rules
 - AGENTS.md를 우선 기준으로 작업

@@ -68,6 +68,16 @@ PlanPilot Local은 Dexie.js를 통해 IndexedDB에 데이터를 저장합니다.
 
 `localStorage`는 사용하지 않습니다.
 
+## 데이터 백업/내보내기 정책
+
+MVP 이후 데이터 백업/내보내기 기능은 구현 전 정책을 먼저 따른다.
+
+- 정책 문서: `docs/data-backup-export-policy.md`
+- 1차 내보내기 대상: `tasks`, `projects`, `appSettings`
+- 1차 형식 후보: 사람이 읽기 쉬운 JSON
+- 가져오기/복원은 데이터 손상 위험이 있어 내보내기 이후 별도 단계로 검토
+- 서버 API, `localStorage`, 로그인, 클라우드 동기화 없이 로컬 파일 기준으로 처리
+
 ## 주요 파일
 
 - `src/App.tsx`
