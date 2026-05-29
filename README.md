@@ -211,3 +211,12 @@ MVP 이후 JSON 내보내기 기능을 구현하기 전에 오류/로딩/빈 상
 - 빈 상태 후보: 업무 없음, 검색 결과 없음, 필터 결과 없음, 추천 업무 없음, 지난 마감 업무 없음, 7일 이내 마감 업무 없음
 - 구현 전에는 `App.css` 대규모 수정, DB schema 변경, store API 구조 변경, 서버 API, `localStorage`, 로그인, 클라우드 동기화, 알림 권한 요청, Capacitor가 필요해지는지 먼저 확인합니다.
 - 다음 코드 작업의 최소 범위는 기존 화면의 빈 상태 문구 점검/보강이며, IndexedDB 오류 UI, CRUD 실패 error boundary, JSON export/import 실패 UI, 전역 loading overlay는 보류합니다.
+
+## JSON export 피드백 정책
+
+JSON 내보내기 기능을 구현할 때는 전체 앱 공통 toast나 loading overlay보다 export 버튼 근처의 짧은 성공/실패 메시지를 우선합니다.
+
+- 성공 기준: JSON 파일 생성과 다운로드 시작
+- 실패 후보: IndexedDB 읽기 실패, JSON 생성 실패, 브라우저 다운로드 실패 가능성, 알 수 없는 오류
+- 1차 범위: JSON 내보내기만 구현하고 가져오기/복원은 별도 단계로 유지
+- 금지: 서버 전송, `localStorage`, 로그인, 클라우드 동기화

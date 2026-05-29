@@ -166,6 +166,16 @@ JSON export 기능은 단독 버튼과 파일 생성 흐름으로 구현할 수 
 3. JSON export 구현
 4. import 전 오류/검증 UI 정책 정리
 
+## JSON export 전용 피드백 정책
+
+JSON export는 전체 앱 공통 error/loading 체계보다 export 전용 성공/실패 메시지를 먼저 적용한다.
+
+- 성공 메시지는 SettingsView 내부의 export 버튼 근처에 짧게 표시하는 방향을 1차 후보로 둔다.
+- 실패 메시지도 같은 영역에 표시해 사용자가 다시 시도할 수 있게 한다.
+- `alert`는 보조 후보이며, 전역 toast와 전역 loading overlay는 아직 도입하지 않는다.
+- export 중에는 버튼 비활성화 또는 짧은 진행 문구를 우선 검토한다.
+- 실패해도 기존 IndexedDB 데이터는 변경하지 않는 기준을 유지한다.
+
 ## 최소 범위 수동 테스트
 
 다음 코드 작업 후에는 아래 항목을 우선 확인한다.

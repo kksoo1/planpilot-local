@@ -456,6 +456,18 @@ AI Provider 확장은 현재 구현 범위가 아니며, `aiProvider` 타입이 
 - [ ] 가져오기 성공 후 새로고침해도 데이터가 유지된다.
 - [ ] 백업/내보내기 기능 구현 후에도 서버 API, `localStorage`, 로그인, 클라우드 동기화, 알림 권한 요청, Capacitor가 추가되지 않는다.
 
+### 26.1 JSON export 전용 피드백 테스트
+
+- [ ] 설정 화면 또는 백업 섹션에 JSON export 버튼이 표시된다.
+- [ ] export 버튼 클릭 시 JSON 파일 다운로드가 시작된다.
+- [ ] 다운로드 파일명이 앱 이름과 export 시각을 식별할 수 있는 형식이다.
+- [ ] JSON 파일에 `format`, `version`, `exportedAt`, `data.tasks`, `data.projects`, `data.appSettings`가 포함된다.
+- [ ] export 성공 후 버튼 근처에 성공 메시지가 표시된다.
+- [ ] export 성공 메시지가 서버 전송이나 클라우드 백업으로 오해되지 않는다.
+- [ ] export 실패 상황은 일반 수동 재현이 어려우면 보류로 기록한다.
+- [ ] export 실패 시 기존 IndexedDB 데이터가 변경되지 않는다.
+- [ ] export 기능 구현 후에도 JSON import 기능, 서버 API, `localStorage`, 로그인, 클라우드 동기화가 추가되지 않는다.
+
 ## 27. 향후 오류/로딩/빈 상태 테스트
 
 이 항목은 오류/로딩/빈 상태 보강 기능을 실제 구현한 뒤 사람이 화면에서 확인할 수동 테스트 기준이다. 현재 단계에서는 정책 문서화만 완료되어 있으며, 구현 전까지는 미수행으로 둔다.

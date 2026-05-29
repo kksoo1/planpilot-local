@@ -158,6 +158,8 @@
 - 다음 코드 작업의 최소 적용 범위는 업무 없음, 검색 결과 없음, 필터 결과 없음, 추천 업무 없음, 지난 마감 업무 없음, 7일 이내 마감 업무 없음의 빈 상태 점검/보강이다.
 - IndexedDB 오류 UI, CRUD 실패 error boundary, JSON export/import 실패 UI, 전역 loading overlay는 다음 코드 작업 범위에서 제외한다.
 - JSON export는 전체 앱 공통 error/loading 체계보다 export 전용 성공/실패 메시지를 먼저 검토한다.
+- JSON export 성공 기준은 파일 생성과 다운로드 시작이며, 메시지는 SettingsView 내부 버튼 근처의 짧은 문구를 1차 후보로 둔다.
+- JSON export 실패 후보는 IndexedDB 읽기 실패, JSON 생성 실패, 브라우저 다운로드 실패 가능성, 알 수 없는 오류이며 실패해도 기존 IndexedDB 데이터는 변경하지 않는다.
 
 ## Codex Rules
 - AGENTS.md를 우선 기준으로 작업
