@@ -441,7 +441,7 @@ AI Provider 확장은 현재 구현 범위가 아니며, `aiProvider` 타입이 
 
 데이터 백업/내보내기는 MVP 이후 기능 고도화 후보이며, 현재 단계에서는 정책만 문서화되어 있다.
 
-- [ ] 내보낸 JSON에 `format`, `version`, `exportedAt`, `data`가 포함된다.
+- [ ] 내보낸 JSON에 `format`, `schemaVersion`, `exportedAt`이 포함된다.
 - [ ] 내보낸 JSON에 `tasks`, `projects`, `appSettings`가 포함된다.
 - [ ] 내보낸 업무 수가 전체 업무 화면의 업무 수와 일치한다.
 - [ ] 내보낸 프로젝트 수가 프로젝트 화면의 프로젝트 수와 일치한다.
@@ -449,7 +449,7 @@ AI Provider 확장은 현재 구현 범위가 아니며, `aiProvider` 타입이 
 - [ ] 내보내기 후 기존 IndexedDB 데이터가 변경되지 않는다.
 - [ ] 내보내기 후 새로고침해도 기존 데이터가 유지된다.
 - [ ] 잘못된 JSON 파일 가져오기 시 기존 데이터가 유지된다.
-- [ ] 지원하지 않는 `format` 또는 `version` 파일은 가져오기를 중단한다.
+- [ ] 지원하지 않는 `format` 또는 `schemaVersion` 파일은 가져오기를 중단한다.
 - [ ] 필수 필드가 빠진 파일은 가져오기를 중단한다.
 - [ ] 가져오기 취소 시 기존 데이터가 유지된다.
 - [ ] 가져오기 실패 시 기존 데이터가 유지된다.
@@ -461,7 +461,7 @@ AI Provider 확장은 현재 구현 범위가 아니며, `aiProvider` 타입이 
 - [ ] 설정 화면 또는 백업 섹션에 JSON export 버튼이 표시된다.
 - [ ] export 버튼 클릭 시 JSON 파일 다운로드가 시작된다.
 - [ ] 다운로드 파일명이 앱 이름과 export 시각을 식별할 수 있는 형식이다.
-- [ ] JSON 파일에 `format`, `version`, `exportedAt`, `data.tasks`, `data.projects`, `data.appSettings`가 포함된다.
+- [ ] JSON 파일에 `format`, `schemaVersion`, `exportedAt`, `tasks`, `projects`, `appSettings`가 포함된다.
 - [ ] export 성공 후 버튼 근처에 성공 메시지가 표시된다.
 - [ ] export 성공 메시지가 서버 전송이나 클라우드 백업으로 오해되지 않는다.
 - [ ] export 실패 상황은 일반 수동 재현이 어려우면 보류로 기록한다.

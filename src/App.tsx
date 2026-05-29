@@ -214,7 +214,13 @@ function App() {
           />
         )}
 
-        {activeTab === "settings" && <SettingsView appSettings={appSettings} />}
+        {activeTab === "settings" && (
+          <SettingsView
+            appSettings={appSettings}
+            tasks={tasks}
+            projects={projects}
+          />
+        )}
       </main>
 
       <nav className="bottom-nav" aria-label="하단 메뉴">
