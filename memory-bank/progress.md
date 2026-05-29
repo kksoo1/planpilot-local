@@ -76,10 +76,11 @@
 - JSON export 기능을 구현하고 브라우저 수동 확인 결과 성공 경로가 통과로 기록됨
 - 설정 화면의 데이터 내보내기 버튼, JSON 다운로드, `planpilot-backup-YYYY-MM-DD.json` 파일명, `format`/`schemaVersion`/`exportedAt`/`tasks`/`projects`/`appSettings` 최상위 구조, 데이터 유지, 성공 메시지를 확인
 - JSON export 실패 상황은 수동 재현하지 못해 보류/확인 필요로 유지
+- JSON export 실패 경로 후보와 재현/기록 기준을 문서화하고, 일반 브라우저 수동 테스트에서는 실패 경로를 보류로 유지하기로 정리
 
 ### Next
-1. JSON export 실패 경로 재현/확인 절차 문서화
-2. JSON 가져오기/복원 정책 별도 확정
+1. JSON 가져오기/복원 정책 별도 확정
+2. exportData 유틸 단위 테스트 또는 테스트 도구 도입 정책 문서화
 3. 업무 필터/정렬 UX 개선 후보 정리
 4. DB migration 규칙 문서화
 5. export 성공 메시지 문구가 서버 전송/클라우드 백업으로 오해되지 않는지 UX 확인
