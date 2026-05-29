@@ -232,3 +232,22 @@ export 전용 피드백:
 - 파일 파싱/복원 정책이 필요해진다.
 - `App.css` 대규모 수정이 필요하다.
 - 서버 API, `localStorage`, 로그인, 클라우드 동기화가 필요해진다.
+
+## JSON export 수동 확인 상태
+
+2026-05-29 기준으로 JSON export 성공 경로는 사람이 직접 확인했다.
+
+확인된 항목:
+
+- 설정 화면에 데이터 내보내기 버튼이 표시된다.
+- 버튼 클릭 시 JSON 파일이 다운로드된다.
+- 파일명은 `planpilot-backup-YYYY-MM-DD.json` 형식이다.
+- JSON 최상위에 `format`, `schemaVersion`, `exportedAt`, `tasks`, `projects`, `appSettings`가 포함된다.
+- 내보내기 후 기존 앱 데이터가 유지된다.
+- 성공 메시지가 표시된다.
+
+아직 확인하지 않은 항목:
+
+- 실패 상황은 수동 재현하지 못했으므로 보류로 둔다.
+- 실패 시 기존 IndexedDB 데이터가 유지되는지는 별도 실패 경로 재현 절차가 필요하다.
+- JSON import/복원 기능은 아직 구현하지 않았고, 별도 정책 확정 후 진행한다.

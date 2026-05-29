@@ -73,10 +73,13 @@
 - JSON 내보내기 구현 전 오류/로딩/빈 상태 보강 범위를 정책 문서로 정리
 - 다음 코드 작업에서 적용할 범위를 최소 empty 상태 보강으로 좁히고, 전역 오류/로딩 UI와 JSON export/import 오류 UI는 보류로 정리
 - JSON export 구현 전 성공/실패 메시지 정책을 문서화
+- JSON export 기능을 구현하고 브라우저 수동 확인 결과 성공 경로가 통과로 기록됨
+- 설정 화면의 데이터 내보내기 버튼, JSON 다운로드, `planpilot-backup-YYYY-MM-DD.json` 파일명, `format`/`schemaVersion`/`exportedAt`/`tasks`/`projects`/`appSettings` 최상위 구조, 데이터 유지, 성공 메시지를 확인
+- JSON export 실패 상황은 수동 재현하지 못해 보류/확인 필요로 유지
 
 ### Next
-1. JSON export 전용 기능 최소 구현 여부 검토
-2. export JSON 구조와 파일명 형식 확정
+1. JSON export 실패 경로 재현/확인 절차 문서화
+2. JSON 가져오기/복원 정책 별도 확정
 3. 업무 필터/정렬 UX 개선 후보 정리
 4. DB migration 규칙 문서화
-5. JSON 가져오기/복원 정책 별도 확정
+5. export 성공 메시지 문구가 서버 전송/클라우드 백업으로 오해되지 않는지 UX 확인

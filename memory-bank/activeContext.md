@@ -3,7 +3,8 @@
 ## Current Status
 기본 MVP 구조는 생성되어 있고, 화면/카드/폼/유틸/hook 분리를 통해 `App.tsx` 책임을 orchestration 중심으로 줄인 상태다.
 `docs/manual-regression-test-result.md` 기준 핵심 수동 회귀 테스트가 통과로 기록되어 MVP 완료 상태로 판정했다.
-현재 단계는 MVP 이후 기능 고도화이며, JSON 내보내기 구현 전에 데이터 백업/내보내기 정책과 오류/로딩/빈 상태 정책을 문서화하는 흐름이다.
+현재 단계는 MVP 이후 기능 고도화이며, JSON 내보내기 1차 구현과 성공 경로 수동 확인까지 완료된 상태다.
+JSON export 실패 경로는 아직 수동 재현하지 못해 확인 필요로 남아 있다.
 
 ## Completed
 - React + Vite + TypeScript 프로젝트 생성
@@ -34,6 +35,8 @@
 - projectDeletion 삭제 가능 여부 helper 분리
 - RuleBasedAIProvider가 추천 흐름 조립, 지난 마감/예정 업무 목록, 요약 문자열 생성을 담당하도록 정리
 - recommendationScore가 priorityScore, getTaskScore, compareRecommendedTasks를 담당하도록 정리
+- JSON export 전용 기능 구현
+- JSON export 성공 경로 수동 확인 결과 기록
 - README.md를 PlanPilot Local 전용 문서로 갱신
 - AGENTS.md 작성 및 Codex 작업 규칙 정리
 - ROADMAP.md 작성 및 App.tsx 분리 계획 정리
@@ -56,11 +59,11 @@ Codex는 AGENTS.md와 ROADMAP.md를 기준으로 작업한다.
 - git 명령은 사용자가 "커밋까지 진행"을 명시한 작업에서만 제한적으로 실행
 
 ## Next Recommended Task
-다음 코드 작업에서는 JSON export 전용 기능을 작게 구현할 수 있는지 검토한다. 성공/실패 피드백은 SettingsView 내부 버튼 근처의 짧은 메시지를 1차 후보로 두고, import/복원은 별도 단계로 유지한다.
+다음 작업에서는 JSON export 실패 경로를 어떻게 재현하고 기록할지 먼저 정리한다. import/복원은 데이터 손상 위험이 있으므로 별도 정책 확정 후 진행한다.
 
 ## Next Task Scope
-- 우선 후보: JSON export 전용 버튼과 성공/실패 메시지 영역의 최소 구현 가능성 검토
-- 보조 후보: export JSON 구조와 파일명 형식 확정
+- 우선 후보: JSON export 실패 경로 재현/확인 절차 문서화
+- 보조 후보: JSON import/복원 정책 구체화
 - 추가 후보: 업무 필터/정렬 UX 개선 후보 정리
 - 목표: MVP 이후 기능 고도화에서 데이터 손상이나 회귀 없이 작은 단위로 안정화
 - 검증: `npm run build`
