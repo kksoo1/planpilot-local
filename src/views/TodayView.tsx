@@ -30,7 +30,7 @@ export function TodayView({
       <p className="summary">추천 업무 {recommendedTasks.length}개</p>
 
       {recommendedTasks.length === 0 ? (
-        <p className="empty">아직 추천할 업무가 없습니다.</p>
+        <p className="empty">추천할 미완료 업무가 없습니다.</p>
       ) : (
         <ul className="task-list">
           {recommendedTasks.map((task) => (
@@ -48,7 +48,7 @@ export function TodayView({
 
       <h3>지난 마감 업무</h3>
       {overdueTasks.length === 0 ? (
-        <p className="empty">지난 마감 업무가 없습니다.</p>
+        <p className="empty">지난 마감일을 넘긴 미완료 업무가 없습니다.</p>
       ) : (
         <ul className="task-list">
           {overdueTasks.map((task) => (
@@ -65,7 +65,7 @@ export function TodayView({
 
       <h3>7일 이내 마감 업무</h3>
       {upcomingTasks.length === 0 ? (
-        <p className="empty">7일 이내 마감 업무가 없습니다.</p>
+        <p className="empty">7일 이내에 마감되는 미완료 업무가 없습니다.</p>
       ) : (
         <ul className="task-list">
           {upcomingTasks.map((task) => (

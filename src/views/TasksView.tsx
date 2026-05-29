@@ -91,6 +91,16 @@ export function TasksView({
   onDeleteTask,
   onStartEditTask,
 }: TasksViewProps) {
+  const hasSearchQuery = taskSearchQuery.trim().length > 0;
+  const hasProjectFilter = selectedProjectFilter !== "all";
+  const hasVisibilityFilter = !showCompletedTasks;
+  const emptyMessage =
+    hasSearchQuery
+      ? "검색 결과가 없습니다."
+      : hasProjectFilter || hasVisibilityFilter
+        ? "현재 필터 조건에 맞는 업무가 없습니다."
+        : "등록된 업무가 없습니다.";
+
   return (
     <section className="screen-card">
       <h2>전체 업무</h2>
@@ -171,7 +181,7 @@ export function TasksView({
       )}
 
       {filteredTasks.length === 0 ? (
-        <p className="empty">등록된 업무가 없습니다.</p>
+        <p className="empty">{emptyMessage}</p>
       ) : (
         <ul className="task-list">
           {sortedTasks.map((task) => {
