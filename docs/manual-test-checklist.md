@@ -456,6 +456,24 @@ AI Provider 확장은 현재 구현 범위가 아니며, `aiProvider` 타입이 
 - [ ] 가져오기 성공 후 새로고침해도 데이터가 유지된다.
 - [ ] 백업/내보내기 기능 구현 후에도 서버 API, `localStorage`, 로그인, 클라우드 동기화, 알림 권한 요청, Capacitor가 추가되지 않는다.
 
+### 26.0 JSON import/복원 정책 확인
+
+JSON import/복원은 아직 구현하지 않는다. 다음 항목은 향후 검증 유틸 또는 미리보기 UI를 구현한 뒤 확인한다.
+
+- [ ] 정상 백업 파일은 `format`, `schemaVersion`, `exportedAt`, `tasks`, `projects`, `appSettings` 기준을 통과한다.
+- [ ] 잘못된 JSON 파일은 검증 실패로 처리되고 기존 데이터가 유지된다.
+- [ ] `format`이 `planpilot-local-backup`이 아니면 거부된다.
+- [ ] `schemaVersion`이 `1`이 아니면 거부된다.
+- [ ] `tasks` 또는 `projects`가 배열이 아니면 거부된다.
+- [ ] `appSettings`가 객체가 아니면 거부된다.
+- [ ] 필수 필드가 빠진 task/project/appSettings 항목은 거부된다.
+- [ ] 허용되지 않는 `status` 또는 `priority` 값이 있는 task는 거부된다.
+- [ ] 존재하지 않는 project를 참조하는 task는 거부된다.
+- [ ] 파일 선택 후 즉시 DB에 반영되지 않고 검증 결과 또는 미리보기를 먼저 표시한다.
+- [ ] 가져오기 취소 시 기존 IndexedDB 데이터가 유지된다.
+- [ ] 검증 실패 시 기존 IndexedDB 데이터가 유지된다.
+- [ ] 실제 복원 구현 전에는 전체 덮어쓰기, 병합, appSettings 덮어쓰기, rollback 정책이 문서화되어 있다.
+
 ### 26.1 JSON export 전용 피드백 테스트
 
 - [x] 설정 화면 또는 백업 섹션에 JSON export 버튼이 표시된다.

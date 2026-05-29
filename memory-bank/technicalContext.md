@@ -162,6 +162,11 @@
 - JSON export 실패 후보는 IndexedDB 읽기 실패, JSON 생성 실패, 브라우저 다운로드 실패 가능성, 알 수 없는 오류이며 실패해도 기존 IndexedDB 데이터는 변경하지 않는다.
 - JSON export 성공 경로는 수동 확인으로 통과했고, 실패 경로는 데이터 직렬화 실패, Blob 생성 실패, object URL 생성 실패, 다운로드 링크 클릭 실패, 브라우저 다운로드 차단, 알 수 없는 예외를 후보로 둔다.
 - 일반 브라우저 수동 테스트에서는 실패 경로 재현이 어렵기 때문에 현재는 보류/확인 필요로 기록하고, 단위 테스트나 실패 주입 가능한 테스트 hook 도입 여부를 별도 정책으로 검토한다.
+- JSON import/복원 정책은 `docs/data-import-restore-policy.md`를 기준으로 한다.
+- import 대상은 `tasks`, `projects`, `appSettings`이며, 지원 파일은 `format: "planpilot-local-backup"`, `schemaVersion: 1`, `exportedAt`, `tasks`, `projects`, `appSettings`를 포함해야 한다.
+- 1차 import 후보는 실제 DB 반영이 아니라 파일 검증 또는 미리보기다.
+- 실제 복원은 병합보다 전체 덮어쓰기를 먼저 검토하되, 현재 데이터 백업 안내, rollback 기준, appSettings 덮어쓰기 정책을 먼저 확정해야 한다.
+- 병합 복원은 중복 ID와 project 참조 무결성 위험이 커서 후순위로 둔다.
 
 ## Codex Rules
 - AGENTS.md를 우선 기준으로 작업
