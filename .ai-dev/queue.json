@@ -2,8 +2,8 @@
     "goalTitle":  "AI Dev Loop 운영 품질 개선 및 자동화 준비",
     "goalSource":  ".ai-dev/goal.md",
     "createdAt":  "2026-06-03T23:26:19.8497397+09:00",
-    "updatedAt":  "2026-06-03T14:46:56.6784140+00:00",
-    "currentTaskId":  "T003",
+    "updatedAt":  "2026-06-03T14:58:11.5580864+00:00",
+    "currentTaskId":  "T004",
     "tasks":  [
                   {
                       "id":  "T001",
@@ -56,7 +56,7 @@
                       "title":  "선택 파일 커밋 옵션 추가",
                       "description":  "ai-dev-commit.ps1에 git add -A만 사용하는 방식 외에 지정 파일만 커밋하는 옵션을 추가한다.",
                       "type":  "implementation",
-                      "status":  "in_progress",
+                      "status":  "done",
                       "priority":  "P0",
                       "dependsOn":  [
                                         "T002"
@@ -71,14 +71,16 @@
                                            "기본 동작은 기존과 호환되는지 확인",
                                            "PowerShell 문법 검증"
                                        ],
-                      "commitMessage":  "Add selective AI dev commit option"
+                      "commitMessage":  "Add selective AI dev commit option",
+                      "completedAt":  "2026-06-03T14:58:11.5580864+00:00",
+                      "resultSummary":  "T003 완료: ai-dev-commit.ps1에 -Files 선택 커밋 옵션 추가, DryRun 및 없는 파일 오류 처리 확인"
                   },
                   {
                       "id":  "T004",
                       "title":  "추가 지시 별도 파일 지원",
                       "description":  "current-task-prompt.md 자체를 직접 수정하지 않고, extra-instructions.md 같은 별도 파일을 함께 합쳐 프롬프트를 생성할 수 있게 한다.",
                       "type":  "implementation",
-                      "status":  "pending",
+                      "status":  "in_progress",
                       "priority":  "P1",
                       "dependsOn":  [
                                         "T003"

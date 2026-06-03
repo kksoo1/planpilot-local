@@ -95,3 +95,8 @@
 - Task: T002 save-diff 기본 동작 개선
 - Result: T002 완료: save-diff가 generated artifact diff를 제외하고 untracked 텍스트 파일 내용을 옵션으로 포함하도록 개선
 - Next task: T003 선택 파일 커밋 옵션 추가
+## 2026-06-03 23:58:11 - Task completed
+
+- Task: T003 선택 파일 커밋 옵션 추가
+- Result: T003 완료: ai-dev-commit.ps1에 -Files 선택 커밋 옵션 추가, DryRun 및 없는 파일 오류 처리 확인
+- Next task: T004 추가 지시 별도 파일 지원
