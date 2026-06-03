@@ -2,8 +2,8 @@
     "goalTitle":  "JSON 백업 import 검증 및 미리보기 기능 추가",
     "goalSource":  ".ai-dev/goal.md",
     "createdAt":  "2026-06-03T00:00:00.000Z",
-    "updatedAt":  "2026-06-03T14:20:46.7553083+00:00",
-    "currentTaskId":  "T006",
+    "updatedAt":  "2026-06-03T14:23:22.4567578+00:00",
+    "currentTaskId":  null,
     "tasks":  [
                   {
                       "id":  "T001",
@@ -119,7 +119,7 @@
                       "title":  "빌드 검증 및 최종 요약",
                       "description":  "전체 변경을 빌드하고 diff를 리뷰한 뒤 목표 완료 여부를 정리한다.",
                       "type":  "verification",
-                      "status":  "in_progress",
+                      "status":  "done",
                       "priority":  "P0",
                       "dependsOn":  [
                                         "T005"
@@ -132,7 +132,9 @@
                                            "전체 git diff 리뷰",
                                            "실제 DB 반영, 복원, 덮어쓰기, 병합 기능이 추가되지 않았는지 확인"
                                        ],
-                      "commitMessage":  null
+                      "commitMessage":  null,
+                      "completedAt":  "2026-06-03T14:23:22.4567578+00:00",
+                      "resultSummary":  "T006 완료: 최종 npm run build 통과, 앱 코드 추가 변경 없음, 복원/덮어쓰기/병합 기능 미추가 확인"
                   }
               ]
 }
