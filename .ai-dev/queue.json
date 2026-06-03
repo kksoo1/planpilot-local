@@ -2,8 +2,8 @@
     "goalTitle":  "JSON 백업 import 검증 및 미리보기 기능 추가",
     "goalSource":  ".ai-dev/goal.md",
     "createdAt":  "2026-06-03T00:00:00.000Z",
-    "updatedAt":  "2026-06-03T14:07:29.5652637+00:00",
-    "currentTaskId":  "T003",
+    "updatedAt":  "2026-06-03T14:16:32.2388790+00:00",
+    "currentTaskId":  "T004",
     "tasks":  [
                   {
                       "id":  "T001",
@@ -52,7 +52,7 @@
                       "title":  "import 미리보기 UI 추가",
                       "description":  "사용자가 JSON 백업 파일을 선택하고 검증 결과 요약을 확인할 수 있는 미리보기 UI를 추가한다.",
                       "type":  "implementation",
-                      "status":  "in_progress",
+                      "status":  "done",
                       "priority":  "P0",
                       "dependsOn":  [
                                         "T002"
@@ -65,14 +65,16 @@
                                            "파일 선택 후 DB 데이터가 변경되지 않는지 확인",
                                            "npm run build"
                                        ],
-                      "commitMessage":  "Add JSON import preview"
+                      "commitMessage":  "Add JSON import preview",
+                      "completedAt":  "2026-06-03T14:16:32.2388790+00:00",
+                      "resultSummary":  "T003 완료: SettingsView에 JSON import 미리보기 UI 추가, validateBackupData 연동, npm run build 통과"
                   },
                   {
                       "id":  "T004",
                       "title":  "검증 실패 메시지와 성공 요약 표시",
                       "description":  "검증 실패 이유와 성공 시 tasks, projects 개수 및 appSettings 포함 여부를 사용자에게 표시한다.",
                       "type":  "implementation",
-                      "status":  "pending",
+                      "status":  "in_progress",
                       "priority":  "P0",
                       "dependsOn":  [
                                         "T003"

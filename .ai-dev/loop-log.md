@@ -32,3 +32,18 @@
 - Task: T002 백업 JSON 검증 유틸 추가
 - Result: T002 완료: 백업 JSON 검증 유틸 추가, npm run build 통과, 커밋 4297d35 생성
 - Next task: T003 import 미리보기 UI 추가
+
+## 2026-06-03 23:12:18 - T003 implementation completed
+
+- Task: T003 import 미리보기 UI 추가
+- Result: SettingsView에 JSON 백업 파일 선택, 파싱, `validateBackupData` 호출, 검증 성공 요약과 실패 이유 표시를 추가했다.
+- Scope: `src/views/SettingsView.tsx`의 로컬 상태만 사용하며 store, db, IndexedDB 쓰기 경로는 추가하지 않았다.
+- Verification: 코드 리뷰로 복원, 덮어쓰기, 병합, 기존 데이터 변경 기능이 없음을 확인했다. `npm run build`는 이 프롬프트 지시에 따라 실행하지 않았다.
+- Remaining risk: 브라우저에서 정상/비정상 JSON 파일 선택 흐름과 파일 읽기 실패 상황은 아직 수동 확인하지 않았다.
+- Next task: T004 검증 실패 메시지와 성공 요약 표시 요구사항과 현재 구현의 중복 범위를 먼저 확인한다.
+
+## 2026-06-03 23:16:32 - Task completed
+
+- Task: T003 import 미리보기 UI 추가
+- Result: T003 완료: SettingsView에 JSON import 미리보기 UI 추가, validateBackupData 연동, npm run build 통과
+- Next task: T004 검증 실패 메시지와 성공 요약 표시

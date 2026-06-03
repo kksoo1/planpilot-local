@@ -1,11 +1,11 @@
 ﻿# AI Dev Review
 
-## 2026-06-03 23:05:45
+## 2026-06-03 23:16:17
 
 - Decision: pass
 - Severity: low
 - Next step: complete_task
-- Summary: T002 백업 JSON 검증 유틸은 현재 task 요구사항을 충족합니다. validateBackupData는 PlanPilot Local 백업 format, schemaVersion, exportedAt, tasks, projects, appSettings를 검증하고, task/project/appSettings 필수 필드와 task status/priority, project 참조 무결성, 중복 ID를 확인합니다. 반환값은 valid, errors, warnings, summary 구조이며 IndexedDB 쓰기, 복원, 덮어쓰기, 병합 동작은 포함되어 있지 않습니다. npm run build도 통과했습니다.
+- Summary: T003 import 미리보기 UI는 현재 task 요구사항을 충족합니다. SettingsView에서 JSON 파일 선택 input을 추가하고, 파일 내용을 JSON.parse로 읽은 뒤 validateBackupData를 호출하며, 검증 성공 시 업무/프로젝트 개수와 appSettings 포함 여부를 표시하고 검증 실패 또는 파싱 실패 이유를 표시합니다. 구현은 SettingsView 로컬 상태만 사용하며 store, db, IndexedDB 쓰기, 복원, 덮어쓰기, 병합 버튼을 추가하지 않았습니다. npm run build도 통과했습니다.
 
 ### Required Changes
 
@@ -13,9 +13,8 @@
 
 ### Optional Suggestions
 
-- .ai-dev/diff.md, .ai-dev/review-prompt.md, .ai-dev/review.md: 현재 리뷰/실행 산출물이 diff에 크게 포함되어 있으므로, T002 기능 커밋에는 가능하면 src/utils/importValidation.ts와 관련 문서 변경만 포함하고 실행 산출물 커밋 정책은 별도로 정리하세요.
-- docs/manual-test-checklist.md: 현재 추가된 validateBackupData DB 미수정 확인 항목은 T002 검증 보강으로 허용 가능합니다. 다만 UI 미리보기 관련 수동 테스트 항목은 T003~T005에서 별도로 보강하는 편이 좋습니다.
-- src/utils/importValidation.ts: 추후 테스트 도구를 도입하면 정상 백업, 잘못된 format, schemaVersion 불일치, 필수 필드 누락, 잘못된 priority/status, 존재하지 않는 projectId 참조 케이스를 단위 테스트로 고정하는 것을 권장합니다.
+- src/views/SettingsView.tsx: 같은 파일을 다시 선택했을 때 onChange가 브라우저에 따라 재발생하지 않을 수 있으므로, 추후 필요하면 input value 초기화 또는 별도 초기화 버튼을 검토하세요.
+- .ai-dev/current-task-prompt.md: 추가 제한 문구가 current-task-prompt.md 파일 자체에 들어갔습니다. 실험상 문제는 없지만, 다음부터는 파일을 수정하지 않고 Codex/Cline 입력창에만 덧붙이는 방식이 더 깔끔합니다.
 
 ### Raw JSON
 
@@ -23,22 +22,18 @@
 {
     "decision":  "pass",
     "severity":  "low",
-    "summary":  "T002 백업 JSON 검증 유틸은 현재 task 요구사항을 충족합니다. validateBackupData는 PlanPilot Local 백업 format, schemaVersion, exportedAt, tasks, projects, appSettings를 검증하고, task/project/appSettings 필수 필드와 task status/priority, project 참조 무결성, 중복 ID를 확인합니다. 반환값은 valid, errors, warnings, summary 구조이며 IndexedDB 쓰기, 복원, 덮어쓰기, 병합 동작은 포함되어 있지 않습니다. npm run build도 통과했습니다.",
+    "summary":  "T003 import 미리보기 UI는 현재 task 요구사항을 충족합니다. SettingsView에서 JSON 파일 선택 input을 추가하고, 파일 내용을 JSON.parse로 읽은 뒤 validateBackupData를 호출하며, 검증 성공 시 업무/프로젝트 개수와 appSettings 포함 여부를 표시하고 검증 실패 또는 파싱 실패 이유를 표시합니다. 구현은 SettingsView 로컬 상태만 사용하며 store, db, IndexedDB 쓰기, 복원, 덮어쓰기, 병합 버튼을 추가하지 않았습니다. npm run build도 통과했습니다.",
     "required_changes":  [
 
                          ],
     "optional_suggestions":  [
                                  {
-                                     "file":  ".ai-dev/diff.md, .ai-dev/review-prompt.md, .ai-dev/review.md",
-                                     "suggestion":  "현재 리뷰/실행 산출물이 diff에 크게 포함되어 있으므로, T002 기능 커밋에는 가능하면 src/utils/importValidation.ts와 관련 문서 변경만 포함하고 실행 산출물 커밋 정책은 별도로 정리하세요."
+                                     "file":  "src/views/SettingsView.tsx",
+                                     "suggestion":  "같은 파일을 다시 선택했을 때 onChange가 브라우저에 따라 재발생하지 않을 수 있으므로, 추후 필요하면 input value 초기화 또는 별도 초기화 버튼을 검토하세요."
                                  },
                                  {
-                                     "file":  "docs/manual-test-checklist.md",
-                                     "suggestion":  "현재 추가된 validateBackupData DB 미수정 확인 항목은 T002 검증 보강으로 허용 가능합니다. 다만 UI 미리보기 관련 수동 테스트 항목은 T003~T005에서 별도로 보강하는 편이 좋습니다."
-                                 },
-                                 {
-                                     "file":  "src/utils/importValidation.ts",
-                                     "suggestion":  "추후 테스트 도구를 도입하면 정상 백업, 잘못된 format, schemaVersion 불일치, 필수 필드 누락, 잘못된 priority/status, 존재하지 않는 projectId 참조 케이스를 단위 테스트로 고정하는 것을 권장합니다."
+                                     "file":  ".ai-dev/current-task-prompt.md",
+                                     "suggestion":  "추가 제한 문구가 current-task-prompt.md 파일 자체에 들어갔습니다. 실험상 문제는 없지만, 다음부터는 파일을 수정하지 않고 Codex/Cline 입력창에만 덧붙이는 방식이 더 깔끔합니다."
                                  }
                              ],
     "scope_check":  {
@@ -54,7 +49,7 @@
                        "issues":  [
                                       "npm run build는 passed입니다.",
                                       "npm run test와 npm run lint는 -BuildOnly 옵션으로 skipped입니다.",
-                                      "현재 T002 verification 기준은 npm run build와 코드 리뷰이므로 skipped를 pass 차단 사유로 보지 않습니다."
+                                      "T003 verification 기준은 파일 선택 후 DB 데이터가 변경되지 않는지 확인과 npm run build입니다. 현재 코드 리뷰상 DB 쓰기 경로는 없지만, 브라우저 수동 확인은 아직 남아 있습니다."
                                   ]
                    },
     "next_step":  "complete_task"
