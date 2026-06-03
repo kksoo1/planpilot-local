@@ -100,6 +100,13 @@
 4. 실제 복원을 구현할 때는 병합보다 전체 덮어쓰기를 먼저 검토한다.
 5. 병합 복원은 1차 복원이 안정화된 뒤 별도 정책으로 다룬다.
 
+현재 구현 상태:
+
+- `src/utils/importValidation.ts`에 `validateBackupData(input: unknown)` 순수 검증 유틸을 추가했다.
+- 이 유틸은 백업 JSON 구조, task/project/appSettings 필수 필드, status/priority 허용 값, project 참조 무결성을 검사한다.
+- 이 유틸은 UI에서 아직 호출하지 않는다.
+- 이 유틸은 IndexedDB에 쓰지 않으며, 복원/덮어쓰기/병합을 수행하지 않는다.
+
 ## 데이터 검증 기준
 
 파일 수준 검증:
@@ -226,7 +233,7 @@ appSettings 검증:
 ## 다음 단계 제안
 
 1. import/복원 정책 문서화
-2. import 파일 검증 유틸만 구현
+2. import 파일 검증 유틸만 구현 [완료]
 3. 검증 결과 미리보기 UI 구현
 4. 전체 덮어쓰기 복원 구현
 5. 병합 복원은 이후 별도 검토

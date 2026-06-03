@@ -78,10 +78,11 @@
 - JSON export 실패 상황은 수동 재현하지 못해 보류/확인 필요로 유지
 - JSON export 실패 경로 후보와 재현/기록 기준을 문서화하고, 일반 브라우저 수동 테스트에서는 실패 경로를 보류로 유지하기로 정리
 - JSON import/복원 정책을 문서화하고, 1차 구현은 실제 DB 반영 없이 파일 검증 또는 미리보기부터 시작하는 방향으로 정리
+- `src/utils/importValidation.ts`에 JSON 백업 파일 구조를 확인하는 순수 검증 유틸을 추가하고, UI/DB 반영 없이 build 통과 기준으로 확인
 
 ### Next
-1. JSON import 파일 검증 유틸 구현 여부 검토
-2. 검증 결과 미리보기 UI 정책 구체화
-3. exportData/import validation 유틸 단위 테스트 또는 테스트 도구 도입 정책 문서화
-4. 업무 필터/정렬 UX 개선 후보 정리
-5. DB migration 규칙 문서화
+1. 검증 결과 미리보기 UI 정책 구체화
+2. import validation 유틸 단위 테스트 또는 테스트 도구 도입 정책 문서화
+3. 업무 필터/정렬 UX 개선 후보 정리
+4. DB migration 규칙 문서화
+5. export 성공 메시지 문구가 서버 전송/클라우드 백업으로 오해되지 않는지 UX 확인

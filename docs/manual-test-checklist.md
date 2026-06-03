@@ -460,6 +460,7 @@ AI Provider 확장은 현재 구현 범위가 아니며, `aiProvider` 타입이 
 
 JSON import/복원은 아직 구현하지 않는다. 다음 항목은 향후 검증 유틸 또는 미리보기 UI를 구현한 뒤 확인한다.
 
+- [ ] `validateBackupData` 유틸은 입력값 검증만 수행하고 IndexedDB를 수정하지 않는다.
 - [ ] 정상 백업 파일은 `format`, `schemaVersion`, `exportedAt`, `tasks`, `projects`, `appSettings` 기준을 통과한다.
 - [ ] 잘못된 JSON 파일은 검증 실패로 처리되고 기존 데이터가 유지된다.
 - [ ] `format`이 `planpilot-local-backup`이 아니면 거부된다.
