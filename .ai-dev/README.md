@@ -139,7 +139,7 @@ powershell -ExecutionPolicy Bypass -File scripts/ai-dev-check.ps1 -BuildOnly
 
 ## git diff 저장
 
-현재 git 변경사항을 `diff.md`에 저장해 GPT 리뷰 또는 사람 검토에 사용할 수 있게 한다.
+현재 git 변경사항을 `diff.md`에 저장해 GPT 리뷰 또는 사람 검토에 사용할 수 있게 한다. 기본 동작은 untracked 파일명을 git status에 표시하지만 파일 내용은 포함하지 않는다.
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts/ai-dev-save-diff.ps1
@@ -152,6 +152,20 @@ powershell -ExecutionPolicy Bypass -File scripts/ai-dev-save-diff.ps1 -IncludeUn
 ```
 
 git diff 저장 스크립트는 `diff.md`와 `state.json`만 갱신한다. Codex 실행, GPT 리뷰, build/test 실행, git commit은 수행하지 않는다.
+
+다음 생성 산출물은 자기 중첩과 과도한 크기 증가를 줄이기 위해 Unstaged/Staged Diff와 Diff Stat 대상에서 기본 제외한다. tracked 변경 파일은 `Skipped Generated AI Dev Artifact Diffs` 섹션에 파일명만 기록한다. `-IncludeUntrackedContent`를 사용한 경우 untracked 생성 산출물도 내용 포함에서 제외하고 `Skipped Generated AI Dev Artifacts` 섹션에 파일명만 기록한다.
+
+- `.ai-dev/diff.md`
+- `.ai-dev/review-prompt.md`
+- `.ai-dev/current-task-prompt.md`
+- `.ai-dev/revise-prompt.md`
+- `.ai-dev/test-result.md`
+- `.ai-dev/review.md`
+- `.ai-dev/review-response.json`
+
+git diff/stat 명령의 stderr 경고는 diff 본문과 분리한다. git 명령이 실패하면 기존처럼 `state.json`에 실패 결과를 기록하고 종료한다.
+
+`Git Status` 섹션에는 생성 산출물을 포함한 전체 변경 파일을 그대로 표시한다. `.ai-dev/README.md`, `scripts/ai-dev-save-diff.ps1`처럼 실제 작업 대상 파일은 위 제외 목록에 없으므로 diff 본문에 포함된다.
 
 ## GPT 리뷰 프롬프트 생성
 

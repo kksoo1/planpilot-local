@@ -11,6 +11,16 @@ $statePath = Join-Path $projectRoot $stateRelativePath
 $diffPath = Join-Path $projectRoot $diffRelativePath
 $utf8WithBom = New-Object System.Text.UTF8Encoding($true)
 $maxUntrackedFileSize = 200KB
+$generatedArtifactRelativePaths = @(
+    ".ai-dev/diff.md",
+    ".ai-dev/review-prompt.md",
+    ".ai-dev/current-task-prompt.md",
+    ".ai-dev/revise-prompt.md",
+    ".ai-dev/test-result.md",
+    ".ai-dev/review.md",
+    ".ai-dev/review-response.json"
+)
+$generatedArtifactPathspecExcludes = @($generatedArtifactRelativePaths | ForEach-Object { ":(exclude)$_" })
 
 function Stop-WithError {
     param(
@@ -70,11 +80,40 @@ function Invoke-GitCapture {
         [string]$DisplayName
     )
 
-    $output = & git @Arguments 2>&1 | Out-String
-    $exitCode = $LASTEXITCODE
+    $argumentText = ($Arguments | ForEach-Object {
+        if ($_ -match '[\s"]') {
+            '"' + $_.Replace('"', '\"') + '"'
+        } else {
+            $_
+        }
+    }) -join " "
+
+    $startInfo = New-Object System.Diagnostics.ProcessStartInfo
+    $startInfo.FileName = "git"
+    $startInfo.Arguments = $argumentText
+    $startInfo.UseShellExecute = $false
+    $startInfo.RedirectStandardOutput = $true
+    $startInfo.RedirectStandardError = $true
+    $startInfo.CreateNoWindow = $true
+
+    $process = New-Object System.Diagnostics.Process
+    $process.StartInfo = $startInfo
+
+    if (-not $process.Start()) {
+        throw "$DisplayName 실행을 시작하지 못했습니다."
+    }
+
+    $output = $process.StandardOutput.ReadToEnd()
+    $errorOutput = $process.StandardError.ReadToEnd()
+    $process.WaitForExit()
+    $exitCode = $process.ExitCode
 
     if ($exitCode -ne 0) {
-        throw "$DisplayName 실행에 실패했습니다. exit code: $exitCode`n$output"
+        throw "$DisplayName 실행에 실패했습니다. exit code: $exitCode`n$errorOutput"
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($errorOutput)) {
+        Write-Warning "$DisplayName 경고: $($errorOutput.Trim())"
     }
 
     return $output.TrimEnd()
@@ -91,6 +130,30 @@ function Convert-ToCodeBlock {
     return "${codeFence}text`r`n$text`r`n$codeFence"
 }
 
+function Get-TrackedGeneratedArtifactPaths {
+    param(
+        [string]$PorcelainStatus
+    )
+
+    $paths = @()
+    $statusLines = @($PorcelainStatus -split "`r?`n" | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+
+    foreach ($line in $statusLines) {
+        if ($line.Length -lt 4 -or $line.StartsWith("?? ")) {
+            continue
+        }
+
+        $relativePath = $line.Substring(3)
+        $normalizedRelativePath = $relativePath.Replace('\', '/')
+
+        if ($generatedArtifactRelativePaths -contains $normalizedRelativePath) {
+            $paths += $relativePath
+        }
+    }
+
+    return @($paths | Select-Object -Unique)
+}
+
 function Get-UntrackedFileSections {
     param(
         [string]$RepositoryRoot,
@@ -98,15 +161,22 @@ function Get-UntrackedFileSections {
     )
 
     $sections = @()
+    $skippedGeneratedArtifacts = @()
     $repositoryRootFullPath = [System.IO.Path]::GetFullPath($RepositoryRoot).TrimEnd('\', '/') + [System.IO.Path]::DirectorySeparatorChar
-    $untrackedLines = @($PorcelainStatus -split "`r?`n" | Where-Object { $_ -like "?? *" })
+    $untrackedLines = @($PorcelainStatus -split "`r?`n" | Where-Object { $_.StartsWith("?? ") })
 
     foreach ($line in $untrackedLines) {
-        $relativePath = $line.Substring(3).Trim()
+        $relativePath = $line.Substring(3)
         $sectionTitle = "### $relativePath"
+        $normalizedRelativePath = $relativePath.Replace('\', '/')
 
         if ($relativePath.StartsWith('"') -and $relativePath.EndsWith('"')) {
             $sections += "$sectionTitle`r`n`r`n내용 생략: 따옴표로 인코딩된 경로는 자동 읽기 대상에서 제외합니다."
+            continue
+        }
+
+        if ($generatedArtifactRelativePaths -contains $normalizedRelativePath) {
+            $skippedGeneratedArtifacts += $relativePath
             continue
         }
 
@@ -150,10 +220,13 @@ function Get-UntrackedFileSections {
     }
 
     if ($sections.Count -eq 0) {
-        return @("추적되지 않은 파일이 없습니다.")
+        $sections = @("내용을 포함할 추적되지 않은 텍스트 파일이 없습니다.")
     }
 
-    return $sections
+    return [PSCustomObject]@{
+        ContentSections = $sections
+        SkippedGeneratedArtifacts = $skippedGeneratedArtifacts
+    }
 }
 
 if (-not (Test-Path -LiteralPath $statePath -PathType Leaf)) {
@@ -172,10 +245,12 @@ try {
 try {
     $statusShort = Invoke-GitCapture -Arguments @("status", "--short") -DisplayName "git status --short"
     $statusPorcelain = Invoke-GitCapture -Arguments @("status", "--porcelain") -DisplayName "git status --porcelain"
-    $unstagedStat = Invoke-GitCapture -Arguments @("diff", "--stat") -DisplayName "git diff --stat"
-    $unstagedDiff = Invoke-GitCapture -Arguments @("diff") -DisplayName "git diff"
-    $stagedStat = Invoke-GitCapture -Arguments @("diff", "--staged", "--stat") -DisplayName "git diff --staged --stat"
-    $stagedDiff = Invoke-GitCapture -Arguments @("diff", "--staged") -DisplayName "git diff --staged"
+    $diffPathspecArguments = @("--", ".") + $generatedArtifactPathspecExcludes
+    $unstagedStat = Invoke-GitCapture -Arguments (@("diff", "--stat") + $diffPathspecArguments) -DisplayName "git diff --stat"
+    $unstagedDiff = Invoke-GitCapture -Arguments (@("diff") + $diffPathspecArguments) -DisplayName "git diff"
+    $stagedStat = Invoke-GitCapture -Arguments (@("diff", "--staged", "--stat") + $diffPathspecArguments) -DisplayName "git diff --staged --stat"
+    $stagedDiff = Invoke-GitCapture -Arguments (@("diff", "--staged") + $diffPathspecArguments) -DisplayName "git diff --staged"
+    $skippedTrackedGeneratedArtifacts = Get-TrackedGeneratedArtifactPaths $statusPorcelain
 
     $generatedAt = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
     $sections = @(
@@ -188,9 +263,19 @@ try {
         "## Staged Diff`r`n`r`n$(Convert-ToCodeBlock $stagedDiff)"
     )
 
+    if ($skippedTrackedGeneratedArtifacts.Count -gt 0) {
+        $skippedTrackedArtifactList = $skippedTrackedGeneratedArtifacts | ForEach-Object { "- $_" }
+        $sections += "## Skipped Generated AI Dev Artifact Diffs`r`n`r`n$($skippedTrackedArtifactList -join "`r`n")"
+    }
+
     if ($IncludeUntrackedContent) {
-        $untrackedSections = Get-UntrackedFileSections $repositoryRoot $statusPorcelain
-        $sections += "## Untracked File Content`r`n`r`n$($untrackedSections -join "`r`n`r`n")"
+        $untrackedResult = Get-UntrackedFileSections $repositoryRoot $statusPorcelain
+        $sections += "## Untracked File Content`r`n`r`n$($untrackedResult.ContentSections -join "`r`n`r`n")"
+
+        if ($untrackedResult.SkippedGeneratedArtifacts.Count -gt 0) {
+            $skippedArtifactList = $untrackedResult.SkippedGeneratedArtifacts | ForEach-Object { "- $_" }
+            $sections += "## Skipped Generated AI Dev Artifacts`r`n`r`n$($skippedArtifactList -join "`r`n")"
+        }
     }
 
     $diffContent = $sections -join "`r`n`r`n"
@@ -203,3 +288,7 @@ try {
 
 Write-Host "git diff 저장 완료: $diffRelativePath"
 Write-Host "상태 저장 완료: $stateRelativePath"
+
+if (-not $IncludeUntrackedContent) {
+    Write-Host "untracked 파일 내용이 필요하면 -IncludeUntrackedContent 옵션을 사용하세요."
+}
