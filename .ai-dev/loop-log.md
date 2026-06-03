@@ -90,3 +90,8 @@
 - Task: T001 .ai-dev 실행 산출물 커밋/무시 정책 정리
 - Result: T001 완료: AI Dev 실행 산출물 커밋/무시 정책 문서화
 - Next task: T002 save-diff 기본 동작 개선
+## 2026-06-03 23:46:57 - Task completed
+
+- Task: T002 save-diff 기본 동작 개선
+- Result: T002 완료: save-diff가 generated artifact diff를 제외하고 untracked 텍스트 파일 내용을 옵션으로 포함하도록 개선
+- Next task: T003 선택 파일 커밋 옵션 추가

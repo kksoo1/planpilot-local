@@ -2,8 +2,8 @@
     "goalTitle":  "AI Dev Loop 운영 품질 개선 및 자동화 준비",
     "goalSource":  ".ai-dev/goal.md",
     "createdAt":  "2026-06-03T23:26:19.8497397+09:00",
-    "updatedAt":  "2026-06-03T14:34:02.2491110+00:00",
-    "currentTaskId":  "T002",
+    "updatedAt":  "2026-06-03T14:46:56.6784140+00:00",
+    "currentTaskId":  "T003",
     "tasks":  [
                   {
                       "id":  "T001",
@@ -33,7 +33,7 @@
                       "title":  "save-diff 기본 동작 개선",
                       "description":  "ai-dev-save-diff.ps1이 untracked 텍스트 파일 내용을 기본 또는 명확한 옵션으로 포함하고, diff.md/review-prompt.md 같은 자기 자신 산출물이 과도하게 중첩되지 않도록 개선한다.",
                       "type":  "implementation",
-                      "status":  "in_progress",
+                      "status":  "done",
                       "priority":  "P0",
                       "dependsOn":  [
                                         "T001"
@@ -47,14 +47,16 @@
                                            ".ai-dev/diff.md 자기 중첩이 과도하게 커지지 않는지 확인",
                                            "PowerShell 문법 검증"
                                        ],
-                      "commitMessage":  "Improve AI dev diff capture"
+                      "commitMessage":  "Improve AI dev diff capture",
+                      "completedAt":  "2026-06-03T14:46:56.6784140+00:00",
+                      "resultSummary":  "T002 완료: save-diff가 generated artifact diff를 제외하고 untracked 텍스트 파일 내용을 옵션으로 포함하도록 개선"
                   },
                   {
                       "id":  "T003",
                       "title":  "선택 파일 커밋 옵션 추가",
                       "description":  "ai-dev-commit.ps1에 git add -A만 사용하는 방식 외에 지정 파일만 커밋하는 옵션을 추가한다.",
                       "type":  "implementation",
-                      "status":  "pending",
+                      "status":  "in_progress",
                       "priority":  "P0",
                       "dependsOn":  [
                                         "T002"
