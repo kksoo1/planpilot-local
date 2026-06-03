@@ -23,6 +23,17 @@ AI Dev Loop 운영 품질 개선 및 자동화 준비
 
 - 기능 변경과 루프 운영 상태 변경의 커밋 경계를 문서화한다.
 - 민감하거나 거대한 산출물을 항상 커밋하지 않도록 기준을 정한다.
+- 기능 커밋에는 실제 기능과 직접 관련 문서만 포함하도록 한다.
+- 루프 상태 커밋에는 필요할 때 queue, state, loop-log, review, test-result를 별도로 포함할 수 있게 한다.
+- `diff.md`, `review-prompt.md`, `review-response.json`의 크기와 민감 정보 위험을 기록한다.
+- untracked 파일의 리뷰 포함 여부와 커밋 대상 여부를 별도로 판단하도록 한다.
+- 커밋 전 `git status --short`, DryRun, 선택 파일 커밋을 우선하는 기준을 둔다.
+
+T001 완료 기준:
+
+- `docs/ai-dev-loop-policy.md`와 `.ai-dev/README.md`에 기능 커밋과 루프 상태 커밋 분리 기준이 있다.
+- 대형 또는 민감 실행 산출물을 항상 커밋하지 않는 기준이 있다.
+- 실제 `.gitignore`, scripts, src, package 파일은 변경하지 않는다.
 
 ### T002 save-diff 기본 동작 개선
 

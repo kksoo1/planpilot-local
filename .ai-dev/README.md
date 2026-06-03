@@ -220,6 +220,21 @@ powershell -ExecutionPolicy Bypass -File scripts/ai-dev-commit.ps1 -AllowWithout
 
 자동 커밋 스크립트는 `git add -A`로 현재 작업 트리의 모든 변경사항을 stage한다. 실행 전 예상하지 못한 사용자 변경이 없는지 반드시 확인한다. Codex 실행, GPT API 호출, build/test 실행은 수행하지 않는다.
 
+## 실행 산출물 커밋 기준
+
+AI Dev Loop의 실제 기능 변경과 `.ai-dev` 실행 상태는 가능한 한 별도 커밋으로 관리한다.
+
+- 기능 커밋에는 현재 task의 코드와 직접 관련 문서만 포함한다.
+- 루프 상태 커밋에는 필요할 때 `queue.json`, `state.json`, `loop-log.md`, `test-result.md`, `review.md` 등을 포함할 수 있다.
+- `diff.md`와 `review-prompt.md`는 커질 수 있으므로 항상 커밋하지 않는다.
+- `review-response.json`은 민감 정보나 장문 내용이 포함될 수 있으므로 내용을 확인한 뒤 커밋 여부를 결정한다.
+- untracked 텍스트 파일 내용은 리뷰에 필요할 수 있지만, 리뷰 포함 여부와 커밋 대상 여부는 별도로 판단한다.
+- 대형 또는 민감 산출물은 정리하거나 별도 정책에 따라 제외한다.
+
+커밋 전에는 `git status --short`와 `ai-dev-commit.ps1 -DryRun`으로 대상을 먼저 확인한다. 선택 파일 커밋 기능이 준비되면 전체 stage보다 선택 파일 방식을 우선한다.
+
+세부 기준은 `docs/ai-dev-loop-policy.md`의 `.ai-dev` 실행 산출물 커밋/무시 정책을 따른다. 실제 `.gitignore` 변경은 별도 task에서 검토한다.
+
 ## 자동 개발 루프 상태 요약
 
 현재 queue, state, git 변경사항, 테스트 결과, 리뷰 결과를 한 번에 확인한다.
