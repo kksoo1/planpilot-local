@@ -1,60 +1,48 @@
 # Goal
 
-JSON 백업 파일 import 시 실제 복원은 하지 않고, 파일 검증과 미리보기까지만 제공하는 기능을 추가한다.
+AI Dev Loop 운영 품질 개선 및 자동화 준비
 
 ## Background
 
-PlanPilot Local은 `tasks`, `projects`, `appSettings`를 포함한 JSON 백업 파일을 내보낼 수 있다.
+AI Dev Loop를 더 안정적으로 운영하기 위해 diff 생성, 리뷰 프롬프트 크기, untracked 파일 처리, 선택 커밋, 추가 지시 분리, already-satisfied task 처리 기준을 개선한다.
 
-현재 JSON import/복원 정책과 순수 검증 유틸은 준비되어 있지만, 사용자가 파일을 선택하고 검증 결과를 확인할 수 있는 흐름은 아직 없다.
-
-데이터 손상 위험을 줄이기 위해 실제 IndexedDB 반영보다 파일 검증과 영향 범위 미리보기를 먼저 제공한다.
+이번 목표는 완전 자동화를 바로 구현하기 전 운영 품질을 높이는 준비 단계다. 앱 기능, `src` 코드, package 설정은 변경하지 않는다.
 
 ## Success Criteria
 
-- 사용자가 PlanPilot Local JSON 백업 파일을 선택할 수 있다.
-- `format`이 `planpilot-local-backup`인지 확인한다.
-- `schemaVersion`이 `1`인지 확인한다.
-- `exportedAt`, `tasks`, `projects`, `appSettings` 필수 항목을 확인한다.
-- 검증 실패 시 사용자에게 실패 이유를 표시한다.
-- 검증 성공 시 `tasks` 개수, `projects` 개수, `appSettings` 포함 여부를 표시한다.
-- 파일 검증과 미리보기 과정에서 IndexedDB 데이터는 변경되지 않는다.
-- `docs/manual-test-checklist.md`에 검증과 미리보기 수동 테스트 항목을 반영한다.
-- `npm run build`가 성공한다.
+- `.ai-dev` 실행 산출물과 커밋 대상 정책이 문서화된다.
+- `ai-dev-save-diff.ps1` 개선 방향이 task로 정리된다.
+- untracked 텍스트 파일 내용 포함 정책이 task로 정리된다.
+- `ai-dev-commit.ps1`에 선택 파일 커밋 옵션을 추가하는 task가 정리된다.
+- `current-task-prompt.md`를 직접 수정하지 않고 추가 지시를 별도 파일로 관리하는 task가 정리된다.
+- 이미 요구사항을 충족한 task를 코드 수정 없이 완료 처리하는 기준이 정리된다.
+- 최종 검증 task가 포함된다.
 
 ## Constraints
 
-- 실제 DB 반영을 하지 않는다.
-- 복원, 덮어쓰기, 병합을 구현하지 않는다.
-- `format`은 `planpilot-local-backup`만 허용한다.
-- `schemaVersion`은 `1`만 허용한다.
-- `exportedAt`, `tasks`, `projects`, `appSettings`를 필수로 확인한다.
-- 검증 실패 이유를 사용자에게 표시한다.
-- 검증 성공 시 데이터 개수와 설정 포함 여부를 표시한다.
-- 서버 API, `localStorage`, 로그인, 클라우드 동기화를 추가하지 않는다.
-- DB schema를 변경하지 않는다.
-- `App.css`를 수정하지 않는다.
-- 현재 task 범위 밖 파일을 수정하지 않는다.
+- 이번 목표는 AI Dev Loop 스크립트와 운영 정책 개선에 한정한다.
+- 한 번에 하나의 task만 수행하고 task 단위로 검증한다.
+- scripts 코드는 각 구현 task에서만 수정한다.
+- `src` 코드는 수정하지 않는다.
+- `package.json`, `package-lock.json`은 수정하지 않는다.
+- 앱 데이터, DB schema, 사용자 기능을 변경하지 않는다.
+- 완전 자동 실행, GPT API 호출, 자동 push는 구현하지 않는다.
 
 ## Out of Scope
 
-- JSON 백업 데이터를 IndexedDB에 저장하는 기능
-- 전체 덮어쓰기 복원
-- 기존 데이터와의 병합
-- 중복 ID 자동 수정
-- 프로젝트 참조 자동 복구
-- appSettings 자동 덮어쓰기
-- 복원 전 자동 백업
-- JSON export 구조 변경
+- 앱 기능 추가 또는 UI 변경
+- `src` 코드 리팩터링
+- package 추가 또는 교체
+- 완전 자동화된 auto-step/auto-cycle 구현
+- GPT API 직접 호출
+- 자동 push 또는 PR 생성
 
 ## Manual Verification
 
-- 정상 백업 파일을 선택하면 검증 성공 상태가 표시된다.
-- 정상 백업 파일의 `tasks`와 `projects` 개수가 표시된다.
-- 정상 백업 파일에 `appSettings`가 포함되어 있는지 표시된다.
-- 잘못된 JSON 파일을 선택하면 검증 실패 이유가 표시된다.
-- `format`이 다른 파일은 거부된다.
-- `schemaVersion`이 `1`이 아닌 파일은 거부된다.
-- 필수 항목이 누락된 파일은 거부된다.
-- 파일을 선택하거나 검증한 뒤에도 기존 업무, 프로젝트, 설정 데이터가 유지된다.
-- `npm run build`가 성공한다.
+- 운영 산출물 커밋/무시 정책이 문서에서 명확히 구분된다.
+- untracked 텍스트 파일이 리뷰 가능한 diff에 포함되는지 확인한다.
+- diff/review 산출물이 자기 자신을 과도하게 중첩하지 않는지 확인한다.
+- 선택 파일 커밋 옵션의 DryRun과 기본 호환성을 확인한다.
+- 추가 지시 파일이 task 프롬프트에 별도 섹션으로 포함되는지 확인한다.
+- already-satisfied task를 코드 수정 없이 완료 처리할 때 필요한 기록이 남는지 확인한다.
+- 수정된 PowerShell 스크립트가 문법 오류 없이 파싱되는지 확인한다.

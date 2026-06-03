@@ -76,3 +76,11 @@
 - Task: T006 빌드 검증 및 최종 요약
 - Result: T006 완료: 최종 npm run build 통과, 앱 코드 추가 변경 없음, 복원/덮어쓰기/병합 기능 미추가 확인
 - Next task: 없음
+
+## 2026-06-03 23:26:19 - New goal initialized
+
+- Previous goal: JSON 백업 import 검증 및 미리보기 기능 추가
+- New goal: AI Dev Loop 운영 품질 개선 및 자동화 준비
+- Current task: T001 `.ai-dev` 실행 산출물 커밋/무시 정책 정리
+- Scope: AI Dev Loop 스크립트와 운영 정책 개선 준비. 앱 기능, `src`, package 파일은 변경하지 않는다.
+- Result: 새 goal, queue, state, plan을 초기화하고 이전 목표의 test/review 결과를 새 목표의 미실행 상태로 전환했다.

@@ -2,61 +2,56 @@
 
 ## Goal
 
-JSON 백업 파일을 실제로 복원하지 않고, 파일 검증과 미리보기까지만 제공한다.
+AI Dev Loop 운영 품질 개선 및 자동화 준비
 
-## Scope Guard
+## 목표 범위
 
-- 실제 IndexedDB 반영, 복원, 덮어쓰기, 병합은 구현하지 않는다.
-- `src/store.ts`, `src/db.ts`, DB schema는 수정하지 않는다.
-- 지원 형식은 `format: "planpilot-local-backup"`, `schemaVersion: 1`로 제한한다.
-- 파일 선택 후 검증 결과를 먼저 보여주며 사용자 데이터를 변경하지 않는다.
+- `.ai-dev` 실행 산출물의 커밋/무시 기준을 먼저 문서화한다.
+- diff 생성, untracked 텍스트 파일 처리, 선택 커밋, 추가 지시 분리, already-satisfied task 처리 기준을 작은 task로 개선한다.
+- 완전 자동화된 auto-step/auto-cycle 구현 전 운영 안정성을 높인다.
 
-## 확인된 기존 구조
+## 범위 제한
 
-- 백업 export 정책: `docs/data-backup-export-policy.md`
-- import/복원 정책: `docs/data-import-restore-policy.md`
-- export 구현: `src/utils/exportData.ts`
-- 기존 순수 검증 유틸: `src/utils/importValidation.ts`
-- 설정 화면 연결 지점: `src/views/SettingsView.tsx`
-- 설정 화면 props 조립: `src/App.tsx`
-- 수동 확인 기준: `docs/manual-test-checklist.md`
+- 앱 기능과 `src` 코드는 수정하지 않는다.
+- `package.json`, `package-lock.json`은 수정하지 않는다.
+- GPT API 호출, 자동 push, 완전 자동 실행은 구현하지 않는다.
+- 각 task는 현재 범위만 수행하고 task 단위로 검증한다.
 
-## Follow-up Tasks
+## 작업 순서
 
-### T002 기존 백업 JSON 검증 유틸 확인
+### T001 `.ai-dev` 실행 산출물 커밋/무시 정책 정리
 
-- `src/utils/importValidation.ts`의 `validateBackupData(input: unknown)`가 이미 존재한다.
-- 신규 유틸을 중복 구현하지 않고 현재 goal의 필수 검증과 요약 요구사항을 충족하는지 먼저 확인한다.
-- 부족한 검증이 있을 때만 현재 task 범위에서 최소 수정한다.
-- 검증 유틸은 store, db, IndexedDB 쓰기 경로를 사용하지 않아야 한다.
+- 기능 변경과 루프 운영 상태 변경의 커밋 경계를 문서화한다.
+- 민감하거나 거대한 산출물을 항상 커밋하지 않도록 기준을 정한다.
 
-### T003 import 미리보기 UI 추가
+### T002 save-diff 기본 동작 개선
 
-- 주 연결 위치는 `src/views/SettingsView.tsx`다.
-- `SettingsView`는 이미 `tasks`, `projects`, `appSettings`를 받고 있으므로 `App.tsx` 변경은 필요하지 않을 가능성이 높다.
-- 파일 선택, JSON 파싱, 검증 함수 호출, 로컬 미리보기 상태만 추가한다.
-- 파일 선택 후에도 DB 데이터는 변경하지 않는다.
+- 신규 untracked 텍스트 파일을 리뷰 가능한 형태로 포함한다.
+- `diff.md`, `review-prompt.md` 등 실행 산출물의 자기 중첩을 제한한다.
 
-### T004 검증 실패 메시지와 성공 요약 표시
+### T003 선택 파일 커밋 옵션 추가
 
-- `src/views/SettingsView.tsx`에서 검증 실패 이유를 짧게 표시한다.
-- 성공 시 tasks 개수, projects 개수, appSettings 포함 여부를 표시한다.
-- 복원 버튼, 덮어쓰기 확인, 병합 UI는 추가하지 않는다.
+- 기존 기본 동작과 호환성을 유지하면서 지정 파일만 stage/commit할 수 있게 한다.
+- DryRun에서 실제 대상 파일을 확인할 수 있어야 한다.
 
-### T005 수동검증 체크리스트 업데이트
+### T004 추가 지시 별도 파일 지원
 
-- `docs/manual-test-checklist.md`에 정상 파일, 잘못된 JSON, format/schemaVersion 불일치, 필수 필드 누락, 참조 무결성, DB 비변경 확인 항목을 현재 구현과 맞게 정리한다.
-- 문서에서 import/복원이 구현된 것으로 표현하지 않는다.
+- `current-task-prompt.md`를 직접 수정하지 않고 별도 추가 지시 파일을 합칠 수 있게 한다.
+- goal과 queue 원본 내용은 유지한다.
 
-### T006 빌드 검증 및 최종 요약
+### T005 already-satisfied task 처리 정책 추가
 
-- `npm run build`를 실행한다.
-- 전체 diff에서 DB 반영, 복원, 덮어쓰기, 병합 기능이 추가되지 않았는지 확인한다.
-- 현재 goal 범위를 벗어난 수정이 없는지 리뷰한다.
+- 이전 task에서 요구사항이 이미 충족된 경우 코드 수정 없이 완료 처리할 기준을 정한다.
+- 확인 내용, 검증 방법, 미수정 이유를 기록하도록 한다.
+
+### T006 최종 검증 및 요약
+
+- 수정된 PowerShell 스크립트의 문법을 검증한다.
+- 전체 diff를 리뷰하고 auto-step/auto-cycle 구현 준비 여부를 정리한다.
 
 ## Stop Conditions
 
-- 실제 DB 쓰기 또는 사용자 데이터 변경이 필요해지는 경우
-- 복원, 덮어쓰기, 병합 정책 구현이 요구되는 경우
-- DB schema 변경이나 migration이 필요한 경우
-- package 추가 또는 대규모 UI 개편이 필요한 경우
+- 앱 기능 또는 `src` 코드 수정이 필요해지는 경우
+- package 변경이나 새 의존성이 필요한 경우
+- 기존 AI Dev Loop 상태 판단 로직을 대규모로 재작성해야 하는 경우
+- 민감 정보가 실행 산출물에 포함될 위험이 해결되지 않은 경우
