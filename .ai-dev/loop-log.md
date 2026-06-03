@@ -47,3 +47,22 @@
 - Task: T003 import 미리보기 UI 추가
 - Result: T003 완료: SettingsView에 JSON import 미리보기 UI 추가, validateBackupData 연동, npm run build 통과
 - Next task: T004 검증 실패 메시지와 성공 요약 표시
+
+## 2026-06-03 23:19:02 - T004 requirements confirmed
+
+- Task: T004 검증 실패 메시지와 성공 요약 표시
+- Result: T003에서 추가된 SettingsView 구현이 T004 요구사항을 이미 충족하므로 `src` 코드는 수정하지 않았다.
+- 확인 내용:
+  - `validateBackupData`의 `errors`가 검증 실패 목록으로 표시된다.
+  - JSON 파일 읽기 또는 파싱 실패 이유가 표시된다.
+  - 검증 성공 시 tasks 개수, projects 개수, appSettings 포함 여부가 표시된다.
+  - 복원, 덮어쓰기, 병합 버튼이 없다.
+  - store, db, IndexedDB 쓰기 코드를 호출하지 않는다.
+- Verification: 코드 리뷰로 요구사항 충족과 DB 비반영 경계를 확인했다. 수동 UI 확인은 아직 필요하다.
+- Next task: T005 수동검증 체크리스트 업데이트
+
+## 2026-06-03 23:20:27 - Task completed
+
+- Task: T004 검증 실패 메시지와 성공 요약 표시
+- Result: T004 완료: T003 구현이 검증 실패 메시지와 성공 요약 표시 요구사항을 이미 충족함을 확인, src 코드 변경 없음
+- Next task: T005 수동검증 체크리스트 업데이트

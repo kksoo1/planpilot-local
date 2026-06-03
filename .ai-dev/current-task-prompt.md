@@ -70,14 +70,14 @@ PlanPilot Local은 `tasks`, `projects`, `appSettings`를 포함한 JSON 백업 �
 
 ## Current Task
 
-- Task ID: T003
-- Title: import 미리보기 UI 추가
-- Description: 사용자가 JSON 백업 파일을 선택하고 검증 결과 요약을 확인할 수 있는 미리보기 UI를 추가한다.
+- Task ID: T004
+- Title: 검증 실패 메시지와 성공 요약 표시
+- Description: 검증 실패 이유와 성공 시 tasks, projects 개수 및 appSettings 포함 여부를 사용자에게 표시한다.
 - Type: implementation
 - Status: in_progress
 - Priority: P0
 - Depends on:
-- T002
+- T003
 
 ## Task Scope
 
@@ -89,11 +89,11 @@ PlanPilot Local은 `tasks`, `projects`, `appSettings`를 포함한 JSON 백업 �
 ## Likely Files
 
 - src/views/SettingsView.tsx
-- src/App.tsx
 
 ## Verification
 
-- 파일 선택 후 DB 데이터가 변경되지 않는지 확인
+- 실패 이유가 표시되는지 수동 확인
+- 성공 요약이 표시되는지 수동 확인
 - npm run build
 
 - 필요한 경우 `npm run build`는 사람이 별도로 실행한다.
@@ -127,31 +127,3 @@ PlanPilot Local은 `tasks`, `projects`, `appSettings`를 포함한 JSON 백업 �
 - 패키지 추가가 필요한 경우
 - 데이터 삭제 또는 마이그레이션이 필요한 경우
 - 같은 오류가 반복되는 경우
-
-이번 작업은 T003 import 미리보기 UI 추가입니다.
-
-중요 제한:
-- 실제 복원 기능은 구현하지 마세요.
-- IndexedDB, store, db 쓰기 코드를 추가하지 마세요.
-- 기존 tasks/projects/appSettings 데이터를 변경하지 마세요.
-- 복원, 덮어쓰기, 병합 버튼을 만들지 마세요.
-- App.css는 수정하지 마세요.
-- package.json, package-lock.json은 수정하지 마세요.
-- src/views/SettingsView.tsx 중심으로 최소 수정하세요.
-- App.tsx는 필요한 경우에만 최소 수정하세요.
-
-구현 목표:
-1. 설정 화면에서 PlanPilot Local JSON 백업 파일을 선택할 수 있게 한다.
-2. 선택한 파일을 JSON으로 파싱한다.
-3. src/utils/importValidation.ts의 validateBackupData를 호출한다.
-4. 검증 실패 시 실패 이유를 화면에 표시한다.
-5. 검증 성공 시 tasks 개수, projects 개수, appSettings 포함 여부를 표시한다.
-6. 파일 선택/검증 과정에서 기존 IndexedDB 데이터가 변경되지 않게 한다.
-7. npm run build가 성공해야 한다.
-
-작업 후 출력:
-- 변경 파일 목록
-- 구현 요약
-- DB를 수정하지 않는 이유
-- 검증 방법
-- 남은 위험
