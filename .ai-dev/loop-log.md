@@ -84,3 +84,9 @@
 - Current task: T001 `.ai-dev` 실행 산출물 커밋/무시 정책 정리
 - Scope: AI Dev Loop 스크립트와 운영 정책 개선 준비. 앱 기능, `src`, package 파일은 변경하지 않는다.
 - Result: 새 goal, queue, state, plan을 초기화하고 이전 목표의 test/review 결과를 새 목표의 미실행 상태로 전환했다.
+
+## 2026-06-03 23:34:02 - Task completed
+
+- Task: T001 .ai-dev 실행 산출물 커밋/무시 정책 정리
+- Result: T001 완료: AI Dev 실행 산출물 커밋/무시 정책 문서화
+- Next task: T002 save-diff 기본 동작 개선
