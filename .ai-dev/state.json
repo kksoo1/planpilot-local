@@ -1,0 +1,16 @@
+﻿{
+    "goalStatus":  "idle",
+    "currentTaskId":  null,
+    "currentLoop":  0,
+    "maxLoopsPerTask":  2,
+    "repeatedFailureCount":  0,
+    "lastCommand":  "save-review",
+    "lastCommandStatus":  "passed",
+    "lastErrorSummary":  "",
+    "lastReviewDecision":  "blocked",
+    "lastReviewSeverity":  "high",
+    "lastCommitHash":  null,
+    "startedAt":  null,
+    "updatedAt":  "2026-06-03T13:56:13.3891072+00:00",
+    "stopReason":  null
+}
