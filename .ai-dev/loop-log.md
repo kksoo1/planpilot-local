@@ -21,3 +21,14 @@
   - `.ai-dev/goal.md`와 `docs/data-import-restore-policy.md`는 실제 DB 반영, 복원, 덮어쓰기, 병합을 현재 goal 범위에서 제외한다.
   - `src/store.ts`와 `src/db.ts`는 이번 goal에서 수정할 필요가 없다.
 - Result: T001 분석 완료. 앱 코드와 데이터는 변경하지 않았다.
+
+## 2026-06-03 22:58:12 - Task completed
+
+- Task: T001 기존 백업 export/import 관련 문서와 코드 위치 확인
+- Result: T001 분석 완료: 백업 export/import 정책 문서, validateBackupData 위치, SettingsView 연결 지점 확인
+- Next task: T002 백업 JSON 검증 유틸 추가
+## 2026-06-03 23:07:29 - Task completed
+
+- Task: T002 백업 JSON 검증 유틸 추가
+- Result: T002 완료: 백업 JSON 검증 유틸 추가, npm run build 통과, 커밋 4297d35 생성
+- Next task: T003 import 미리보기 UI 추가
