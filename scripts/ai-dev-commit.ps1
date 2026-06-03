@@ -1,5 +1,6 @@
 ﻿param(
     [string]$Message,
+    [string[]]$Files,
     [switch]$AllowWithoutPassedCheck,
     [switch]$AllowWithoutPassedReview,
     [switch]$DryRun
@@ -183,6 +184,63 @@ if ($changeLines.Count -eq 0) {
     exit 0
 }
 
+$selectedFiles = @()
+$targetChangeLines = $changeLines
+
+if ($null -ne $Files -and $Files.Count -gt 0) {
+    $requestedFiles = @($Files | ForEach-Object { $_ -split "," } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+
+    if ($requestedFiles.Count -eq 0) {
+        Stop-WithError "-Files에는 비어 있지 않은 파일 경로만 지정할 수 있습니다."
+    }
+
+    foreach ($file in $requestedFiles) {
+        if ([string]::IsNullOrWhiteSpace($file)) {
+            Stop-WithError "-Files에는 비어 있지 않은 파일 경로만 지정할 수 있습니다."
+        }
+
+        $normalizedFile = $file.Replace('\', '/')
+        $fullPath = [System.IO.Path]::GetFullPath((Join-Path $projectRoot $normalizedFile))
+        $projectRootPrefix = [System.IO.Path]::GetFullPath($projectRoot).TrimEnd('\', '/') + [System.IO.Path]::DirectorySeparatorChar
+
+        if (-not $fullPath.StartsWith($projectRootPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+            Stop-WithError "저장소 밖 파일은 선택할 수 없습니다: $file"
+        }
+
+        if (-not (Test-Path -LiteralPath $fullPath -PathType Leaf)) {
+            Stop-WithError "선택한 파일이 존재하지 않습니다: $file"
+        }
+
+        try {
+            $fileStatus = Invoke-GitCapture -Arguments @("status", "--porcelain", "--", $normalizedFile) -DisplayName "git status --porcelain -- $normalizedFile"
+        } catch {
+            Stop-WithError $_.Exception.Message
+        }
+
+        if ([string]::IsNullOrWhiteSpace($fileStatus)) {
+            Stop-WithError "선택한 파일에 커밋할 변경사항이 없습니다: $file"
+        }
+
+        $selectedFiles += $normalizedFile
+    }
+
+    $selectedFiles = @($selectedFiles | Select-Object -Unique)
+    $targetChangeLines = @($selectedFiles)
+
+    try {
+        $stagedFiles = Invoke-GitCapture -Arguments @("diff", "--cached", "--name-only") -DisplayName "git diff --cached --name-only"
+    } catch {
+        Stop-WithError $_.Exception.Message
+    }
+
+    $stagedFileList = @($stagedFiles -split "`r?`n" | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+    $unexpectedStagedFiles = @($stagedFileList | Where-Object { $selectedFiles -notcontains $_ })
+
+    if ($unexpectedStagedFiles.Count -gt 0) {
+        Stop-WithError "선택 파일 외에 이미 staged 된 파일이 있습니다: $($unexpectedStagedFiles -join ', ')"
+    }
+}
+
 $commitMessage = if (Test-HasValue $Message) {
     $Message
 } elseif ($null -ne $currentTask -and (Test-HasValue $currentTask.commitMessage)) {
@@ -206,18 +264,34 @@ if ($DryRun) {
     Write-Host "커밋 메시지: $commitMessage"
     Write-Host "현재 task: $taskText"
     Write-Host "커밋 대상 변경 파일:"
-    foreach ($line in $changeLines) {
+    foreach ($line in $targetChangeLines) {
         Write-Host "  - $line"
     }
-    Write-Host "변경 파일 수: $($changeLines.Count)"
+    Write-Host "변경 파일 수: $($targetChangeLines.Count)"
     exit 0
 }
 
 try {
-    $addOutput = & git add -A 2>&1 | Out-String
+    if ($selectedFiles.Count -gt 0) {
+        $addOutput = & git add -- @selectedFiles 2>&1 | Out-String
+        $addDisplayName = "git add -- <selected files>"
+    } else {
+        $addOutput = & git add -A 2>&1 | Out-String
+        $addDisplayName = "git add -A"
+    }
 
     if ($LASTEXITCODE -ne 0) {
-        throw "git add -A 실행에 실패했습니다. exit code: $LASTEXITCODE`n$addOutput"
+        throw "$addDisplayName 실행에 실패했습니다. exit code: $LASTEXITCODE`n$addOutput"
+    }
+
+    if ($selectedFiles.Count -gt 0) {
+        $stagedFilesAfterAdd = Invoke-GitCapture -Arguments @("diff", "--cached", "--name-only") -DisplayName "git diff --cached --name-only"
+        $stagedFileListAfterAdd = @($stagedFilesAfterAdd -split "`r?`n" | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+        $unexpectedStagedFilesAfterAdd = @($stagedFileListAfterAdd | Where-Object { $selectedFiles -notcontains $_ })
+
+        if ($unexpectedStagedFilesAfterAdd.Count -gt 0) {
+            throw "선택 파일 외의 staged 파일이 감지되었습니다: $($unexpectedStagedFilesAfterAdd -join ', ')"
+        }
     }
 
     $commitOutput = & git commit -m $commitMessage 2>&1 | Out-String
@@ -249,5 +323,5 @@ $logEntry = @"
 
 Write-Host "커밋 메시지: $commitMessage"
 Write-Host "커밋 해시: $commitHash"
-Write-Host "변경 파일 수: $($changeLines.Count)"
+Write-Host "변경 파일 수: $($targetChangeLines.Count)"
 Write-Host "현재 task: $taskText"

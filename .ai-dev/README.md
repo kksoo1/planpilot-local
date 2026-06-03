@@ -225,6 +225,13 @@ powershell -ExecutionPolicy Bypass -File scripts/ai-dev-commit.ps1 -DryRun
 powershell -ExecutionPolicy Bypass -File scripts/ai-dev-commit.ps1
 ```
 
+지정한 파일만 커밋 대상으로 확인하거나 실제로 커밋하려면 `-Files` 옵션을 사용한다.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-commit.ps1 -Files scripts/ai-dev-commit.ps1,.ai-dev/README.md -DryRun
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-commit.ps1 -Files scripts/ai-dev-commit.ps1,.ai-dev/README.md
+```
+
 커밋 메시지를 직접 지정하거나 검증·리뷰 게이트를 명시적으로 우회할 수도 있다.
 
 ```powershell
@@ -232,7 +239,9 @@ powershell -ExecutionPolicy Bypass -File scripts/ai-dev-commit.ps1 -Message "cho
 powershell -ExecutionPolicy Bypass -File scripts/ai-dev-commit.ps1 -AllowWithoutPassedCheck -AllowWithoutPassedReview
 ```
 
-자동 커밋 스크립트는 `git add -A`로 현재 작업 트리의 모든 변경사항을 stage한다. 실행 전 예상하지 못한 사용자 변경이 없는지 반드시 확인한다. Codex 실행, GPT API 호출, build/test 실행은 수행하지 않는다.
+`-Files`를 지정하지 않으면 자동 커밋 스크립트는 기존처럼 `git add -A`로 현재 작업 트리의 모든 변경사항을 stage한다. `-Files`를 지정하면 각 파일이 존재하고 변경사항이 있는지 확인한 뒤 `git add -- <files>`로 지정 파일만 stage한다. 선택 파일 외에 이미 staged 된 파일이 있으면 안전을 위해 중단한다.
+
+실행 전 예상하지 못한 사용자 변경이 없는지 반드시 확인한다. Codex 실행, GPT API 호출, build/test 실행은 수행하지 않는다.
 
 ## 실행 산출물 커밋 기준
 
