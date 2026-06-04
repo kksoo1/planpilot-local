@@ -105,3 +105,8 @@
 - Task: T004 추가 지시 별도 파일 지원
 - Result: T004 완료: extra-instructions 파일을 current-task-prompt에 별도 섹션으로 포함하도록 지원
 - Next task: T005 already-satisfied task 처리 정책 추가
+## 2026-06-04 11:12:43 - Task completed
+
+- Task: T005 already-satisfied task 처리 정책 추가
+- Result: T004 완료: extra-instructions 파일을 current-task-prompt에 별도 섹션으로 포함하도록 지원
+- Next task: T006 최종 검증 및 요약

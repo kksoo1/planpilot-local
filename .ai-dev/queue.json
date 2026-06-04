@@ -2,8 +2,8 @@
     "goalTitle":  "AI Dev Loop 운영 품질 개선 및 자동화 준비",
     "goalSource":  ".ai-dev/goal.md",
     "createdAt":  "2026-06-03T23:26:19.8497397+09:00",
-    "updatedAt":  "2026-06-04T02:12:15.4408047+00:00",
-    "currentTaskId":  "T005",
+    "updatedAt":  "2026-06-04T02:12:43.5827275+00:00",
+    "currentTaskId":  "T006",
     "tasks":  [
                   {
                       "id":  "T001",
@@ -104,7 +104,7 @@
                       "title":  "already-satisfied task 처리 정책 추가",
                       "description":  "이전 task에서 이미 요구사항이 충족된 경우 코드 수정 없이 확인/완료 처리하는 기준을 정책과 README에 정리한다.",
                       "type":  "documentation",
-                      "status":  "in_progress",
+                      "status":  "done",
                       "priority":  "P1",
                       "dependsOn":  [
                                         "T004"
@@ -117,14 +117,16 @@
                                            "already-satisfied task 판단 기준이 명확한지 확인",
                                            "코드 수정 없이 완료 처리할 때 필요한 기록 항목이 정의되었는지 확인"
                                        ],
-                      "commitMessage":  "Document already-satisfied task handling"
+                      "commitMessage":  "Document already-satisfied task handling",
+                      "completedAt":  "2026-06-04T02:12:43.5827275+00:00",
+                      "resultSummary":  "T004 완료: extra-instructions 파일을 current-task-prompt에 별도 섹션으로 포함하도록 지원"
                   },
                   {
                       "id":  "T006",
                       "title":  "최종 검증 및 요약",
                       "description":  "전체 변경의 PowerShell 문법 검증과 git diff 리뷰를 수행하고, 다음 자동화 단계인 auto-step/auto-cycle 구현 준비 여부를 정리한다.",
                       "type":  "verification",
-                      "status":  "pending",
+                      "status":  "in_progress",
                       "priority":  "P0",
                       "dependsOn":  [
                                         "T005"
