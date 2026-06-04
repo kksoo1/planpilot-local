@@ -209,6 +209,36 @@ GPT API 키가 없는 환경에서는 ChatGPT 웹 화면을 사용해 리뷰를 
 
 현재 task의 다음 단계에서는 `review-prompt.md` 클립보드 복사를 돕는 helper를 추가할 예정이다. 그 전까지는 파일 내용을 직접 복사하거나 운영 환경에 맞는 안전한 방법으로 클립보드에 옮긴다.
 
+`review-prompt.md`가 이미 있으면 다음 명령으로 내용을 클립보드에 복사한다.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-copy-review-prompt.ps1
+```
+
+`review-prompt.md`가 없을 때 생성 후 복사하려면 `-GenerateIfMissing`을 사용한다.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-copy-review-prompt.ps1 -GenerateIfMissing
+```
+
+엄격한 리뷰 프롬프트를 생성한 뒤 복사하려면 `-Strict`를 함께 사용한다.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-copy-review-prompt.ps1 -GenerateIfMissing -Strict
+```
+
+자동화에서 결과만 읽고 싶으면 `-Json` 옵션을 사용한다.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-copy-review-prompt.ps1 -Json
+```
+
+복사 후에는 ChatGPT 웹 화면에 붙여넣고, JSON 리뷰만 출력하도록 요청한다. 리뷰 JSON을 받은 뒤에는 아래 명령으로 저장한다.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-save-review.ps1 -FromClipboard
+```
+
 주의:
 
 - `review-prompt.md`에는 diff와 테스트 결과가 포함될 수 있다.
