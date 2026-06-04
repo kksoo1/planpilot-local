@@ -359,7 +359,24 @@ auto-step이 직접 실행하지 않고 중단 또는 안내해야 하는 단계
 - git commit
 - 사용자 데이터 삭제, 복원, 마이그레이션 위험이 있는 작업
 
-`ai-dev-auto-cycle.ps1`는 제한 횟수 안에서 auto-step을 반복하는 초기 자동화 스크립트로 도입할 예정이다. 사용자 개입이 필요한 action, 실패, 반복 위험, commit 필요 상태에서는 중단해야 한다.
+`ai-dev-auto-cycle.ps1`는 제한 횟수 안에서 auto-step을 반복하는 초기 자동화 스크립트다. 사용자 개입이 필요한 action, 실패, 반복 위험, commit 필요 상태에서는 중단한다.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cycle.ps1
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cycle.ps1 -DryRun
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cycle.ps1 -MaxSteps 3
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cycle.ps1 -Json
+```
+
+auto-cycle에서 check, diff 저장, review prompt 생성을 허용하려면 auto-step과 같은 허용 옵션을 전달한다.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cycle.ps1 -AllowCheck
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cycle.ps1 -AllowSaveDiff
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cycle.ps1 -AllowReviewPrompt
+```
+
+auto-cycle은 Codex/Cline 작업, GPT 리뷰, revise, commit, blocked, 사용자 개입 필요 action에서 멈춘다. 무한 루프를 피하기 위해 `-MaxSteps` 제한과 같은 action 반복 감지를 사용한다.
 
 명령 역할 구분:
 
