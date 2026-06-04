@@ -378,6 +378,31 @@ powershell -ExecutionPolicy Bypass -File scripts/ai-dev-manual-cycle.ps1 -Json
 
 수동 사이클 안내 스크립트는 추천 명령과 파일 경로만 보여주며, Codex 실행, GPT API 호출, build/test 실행, git add, git commit을 수행하지 않는다.
 
+`manual-cycle`에서 다음 action이 `ask_gpt_review`로 표시되면 수동 리뷰 브리지를 사용한다. GPT API 키가 없어도 아래 흐름으로 리뷰를 진행할 수 있다.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-manual-cycle.ps1
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-copy-review-prompt.ps1
+```
+
+1. `manual-cycle`에서 현재 task와 다음 action이 `ask_gpt_review`인지 확인한다.
+2. `ai-dev-copy-review-prompt.ps1`로 `review-prompt.md`를 클립보드에 복사한다.
+3. ChatGPT 웹 화면에 붙여넣고 JSON 리뷰만 출력하도록 요청한다.
+4. ChatGPT가 반환한 JSON 리뷰를 클립보드에 복사한다.
+5. 아래 명령으로 리뷰 결과를 저장한다.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-save-review.ps1 -FromClipboard
+```
+
+리뷰 저장 후 decision별 다음 단계:
+
+- `pass`: `ai-dev-complete-task.ps1` 실행 또는 커밋 조건을 검토한다.
+- `revise`: `ai-dev-make-revise-prompt.ps1`로 재수정 프롬프트를 만든 뒤 Codex/Cline에 수동 전달한다.
+- `blocked`: 사용자 판단이 필요하므로 루프를 중단하고 요구사항이나 범위를 조정한다.
+
+`review-prompt.md`에는 diff, 테스트 결과, 로컬 경로, 민감 정보가 포함될 수 있다. ChatGPT에 붙여넣기 전에 사용자가 공유 범위를 확인해야 한다.
+
 ## 자동 실행 단계 정책
 
 `ai-dev-auto-step.ps1`는 현재 상태를 보고 안전한 다음 한 단계만 실행하는 보조 스크립트로 도입할 예정이다. `ai-dev-next.ps1`처럼 안내만 하는 명령과 달리, 허용된 로컬 스크립트는 직접 실행할 수 있다.

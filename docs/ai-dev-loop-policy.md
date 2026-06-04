@@ -263,6 +263,28 @@ task 상태 후보:
 - JSON 리뷰만 받아야 한다는 안내
 - 리뷰 JSON을 복사한 뒤 `ai-dev-save-review.ps1 -FromClipboard`를 실행하라는 안내
 
+### manual-cycle과 수동 브리지
+
+`ai-dev-manual-cycle.ps1`는 현재 상태와 다음 action을 함께 보여주는 수동 운영 대시보드다. 사용자는 `manual-cycle` 결과에서 `ask_gpt_review`를 확인한 뒤 수동 리뷰 브리지로 전환한다.
+
+권장 흐름:
+
+1. `ai-dev-manual-cycle.ps1`로 현재 task, git 상태, test-result, review 상태, next action을 확인한다.
+2. next action이 `ask_gpt_review`이면 `ai-dev-copy-review-prompt.ps1`로 `review-prompt.md`를 클립보드에 복사한다.
+3. 사용자가 ChatGPT 웹 화면에 prompt를 붙여넣는다.
+4. ChatGPT에는 JSON 리뷰만 출력하도록 요청한다.
+5. 사용자가 JSON 리뷰를 클립보드에 복사한다.
+6. `ai-dev-save-review.ps1 -FromClipboard`로 리뷰 결과를 저장한다.
+7. 저장된 decision에 따라 다음 단계를 선택한다.
+
+decision별 기준:
+
+- `pass`: 현재 task 완료 처리 또는 커밋 조건 검토로 진행한다.
+- `revise`: `ai-dev-make-revise-prompt.ps1`로 재수정 프롬프트를 만들고 Codex/Cline에 수동으로 전달한다.
+- `blocked`: 사용자 판단이 필요하므로 루프를 중단하고 요구사항, 범위, 위험도를 다시 확인한다.
+
+이 흐름은 GPT API 키가 없어도 동작한다. 단, `review-prompt.md`에는 diff와 테스트 결과가 포함될 수 있으므로 ChatGPT에 붙여넣기 전에 사용자가 민감 정보와 대형 diff 포함 여부를 확인해야 한다.
+
 ### 민감 정보와 공유 범위
 
 `review-prompt.md`에는 git diff, 테스트 결과, 현재 task 설명이 포함될 수 있다. diff 안에 민감 정보, 백업 데이터, 개인정보, API Key, 대형 파일 내용이 포함될 수 있으므로 사용자는 ChatGPT에 붙여넣기 전에 prompt 내용을 확인해야 한다.
