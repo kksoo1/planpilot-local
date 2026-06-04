@@ -100,3 +100,8 @@
 - Task: T003 선택 파일 커밋 옵션 추가
 - Result: T003 완료: ai-dev-commit.ps1에 -Files 선택 커밋 옵션 추가, DryRun 및 없는 파일 오류 처리 확인
 - Next task: T004 추가 지시 별도 파일 지원
+## 2026-06-04 11:12:15 - Task completed
+
+- Task: T004 추가 지시 별도 파일 지원
+- Result: T004 완료: extra-instructions 파일을 current-task-prompt에 별도 섹션으로 포함하도록 지원
+- Next task: T005 already-satisfied task 처리 정책 추가

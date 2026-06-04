@@ -2,8 +2,8 @@
     "goalTitle":  "AI Dev Loop 운영 품질 개선 및 자동화 준비",
     "goalSource":  ".ai-dev/goal.md",
     "createdAt":  "2026-06-03T23:26:19.8497397+09:00",
-    "updatedAt":  "2026-06-03T14:58:11.5580864+00:00",
-    "currentTaskId":  "T004",
+    "updatedAt":  "2026-06-04T02:12:15.4408047+00:00",
+    "currentTaskId":  "T005",
     "tasks":  [
                   {
                       "id":  "T001",
@@ -80,7 +80,7 @@
                       "title":  "추가 지시 별도 파일 지원",
                       "description":  "current-task-prompt.md 자체를 직접 수정하지 않고, extra-instructions.md 같은 별도 파일을 함께 합쳐 프롬프트를 생성할 수 있게 한다.",
                       "type":  "implementation",
-                      "status":  "in_progress",
+                      "status":  "done",
                       "priority":  "P1",
                       "dependsOn":  [
                                         "T003"
@@ -95,14 +95,16 @@
                                            "원본 goal/queue 내용은 유지되는지 확인",
                                            "PowerShell 문법 검증"
                                        ],
-                      "commitMessage":  "Support extra AI dev task instructions"
+                      "commitMessage":  "Support extra AI dev task instructions",
+                      "completedAt":  "2026-06-04T02:12:15.4408047+00:00",
+                      "resultSummary":  "T004 완료: extra-instructions 파일을 current-task-prompt에 별도 섹션으로 포함하도록 지원"
                   },
                   {
                       "id":  "T005",
                       "title":  "already-satisfied task 처리 정책 추가",
                       "description":  "이전 task에서 이미 요구사항이 충족된 경우 코드 수정 없이 확인/완료 처리하는 기준을 정책과 README에 정리한다.",
                       "type":  "documentation",
-                      "status":  "pending",
+                      "status":  "in_progress",
                       "priority":  "P1",
                       "dependsOn":  [
                                         "T004"
