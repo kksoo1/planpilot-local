@@ -2,8 +2,8 @@
     "goalTitle":  "AI Dev Loop 자동 실행 단계 도입",
     "goalSource":  ".ai-dev/goal.md",
     "createdAt":  "2026-06-04T11:21:33.3297102+09:00",
-    "updatedAt":  "2026-06-04T03:31:52.7480112+00:00",
-    "currentTaskId":  "T002",
+    "updatedAt":  "2026-06-04T04:01:37.5178851+00:00",
+    "currentTaskId":  "T003",
     "tasks":  [
                   {
                       "id":  "T001",
@@ -33,7 +33,7 @@
                       "title":  "ai-dev-auto-step.ps1 추가",
                       "description":  "현재 상태를 보고 안전한 다음 한 단계를 자동 실행하는 ai-dev-auto-step.ps1을 추가한다.",
                       "type":  "implementation",
-                      "status":  "in_progress",
+                      "status":  "done",
                       "priority":  "P0",
                       "dependsOn":  [
                                         "T001"
@@ -48,14 +48,16 @@
                                            "review/codex/commit이 필요한 상태에서는 자동 실행하지 않고 중단/안내하는지 확인",
                                            "PowerShell 문법 검증"
                                        ],
-                      "commitMessage":  "Add AI dev auto step script"
+                      "commitMessage":  "Add AI dev auto step script",
+                      "completedAt":  "2026-06-04T04:01:37.5178851+00:00",
+                      "resultSummary":  "T002 완료: ai-dev-auto-step.ps1 추가, DryRun/Json 동작 및 위험 action 중단 확인"
                   },
                   {
                       "id":  "T003",
                       "title":  "auto-step DryRun과 Json 지원",
                       "description":  "ai-dev-auto-step.ps1에 DryRun과 Json 출력을 추가해 실제 실행 전 어떤 작업을 할지 확인할 수 있게 한다.",
                       "type":  "implementation",
-                      "status":  "pending",
+                      "status":  "in_progress",
                       "priority":  "P0",
                       "dependsOn":  [
                                         "T002"

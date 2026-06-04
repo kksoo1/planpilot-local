@@ -129,3 +129,8 @@
 - Task: T001 auto-step 동작 정책 문서화
 - Result: T001 완료: auto-step 자동 실행 허용/금지 기준과 next/manual-cycle/auto-step 역할 정책 문서화
 - Next task: T002 ai-dev-auto-step.ps1 추가
+## 2026-06-04 13:01:37 - Task completed
+
+- Task: T002 ai-dev-auto-step.ps1 추가
+- Result: T002 완료: ai-dev-auto-step.ps1 추가, DryRun/Json 동작 및 위험 action 중단 확인
+- Next task: T003 auto-step DryRun과 Json 지원
