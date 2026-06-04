@@ -2,8 +2,8 @@
     "goalTitle":  "AI Dev Loop 수동 리뷰 브리지 자동화",
     "goalSource":  ".ai-dev/goal.md",
     "createdAt":  "2026-06-04T15:27:18.6447826+09:00",
-    "updatedAt":  "2026-06-04T08:50:39.8647519+00:00",
-    "currentTaskId":  "T005",
+    "updatedAt":  "2026-06-04T08:57:15.5092656+00:00",
+    "currentTaskId":  "T006",
     "tasks":  [
                   {
                       "id":  "T001",
@@ -102,7 +102,7 @@
                       "title":  "manual-cycle 리뷰 브리지 안내 개선",
                       "description":  "ai-dev-manual-cycle.ps1 사용 시 수동 리뷰 브리지 흐름을 README와 정책 문서에 정리한다.",
                       "type":  "documentation",
-                      "status":  "in_progress",
+                      "status":  "done",
                       "priority":  "P1",
                       "dependsOn":  [
                                         "T004"
@@ -115,14 +115,16 @@
                                            "manual-cycle, auto-step, copy-review-prompt, save-review의 연결 흐름이 이해 가능한지 확인",
                                            "GPT API 없이 진행 가능한 흐름인지 확인"
                                        ],
-                      "commitMessage":  "Document manual review bridge workflow"
+                      "commitMessage":  "Document manual review bridge workflow",
+                      "completedAt":  "2026-06-04T08:57:15.5092656+00:00",
+                      "resultSummary":  "T005 완료: manual-cycle, auto-step, copy-review-prompt, save-review를 연결한 수동 리뷰 브리지 흐름 문서화"
                   },
                   {
                       "id":  "T006",
                       "title":  "최종 검증 및 요약",
                       "description":  "새 리뷰 브리지 스크립트들의 문법 검증, 클립보드 복사 흐름 확인, auto-step 안내 확인, 전체 상태 점검을 수행한다.",
                       "type":  "verification",
-                      "status":  "pending",
+                      "status":  "in_progress",
                       "priority":  "P0",
                       "dependsOn":  [
                                         "T005"

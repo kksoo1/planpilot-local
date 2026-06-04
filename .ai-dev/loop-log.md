@@ -30,3 +30,8 @@
 - Task: T004 auto-step ask_gpt_review 안내 개선
 - Result: T004 완료: auto-step ask_gpt_review 상태에서 수동 리뷰 브리지 명령 안내 개선, DryRun/Json 출력 확인
 - Next task: T005 manual-cycle 리뷰 브리지 안내 개선
+## 2026-06-04 17:57:15 - Task completed
+
+- Task: T005 manual-cycle 리뷰 브리지 안내 개선
+- Result: T005 완료: manual-cycle, auto-step, copy-review-prompt, save-review를 연결한 수동 리뷰 브리지 흐름 문서화
+- Next task: T006 최종 검증 및 요약
