@@ -115,3 +115,11 @@
 - Task: T006 최종 검증 및 요약
 - Result: T006 완료: AI Dev Loop 운영 품질 개선 목표 최종 검증 완료, 수정 스크립트 문법 검증 통과, 작업 트리 clean 확인
 - Next task: 없음
+
+## 2026-06-04 11:21:33 - New goal initialized
+
+- Previous goal: AI Dev Loop 운영 품질 개선 및 자동화 준비
+- New goal: AI Dev Loop 자동 실행 단계 도입
+- Current task: T001 auto-step 동작 정책 문서화
+- Scope: auto-step/auto-cycle 초기 도입을 위한 정책과 task queue 설정. Codex/GPT API 호출, git commit 자동 실행, scripts 구현은 이후 task에서만 진행한다.
+- Result: 새 goal, backlog, queue, state, plan을 초기화하고 test/review 결과를 새 목표의 미실행 상태로 전환했다.

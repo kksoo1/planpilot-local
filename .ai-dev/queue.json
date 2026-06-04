@@ -1,148 +1,135 @@
-﻿{
-    "goalTitle":  "AI Dev Loop 운영 품질 개선 및 자동화 준비",
-    "goalSource":  ".ai-dev/goal.md",
-    "createdAt":  "2026-06-03T23:26:19.8497397+09:00",
-    "updatedAt":  "2026-06-04T02:17:42.8905519+00:00",
-    "currentTaskId":  null,
-    "tasks":  [
-                  {
-                      "id":  "T001",
-                      "title":  ".ai-dev 실행 산출물 커밋/무시 정책 정리",
-                      "description":  "diff, review-prompt, review-response, test-result, state, queue, loop-log 같은 .ai-dev 파일 중 커밋할 파일과 운영 산출물로만 둘 파일의 기준을 정리한다.",
-                      "type":  "documentation",
-                      "status":  "done",
-                      "priority":  "P0",
-                      "dependsOn":  [
-
-                                    ],
-                      "filesLikelyToChange":  [
-                                                  "docs/ai-dev-loop-policy.md",
-                                                  ".ai-dev/README.md",
-                                                  ".ai-dev/plan.md"
-                                              ],
-                      "verification":  [
-                                           "기능 커밋과 루프 상태 커밋 분리 기준이 문서화되었는지 확인",
-                                           "민감하거나 거대한 실행 산출물을 항상 커밋하지 않도록 기준이 있는지 확인"
-                                       ],
-                      "commitMessage":  "Document AI dev artifact policy",
-                      "completedAt":  "2026-06-03T14:34:02.2491110+00:00",
-                      "resultSummary":  "T001 완료: AI Dev 실행 산출물 커밋/무시 정책 문서화"
-                  },
-                  {
-                      "id":  "T002",
-                      "title":  "save-diff 기본 동작 개선",
-                      "description":  "ai-dev-save-diff.ps1이 untracked 텍스트 파일 내용을 기본 또는 명확한 옵션으로 포함하고, diff.md/review-prompt.md 같은 자기 자신 산출물이 과도하게 중첩되지 않도록 개선한다.",
-                      "type":  "implementation",
-                      "status":  "done",
-                      "priority":  "P0",
-                      "dependsOn":  [
-                                        "T001"
-                                    ],
-                      "filesLikelyToChange":  [
-                                                  "scripts/ai-dev-save-diff.ps1",
-                                                  ".ai-dev/README.md"
-                                              ],
-                      "verification":  [
-                                           "신규 untracked 텍스트 파일 내용이 리뷰 가능한 형태로 포함되는지 확인",
-                                           ".ai-dev/diff.md 자기 중첩이 과도하게 커지지 않는지 확인",
-                                           "PowerShell 문법 검증"
-                                       ],
-                      "commitMessage":  "Improve AI dev diff capture",
-                      "completedAt":  "2026-06-03T14:46:56.6784140+00:00",
-                      "resultSummary":  "T002 완료: save-diff가 generated artifact diff를 제외하고 untracked 텍스트 파일 내용을 옵션으로 포함하도록 개선"
-                  },
-                  {
-                      "id":  "T003",
-                      "title":  "선택 파일 커밋 옵션 추가",
-                      "description":  "ai-dev-commit.ps1에 git add -A만 사용하는 방식 외에 지정 파일만 커밋하는 옵션을 추가한다.",
-                      "type":  "implementation",
-                      "status":  "done",
-                      "priority":  "P0",
-                      "dependsOn":  [
-                                        "T002"
-                                    ],
-                      "filesLikelyToChange":  [
-                                                  "scripts/ai-dev-commit.ps1",
-                                                  ".ai-dev/README.md"
-                                              ],
-                      "verification":  [
-                                           "DryRun에서 선택 파일 목록이 표시되는지 확인",
-                                           "지정 파일만 stage/commit 대상으로 처리되는지 확인",
-                                           "기본 동작은 기존과 호환되는지 확인",
-                                           "PowerShell 문법 검증"
-                                       ],
-                      "commitMessage":  "Add selective AI dev commit option",
-                      "completedAt":  "2026-06-03T14:58:11.5580864+00:00",
-                      "resultSummary":  "T003 완료: ai-dev-commit.ps1에 -Files 선택 커밋 옵션 추가, DryRun 및 없는 파일 오류 처리 확인"
-                  },
-                  {
-                      "id":  "T004",
-                      "title":  "추가 지시 별도 파일 지원",
-                      "description":  "current-task-prompt.md 자체를 직접 수정하지 않고, extra-instructions.md 같은 별도 파일을 함께 합쳐 프롬프트를 생성할 수 있게 한다.",
-                      "type":  "implementation",
-                      "status":  "done",
-                      "priority":  "P1",
-                      "dependsOn":  [
-                                        "T003"
-                                    ],
-                      "filesLikelyToChange":  [
-                                                  "scripts/ai-dev-make-prompt.ps1",
-                                                  ".ai-dev/README.md",
-                                                  ".ai-dev/extra-instructions.example.md"
-                                              ],
-                      "verification":  [
-                                           "extra instruction 파일이 있으면 current-task-prompt에 별도 섹션으로 포함되는지 확인",
-                                           "원본 goal/queue 내용은 유지되는지 확인",
-                                           "PowerShell 문법 검증"
-                                       ],
-                      "commitMessage":  "Support extra AI dev task instructions",
-                      "completedAt":  "2026-06-04T02:12:15.4408047+00:00",
-                      "resultSummary":  "T004 완료: extra-instructions 파일을 current-task-prompt에 별도 섹션으로 포함하도록 지원"
-                  },
-                  {
-                      "id":  "T005",
-                      "title":  "already-satisfied task 처리 정책 추가",
-                      "description":  "이전 task에서 이미 요구사항이 충족된 경우 코드 수정 없이 확인/완료 처리하는 기준을 정책과 README에 정리한다.",
-                      "type":  "documentation",
-                      "status":  "done",
-                      "priority":  "P1",
-                      "dependsOn":  [
-                                        "T004"
-                                    ],
-                      "filesLikelyToChange":  [
-                                                  "docs/ai-dev-loop-policy.md",
-                                                  ".ai-dev/README.md"
-                                              ],
-                      "verification":  [
-                                           "already-satisfied task 판단 기준이 명확한지 확인",
-                                           "코드 수정 없이 완료 처리할 때 필요한 기록 항목이 정의되었는지 확인"
-                                       ],
-                      "commitMessage":  "Document already-satisfied task handling",
-                      "completedAt":  "2026-06-04T02:12:43.5827275+00:00",
-                      "resultSummary":  "T004 완료: extra-instructions 파일을 current-task-prompt에 별도 섹션으로 포함하도록 지원"
-                  },
-                  {
-                      "id":  "T006",
-                      "title":  "최종 검증 및 요약",
-                      "description":  "전체 변경의 PowerShell 문법 검증과 git diff 리뷰를 수행하고, 다음 자동화 단계인 auto-step/auto-cycle 구현 준비 여부를 정리한다.",
-                      "type":  "verification",
-                      "status":  "done",
-                      "priority":  "P0",
-                      "dependsOn":  [
-                                        "T005"
-                                    ],
-                      "filesLikelyToChange":  [
-                                                  ".ai-dev/plan.md",
-                                                  ".ai-dev/loop-log.md"
-                                              ],
-                      "verification":  [
-                                           "수정된 PowerShell 스크립트 문법 검증",
-                                           "전체 git diff 리뷰",
-                                           "다음 목표로 auto-step/auto-cycle 구현을 진행할 수 있는지 확인"
-                                       ],
-                      "commitMessage":  null,
-                      "completedAt":  "2026-06-04T02:17:42.8905519+00:00",
-                      "resultSummary":  "T006 완료: AI Dev Loop 운영 품질 개선 목표 최종 검증 완료, 수정 스크립트 문법 검증 통과, 작업 트리 clean 확인"
-                  }
-              ]
+{
+  "goalTitle": "AI Dev Loop 자동 실행 단계 도입",
+  "goalSource": ".ai-dev/goal.md",
+  "createdAt": "2026-06-04T11:21:33.3297102+09:00",
+  "updatedAt": "2026-06-04T11:21:33.3297102+09:00",
+  "currentTaskId": "T001",
+  "tasks": [
+    {
+      "id": "T001",
+      "title": "auto-step 동작 정책 문서화",
+      "description": "auto-step이 어떤 상태에서 어떤 명령을 자동 실행하고, 어떤 상태에서 멈춰야 하는지 정책을 정리한다.",
+      "type": "documentation",
+      "status": "in_progress",
+      "priority": "P0",
+      "dependsOn": [],
+      "filesLikelyToChange": [
+        "docs/ai-dev-loop-policy.md",
+        ".ai-dev/README.md",
+        ".ai-dev/plan.md"
+      ],
+      "verification": [
+        "자동 실행 허용/금지 명령 기준이 문서화되었는지 확인",
+        "Codex/GPT API 호출과 git commit은 이번 목표에서 자동 실행하지 않는다는 기준이 명확한지 확인"
+      ],
+      "commitMessage": "Document AI dev auto-step policy"
+    },
+    {
+      "id": "T002",
+      "title": "ai-dev-auto-step.ps1 추가",
+      "description": "현재 상태를 보고 안전한 다음 한 단계를 자동 실행하는 ai-dev-auto-step.ps1을 추가한다.",
+      "type": "implementation",
+      "status": "pending",
+      "priority": "P0",
+      "dependsOn": [
+        "T001"
+      ],
+      "filesLikelyToChange": [
+        "scripts/ai-dev-auto-step.ps1",
+        ".ai-dev/README.md"
+      ],
+      "verification": [
+        "current-task-prompt가 없으면 make-prompt를 실행하는지 확인",
+        "check가 필요한 상태면 check 실행을 안내하거나 안전 옵션에서 실행하는지 확인",
+        "review/codex/commit이 필요한 상태에서는 자동 실행하지 않고 중단/안내하는지 확인",
+        "PowerShell 문법 검증"
+      ],
+      "commitMessage": "Add AI dev auto step script"
+    },
+    {
+      "id": "T003",
+      "title": "auto-step DryRun과 Json 지원",
+      "description": "ai-dev-auto-step.ps1에 DryRun과 Json 출력을 추가해 실제 실행 전 어떤 작업을 할지 확인할 수 있게 한다.",
+      "type": "implementation",
+      "status": "pending",
+      "priority": "P0",
+      "dependsOn": [
+        "T002"
+      ],
+      "filesLikelyToChange": [
+        "scripts/ai-dev-auto-step.ps1",
+        ".ai-dev/README.md"
+      ],
+      "verification": [
+        "-DryRun에서 실제 하위 스크립트를 실행하지 않는지 확인",
+        "-Json에서 action/result/recommendedCommands를 JSON으로 출력하는지 확인",
+        "PowerShell 문법 검증"
+      ],
+      "commitMessage": "Add dry-run and JSON support to auto step"
+    },
+    {
+      "id": "T004",
+      "title": "auto-step과 next/manual-cycle 역할 정리",
+      "description": "ai-dev-next.ps1, ai-dev-manual-cycle.ps1, ai-dev-auto-step.ps1의 역할 차이를 README와 정책 문서에 정리한다.",
+      "type": "documentation",
+      "status": "pending",
+      "priority": "P1",
+      "dependsOn": [
+        "T003"
+      ],
+      "filesLikelyToChange": [
+        ".ai-dev/README.md",
+        "docs/ai-dev-loop-policy.md"
+      ],
+      "verification": [
+        "next/manual-cycle/auto-step의 용도가 구분되어 있는지 확인",
+        "사용자가 어떤 명령을 언제 써야 하는지 알 수 있는지 확인"
+      ],
+      "commitMessage": "Document AI dev command roles"
+    },
+    {
+      "id": "T005",
+      "title": "ai-dev-auto-cycle.ps1 초기 버전 추가",
+      "description": "auto-step을 제한 횟수 내에서 반복 실행하는 ai-dev-auto-cycle.ps1 초기 버전을 추가한다.",
+      "type": "implementation",
+      "status": "pending",
+      "priority": "P0",
+      "dependsOn": [
+        "T004"
+      ],
+      "filesLikelyToChange": [
+        "scripts/ai-dev-auto-cycle.ps1",
+        ".ai-dev/README.md"
+      ],
+      "verification": [
+        "-MaxSteps 같은 제한 옵션이 있는지 확인",
+        "사용자 개입 필요 action에서 중단하는지 확인",
+        "무한 루프 방지 장치가 있는지 확인",
+        "PowerShell 문법 검증"
+      ],
+      "commitMessage": "Add AI dev auto cycle script"
+    },
+    {
+      "id": "T006",
+      "title": "최종 검증 및 요약",
+      "description": "새 자동 실행 스크립트들의 문법 검증, DryRun 실행, 전체 상태 점검을 수행하고 다음 목표인 Codex/GPT API 연동 준비 여부를 정리한다.",
+      "type": "verification",
+      "status": "pending",
+      "priority": "P0",
+      "dependsOn": [
+        "T005"
+      ],
+      "filesLikelyToChange": [
+        ".ai-dev/plan.md",
+        ".ai-dev/loop-log.md"
+      ],
+      "verification": [
+        "수정된 PowerShell 스크립트 문법 검증",
+        "auto-step DryRun 확인",
+        "auto-cycle DryRun 또는 제한 실행 확인",
+        "git status clean 확인"
+      ],
+      "commitMessage": null
+    }
+  ]
 }

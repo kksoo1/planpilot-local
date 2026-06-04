@@ -6,33 +6,35 @@
 
 ## 현재 진행 목표
 
-- AI Dev Loop 운영 품질 개선 및 자동화 준비
+- AI Dev Loop 자동 실행 단계 도입
 
 ## P0
 
-- `.ai-dev` 실행 산출물 커밋/무시 정책 정리
-- diff 생성과 untracked 텍스트 파일 처리 개선
-- 선택 파일 커밋 옵션 추가
+- auto-step 동작 정책 문서화
+- `ai-dev-auto-step.ps1` 초기 버전 추가
+- auto-step DryRun/Json 지원
+- `ai-dev-auto-cycle.ps1` 초기 버전 추가
 - 오류/로딩 상태 정책에 맞는 UI 점검
-- 백업 export 수동 검증 체크리스트 보강
 
 ## P1
 
-- 추가 지시 별도 파일 지원
-- already-satisfied task 처리 정책 정리
+- next/manual-cycle/auto-step 역할 정리
+- Codex/GPT API 연동 전 보안 정책 문서화
 - 프로젝트 필터 UX 개선
 - 완료 태스크 표시/보관 정책 정리
 - 설정 화면 구조 정리
 
 ## P2
 
-- auto-step/auto-cycle 구현 검토
-- 통계 화면 후보 검토
+- Codex CLI/Cline 자동 호출 정책 검토
+- GPT API 리뷰 자동 호출 정책 검토
 - 장기 자동화 루프 GitHub PR 연동 검토
+- 통계 화면 후보 검토
 
 ## 완료된 목표
 
 - JSON 백업 import 검증 및 미리보기 기능 추가
+- AI Dev Loop 운영 품질 개선 및 자동화 준비
 
 ## 관리 원칙
 

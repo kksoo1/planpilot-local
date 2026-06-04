@@ -2,67 +2,62 @@
 
 ## Goal
 
-AI Dev Loop 운영 품질 개선 및 자동화 준비
+AI Dev Loop 자동 실행 단계 도입
 
 ## 목표 범위
 
-- `.ai-dev` 실행 산출물의 커밋/무시 기준을 먼저 문서화한다.
-- diff 생성, untracked 텍스트 파일 처리, 선택 커밋, 추가 지시 분리, already-satisfied task 처리 기준을 작은 task로 개선한다.
-- 완전 자동화된 auto-step/auto-cycle 구현 전 운영 안정성을 높인다.
+- 현재 queue/state/review/test/git 상태를 바탕으로 안전한 다음 단계를 판단하는 auto-step 정책을 먼저 문서화한다.
+- 안전한 로컬 스크립트는 자동 실행하고, Codex/GPT/commit처럼 사용자 판단이 필요한 단계는 안내 후 중단한다.
+- 제한 횟수 안에서 auto-step을 반복하는 auto-cycle 초기 버전을 도입한다.
 
 ## 범위 제한
 
-- 앱 기능과 `src` 코드는 수정하지 않는다.
-- `package.json`, `package-lock.json`은 수정하지 않는다.
-- GPT API 호출, 자동 push, 완전 자동 실행은 구현하지 않는다.
-- 각 task는 현재 범위만 수행하고 task 단위로 검증한다.
+- Codex CLI, Cline, GPT API 직접 호출은 구현하지 않는다.
+- git commit, git push, destructive git 명령은 자동 실행하지 않는다.
+- `src` 코드와 package 파일은 수정하지 않는다.
+- auto-step/auto-cycle은 완전 자동 개발 루프가 아니라 수동 루프를 조금 더 이어주는 안전한 보조 단계로 둔다.
 
 ## 작업 순서
 
-### T001 `.ai-dev` 실행 산출물 커밋/무시 정책 정리
+### T001 auto-step 동작 정책 문서화
 
-- 기능 변경과 루프 운영 상태 변경의 커밋 경계를 문서화한다.
-- 민감하거나 거대한 산출물을 항상 커밋하지 않도록 기준을 정한다.
-- 기능 커밋에는 실제 기능과 직접 관련 문서만 포함하도록 한다.
-- 루프 상태 커밋에는 필요할 때 queue, state, loop-log, review, test-result를 별도로 포함할 수 있게 한다.
-- `diff.md`, `review-prompt.md`, `review-response.json`의 크기와 민감 정보 위험을 기록한다.
-- untracked 파일의 리뷰 포함 여부와 커밋 대상 여부를 별도로 판단하도록 한다.
-- 커밋 전 `git status --short`, DryRun, 선택 파일 커밋을 우선하는 기준을 둔다.
+- 자동 실행 허용 명령과 금지 명령을 구분한다.
+- 사용자 개입이 필요한 지점과 중단 기준을 명시한다.
+- Codex/GPT API 호출과 git commit은 이번 목표에서 자동 실행하지 않는다는 기준을 둔다.
 
-T001 완료 기준:
+### T002 ai-dev-auto-step.ps1 추가
 
-- `docs/ai-dev-loop-policy.md`와 `.ai-dev/README.md`에 기능 커밋과 루프 상태 커밋 분리 기준이 있다.
-- 대형 또는 민감 실행 산출물을 항상 커밋하지 않는 기준이 있다.
-- 실제 `.gitignore`, scripts, src, package 파일은 변경하지 않는다.
+- 현재 상태를 보고 안전한 다음 한 단계를 자동 실행한다.
+- 프롬프트 생성처럼 로컬 상태 파일만 다루는 단계는 자동 실행 후보로 둔다.
+- Codex/GPT/review/commit 단계는 안내 또는 중단으로 처리한다.
 
-### T002 save-diff 기본 동작 개선
+### T003 auto-step DryRun과 Json 지원
 
-- 신규 untracked 텍스트 파일을 리뷰 가능한 형태로 포함한다.
-- `diff.md`, `review-prompt.md` 등 실행 산출물의 자기 중첩을 제한한다.
+- 실제 실행 전 어떤 작업을 할지 DryRun으로 확인한다.
+- Json 출력은 텍스트와 섞이지 않게 한다.
 
-### T003 선택 파일 커밋 옵션 추가
+### T004 auto-step과 next/manual-cycle 역할 정리
 
-- 기존 기본 동작과 호환성을 유지하면서 지정 파일만 stage/commit할 수 있게 한다.
-- DryRun에서 실제 대상 파일을 확인할 수 있어야 한다.
+- `ai-dev-next.ps1`는 다음 행동 추천만 담당한다.
+- `ai-dev-manual-cycle.ps1`는 상태와 다음 행동을 함께 보여준다.
+- `ai-dev-auto-step.ps1`는 안전한 한 단계 실행을 담당한다.
 
-### T004 추가 지시 별도 파일 지원
+### T005 ai-dev-auto-cycle.ps1 초기 버전 추가
 
-- `current-task-prompt.md`를 직접 수정하지 않고 별도 추가 지시 파일을 합칠 수 있게 한다.
-- goal과 queue 원본 내용은 유지한다.
-
-### T005 already-satisfied task 처리 정책 추가
-
-- 이전 task에서 요구사항이 이미 충족된 경우 코드 수정 없이 완료 처리할 기준을 정한다.
-- 확인 내용, 검증 방법, 미수정 이유를 기록하도록 한다.
+- auto-step을 제한 횟수 안에서 반복 실행한다.
+- 사용자 개입 필요 action, 실패, 반복 위험에서 중단한다.
+- 무한 루프 방지 옵션을 둔다.
 
 ### T006 최종 검증 및 요약
 
-- 수정된 PowerShell 스크립트의 문법을 검증한다.
-- 전체 diff를 리뷰하고 auto-step/auto-cycle 구현 준비 여부를 정리한다.
+- 새 스크립트의 PowerShell 문법을 검증한다.
+- auto-step DryRun과 auto-cycle 제한 실행 또는 DryRun을 확인한다.
+- 다음 목표로 Codex/GPT API 연동을 진행할 수 있는지 정리한다.
 
 ## Stop Conditions
 
-- 앱 기능 또는 `src` 코드 수정이 필요해지는 경우
+- Codex/GPT API 직접 호출이 필요해지는 경우
+- git commit 또는 push 자동 실행이 필요해지는 경우
 - package 변경이나 새 의존성이 필요한 경우
-- 기존 AI Dev Loop 상태 판단 로직을 대규모로 재작성해야 하는 경우
-- 민감 정보가 실행 산출물에 포함될 위험이 해결되지 않은 경우
+- 앱 기능 또는 `src` 코드 수정이 필요해지는 경우
+- 자동 실행 중 사용자 데이터 변경 가능성이 생기는 경우
