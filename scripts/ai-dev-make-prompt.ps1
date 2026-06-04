@@ -1,4 +1,6 @@
-﻿param()
+﻿param(
+    [string]$ExtraInstructionsPath = ".ai-dev/extra-instructions.md"
+)
 
 . "$PSScriptRoot\ai-dev-env.ps1"
 
@@ -169,6 +171,19 @@ Stop-ForMissingFields "task $currentTaskId" (Get-MissingFields $currentTask $tas
 $dependsOnText = Convert-ToMarkdownList $currentTask.dependsOn
 $likelyFilesText = Convert-ToMarkdownList $currentTask.filesLikelyToChange
 $verificationText = Convert-ToMarkdownList $currentTask.verification
+$extraInstructionsContent = $null
+
+if (-not [string]::IsNullOrWhiteSpace($ExtraInstructionsPath)) {
+    $resolvedExtraInstructionsPath = if ([System.IO.Path]::IsPathRooted($ExtraInstructionsPath)) {
+        $ExtraInstructionsPath
+    } else {
+        Join-Path $projectRoot $ExtraInstructionsPath
+    }
+
+    if (Test-Path -LiteralPath $resolvedExtraInstructionsPath -PathType Leaf) {
+        $extraInstructionsContent = Get-Content -Raw -Encoding UTF8 -LiteralPath $resolvedExtraInstructionsPath
+    }
+}
 
 $promptContent = @"
 # Current Task Prompt
@@ -239,6 +254,16 @@ $verificationText
 - 데이터 삭제 또는 마이그레이션이 필요한 경우
 - 같은 오류가 반복되는 경우
 "@
+
+if (-not [string]::IsNullOrWhiteSpace($extraInstructionsContent)) {
+    $promptContent += @"
+
+
+## Extra Instructions
+
+$extraInstructionsContent
+"@
+}
 
 $utf8WithBom = New-Object System.Text.UTF8Encoding($true)
 [System.IO.File]::WriteAllText($promptPath, $promptContent, $utf8WithBom)

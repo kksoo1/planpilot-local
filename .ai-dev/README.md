@@ -97,6 +97,16 @@ powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-prompt.ps1
 
 프롬프트 생성 스크립트는 기존 `current-task-prompt.md`를 현재 task 기준으로 덮어쓴다. Codex 실행, GPT 리뷰, build/test 실행, git commit은 수행하지 않는다.
 
+기본 추가 지시 파일인 `.ai-dev/extra-instructions.md`가 있으면 해당 내용을 프롬프트 끝의 `Extra Instructions` 섹션에 포함한다. 이 파일이 없으면 기존과 동일하게 goal, queue, state만 사용해 프롬프트를 생성한다.
+
+다른 추가 지시 파일을 사용하려면 `-ExtraInstructionsPath`를 지정한다.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-prompt.ps1 -ExtraInstructionsPath .ai-dev/extra-instructions.example.md
+```
+
+추가 지시는 goal, queue, state 내용을 덮어쓰지 않는다. `current-task-prompt.md`를 직접 수정하지 말고, 반복해서 필요한 보조 지시는 `.ai-dev/extra-instructions.md` 또는 별도 파일에 작성한다.
+
 ## task 완료 처리
 
 현재 task를 완료 처리하고 다음 pending task로 이동하려면 다음 명령을 실행한다.
