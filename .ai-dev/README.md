@@ -193,6 +193,29 @@ powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-review-prompt.ps1 -
 
 리뷰 프롬프트 생성 스크립트는 GPT API 호출, Codex 실행, build/test 실행, git commit을 수행하지 않는다.
 
+## 수동 GPT 리뷰 브리지
+
+GPT API 키가 없는 환경에서는 ChatGPT 웹 화면을 사용해 리뷰를 수동으로 진행한다. AI Dev Loop는 prompt 생성과 저장 흐름만 돕고, ChatGPT 웹 화면에 자동 접속하거나 GPT API를 직접 호출하지 않는다.
+
+기본 흐름:
+
+1. `ai-dev-make-review-prompt.ps1 -Strict`로 `.ai-dev/review-prompt.md`를 생성한다.
+2. `review-prompt.md` 내용을 클립보드에 복사한다.
+3. 사용자가 ChatGPT 웹 화면에 직접 붙여넣는다.
+4. ChatGPT가 JSON 리뷰만 출력하도록 한다.
+5. 사용자가 JSON 리뷰를 클립보드에 복사한다.
+6. `ai-dev-save-review.ps1 -FromClipboard`로 리뷰를 저장한다.
+7. 저장된 decision에 따라 `pass`, `revise`, `blocked` 흐름을 계속 진행한다.
+
+현재 task의 다음 단계에서는 `review-prompt.md` 클립보드 복사를 돕는 helper를 추가할 예정이다. 그 전까지는 파일 내용을 직접 복사하거나 운영 환경에 맞는 안전한 방법으로 클립보드에 옮긴다.
+
+주의:
+
+- `review-prompt.md`에는 diff와 테스트 결과가 포함될 수 있다.
+- API Key, 개인정보, 백업 데이터, 민감한 로컬 경로가 포함되어 있으면 ChatGPT에 붙여넣지 않는다.
+- prompt가 너무 길거나 민감 정보가 의심되면 diff 범위를 줄인 뒤 다시 생성한다.
+- `ai-dev-auto-step.ps1`는 `ask_gpt_review` 상태에서 GPT API를 호출하지 않고 수동 브리지 안내만 해야 한다.
+
 ## GPT 리뷰 결과 저장
 
 GPT Chat 또는 외부 리뷰어가 반환한 리뷰 JSON을 `review.md`에 저장하고, decision과 severity를 `state.json`에 반영한다.

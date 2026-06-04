@@ -25,6 +25,15 @@ AI Dev Loop 수동 리뷰 브리지 자동화
 - GPT API 없이 ChatGPT 화면을 쓰는 리뷰 흐름을 문서화한다.
 - `review-prompt.md` 복사, ChatGPT 붙여넣기, 리뷰 JSON 저장, `save-review -FromClipboard` 연결을 정리한다.
 - 수동 단계와 자동화 가능한 단계를 구분한다.
+- `auto-step`은 `ask_gpt_review`에서 API를 호출하지 않고 수동 브리지 안내만 한다는 기준을 명확히 한다.
+- `review-prompt.md`에 민감 정보나 긴 diff가 포함될 수 있으므로 사용자가 공유 범위를 확인해야 한다는 기준을 남긴다.
+
+T001 완료 기준:
+
+- `docs/ai-dev-loop-policy.md`에 수동 GPT 리뷰 브리지 정책이 있다.
+- `.ai-dev/README.md`에 사람이 따라 할 수 있는 review-prompt 생성, 복사, ChatGPT 붙여넣기, JSON 리뷰 저장 흐름이 있다.
+- GPT API 직접 호출을 하지 않는다는 제한이 명확하다.
+- 다음 task인 클립보드 복사 helper 추가 범위가 문서상 분리되어 있다.
 
 ### T002 review-prompt 클립보드 복사 스크립트 추가
 

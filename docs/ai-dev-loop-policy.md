@@ -224,6 +224,56 @@ task 상태 후보:
 - P1 수준의 데이터 손상, 보안, 런타임 오류, 주요 회귀 위험이 있으면 커밋하지 않는다.
 - P2/P3 지적사항은 현재 task 범위 안에서 안전하게 해결할 수 있을 때만 반영한다.
 
+## 수동 GPT 리뷰 브리지 정책
+
+현재 AI Dev Loop는 GPT API 키가 없는 환경에서도 ChatGPT 웹 화면을 사용해 리뷰를 진행할 수 있어야 한다. 이 흐름은 API 자동 호출이 아니라 사람이 검토 내용을 옮기는 수동 브리지이며, 자동화 스크립트는 프롬프트 생성, 클립보드 복사, 리뷰 JSON 저장 안내까지만 돕는다.
+
+### 기본 원칙
+
+- GPT API를 직접 호출하지 않는다.
+- ChatGPT 웹 화면에 자동으로 접속하거나 입력하지 않는다.
+- `review-prompt.md`는 로컬에서 생성한다.
+- 사용자는 prompt 내용을 확인한 뒤 ChatGPT 웹 화면에 직접 붙여넣는다.
+- ChatGPT에는 리뷰 결과를 지정된 JSON 형식만 출력하도록 요청한다.
+- 사용자는 ChatGPT가 반환한 JSON 리뷰를 복사한다.
+- 리뷰 JSON은 `ai-dev-save-review.ps1 -FromClipboard` 또는 별도 수동 브리지 helper를 통해 저장한다.
+- 리뷰 저장 뒤에는 기존 decision 규칙에 따라 `pass`, `revise`, `blocked` 흐름을 계속 진행한다.
+
+### 수동 리뷰 흐름
+
+1. `ai-dev-make-review-prompt.ps1`가 `.ai-dev/review-prompt.md`를 생성한다.
+2. 사용자는 `review-prompt.md` 내용을 클립보드에 복사한다.
+3. 사용자는 ChatGPT 웹 화면에 prompt를 붙여넣는다.
+4. ChatGPT는 JSON 리뷰만 출력해야 한다.
+5. 사용자는 JSON 리뷰 전체를 클립보드에 복사한다.
+6. `ai-dev-save-review.ps1 -FromClipboard`가 클립보드의 JSON을 파싱해 `.ai-dev/review.md`와 `.ai-dev/state.json`을 갱신한다.
+7. decision이 `pass`이면 complete-task 또는 commit 단계로 진행한다.
+8. decision이 `revise`이면 revise prompt를 생성해 Codex/Cline에 수동으로 전달한다.
+9. decision이 `blocked`이면 사용자 판단을 기다린다.
+
+### auto-step과 수동 브리지
+
+`ai-dev-auto-step.ps1`는 `ask_gpt_review` 상태에서 GPT API를 호출하지 않는다. 대신 수동 리뷰 브리지에 필요한 다음 행동을 안내해야 한다.
+
+안내 후보:
+
+- `review-prompt.md` 생성 여부 확인
+- `review-prompt.md` 클립보드 복사 명령 안내
+- ChatGPT 웹 화면에 붙여넣으라는 안내
+- JSON 리뷰만 받아야 한다는 안내
+- 리뷰 JSON을 복사한 뒤 `ai-dev-save-review.ps1 -FromClipboard`를 실행하라는 안내
+
+### 민감 정보와 공유 범위
+
+`review-prompt.md`에는 git diff, 테스트 결과, 현재 task 설명이 포함될 수 있다. diff 안에 민감 정보, 백업 데이터, 개인정보, API Key, 대형 파일 내용이 포함될 수 있으므로 사용자는 ChatGPT에 붙여넣기 전에 prompt 내용을 확인해야 한다.
+
+정책:
+
+- API Key, 개인정보, 백업 데이터가 포함된 prompt는 외부 ChatGPT 화면에 붙여넣지 않는다.
+- `diff.md`와 `review-prompt.md`가 너무 크면 범위를 줄이거나 산출물을 정리한 뒤 다시 생성한다.
+- 민감 정보가 의심되면 리뷰 브리지 흐름을 중단하고 사용자 판단을 받는다.
+- 수동 리뷰 브리지는 편의 기능일 뿐, 보안 판단을 자동화하지 않는다.
+
 ### 8. 리뷰 반영
 
 - 리뷰 수정 후 필요한 검증을 다시 실행한다.
