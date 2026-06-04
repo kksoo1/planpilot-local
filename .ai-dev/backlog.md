@@ -2,27 +2,27 @@
 
 이 문서는 추후 자동 개발 루프에서 검토할 목표 후보를 우선순위별로 정리한다.
 
-현재 단계에서는 AI가 이 목록에서 다음 목표를 자동 선택하지 않는다. 사용자가 실행할 항목을 검토한 뒤 `.ai-dev/goal.md`에 명시해야 한다.
+현재 단계에서는 AI가 이 목록에서 다음 목표를 자동 선택하지 않는다. 실행할 항목은 사용자가 검토한 뒤 `.ai-dev/goal.md`로 옮긴다.
 
 ## 현재 진행 목표
 
-- AI Dev Loop 자동 실행 단계 도입
+- AI Dev Loop 수동 리뷰 브리지 자동화
 
 ## P0
 
-- auto-step 동작 정책 문서화
-- `ai-dev-auto-step.ps1` 초기 버전 추가
-- auto-step DryRun/Json 지원
-- `ai-dev-auto-cycle.ps1` 초기 버전 추가
-- 오류/로딩 상태 정책에 맞는 UI 점검
+- 수동 GPT 리뷰 브리지 정책 문서화
+- `review-prompt.md` 클립보드 복사 스크립트 추가
+- 리뷰 JSON 클립보드 저장 흐름 개선
+- `ask_gpt_review` 상태의 `auto-step` 안내 개선
+- 최종 PowerShell 문법 검증과 상태 점검
 
 ## P1
 
-- next/manual-cycle/auto-step 역할 정리
+- `manual-cycle` 리뷰 브리지 안내 개선
 - Codex/GPT API 연동 전 보안 정책 문서화
+- auto-step/auto-cycle 사용자 개입 상태 메시지 정리
 - 프로젝트 필터 UX 개선
 - 완료 태스크 표시/보관 정책 정리
-- 설정 화면 구조 정리
 
 ## P2
 
@@ -35,10 +35,11 @@
 
 - JSON 백업 import 검증 및 미리보기 기능 추가
 - AI Dev Loop 운영 품질 개선 및 자동화 준비
+- AI Dev Loop 자동 실행 단계 도입
 
 ## 관리 원칙
 
 - backlog 항목은 자동 실행이 확정된 task가 아니다.
 - 위험도가 높거나 범위가 큰 항목은 먼저 정책 문서화 task로 분리한다.
 - 현재 goal과 직접 관련되지 않은 항목은 임의로 구현하지 않는다.
-- 완료한 항목은 실행 결과와 문서 상태를 확인한 뒤 목록에서 정리한다.
+- 완료된 항목은 실행 결과와 문서 상태를 확인한 뒤 완료 목록으로 이동한다.
