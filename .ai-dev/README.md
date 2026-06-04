@@ -320,6 +320,15 @@ powershell -ExecutionPolicy Bypass -File scripts/ai-dev-manual-cycle.ps1 -Json
 
 `ai-dev-auto-step.ps1`는 현재 상태를 보고 안전한 다음 한 단계만 실행하는 보조 스크립트로 도입할 예정이다. `ai-dev-next.ps1`처럼 안내만 하는 명령과 달리, 허용된 로컬 스크립트는 직접 실행할 수 있다.
 
+명령 선택 기준:
+
+| 상황 | 사용할 명령 | 이유 |
+| --- | --- | --- |
+| 현재 상태와 다음 행동을 한 화면에서 보고 싶을 때 | `scripts/ai-dev-manual-cycle.ps1` | 상태 요약, 다음 action, 관련 파일 존재 여부를 함께 보여주는 수동 운영 대시보드다. |
+| 다음 action과 추천 명령만 확인하고 싶을 때 | `scripts/ai-dev-next.ps1` | 읽기/안내용 스크립트이며 하위 명령을 자동 실행하지 않는다. |
+| 안전한 다음 한 단계만 자동으로 진행하고 싶을 때 | `scripts/ai-dev-auto-step.ps1` | `next` 판단 결과를 기반으로 허용된 로컬 스크립트만 한 번 실행한다. |
+| 여러 안전 단계를 제한 횟수 안에서 이어가고 싶을 때 | `scripts/ai-dev-auto-cycle.ps1` | auto-step 반복용이며 사용자 개입 필요 상태에서 중단한다. |
+
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-step.ps1
 powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-step.ps1 -DryRun
@@ -354,10 +363,10 @@ auto-step이 직접 실행하지 않고 중단 또는 안내해야 하는 단계
 
 명령 역할 구분:
 
-- `ai-dev-next.ps1`: 다음 행동 추천만 출력
-- `ai-dev-manual-cycle.ps1`: 상태 요약과 다음 행동 안내를 함께 출력
-- `ai-dev-auto-step.ps1`: 안전한 한 단계 실행
-- `ai-dev-auto-cycle.ps1`: 제한 횟수 안에서 auto-step 반복
+- `ai-dev-next.ps1`: 현재 상태를 읽고 다음 추천 action과 명령만 출력한다. 자동 실행하지 않는다.
+- `ai-dev-manual-cycle.ps1`: `status`와 `next`를 함께 보여주는 수동 운영 대시보드다. 자동 실행하지 않는다.
+- `ai-dev-auto-step.ps1`: `next` 판단 결과를 기반으로 안전한 action 한 단계만 자동 실행한다. 위험 action은 실행하지 않고 안내 후 중단한다.
+- `ai-dev-auto-cycle.ps1`: 제한 횟수 안에서 auto-step을 반복한다. 사용자 개입 필요 action에서 중단한다.
 
 auto-step과 auto-cycle은 Codex/GPT API 호출, git commit, git push를 자동 실행하지 않는다.
 

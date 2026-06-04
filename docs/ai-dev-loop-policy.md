@@ -294,10 +294,19 @@ task 상태 후보:
 
 ### 관련 명령 역할 구분
 
-- `ai-dev-next.ps1`: 현재 상태를 읽고 다음 행동과 추천 명령만 안내한다. 파일 수정이나 하위 명령 실행을 하지 않는다.
-- `ai-dev-manual-cycle.ps1`: 상태 요약과 다음 행동 안내를 한 번에 보여준다. 사람이 수동으로 루프를 진행할 때 사용한다.
-- `ai-dev-auto-step.ps1`: 안전하다고 정의된 다음 한 단계를 실행한다. 사용자 개입 필요 상태에서는 멈춘다.
-- `ai-dev-auto-cycle.ps1`: 제한 횟수 안에서 auto-step을 반복한다. 사용자 개입 필요 상태에서는 멈춘다.
+- `ai-dev-next.ps1`: 현재 상태를 읽고 다음 추천 action과 명령만 안내한다. 파일 수정이나 하위 명령 실행을 하지 않는다. “다음에 무엇을 해야 하지?”만 알고 싶을 때 사용한다.
+- `ai-dev-manual-cycle.ps1`: 상태 요약과 다음 행동 안내를 한 번에 보여주는 수동 운영 대시보드다. 현재 task, 검증, 리뷰, diff 파일 상태를 함께 보며 사람이 직접 다음 명령을 고를 때 사용한다.
+- `ai-dev-auto-step.ps1`: `next` 판단 결과를 기반으로 안전하다고 정의된 다음 한 단계를 실행한다. 프롬프트 생성 같은 로컬 보조 작업은 실행할 수 있지만 Codex/GPT/commit 단계에서는 멈춘다.
+- `ai-dev-auto-cycle.ps1`: 제한 횟수 안에서 auto-step을 반복한다. 여러 안전 단계를 이어가고 싶을 때 사용하지만, 사용자 개입 필요 action, 실패, blocked, commit 필요 상태에서는 멈춘다.
+
+사용 추천:
+
+- 상황 파악: `ai-dev-manual-cycle.ps1`
+- 다음 행동만 확인: `ai-dev-next.ps1`
+- 안전한 자동 1단계 실행: `ai-dev-auto-step.ps1`
+- 안전 단계 반복 실행: `ai-dev-auto-cycle.ps1`
+
+`ai-dev-auto-step.ps1`와 `ai-dev-auto-cycle.ps1`는 Codex/Cline 실행, GPT 리뷰 요청, git commit을 자동 실행하지 않는다.
 
 ## 자동 커밋 조건
 
