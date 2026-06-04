@@ -2,8 +2,8 @@
     "goalTitle":  "AI Dev Loop 자동 실행 단계 도입",
     "goalSource":  ".ai-dev/goal.md",
     "createdAt":  "2026-06-04T11:21:33.3297102+09:00",
-    "updatedAt":  "2026-06-04T04:01:37.5178851+00:00",
-    "currentTaskId":  "T003",
+    "updatedAt":  "2026-06-04T04:02:31.4794427+00:00",
+    "currentTaskId":  "T004",
     "tasks":  [
                   {
                       "id":  "T001",
@@ -57,7 +57,7 @@
                       "title":  "auto-step DryRun과 Json 지원",
                       "description":  "ai-dev-auto-step.ps1에 DryRun과 Json 출력을 추가해 실제 실행 전 어떤 작업을 할지 확인할 수 있게 한다.",
                       "type":  "implementation",
-                      "status":  "in_progress",
+                      "status":  "done",
                       "priority":  "P0",
                       "dependsOn":  [
                                         "T002"
@@ -71,14 +71,16 @@
                                            "-Json에서 action/result/recommendedCommands를 JSON으로 출력하는지 확인",
                                            "PowerShell 문법 검증"
                                        ],
-                      "commitMessage":  "Add dry-run and JSON support to auto step"
+                      "commitMessage":  "Add dry-run and JSON support to auto step",
+                      "completedAt":  "2026-06-04T04:02:31.4794427+00:00",
+                      "resultSummary":  "T003 완료: ai-dev-auto-step.ps1의 DryRun과 Json 지원은 T002 구현에서 이미 충족됨을 확인, 추가 코드 변경 없음"
                   },
                   {
                       "id":  "T004",
                       "title":  "auto-step과 next/manual-cycle 역할 정리",
                       "description":  "ai-dev-next.ps1, ai-dev-manual-cycle.ps1, ai-dev-auto-step.ps1의 역할 차이를 README와 정책 문서에 정리한다.",
                       "type":  "documentation",
-                      "status":  "pending",
+                      "status":  "in_progress",
                       "priority":  "P1",
                       "dependsOn":  [
                                         "T003"
