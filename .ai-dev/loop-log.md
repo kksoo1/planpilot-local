@@ -20,3 +20,8 @@
 - Task: T002 review-prompt 클립보드 복사 스크립트 추가
 - Result: T002 완료: review-prompt 클립보드 복사 스크립트 추가, 한글 출력/Json 출력/후속 save-review 안내 확인
 - Next task: T003 리뷰 JSON 클립보드 저장 흐름 개선
+## 2026-06-04 17:34:41 - Task completed
+
+- Task: T003 리뷰 JSON 클립보드 저장 흐름 개선
+- Result: T003 완료: 리뷰 JSON 클립보드 저장 흐름 개선, 정상 JSON 저장/잘못된 JSON preview 오류/한글 출력 확인
+- Next task: T004 auto-step ask_gpt_review 안내 개선

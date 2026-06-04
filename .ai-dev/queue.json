@@ -2,8 +2,8 @@
     "goalTitle":  "AI Dev Loop 수동 리뷰 브리지 자동화",
     "goalSource":  ".ai-dev/goal.md",
     "createdAt":  "2026-06-04T15:27:18.6447826+09:00",
-    "updatedAt":  "2026-06-04T07:28:37.4540211+00:00",
-    "currentTaskId":  "T003",
+    "updatedAt":  "2026-06-04T08:34:41.3027437+00:00",
+    "currentTaskId":  "T004",
     "tasks":  [
                   {
                       "id":  "T001",
@@ -56,7 +56,7 @@
                       "title":  "리뷰 JSON 클립보드 저장 흐름 개선",
                       "description":  "기존 ai-dev-save-review.ps1의 -FromClipboard 흐름을 README와 출력 안내 중심으로 보강하거나, 필요 시 얇은 wrapper 스크립트를 추가한다.",
                       "type":  "implementation",
-                      "status":  "in_progress",
+                      "status":  "done",
                       "priority":  "P0",
                       "dependsOn":  [
                                         "T002"
@@ -70,14 +70,16 @@
                                            "잘못된 JSON 입력 시 오류 메시지가 충분히 디버깅 가능한지 확인",
                                            "PowerShell 문법 검증"
                                        ],
-                      "commitMessage":  "Improve review clipboard import flow"
+                      "commitMessage":  "Improve review clipboard import flow",
+                      "completedAt":  "2026-06-04T08:34:41.3027437+00:00",
+                      "resultSummary":  "T003 완료: 리뷰 JSON 클립보드 저장 흐름 개선, 정상 JSON 저장/잘못된 JSON preview 오류/한글 출력 확인"
                   },
                   {
                       "id":  "T004",
                       "title":  "auto-step ask_gpt_review 안내 개선",
                       "description":  "ai-dev-auto-step.ps1이 ask_gpt_review 상태에서 review-prompt 복사와 save-review FromClipboard 명령을 더 구체적으로 안내하도록 개선한다.",
                       "type":  "implementation",
-                      "status":  "pending",
+                      "status":  "in_progress",
                       "priority":  "P1",
                       "dependsOn":  [
                                         "T003"
