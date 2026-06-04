@@ -154,6 +154,21 @@ switch ($action) {
         }
     }
     default {
+        if ($action -eq "ask_gpt_review") {
+            $reviewBridgeCommands = @(
+                "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-copy-review-prompt.ps1",
+                "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-save-review.ps1 -FromClipboard"
+            )
+            $result = New-StepResult `
+                -Action $action `
+                -Executed $false `
+                -ExitCode 0 `
+                -Message "GPT API는 호출하지 않습니다. review-prompt를 클립보드에 복사해 ChatGPT 웹 화면에 붙여넣고, JSON 리뷰만 받은 뒤 JSON 리뷰를 클립보드에 복사해 save-review -FromClipboard를 실행하세요." `
+                -RecommendedCommands $reviewBridgeCommands
+            Write-StepResult $result
+            exit 0
+        }
+
         $forbiddenActions = @(
             "run_codex_or_cline",
             "ask_gpt_review",

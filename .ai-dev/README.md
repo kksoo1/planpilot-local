@@ -421,6 +421,22 @@ auto-step이 직접 실행하지 않고 중단 또는 안내해야 하는 단계
 - git commit
 - 사용자 데이터 삭제, 복원, 마이그레이션 위험이 있는 작업
 
+`ask_gpt_review` 상태에서 auto-step은 GPT API를 호출하지 않고 수동 리뷰 브리지 명령을 안내한다.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-step.ps1
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-step.ps1 -Json
+```
+
+안내에 포함되는 수동 리뷰 브리지 명령:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-copy-review-prompt.ps1
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-save-review.ps1 -FromClipboard
+```
+
+첫 번째 명령으로 `review-prompt.md`를 클립보드에 복사한 뒤 ChatGPT 웹 화면에 붙여넣는다. ChatGPT가 JSON 리뷰만 출력하면 그 JSON을 다시 클립보드에 복사하고 두 번째 명령으로 저장한다.
+
 `ai-dev-auto-cycle.ps1`는 제한 횟수 안에서 auto-step을 반복하는 초기 자동화 스크립트다. 사용자 개입이 필요한 action, 실패, 반복 위험, commit 필요 상태에서는 중단한다.
 
 ```powershell
