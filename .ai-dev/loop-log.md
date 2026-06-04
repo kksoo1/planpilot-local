@@ -123,3 +123,9 @@
 - Current task: T001 auto-step 동작 정책 문서화
 - Scope: auto-step/auto-cycle 초기 도입을 위한 정책과 task queue 설정. Codex/GPT API 호출, git commit 자동 실행, scripts 구현은 이후 task에서만 진행한다.
 - Result: 새 goal, backlog, queue, state, plan을 초기화하고 test/review 결과를 새 목표의 미실행 상태로 전환했다.
+
+## 2026-06-04 12:31:52 - Task completed
+
+- Task: T001 auto-step 동작 정책 문서화
+- Result: T001 완료: auto-step 자동 실행 허용/금지 기준과 next/manual-cycle/auto-step 역할 정책 문서화
+- Next task: T002 ai-dev-auto-step.ps1 추가

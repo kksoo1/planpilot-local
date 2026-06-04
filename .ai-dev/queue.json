@@ -1,135 +1,139 @@
-{
-  "goalTitle": "AI Dev Loop 자동 실행 단계 도입",
-  "goalSource": ".ai-dev/goal.md",
-  "createdAt": "2026-06-04T11:21:33.3297102+09:00",
-  "updatedAt": "2026-06-04T11:21:33.3297102+09:00",
-  "currentTaskId": "T001",
-  "tasks": [
-    {
-      "id": "T001",
-      "title": "auto-step 동작 정책 문서화",
-      "description": "auto-step이 어떤 상태에서 어떤 명령을 자동 실행하고, 어떤 상태에서 멈춰야 하는지 정책을 정리한다.",
-      "type": "documentation",
-      "status": "in_progress",
-      "priority": "P0",
-      "dependsOn": [],
-      "filesLikelyToChange": [
-        "docs/ai-dev-loop-policy.md",
-        ".ai-dev/README.md",
-        ".ai-dev/plan.md"
-      ],
-      "verification": [
-        "자동 실행 허용/금지 명령 기준이 문서화되었는지 확인",
-        "Codex/GPT API 호출과 git commit은 이번 목표에서 자동 실행하지 않는다는 기준이 명확한지 확인"
-      ],
-      "commitMessage": "Document AI dev auto-step policy"
-    },
-    {
-      "id": "T002",
-      "title": "ai-dev-auto-step.ps1 추가",
-      "description": "현재 상태를 보고 안전한 다음 한 단계를 자동 실행하는 ai-dev-auto-step.ps1을 추가한다.",
-      "type": "implementation",
-      "status": "pending",
-      "priority": "P0",
-      "dependsOn": [
-        "T001"
-      ],
-      "filesLikelyToChange": [
-        "scripts/ai-dev-auto-step.ps1",
-        ".ai-dev/README.md"
-      ],
-      "verification": [
-        "current-task-prompt가 없으면 make-prompt를 실행하는지 확인",
-        "check가 필요한 상태면 check 실행을 안내하거나 안전 옵션에서 실행하는지 확인",
-        "review/codex/commit이 필요한 상태에서는 자동 실행하지 않고 중단/안내하는지 확인",
-        "PowerShell 문법 검증"
-      ],
-      "commitMessage": "Add AI dev auto step script"
-    },
-    {
-      "id": "T003",
-      "title": "auto-step DryRun과 Json 지원",
-      "description": "ai-dev-auto-step.ps1에 DryRun과 Json 출력을 추가해 실제 실행 전 어떤 작업을 할지 확인할 수 있게 한다.",
-      "type": "implementation",
-      "status": "pending",
-      "priority": "P0",
-      "dependsOn": [
-        "T002"
-      ],
-      "filesLikelyToChange": [
-        "scripts/ai-dev-auto-step.ps1",
-        ".ai-dev/README.md"
-      ],
-      "verification": [
-        "-DryRun에서 실제 하위 스크립트를 실행하지 않는지 확인",
-        "-Json에서 action/result/recommendedCommands를 JSON으로 출력하는지 확인",
-        "PowerShell 문법 검증"
-      ],
-      "commitMessage": "Add dry-run and JSON support to auto step"
-    },
-    {
-      "id": "T004",
-      "title": "auto-step과 next/manual-cycle 역할 정리",
-      "description": "ai-dev-next.ps1, ai-dev-manual-cycle.ps1, ai-dev-auto-step.ps1의 역할 차이를 README와 정책 문서에 정리한다.",
-      "type": "documentation",
-      "status": "pending",
-      "priority": "P1",
-      "dependsOn": [
-        "T003"
-      ],
-      "filesLikelyToChange": [
-        ".ai-dev/README.md",
-        "docs/ai-dev-loop-policy.md"
-      ],
-      "verification": [
-        "next/manual-cycle/auto-step의 용도가 구분되어 있는지 확인",
-        "사용자가 어떤 명령을 언제 써야 하는지 알 수 있는지 확인"
-      ],
-      "commitMessage": "Document AI dev command roles"
-    },
-    {
-      "id": "T005",
-      "title": "ai-dev-auto-cycle.ps1 초기 버전 추가",
-      "description": "auto-step을 제한 횟수 내에서 반복 실행하는 ai-dev-auto-cycle.ps1 초기 버전을 추가한다.",
-      "type": "implementation",
-      "status": "pending",
-      "priority": "P0",
-      "dependsOn": [
-        "T004"
-      ],
-      "filesLikelyToChange": [
-        "scripts/ai-dev-auto-cycle.ps1",
-        ".ai-dev/README.md"
-      ],
-      "verification": [
-        "-MaxSteps 같은 제한 옵션이 있는지 확인",
-        "사용자 개입 필요 action에서 중단하는지 확인",
-        "무한 루프 방지 장치가 있는지 확인",
-        "PowerShell 문법 검증"
-      ],
-      "commitMessage": "Add AI dev auto cycle script"
-    },
-    {
-      "id": "T006",
-      "title": "최종 검증 및 요약",
-      "description": "새 자동 실행 스크립트들의 문법 검증, DryRun 실행, 전체 상태 점검을 수행하고 다음 목표인 Codex/GPT API 연동 준비 여부를 정리한다.",
-      "type": "verification",
-      "status": "pending",
-      "priority": "P0",
-      "dependsOn": [
-        "T005"
-      ],
-      "filesLikelyToChange": [
-        ".ai-dev/plan.md",
-        ".ai-dev/loop-log.md"
-      ],
-      "verification": [
-        "수정된 PowerShell 스크립트 문법 검증",
-        "auto-step DryRun 확인",
-        "auto-cycle DryRun 또는 제한 실행 확인",
-        "git status clean 확인"
-      ],
-      "commitMessage": null
-    }
-  ]
+﻿{
+    "goalTitle":  "AI Dev Loop 자동 실행 단계 도입",
+    "goalSource":  ".ai-dev/goal.md",
+    "createdAt":  "2026-06-04T11:21:33.3297102+09:00",
+    "updatedAt":  "2026-06-04T03:31:52.7480112+00:00",
+    "currentTaskId":  "T002",
+    "tasks":  [
+                  {
+                      "id":  "T001",
+                      "title":  "auto-step 동작 정책 문서화",
+                      "description":  "auto-step이 어떤 상태에서 어떤 명령을 자동 실행하고, 어떤 상태에서 멈춰야 하는지 정책을 정리한다.",
+                      "type":  "documentation",
+                      "status":  "done",
+                      "priority":  "P0",
+                      "dependsOn":  [
+
+                                    ],
+                      "filesLikelyToChange":  [
+                                                  "docs/ai-dev-loop-policy.md",
+                                                  ".ai-dev/README.md",
+                                                  ".ai-dev/plan.md"
+                                              ],
+                      "verification":  [
+                                           "자동 실행 허용/금지 명령 기준이 문서화되었는지 확인",
+                                           "Codex/GPT API 호출과 git commit은 이번 목표에서 자동 실행하지 않는다는 기준이 명확한지 확인"
+                                       ],
+                      "commitMessage":  "Document AI dev auto-step policy",
+                      "completedAt":  "2026-06-04T03:31:52.7480112+00:00",
+                      "resultSummary":  "T001 완료: auto-step 자동 실행 허용/금지 기준과 next/manual-cycle/auto-step 역할 정책 문서화"
+                  },
+                  {
+                      "id":  "T002",
+                      "title":  "ai-dev-auto-step.ps1 추가",
+                      "description":  "현재 상태를 보고 안전한 다음 한 단계를 자동 실행하는 ai-dev-auto-step.ps1을 추가한다.",
+                      "type":  "implementation",
+                      "status":  "in_progress",
+                      "priority":  "P0",
+                      "dependsOn":  [
+                                        "T001"
+                                    ],
+                      "filesLikelyToChange":  [
+                                                  "scripts/ai-dev-auto-step.ps1",
+                                                  ".ai-dev/README.md"
+                                              ],
+                      "verification":  [
+                                           "current-task-prompt가 없으면 make-prompt를 실행하는지 확인",
+                                           "check가 필요한 상태면 check 실행을 안내하거나 안전 옵션에서 실행하는지 확인",
+                                           "review/codex/commit이 필요한 상태에서는 자동 실행하지 않고 중단/안내하는지 확인",
+                                           "PowerShell 문법 검증"
+                                       ],
+                      "commitMessage":  "Add AI dev auto step script"
+                  },
+                  {
+                      "id":  "T003",
+                      "title":  "auto-step DryRun과 Json 지원",
+                      "description":  "ai-dev-auto-step.ps1에 DryRun과 Json 출력을 추가해 실제 실행 전 어떤 작업을 할지 확인할 수 있게 한다.",
+                      "type":  "implementation",
+                      "status":  "pending",
+                      "priority":  "P0",
+                      "dependsOn":  [
+                                        "T002"
+                                    ],
+                      "filesLikelyToChange":  [
+                                                  "scripts/ai-dev-auto-step.ps1",
+                                                  ".ai-dev/README.md"
+                                              ],
+                      "verification":  [
+                                           "-DryRun에서 실제 하위 스크립트를 실행하지 않는지 확인",
+                                           "-Json에서 action/result/recommendedCommands를 JSON으로 출력하는지 확인",
+                                           "PowerShell 문법 검증"
+                                       ],
+                      "commitMessage":  "Add dry-run and JSON support to auto step"
+                  },
+                  {
+                      "id":  "T004",
+                      "title":  "auto-step과 next/manual-cycle 역할 정리",
+                      "description":  "ai-dev-next.ps1, ai-dev-manual-cycle.ps1, ai-dev-auto-step.ps1의 역할 차이를 README와 정책 문서에 정리한다.",
+                      "type":  "documentation",
+                      "status":  "pending",
+                      "priority":  "P1",
+                      "dependsOn":  [
+                                        "T003"
+                                    ],
+                      "filesLikelyToChange":  [
+                                                  ".ai-dev/README.md",
+                                                  "docs/ai-dev-loop-policy.md"
+                                              ],
+                      "verification":  [
+                                           "next/manual-cycle/auto-step의 용도가 구분되어 있는지 확인",
+                                           "사용자가 어떤 명령을 언제 써야 하는지 알 수 있는지 확인"
+                                       ],
+                      "commitMessage":  "Document AI dev command roles"
+                  },
+                  {
+                      "id":  "T005",
+                      "title":  "ai-dev-auto-cycle.ps1 초기 버전 추가",
+                      "description":  "auto-step을 제한 횟수 내에서 반복 실행하는 ai-dev-auto-cycle.ps1 초기 버전을 추가한다.",
+                      "type":  "implementation",
+                      "status":  "pending",
+                      "priority":  "P0",
+                      "dependsOn":  [
+                                        "T004"
+                                    ],
+                      "filesLikelyToChange":  [
+                                                  "scripts/ai-dev-auto-cycle.ps1",
+                                                  ".ai-dev/README.md"
+                                              ],
+                      "verification":  [
+                                           "-MaxSteps 같은 제한 옵션이 있는지 확인",
+                                           "사용자 개입 필요 action에서 중단하는지 확인",
+                                           "무한 루프 방지 장치가 있는지 확인",
+                                           "PowerShell 문법 검증"
+                                       ],
+                      "commitMessage":  "Add AI dev auto cycle script"
+                  },
+                  {
+                      "id":  "T006",
+                      "title":  "최종 검증 및 요약",
+                      "description":  "새 자동 실행 스크립트들의 문법 검증, DryRun 실행, 전체 상태 점검을 수행하고 다음 목표인 Codex/GPT API 연동 준비 여부를 정리한다.",
+                      "type":  "verification",
+                      "status":  "pending",
+                      "priority":  "P0",
+                      "dependsOn":  [
+                                        "T005"
+                                    ],
+                      "filesLikelyToChange":  [
+                                                  ".ai-dev/plan.md",
+                                                  ".ai-dev/loop-log.md"
+                                              ],
+                      "verification":  [
+                                           "수정된 PowerShell 스크립트 문법 검증",
+                                           "auto-step DryRun 확인",
+                                           "auto-cycle DryRun 또는 제한 실행 확인",
+                                           "git status clean 확인"
+                                       ],
+                      "commitMessage":  null
+                  }
+              ]
 }
