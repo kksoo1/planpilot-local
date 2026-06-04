@@ -2,8 +2,8 @@
     "goalTitle":  "AI Dev Loop 자동 실행 단계 도입",
     "goalSource":  ".ai-dev/goal.md",
     "createdAt":  "2026-06-04T11:21:33.3297102+09:00",
-    "updatedAt":  "2026-06-04T04:02:31.4794427+00:00",
-    "currentTaskId":  "T004",
+    "updatedAt":  "2026-06-04T04:08:28.9794945+00:00",
+    "currentTaskId":  "T005",
     "tasks":  [
                   {
                       "id":  "T001",
@@ -80,7 +80,7 @@
                       "title":  "auto-step과 next/manual-cycle 역할 정리",
                       "description":  "ai-dev-next.ps1, ai-dev-manual-cycle.ps1, ai-dev-auto-step.ps1의 역할 차이를 README와 정책 문서에 정리한다.",
                       "type":  "documentation",
-                      "status":  "in_progress",
+                      "status":  "done",
                       "priority":  "P1",
                       "dependsOn":  [
                                         "T003"
@@ -93,14 +93,16 @@
                                            "next/manual-cycle/auto-step의 용도가 구분되어 있는지 확인",
                                            "사용자가 어떤 명령을 언제 써야 하는지 알 수 있는지 확인"
                                        ],
-                      "commitMessage":  "Document AI dev command roles"
+                      "commitMessage":  "Document AI dev command roles",
+                      "completedAt":  "2026-06-04T04:08:28.9794945+00:00",
+                      "resultSummary":  "T004 완료: next/manual-cycle/auto-step 역할 차이와 사용 기준 문서화"
                   },
                   {
                       "id":  "T005",
                       "title":  "ai-dev-auto-cycle.ps1 초기 버전 추가",
                       "description":  "auto-step을 제한 횟수 내에서 반복 실행하는 ai-dev-auto-cycle.ps1 초기 버전을 추가한다.",
                       "type":  "implementation",
-                      "status":  "pending",
+                      "status":  "in_progress",
                       "priority":  "P0",
                       "dependsOn":  [
                                         "T004"

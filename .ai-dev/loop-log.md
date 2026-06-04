@@ -139,3 +139,8 @@
 - Task: T003 auto-step DryRun과 Json 지원
 - Result: T003 완료: ai-dev-auto-step.ps1의 DryRun과 Json 지원은 T002 구현에서 이미 충족됨을 확인, 추가 코드 변경 없음
 - Next task: T004 auto-step과 next/manual-cycle 역할 정리
+## 2026-06-04 13:08:29 - Task completed
+
+- Task: T004 auto-step과 next/manual-cycle 역할 정리
+- Result: T004 완료: next/manual-cycle/auto-step 역할 차이와 사용 기준 문서화
+- Next task: T005 ai-dev-auto-cycle.ps1 초기 버전 추가
