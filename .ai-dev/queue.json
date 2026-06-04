@@ -2,8 +2,8 @@
     "goalTitle":  "AI Dev Loop 수동 리뷰 브리지 자동화",
     "goalSource":  ".ai-dev/goal.md",
     "createdAt":  "2026-06-04T15:27:18.6447826+09:00",
-    "updatedAt":  "2026-06-04T08:34:41.3027437+00:00",
-    "currentTaskId":  "T004",
+    "updatedAt":  "2026-06-04T08:50:39.8647519+00:00",
+    "currentTaskId":  "T005",
     "tasks":  [
                   {
                       "id":  "T001",
@@ -79,7 +79,7 @@
                       "title":  "auto-step ask_gpt_review 안내 개선",
                       "description":  "ai-dev-auto-step.ps1이 ask_gpt_review 상태에서 review-prompt 복사와 save-review FromClipboard 명령을 더 구체적으로 안내하도록 개선한다.",
                       "type":  "implementation",
-                      "status":  "in_progress",
+                      "status":  "done",
                       "priority":  "P1",
                       "dependsOn":  [
                                         "T003"
@@ -93,14 +93,16 @@
                                            "위험 작업을 자동 실행하지 않는지 확인",
                                            "PowerShell 문법 검증"
                                        ],
-                      "commitMessage":  "Improve manual review guidance in auto step"
+                      "commitMessage":  "Improve manual review guidance in auto step",
+                      "completedAt":  "2026-06-04T08:50:39.8647519+00:00",
+                      "resultSummary":  "T004 완료: auto-step ask_gpt_review 상태에서 수동 리뷰 브리지 명령 안내 개선, DryRun/Json 출력 확인"
                   },
                   {
                       "id":  "T005",
                       "title":  "manual-cycle 리뷰 브리지 안내 개선",
                       "description":  "ai-dev-manual-cycle.ps1 사용 시 수동 리뷰 브리지 흐름을 README와 정책 문서에 정리한다.",
                       "type":  "documentation",
-                      "status":  "pending",
+                      "status":  "in_progress",
                       "priority":  "P1",
                       "dependsOn":  [
                                         "T004"

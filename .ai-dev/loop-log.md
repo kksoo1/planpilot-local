@@ -25,3 +25,8 @@
 - Task: T003 리뷰 JSON 클립보드 저장 흐름 개선
 - Result: T003 완료: 리뷰 JSON 클립보드 저장 흐름 개선, 정상 JSON 저장/잘못된 JSON preview 오류/한글 출력 확인
 - Next task: T004 auto-step ask_gpt_review 안내 개선
+## 2026-06-04 17:50:39 - Task completed
+
+- Task: T004 auto-step ask_gpt_review 안내 개선
+- Result: T004 완료: auto-step ask_gpt_review 상태에서 수동 리뷰 브리지 명령 안내 개선, DryRun/Json 출력 확인
+- Next task: T005 manual-cycle 리뷰 브리지 안내 개선
