@@ -320,6 +320,20 @@ powershell -ExecutionPolicy Bypass -File scripts/ai-dev-manual-cycle.ps1 -Json
 
 `ai-dev-auto-step.ps1`는 현재 상태를 보고 안전한 다음 한 단계만 실행하는 보조 스크립트로 도입할 예정이다. `ai-dev-next.ps1`처럼 안내만 하는 명령과 달리, 허용된 로컬 스크립트는 직접 실행할 수 있다.
 
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-step.ps1
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-step.ps1 -DryRun
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-step.ps1 -Json
+```
+
+검증, diff 저장, 리뷰 프롬프트 생성처럼 기본 자동 실행보다 한 단계 위험한 로컬 작업은 명시적 허용 옵션을 사용한다.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-step.ps1 -AllowCheck
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-step.ps1 -AllowSaveDiff
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-step.ps1 -AllowReviewPrompt
+```
+
 초기 auto-step 자동 실행 허용 후보:
 
 - `current-task-prompt.md`가 없을 때 `scripts/ai-dev-make-prompt.ps1`
