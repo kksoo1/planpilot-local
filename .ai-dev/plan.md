@@ -24,6 +24,16 @@ AI Dev Loop 자동 실행 단계 도입
 - 자동 실행 허용 명령과 금지 명령을 구분한다.
 - 사용자 개입이 필요한 지점과 중단 기준을 명시한다.
 - Codex/GPT API 호출과 git commit은 이번 목표에서 자동 실행하지 않는다는 기준을 둔다.
+- auto-step은 상태를 읽고 안전한 다음 한 단계만 처리한다.
+- `make-prompt`, 제한된 `check`, `save-diff`, `make-review-prompt`는 자동 실행 후보로 둔다.
+- Codex/Cline 작업, GPT 리뷰, revise, blocked, git commit, 데이터 삭제/복원/마이그레이션 위험은 중단 또는 안내 대상으로 둔다.
+- auto-cycle은 auto-step을 제한 횟수만 반복하고 사용자 개입 필요 상태에서 중단한다.
+
+T001 완료 기준:
+
+- `docs/ai-dev-loop-policy.md`와 `.ai-dev/README.md`에 자동 실행 허용/금지 기준이 있다.
+- Codex/GPT API 호출과 git commit을 자동 실행하지 않는 기준이 명확하다.
+- next/manual-cycle/auto-step/auto-cycle 역할 구분 초안이 있다.
 
 ### T002 ai-dev-auto-step.ps1 추가
 

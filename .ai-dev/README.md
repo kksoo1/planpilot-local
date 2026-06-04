@@ -316,6 +316,37 @@ powershell -ExecutionPolicy Bypass -File scripts/ai-dev-manual-cycle.ps1 -Json
 
 수동 사이클 안내 스크립트는 추천 명령과 파일 경로만 보여주며, Codex 실행, GPT API 호출, build/test 실행, git add, git commit을 수행하지 않는다.
 
+## 자동 실행 단계 정책
+
+`ai-dev-auto-step.ps1`는 현재 상태를 보고 안전한 다음 한 단계만 실행하는 보조 스크립트로 도입할 예정이다. `ai-dev-next.ps1`처럼 안내만 하는 명령과 달리, 허용된 로컬 스크립트는 직접 실행할 수 있다.
+
+초기 auto-step 자동 실행 허용 후보:
+
+- `current-task-prompt.md`가 없을 때 `scripts/ai-dev-make-prompt.ps1`
+- 명시적으로 안전한 옵션이 선택된 경우 `scripts/ai-dev-check.ps1`
+- diff 저장이 필요한 경우 `scripts/ai-dev-save-diff.ps1`
+- review prompt 생성이 필요한 경우 `scripts/ai-dev-make-review-prompt.ps1`
+
+auto-step이 직접 실행하지 않고 중단 또는 안내해야 하는 단계:
+
+- Codex 또는 Cline 작업
+- GPT 리뷰
+- blocked 상태
+- revise 반영
+- git commit
+- 사용자 데이터 삭제, 복원, 마이그레이션 위험이 있는 작업
+
+`ai-dev-auto-cycle.ps1`는 제한 횟수 안에서 auto-step을 반복하는 초기 자동화 스크립트로 도입할 예정이다. 사용자 개입이 필요한 action, 실패, 반복 위험, commit 필요 상태에서는 중단해야 한다.
+
+명령 역할 구분:
+
+- `ai-dev-next.ps1`: 다음 행동 추천만 출력
+- `ai-dev-manual-cycle.ps1`: 상태 요약과 다음 행동 안내를 함께 출력
+- `ai-dev-auto-step.ps1`: 안전한 한 단계 실행
+- `ai-dev-auto-cycle.ps1`: 제한 횟수 안에서 auto-step 반복
+
+auto-step과 auto-cycle은 Codex/GPT API 호출, git commit, git push를 자동 실행하지 않는다.
+
 ## 운영 원칙
 
 - 저장소의 `AGENTS.md`, 사용자 지시, 보안 정책이 자동 개발 루프보다 우선한다.

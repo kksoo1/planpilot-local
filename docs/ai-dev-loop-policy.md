@@ -241,6 +241,64 @@ task 상태 후보:
 - 다음 task의 선행 조건을 확인한다.
 - 중단 조건이 없을 때만 다음 task를 시작한다.
 
+## auto-step 동작 정책
+
+`ai-dev-auto-step.ps1`는 현재 queue, state, review, test, git 상태를 읽고 안전한 다음 한 단계만 처리하는 보조 스크립트다. 완전 자동 개발 루프 실행기가 아니며, 사용자 판단이나 외부 AI 호출이 필요한 순간에는 중단하거나 다음 명령만 안내한다.
+
+### 기본 원칙
+
+- 한 번 실행할 때 하나의 action만 처리한다.
+- `ai-dev-next.ps1`가 판단하는 다음 action을 기반으로 동작한다.
+- 상태 파일과 프롬프트 파일을 갱신하는 안전한 로컬 스크립트만 자동 실행한다.
+- Codex, Cline, GPT API, git commit, git push는 자동 실행하지 않는다.
+- destructive git 명령, DB 삭제/복원/마이그레이션, package 설치는 자동 실행하지 않는다.
+- 실패하면 state와 출력에 실패 이유를 남기고 다음 action으로 진행하지 않는다.
+
+### 자동 실행 허용 후보
+
+초기 auto-step에서 자동 실행할 수 있는 후보는 로컬 파일 생성 또는 검증 보조 작업으로 제한한다.
+
+- `current-task-prompt.md`가 없을 때 `scripts/ai-dev-make-prompt.ps1` 실행
+- 검증이 필요한 상태에서 명시적으로 안전한 옵션이 선택된 경우 `scripts/ai-dev-check.ps1` 실행
+- diff 저장이 필요한 상태에서 `scripts/ai-dev-save-diff.ps1` 실행
+- review prompt 생성이 필요한 상태에서 `scripts/ai-dev-make-review-prompt.ps1` 실행
+- revise prompt 생성이 필요한 상태에서 사용자가 명시적으로 허용한 경우 `scripts/ai-dev-make-revise-prompt.ps1` 실행 후보 검토
+
+`ai-dev-check.ps1`는 프로젝트 명령을 실행할 수 있으므로 기본 자동 실행 범위는 보수적으로 둔다. 초기 구현은 DryRun 또는 명시적 안전 옵션에서만 check 실행을 허용한다.
+
+### 자동 실행 금지 또는 중단 후보
+
+다음 상태에서는 auto-step이 직접 작업하지 않고 사용자에게 다음 행동을 안내하거나 중단한다.
+
+- Codex 또는 Cline이 현재 task 구현을 수행해야 하는 경우
+- GPT 리뷰가 필요한 경우
+- 리뷰 결과가 `blocked`인 경우
+- 리뷰 결과가 `revise`이고 재수정 범위가 불명확한 경우
+- git commit이 필요한 경우
+- git push, PR 생성, 배포가 필요한 경우
+- 사용자 데이터 삭제, 복원, 덮어쓰기, 마이그레이션 위험이 있는 경우
+- package 설치 또는 package 파일 변경이 필요한 경우
+- 예상하지 못한 사용자 변경이 작업 트리에 있는 경우
+
+특히 git commit은 이번 목표의 auto-step 자동 실행 범위에서 제외한다. auto-step은 커밋이 필요하다는 사실과 추천 명령을 안내할 수는 있지만 `ai-dev-commit.ps1`를 직접 실행하지 않는다.
+
+### auto-cycle 동작 기준
+
+`ai-dev-auto-cycle.ps1`는 auto-step을 제한 횟수 안에서 반복하는 보조 스크립트다.
+
+- `-MaxSteps` 같은 반복 제한을 둔다.
+- 각 반복은 auto-step 한 번의 결과를 확인한 뒤 다음 반복 여부를 판단한다.
+- 사용자 개입 필요 action, blocked, failed, commit 필요, Codex/GPT 필요 상태에서는 중단한다.
+- 같은 action이 반복되거나 상태가 변하지 않으면 무한 루프 위험으로 중단한다.
+- auto-cycle도 Codex/GPT API 호출, git commit, git push를 자동 실행하지 않는다.
+
+### 관련 명령 역할 구분
+
+- `ai-dev-next.ps1`: 현재 상태를 읽고 다음 행동과 추천 명령만 안내한다. 파일 수정이나 하위 명령 실행을 하지 않는다.
+- `ai-dev-manual-cycle.ps1`: 상태 요약과 다음 행동 안내를 한 번에 보여준다. 사람이 수동으로 루프를 진행할 때 사용한다.
+- `ai-dev-auto-step.ps1`: 안전하다고 정의된 다음 한 단계를 실행한다. 사용자 개입 필요 상태에서는 멈춘다.
+- `ai-dev-auto-cycle.ps1`: 제한 횟수 안에서 auto-step을 반복한다. 사용자 개입 필요 상태에서는 멈춘다.
+
 ## 자동 커밋 조건
 
 다음 조건을 모두 만족해야 자동 커밋할 수 있다.
