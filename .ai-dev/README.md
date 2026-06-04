@@ -261,6 +261,15 @@ powershell -ExecutionPolicy Bypass -File scripts/ai-dev-save-review.ps1 -ReviewJ
 powershell -ExecutionPolicy Bypass -File scripts/ai-dev-save-review.ps1 -FromClipboard
 ```
 
+ChatGPT 웹 화면에서 받은 리뷰를 저장할 때는 JSON 리뷰 전체를 클립보드에 복사한 뒤 `-FromClipboard`를 실행한다. 순수 JSON 객체, `json` 코드블록, 일반 텍스트 안에 포함된 첫 번째 JSON 객체를 최대한 파싱한다.
+
+저장 실패 시 확인할 항목:
+
+- 클립보드가 비어 있지 않은지 확인한다.
+- ChatGPT 응답에서 JSON 객체 전체를 다시 복사한다.
+- Markdown 코드블록을 포함해도 되지만, 가능하면 JSON만 복사한다.
+- 오류 메시지의 입력 preview 앞부분을 보고 다른 설명 문장이나 잘린 JSON이 섞였는지 확인한다.
+
 리뷰 결과 저장 스크립트는 `pass + complete_task`, `revise + revise_with_codex`, `blocked` 또는 `stop_for_user` 결과에 맞는 다음 행동을 안내만 한다. GPT API 호출, Codex 실행, build/test 실행, git commit은 수행하지 않는다.
 
 ## 리뷰 반영 재수정 프롬프트 생성

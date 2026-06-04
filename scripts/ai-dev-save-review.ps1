@@ -164,14 +164,89 @@ function Get-JsonCandidates {
         $candidates += $codeBlockMatch.Groups[1].Value.Trim()
     }
 
-    $firstBrace = $RawInput.IndexOf("{")
-    $lastBrace = $RawInput.LastIndexOf("}")
+    $firstJsonObject = Get-FirstJsonObject $RawInput
 
-    if ($firstBrace -ge 0 -and $lastBrace -gt $firstBrace) {
-        $candidates += $RawInput.Substring($firstBrace, $lastBrace - $firstBrace + 1).Trim()
+    if (-not [string]::IsNullOrWhiteSpace($firstJsonObject)) {
+        $candidates += $firstJsonObject
     }
 
     return @($candidates | Select-Object -Unique)
+}
+
+function Get-FirstJsonObject {
+    param(
+        [string]$RawInput
+    )
+
+    $start = $RawInput.IndexOf("{")
+
+    if ($start -lt 0) {
+        return $null
+    }
+
+    $depth = 0
+    $inString = $false
+    $escaped = $false
+
+    for ($index = $start; $index -lt $RawInput.Length; $index++) {
+        $char = $RawInput[$index]
+
+        if ($escaped) {
+            $escaped = $false
+            continue
+        }
+
+        if ($char -eq "\") {
+            $escaped = $true
+            continue
+        }
+
+        if ($char -eq '"') {
+            $inString = -not $inString
+            continue
+        }
+
+        if ($inString) {
+            continue
+        }
+
+        if ($char -eq "{") {
+            $depth++
+            continue
+        }
+
+        if ($char -eq "}") {
+            $depth--
+
+            if ($depth -eq 0) {
+                return $RawInput.Substring($start, $index - $start + 1).Trim()
+            }
+        }
+    }
+
+    return $null
+}
+
+function Get-InputPreview {
+    param(
+        [string]$RawInput
+    )
+
+    if ($null -eq $RawInput) {
+        return "<null>"
+    }
+
+    $normalized = $RawInput.Replace("`r", " ").Replace("`n", " ").Trim()
+
+    if ($normalized.Length -eq 0) {
+        return "<empty>"
+    }
+
+    if ($normalized.Length -le 300) {
+        return $normalized
+    }
+
+    return $normalized.Substring(0, 300)
 }
 
 function ConvertFrom-ReviewJson {
@@ -320,6 +395,13 @@ if (-not (Test-Path -LiteralPath $statePath -PathType Leaf)) {
 
 $state = Read-JsonFile $statePath $stateRelativePath
 $rawReview = Get-ReviewInput
+$inputPreview = Get-InputPreview $rawReview
+
+if ([string]::IsNullOrWhiteSpace($rawReview)) {
+    $errorSummary = "리뷰 입력이 비어 있습니다. ChatGPT가 출력한 JSON 리뷰를 클립보드에 복사한 뒤 다시 실행하세요. 입력 preview: $inputPreview"
+    Save-InvalidReview $state $rawReview $errorSummary
+    Stop-WithError "리뷰 JSON 저장에 실패했습니다: $errorSummary"
+}
 
 try {
     $reviewResult = ConvertFrom-ReviewJson $rawReview
@@ -330,7 +412,7 @@ try {
         throw ($validationErrors -join "; ")
     }
 } catch {
-    $errorSummary = $_.Exception.Message
+    $errorSummary = "$($_.Exception.Message) 입력 preview: $inputPreview"
     Save-InvalidReview $state $rawReview $errorSummary
     Stop-WithError "리뷰 JSON 저장에 실패했습니다: $errorSummary"
 }
@@ -369,11 +451,11 @@ $codeFence
 Save-StateReviewResult $state $review.decision $review.severity "passed" ""
 
 $nextAction = if ($review.decision -eq "pass" -and $review.next_step -eq "complete_task") {
-    "scripts/ai-dev-complete-task.ps1 실행을 검토하세요."
+    "pass + complete_task: 다음 명령을 실행해 현재 task 완료 처리를 검토하세요. powershell -ExecutionPolicy Bypass -File scripts/ai-dev-complete-task.ps1 -ResultSummary `"리뷰 통과`""
 } elseif ($review.decision -eq "revise" -and $review.next_step -eq "revise_with_codex") {
-    "review.md를 Codex 또는 Cline에 전달해 필수 수정사항을 반영하세요."
+    "revise + make_revise_prompt: 다음 명령으로 재수정 프롬프트를 생성한 뒤 Codex/Cline에 전달하세요. powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-revise-prompt.ps1"
 } elseif ($review.decision -eq "blocked" -or $review.next_step -eq "stop_for_user") {
-    "사용자 판단이 필요하므로 자동 진행을 중단하세요."
+    "blocked/stop_for_user: 사용자 판단이 필요합니다. 자동 진행을 중단하고 review.md의 Required Changes와 Summary를 확인하세요."
 } else {
     "decision과 next_step 조합을 확인한 뒤 다음 행동을 결정하세요."
 }
