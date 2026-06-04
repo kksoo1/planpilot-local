@@ -2,8 +2,8 @@
     "goalTitle":  "AI Dev Loop 수동 리뷰 브리지 자동화",
     "goalSource":  ".ai-dev/goal.md",
     "createdAt":  "2026-06-04T15:27:18.6447826+09:00",
-    "updatedAt":  "2026-06-04T07:13:49.4742255+00:00",
-    "currentTaskId":  "T002",
+    "updatedAt":  "2026-06-04T07:28:37.4540211+00:00",
+    "currentTaskId":  "T003",
     "tasks":  [
                   {
                       "id":  "T001",
@@ -33,7 +33,7 @@
                       "title":  "review-prompt 클립보드 복사 스크립트 추가",
                       "description":  ".ai-dev/review-prompt.md를 생성 또는 확인하고 클립보드에 복사하는 ai-dev-copy-review-prompt.ps1을 추가한다.",
                       "type":  "implementation",
-                      "status":  "in_progress",
+                      "status":  "done",
                       "priority":  "P0",
                       "dependsOn":  [
                                         "T001"
@@ -47,14 +47,16 @@
                                            "review-prompt.md 내용을 클립보드에 복사하는지 확인",
                                            "PowerShell 문법 검증"
                                        ],
-                      "commitMessage":  "Add review prompt clipboard helper"
+                      "commitMessage":  "Add review prompt clipboard helper",
+                      "completedAt":  "2026-06-04T07:28:37.4540211+00:00",
+                      "resultSummary":  "T002 완료: review-prompt 클립보드 복사 스크립트 추가, 한글 출력/Json 출력/후속 save-review 안내 확인"
                   },
                   {
                       "id":  "T003",
                       "title":  "리뷰 JSON 클립보드 저장 흐름 개선",
                       "description":  "기존 ai-dev-save-review.ps1의 -FromClipboard 흐름을 README와 출력 안내 중심으로 보강하거나, 필요 시 얇은 wrapper 스크립트를 추가한다.",
                       "type":  "implementation",
-                      "status":  "pending",
+                      "status":  "in_progress",
                       "priority":  "P0",
                       "dependsOn":  [
                                         "T002"

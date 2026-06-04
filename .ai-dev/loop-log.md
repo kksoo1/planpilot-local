@@ -15,3 +15,8 @@
 - Task: T001 수동 GPT 리뷰 브리지 정책 문서화
 - Result: T001 완료: GPT API 없이 ChatGPT 웹 화면을 사용하는 수동 리뷰 브리지 정책 문서화
 - Next task: T002 review-prompt 클립보드 복사 스크립트 추가
+## 2026-06-04 16:28:37 - Task completed
+
+- Task: T002 review-prompt 클립보드 복사 스크립트 추가
+- Result: T002 완료: review-prompt 클립보드 복사 스크립트 추가, 한글 출력/Json 출력/후속 save-review 안내 확인
+- Next task: T003 리뷰 JSON 클립보드 저장 흐름 개선
