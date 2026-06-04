@@ -2,8 +2,8 @@
     "goalTitle":  "AI Dev Loop 자동 실행 단계 도입",
     "goalSource":  ".ai-dev/goal.md",
     "createdAt":  "2026-06-04T11:21:33.3297102+09:00",
-    "updatedAt":  "2026-06-04T04:08:28.9794945+00:00",
-    "currentTaskId":  "T005",
+    "updatedAt":  "2026-06-04T05:58:40.1765628+00:00",
+    "currentTaskId":  "T006",
     "tasks":  [
                   {
                       "id":  "T001",
@@ -102,7 +102,7 @@
                       "title":  "ai-dev-auto-cycle.ps1 초기 버전 추가",
                       "description":  "auto-step을 제한 횟수 내에서 반복 실행하는 ai-dev-auto-cycle.ps1 초기 버전을 추가한다.",
                       "type":  "implementation",
-                      "status":  "in_progress",
+                      "status":  "done",
                       "priority":  "P0",
                       "dependsOn":  [
                                         "T004"
@@ -117,14 +117,16 @@
                                            "무한 루프 방지 장치가 있는지 확인",
                                            "PowerShell 문법 검증"
                                        ],
-                      "commitMessage":  "Add AI dev auto cycle script"
+                      "commitMessage":  "Add AI dev auto cycle script",
+                      "completedAt":  "2026-06-04T05:58:40.1765628+00:00",
+                      "resultSummary":  "T005 완료: ai-dev-auto-cycle.ps1 초기 버전 추가, DryRun/Json/MaxSteps 및 사용자 개입 필요 action 중단 확인"
                   },
                   {
                       "id":  "T006",
                       "title":  "최종 검증 및 요약",
                       "description":  "새 자동 실행 스크립트들의 문법 검증, DryRun 실행, 전체 상태 점검을 수행하고 다음 목표인 Codex/GPT API 연동 준비 여부를 정리한다.",
                       "type":  "verification",
-                      "status":  "pending",
+                      "status":  "in_progress",
                       "priority":  "P0",
                       "dependsOn":  [
                                         "T005"
