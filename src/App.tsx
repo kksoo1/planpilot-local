@@ -113,6 +113,7 @@ function App() {
     selectedProjectFilter,
     showCompletedTasks,
     taskSearchQuery,
+    projects,
   });
 
   const sortedTasks = sortTasks(filteredTasks, taskSortOrder);

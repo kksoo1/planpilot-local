@@ -1,4 +1,4 @@
-import type { Task } from "../types";
+import type { Project, Task } from "../types";
 
 export type TaskSortOrder = "none" | "dueDateAsc";
 
@@ -6,6 +6,7 @@ type FilterTasksOptions = {
   selectedProjectFilter: string;
   showCompletedTasks: boolean;
   taskSearchQuery: string;
+  projects?: Project[];
 };
 
 export function filterTasks(
@@ -14,15 +15,25 @@ export function filterTasks(
     selectedProjectFilter,
     showCompletedTasks,
     taskSearchQuery,
+    projects = [],
   }: FilterTasksOptions,
 ) {
+  const projectNameById = new Map(
+    projects.map((project) => [project.id, project.name.toLowerCase()]),
+  );
+
   return tasks.filter((task) => {
     const matchesProject =
       selectedProjectFilter === "all" || task.projectId === selectedProjectFilter;
 
     const searchText = taskSearchQuery.trim().toLowerCase();
+    const searchableText = [
+      task.title,
+      task.memo ?? "",
+      projectNameById.get(task.projectId) ?? "",
+    ].join(" ");
     const matchesSearch =
-      !searchText || task.title.toLowerCase().includes(searchText);
+      !searchText || searchableText.toLowerCase().includes(searchText);
 
     const matchesStatus = showCompletedTasks || task.status !== "done";
 
