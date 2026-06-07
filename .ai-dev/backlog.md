@@ -6,23 +6,20 @@
 
 ## 현재 진행 목표
 
-- AI Dev Loop 수동 리뷰 브리지 자동화
+- AI Dev Loop 수동 자동화 UX 개선
 
 ## P0
 
-- 수동 GPT 리뷰 브리지 정책 문서화
-- `review-prompt.md` 클립보드 복사 스크립트 추가
-- 리뷰 JSON 클립보드 저장 흐름 개선
-- `ask_gpt_review` 상태의 `auto-step` 안내 개선
-- 최종 PowerShell 문법 검증과 상태 점검
+- 수동 자동화 UX 개선 정책 문서화
+- `save-review` 실패 시 상태 오염 방지
+- 최종 검증 및 전체 상태 점검
 
 ## P1
 
-- `manual-cycle` 리뷰 브리지 안내 개선
-- Codex/GPT API 연동 전 보안 정책 문서화
+- `goal_completed` 안내 개선
+- `ask_gpt_review` 상태의 `auto-cycle` 안내 개선
+- 최종 검증 결과를 `test-result.md`에 남기는 흐름 개선
 - auto-step/auto-cycle 사용자 개입 상태 메시지 정리
-- 프로젝트 필터 UX 개선
-- 완료 태스크 표시/보관 정책 정리
 
 ## P2
 
@@ -36,6 +33,7 @@
 - JSON 백업 import 검증 및 미리보기 기능 추가
 - AI Dev Loop 운영 품질 개선 및 자동화 준비
 - AI Dev Loop 자동 실행 단계 도입
+- AI Dev Loop 수동 리뷰 브리지 자동화
 
 ## 관리 원칙
 

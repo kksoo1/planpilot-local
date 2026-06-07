@@ -1,16 +1,16 @@
-﻿{
-    "goalStatus":  "completed",
-    "currentTaskId":  null,
-    "currentLoop":  0,
-    "maxLoopsPerTask":  2,
-    "repeatedFailureCount":  0,
-    "lastCommand":  "complete-task",
-    "lastCommandStatus":  "passed",
-    "lastErrorSummary":  "",
-    "lastReviewDecision":  "not_started",
-    "lastReviewSeverity":  "",
-    "lastCommitHash":  null,
-    "startedAt":  "2026-06-04T15:27:18.6447826+09:00",
-    "updatedAt":  "2026-06-04T09:01:34.6356403+00:00",
-    "stopReason":  "all_tasks_completed"
+{
+  "goalStatus": "in_progress",
+  "currentTaskId": "T001",
+  "currentLoop": 0,
+  "maxLoopsPerTask": 2,
+  "repeatedFailureCount": 0,
+  "lastCommand": "init-new-goal",
+  "lastCommandStatus": "passed",
+  "lastErrorSummary": "",
+  "lastReviewDecision": "not_started",
+  "lastReviewSeverity": "",
+  "lastCommitHash": null,
+  "startedAt": "2026-06-07T00:00:00+09:00",
+  "updatedAt": "2026-06-07T00:00:00+09:00",
+  "stopReason": null
 }

@@ -1,147 +1,137 @@
-﻿{
-    "goalTitle":  "AI Dev Loop 수동 리뷰 브리지 자동화",
-    "goalSource":  ".ai-dev/goal.md",
-    "createdAt":  "2026-06-04T15:27:18.6447826+09:00",
-    "updatedAt":  "2026-06-04T09:01:34.6356403+00:00",
-    "currentTaskId":  null,
-    "tasks":  [
-                  {
-                      "id":  "T001",
-                      "title":  "수동 GPT 리뷰 브리지 정책 문서화",
-                      "description":  "GPT API 키 없이 ChatGPT 화면을 사용하는 리뷰 흐름과 책임 범위를 문서화한다.",
-                      "type":  "documentation",
-                      "status":  "done",
-                      "priority":  "P0",
-                      "dependsOn":  [
-
-                                    ],
-                      "filesLikelyToChange":  [
-                                                  "docs/ai-dev-loop-policy.md",
-                                                  ".ai-dev/README.md",
-                                                  ".ai-dev/plan.md"
-                                              ],
-                      "verification":  [
-                                           "GPT API를 사용하지 않는다는 점이 명확한지 확인",
-                                           "review-prompt 복사, ChatGPT 붙여넣기, 리뷰 JSON 저장 흐름이 문서화되었는지 확인"
-                                       ],
-                      "commitMessage":  "Document manual GPT review bridge policy",
-                      "completedAt":  "2026-06-04T07:13:49.4742255+00:00",
-                      "resultSummary":  "T001 완료: GPT API 없이 ChatGPT 웹 화면을 사용하는 수동 리뷰 브리지 정책 문서화"
-                  },
-                  {
-                      "id":  "T002",
-                      "title":  "review-prompt 클립보드 복사 스크립트 추가",
-                      "description":  ".ai-dev/review-prompt.md를 생성 또는 확인하고 클립보드에 복사하는 ai-dev-copy-review-prompt.ps1을 추가한다.",
-                      "type":  "implementation",
-                      "status":  "done",
-                      "priority":  "P0",
-                      "dependsOn":  [
-                                        "T001"
-                                    ],
-                      "filesLikelyToChange":  [
-                                                  "scripts/ai-dev-copy-review-prompt.ps1",
-                                                  ".ai-dev/README.md"
-                                              ],
-                      "verification":  [
-                                           "review-prompt.md가 없으면 안내 또는 생성 옵션을 제공하는지 확인",
-                                           "review-prompt.md 내용을 클립보드에 복사하는지 확인",
-                                           "PowerShell 문법 검증"
-                                       ],
-                      "commitMessage":  "Add review prompt clipboard helper",
-                      "completedAt":  "2026-06-04T07:28:37.4540211+00:00",
-                      "resultSummary":  "T002 완료: review-prompt 클립보드 복사 스크립트 추가, 한글 출력/Json 출력/후속 save-review 안내 확인"
-                  },
-                  {
-                      "id":  "T003",
-                      "title":  "리뷰 JSON 클립보드 저장 흐름 개선",
-                      "description":  "기존 ai-dev-save-review.ps1의 -FromClipboard 흐름을 README와 출력 안내 중심으로 보강하거나, 필요 시 얇은 wrapper 스크립트를 추가한다.",
-                      "type":  "implementation",
-                      "status":  "done",
-                      "priority":  "P0",
-                      "dependsOn":  [
-                                        "T002"
-                                    ],
-                      "filesLikelyToChange":  [
-                                                  "scripts/ai-dev-save-review.ps1",
-                                                  ".ai-dev/README.md"
-                                              ],
-                      "verification":  [
-                                           "ChatGPT 리뷰 JSON을 클립보드에서 저장하는 흐름이 명확한지 확인",
-                                           "잘못된 JSON 입력 시 오류 메시지가 충분히 디버깅 가능한지 확인",
-                                           "PowerShell 문법 검증"
-                                       ],
-                      "commitMessage":  "Improve review clipboard import flow",
-                      "completedAt":  "2026-06-04T08:34:41.3027437+00:00",
-                      "resultSummary":  "T003 완료: 리뷰 JSON 클립보드 저장 흐름 개선, 정상 JSON 저장/잘못된 JSON preview 오류/한글 출력 확인"
-                  },
-                  {
-                      "id":  "T004",
-                      "title":  "auto-step ask_gpt_review 안내 개선",
-                      "description":  "ai-dev-auto-step.ps1이 ask_gpt_review 상태에서 review-prompt 복사와 save-review FromClipboard 명령을 더 구체적으로 안내하도록 개선한다.",
-                      "type":  "implementation",
-                      "status":  "done",
-                      "priority":  "P1",
-                      "dependsOn":  [
-                                        "T003"
-                                    ],
-                      "filesLikelyToChange":  [
-                                                  "scripts/ai-dev-auto-step.ps1",
-                                                  ".ai-dev/README.md"
-                                              ],
-                      "verification":  [
-                                           "ask_gpt_review action에서 copy-review-prompt와 save-review 명령이 안내되는지 확인",
-                                           "위험 작업을 자동 실행하지 않는지 확인",
-                                           "PowerShell 문법 검증"
-                                       ],
-                      "commitMessage":  "Improve manual review guidance in auto step",
-                      "completedAt":  "2026-06-04T08:50:39.8647519+00:00",
-                      "resultSummary":  "T004 완료: auto-step ask_gpt_review 상태에서 수동 리뷰 브리지 명령 안내 개선, DryRun/Json 출력 확인"
-                  },
-                  {
-                      "id":  "T005",
-                      "title":  "manual-cycle 리뷰 브리지 안내 개선",
-                      "description":  "ai-dev-manual-cycle.ps1 사용 시 수동 리뷰 브리지 흐름을 README와 정책 문서에 정리한다.",
-                      "type":  "documentation",
-                      "status":  "done",
-                      "priority":  "P1",
-                      "dependsOn":  [
-                                        "T004"
-                                    ],
-                      "filesLikelyToChange":  [
-                                                  ".ai-dev/README.md",
-                                                  "docs/ai-dev-loop-policy.md"
-                                              ],
-                      "verification":  [
-                                           "manual-cycle, auto-step, copy-review-prompt, save-review의 연결 흐름이 이해 가능한지 확인",
-                                           "GPT API 없이 진행 가능한 흐름인지 확인"
-                                       ],
-                      "commitMessage":  "Document manual review bridge workflow",
-                      "completedAt":  "2026-06-04T08:57:15.5092656+00:00",
-                      "resultSummary":  "T005 완료: manual-cycle, auto-step, copy-review-prompt, save-review를 연결한 수동 리뷰 브리지 흐름 문서화"
-                  },
-                  {
-                      "id":  "T006",
-                      "title":  "최종 검증 및 요약",
-                      "description":  "새 리뷰 브리지 스크립트들의 문법 검증, 클립보드 복사 흐름 확인, auto-step 안내 확인, 전체 상태 점검을 수행한다.",
-                      "type":  "verification",
-                      "status":  "done",
-                      "priority":  "P0",
-                      "dependsOn":  [
-                                        "T005"
-                                    ],
-                      "filesLikelyToChange":  [
-                                                  ".ai-dev/plan.md",
-                                                  ".ai-dev/loop-log.md"
-                                              ],
-                      "verification":  [
-                                           "수정된 PowerShell 스크립트 문법 검증",
-                                           "copy-review-prompt DryRun 또는 실제 클립보드 복사 확인",
-                                           "save-review FromClipboard 안내 확인",
-                                           "git status clean 확인"
-                                       ],
-                      "commitMessage":  null,
-                      "completedAt":  "2026-06-04T09:01:34.6356403+00:00",
-                      "resultSummary":  "T006 완료: 수동 리뷰 브리지 스크립트 문법 검증 통과, review-prompt 클립보드 복사 확인, auto-step ask_gpt_review 수동 브리지 안내 확인, git status clean"
-                  }
-              ]
+{
+  "goalTitle": "AI Dev Loop 수동 자동화 UX 개선",
+  "goalSource": ".ai-dev/goal.md",
+  "createdAt": "2026-06-07T00:00:00+09:00",
+  "updatedAt": "2026-06-07T00:00:00+09:00",
+  "currentTaskId": "T001",
+  "tasks": [
+    {
+      "id": "T001",
+      "title": "수동 자동화 UX 개선 정책 문서화",
+      "description": "auto-step/auto-cycle/save-review/check/test-result의 UX 개선 방향과 안전 기준을 문서화한다.",
+      "type": "documentation",
+      "status": "in_progress",
+      "priority": "P0",
+      "dependsOn": [],
+      "filesLikelyToChange": [
+        "docs/ai-dev-loop-policy.md",
+        ".ai-dev/README.md",
+        ".ai-dev/plan.md"
+      ],
+      "verification": [
+        "GPT API 없이 쓰는 수동 자동화 흐름이 문서화되었는지 확인",
+        "상태 오염 방지와 사용자 안내 기준이 문서화되었는지 확인"
+      ],
+      "commitMessage": "Document manual automation UX policy"
+    },
+    {
+      "id": "T002",
+      "title": "goal_completed 안내 개선",
+      "description": "ai-dev-auto-step.ps1과 ai-dev-auto-cycle.ps1이 goal_completed 상태에서 더 명확한 완료 안내와 다음 목표 시작 안내를 출력하도록 개선한다.",
+      "type": "implementation",
+      "status": "pending",
+      "priority": "P1",
+      "dependsOn": [
+        "T001"
+      ],
+      "filesLikelyToChange": [
+        "scripts/ai-dev-auto-step.ps1",
+        "scripts/ai-dev-auto-cycle.ps1",
+        ".ai-dev/README.md"
+      ],
+      "verification": [
+        "goal completed 상태에서 auto-step DryRun 메시지가 명확한지 확인",
+        "goal completed 상태에서 auto-cycle DryRun이 completed true로 종료되는지 확인",
+        "PowerShell 문법 검증"
+      ],
+      "commitMessage": "Improve goal completed auto-step guidance"
+    },
+    {
+      "id": "T003",
+      "title": "ask_gpt_review auto-cycle 안내 개선",
+      "description": "ai-dev-auto-cycle.ps1이 ask_gpt_review에서 멈출 때 copy-review-prompt와 save-review FromClipboard 명령을 더 잘 보여주도록 개선한다.",
+      "type": "implementation",
+      "status": "pending",
+      "priority": "P1",
+      "dependsOn": [
+        "T002"
+      ],
+      "filesLikelyToChange": [
+        "scripts/ai-dev-auto-cycle.ps1",
+        ".ai-dev/README.md"
+      ],
+      "verification": [
+        "ask_gpt_review 상태에서 stoppedReason과 recommendedCommands가 이해 가능한지 확인",
+        "JSON 출력에도 추천 명령이 포함되는지 확인",
+        "PowerShell 문법 검증"
+      ],
+      "commitMessage": "Improve auto-cycle manual review guidance"
+    },
+    {
+      "id": "T004",
+      "title": "save-review 실패 시 상태 오염 방지",
+      "description": "ai-dev-save-review.ps1이 FromClipboard 파싱 실패 시 review.md/state.json을 blocked로 덮어쓰기 전에 안전하게 처리할 수 있도록 정책 또는 옵션을 개선한다.",
+      "type": "implementation",
+      "status": "pending",
+      "priority": "P0",
+      "dependsOn": [
+        "T003"
+      ],
+      "filesLikelyToChange": [
+        "scripts/ai-dev-save-review.ps1",
+        ".ai-dev/README.md"
+      ],
+      "verification": [
+        "잘못된 JSON 입력 시 기존 완료 상태를 불필요하게 오염시키지 않는지 확인",
+        "오류 preview는 유지되는지 확인",
+        "정상 JSON 저장은 기존처럼 동작하는지 확인",
+        "PowerShell 문법 검증"
+      ],
+      "commitMessage": "Avoid state pollution on review parse failure"
+    },
+    {
+      "id": "T005",
+      "title": "최종 검증 기록 흐름 개선",
+      "description": "T006 같은 최종 검증에서 PowerShell 문법 검증, auto-step/auto-cycle DryRun 결과를 test-result.md에 기록하기 쉬운 흐름을 추가하거나 README에 명확히 정리한다.",
+      "type": "implementation",
+      "status": "pending",
+      "priority": "P1",
+      "dependsOn": [
+        "T004"
+      ],
+      "filesLikelyToChange": [
+        "scripts/ai-dev-check.ps1",
+        ".ai-dev/README.md",
+        "docs/ai-dev-loop-policy.md"
+      ],
+      "verification": [
+        "최종 검증 결과를 test-result.md에 남기는 방법이 명확한지 확인",
+        "기존 build/test/lint 흐름을 깨지 않는지 확인",
+        "PowerShell 문법 검증"
+      ],
+      "commitMessage": "Improve final verification result recording"
+    },
+    {
+      "id": "T006",
+      "title": "최종 검증 및 요약",
+      "description": "수정된 PowerShell 스크립트 문법 검증, auto-step/auto-cycle DryRun, save-review 실패/성공 흐름 확인, 전체 상태 점검을 수행한다.",
+      "type": "verification",
+      "status": "pending",
+      "priority": "P0",
+      "dependsOn": [
+        "T005"
+      ],
+      "filesLikelyToChange": [
+        ".ai-dev/plan.md",
+        ".ai-dev/loop-log.md"
+      ],
+      "verification": [
+        "수정된 PowerShell 스크립트 문법 검증",
+        "auto-step/auto-cycle DryRun 확인",
+        "save-review 실패/성공 흐름 확인",
+        "git status clean 확인"
+      ],
+      "commitMessage": null
+    }
+  ]
 }

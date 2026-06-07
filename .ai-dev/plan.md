@@ -2,14 +2,13 @@
 
 ## Goal
 
-AI Dev Loop 수동 리뷰 브리지 자동화
+AI Dev Loop 수동 자동화 UX 개선
 
 ## 목표 범위
 
-- GPT API 키 없이 ChatGPT 웹 화면을 사용하는 수동 리뷰 흐름을 더 편하게 만든다.
-- `review-prompt.md`를 복사하고, ChatGPT에 붙여넣고, JSON 리뷰 결과를 다시 저장하는 흐름을 정리한다.
-- `auto-step`과 `manual-cycle`이 수동 리뷰 브리지 흐름을 더 구체적으로 안내하도록 준비한다.
-- 이번 목표는 AI Dev Loop 운영 보조 스크립트와 문서 개선에 한정한다.
+- GPT API 없이 사용하는 AI Dev Loop의 수동 자동화 흐름을 더 안전하고 이해하기 쉽게 개선한다.
+- `auto-step`, `auto-cycle`, `save-review`, `check`, `test-result.md` 기록 흐름의 사용자 안내를 정리한다.
+- 완료 상태, 리뷰 대기 상태, 검증 결과 기록, 실패 입력 처리처럼 사용자가 다음 행동을 판단해야 하는 지점을 명확하게 만든다.
 
 ## 범위 제한
 
@@ -20,47 +19,36 @@ AI Dev Loop 수동 리뷰 브리지 자동화
 
 ## 작업 순서
 
-### T001 수동 GPT 리뷰 브리지 정책 문서화
+### T001 수동 자동화 UX 개선 정책 문서화
 
-- GPT API 없이 ChatGPT 화면을 쓰는 리뷰 흐름을 문서화한다.
-- `review-prompt.md` 복사, ChatGPT 붙여넣기, 리뷰 JSON 저장, `save-review -FromClipboard` 연결을 정리한다.
-- 수동 단계와 자동화 가능한 단계를 구분한다.
-- `auto-step`은 `ask_gpt_review`에서 API를 호출하지 않고 수동 브리지 안내만 한다는 기준을 명확히 한다.
-- `review-prompt.md`에 민감 정보나 긴 diff가 포함될 수 있으므로 사용자가 공유 범위를 확인해야 한다는 기준을 남긴다.
+- `auto-step`/`auto-cycle`/`save-review`/`check`/`test-result.md`의 UX 개선 방향과 안전 기준을 문서화한다.
+- 상태 오염 방지와 사용자 안내 기준을 정리한다.
 
-T001 완료 기준:
+### T002 goal_completed 안내 개선
 
-- `docs/ai-dev-loop-policy.md`에 수동 GPT 리뷰 브리지 정책이 있다.
-- `.ai-dev/README.md`에 사람이 따라 할 수 있는 review-prompt 생성, 복사, ChatGPT 붙여넣기, JSON 리뷰 저장 흐름이 있다.
-- GPT API 직접 호출을 하지 않는다는 제한이 명확하다.
-- 다음 task인 클립보드 복사 helper 추가 범위가 문서상 분리되어 있다.
+- `goal_completed` 상태에서 `auto-step`과 `auto-cycle`이 더 명확한 완료 안내와 다음 목표 시작 안내를 출력하도록 개선한다.
+- DryRun과 JSON 출력에서 완료 상태가 이해 가능한지 확인한다.
 
-### T002 review-prompt 클립보드 복사 스크립트 추가
+### T003 ask_gpt_review auto-cycle 안내 개선
 
-- `.ai-dev/review-prompt.md`를 클립보드에 복사하는 helper를 추가한다.
-- prompt가 없을 때 안내 또는 생성 옵션을 제공할지 검토한다.
-- PowerShell 문법을 검증한다.
+- `auto-cycle`이 `ask_gpt_review`에서 멈출 때 수동 리뷰 브리지 명령을 더 잘 보여주도록 개선한다.
+- JSON 출력에도 copy-review-prompt와 save-review 명령이 포함되는지 확인한다.
 
-### T003 리뷰 JSON 클립보드 저장 흐름 개선
+### T004 save-review 실패 시 상태 오염 방지
 
-- 기존 `ai-dev-save-review.ps1 -FromClipboard` 흐름의 안내와 오류 메시지를 보강한다.
-- 필요 시 얇은 wrapper 스크립트를 검토하되, 과도한 자동화는 피한다.
-- 잘못된 JSON 입력 시 디버깅 가능한 메시지를 확인한다.
+- `save-review`가 잘못된 JSON 입력을 받았을 때 기존 완료 상태를 불필요하게 덮어쓰지 않도록 정책 또는 옵션을 개선한다.
+- 오류 preview와 정상 저장 흐름은 유지한다.
 
-### T004 auto-step ask_gpt_review 안내 개선
+### T005 최종 검증 기록 흐름 개선
 
-- `ask_gpt_review` 상태에서 `copy-review-prompt`와 `save-review -FromClipboard` 명령을 더 구체적으로 안내한다.
-- GPT API나 git commit은 자동 실행하지 않는다.
-
-### T005 manual-cycle 리뷰 브리지 안내 개선
-
-- `manual-cycle`, `auto-step`, `copy-review-prompt`, `save-review`의 연결 흐름을 README와 정책 문서에 정리한다.
-- 사용자가 어떤 순서로 수동 리뷰 브리지를 사용하면 되는지 확인 가능하게 한다.
+- 최종 검증에서 PowerShell 문법 검증, `auto-step`/`auto-cycle` DryRun 결과를 `test-result.md`에 남기기 쉬운 흐름을 추가하거나 문서화한다.
+- 기존 build/test/lint 흐름을 깨지 않는다.
 
 ### T006 최종 검증 및 요약
 
 - 수정된 PowerShell 스크립트 문법을 검증한다.
-- 클립보드 복사 흐름과 `save-review -FromClipboard` 안내를 확인한다.
+- `auto-step`/`auto-cycle` DryRun을 확인한다.
+- `save-review` 실패/성공 흐름을 확인한다.
 - 전체 상태를 점검하고 다음 자동화 후보를 정리한다.
 
 ## Stop Conditions

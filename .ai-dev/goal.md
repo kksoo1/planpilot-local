@@ -1,24 +1,24 @@
 # Goal
 
-AI Dev Loop 수동 리뷰 브리지 자동화
+AI Dev Loop 수동 자동화 UX 개선
 
 ## Background
 
-GPT API 키 없이 ChatGPT 웹 화면을 사용하는 리뷰 흐름을 개선한다. `review-prompt.md` 생성, 클립보드 복사, ChatGPT 붙여넣기 안내, 리뷰 JSON 클립보드 저장, `save-review` 연동, `auto-step` 안내 개선을 통해 사람이 해야 하는 복사/붙여넣기 단계를 줄인다.
+GPT API 없이 사용하는 AI Dev Loop의 수동 자동화 흐름을 개선한다. `auto-step`/`auto-cycle`의 안내 메시지, `save-review` 실패 시 상태 오염 방지, 검증 결과 기록, goal completed 상태 안내, 사용자가 다음 행동을 판단하기 쉬운 출력 구조를 정리한다.
 
 ## Success Criteria
 
-- GPT API 없이 동작하는 수동 리뷰 브리지 정책이 문서화된다.
-- `review-prompt.md`를 클립보드에 복사하는 스크립트가 추가된다.
-- 리뷰 JSON을 클립보드에서 저장하는 흐름이 명확해진다.
-- `auto-step`이 `ask_gpt_review` 상태에서 더 구체적인 안내를 제공한다.
-- `manual-cycle`과 README에 수동 리뷰 브리지 사용법이 정리된다.
+- `goal_completed` 상태에서 `auto-step`/`auto-cycle` 안내가 명확해진다.
+- `ask_gpt_review` 상태에서 `auto-cycle`이 수동 리뷰 브리지 명령을 더 잘 안내한다.
+- `save-review` 실패 시 `state.json`/`review.md` 오염을 줄이는 안전 정책 또는 옵션이 추가된다.
+- T006 같은 최종 검증 결과를 `test-result.md`에 남기는 흐름이 개선된다.
+- README와 정책 문서에 수동 자동화 UX 기준이 정리된다.
 - PowerShell 문법 검증이 통과한다.
 - GPT API 호출, Codex/Cline 자동 호출, git commit 자동 실행은 이번 목표 범위에서 제외한다.
 
 ## Constraints
 
-- 이번 목표는 AI Dev Loop 수동 리뷰 브리지와 운영 안내 개선에 한정한다.
+- 이번 목표는 AI Dev Loop 수동 자동화 UX 개선에 한정한다.
 - GPT API를 직접 호출하지 않는다.
 - Codex CLI 또는 Cline을 자동 호출하지 않는다.
 - git commit, git push, destructive git 명령은 자동 실행하지 않는다.
@@ -38,9 +38,9 @@ GPT API 키 없이 ChatGPT 웹 화면을 사용하는 리뷰 흐름을 개선한
 
 ## Manual Verification
 
-- 수동 GPT 리뷰 브리지 정책이 GPT API 없이 동작하는 흐름으로 문서화되어 있다.
-- `review-prompt.md`를 클립보드에 복사하는 흐름이 확인된다.
-- ChatGPT에서 받은 리뷰 JSON을 클립보드에서 저장하는 흐름이 확인된다.
-- `ask_gpt_review` 상태에서 `auto-step` 안내가 구체적이다.
-- `manual-cycle`, `auto-step`, `copy-review-prompt`, `save-review`의 연결 흐름이 README에서 이해 가능하다.
+- `goal_completed` 상태의 안내가 다음 목표 시작 흐름을 이해하기 쉽게 보여준다.
+- `ask_gpt_review` 상태의 `auto-cycle` 출력에서 copy-review-prompt와 save-review 명령을 확인할 수 있다.
+- 잘못된 리뷰 JSON 입력이 기존 완료 상태를 불필요하게 오염시키지 않는다.
+- 최종 검증 결과를 `test-result.md`에 남기는 방법이 명확하다.
+- README와 정책 문서에서 GPT API 없이 쓰는 수동 자동화 UX 기준을 확인할 수 있다.
 - 수정된 PowerShell 스크립트가 문법 오류 없이 파싱된다.
