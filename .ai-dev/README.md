@@ -2,7 +2,7 @@
 
 이 폴더는 PlanPilot Local의 Level 5 AI 자동 개발 루프에서 목표와 후속 작업 후보를 관리하기 위한 기본 공간이다.
 
-현재 단계에서는 사용자 입력 템플릿과 수동 AI Dev 루프 보조 스크립트를 제공한다. Codex 또는 GPT를 직접 호출하는 자동 개발 루프 실행기는 아직 구현하지 않는다.
+현재 단계에서는 사용자 입력 템플릿과 수동 AI Dev 루프 보조 스크립트를 제공한다. Codex CLI 완전 자동화 실행기는 다음 목표에서 단계적으로 도입하며, 각 task 전환 전에는 `goal.md`, `queue.json`, `state.json`을 확인한다.
 
 ## 사람이 직접 관리하는 파일
 
@@ -546,6 +546,47 @@ powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cycle.ps1 -DryRun -
 `save-review` 실패는 잘못된 클립보드 입력 때문에 발생할 수 있다. 실패 시에는 오류 preview를 확인하고 JSON 리뷰만 다시 복사한다. 완료된 goal이나 기존 정상 상태를 불필요하게 오염시키지 않도록 실패 기록 방식은 별도 정책에 따라 개선한다.
 
 최종 검증 task에서는 PowerShell 문법 검증, `auto-step`/`auto-cycle` DryRun, `save-review` 성공/실패 흐름 확인 결과를 `test-result.md`에 남기는 것을 원칙으로 한다. 실행하지 않은 검증은 통과로 기록하지 않는다.
+
+## Codex CLI 완전 자동화 준비
+
+다음 자동화 단계에서는 Codex CLI를 구현자와 리뷰어로 사용한다. GPT API Key, Cline, Copilot CLI, `gh` 없이 Codex CLI만 사용한다.
+
+현재 전제:
+
+- `codex-cli 0.133.0` 사용 가능
+- `codex exec` 동작 확인 완료
+- approval: `never`
+- sandbox: `workspace-write`
+- workdir: `D:\ai-apps\planpilot-local`
+- Cline은 삭제되어 사용하지 않음
+- Copilot CLI와 `gh`는 현재 사용하지 않음
+
+도입 예정 스크립트:
+
+- `scripts/ai-dev-run-codex.ps1`: `.ai-dev/current-task-prompt.md`를 Codex CLI에 전달해 현재 task 구현을 수행한다.
+- `scripts/ai-dev-run-review-codex.ps1`: `.ai-dev/review-prompt.md`를 Codex CLI에 전달해 JSON 리뷰를 생성하고 저장 흐름에 연결한다.
+- `scripts/ai-dev-auto-cycle-full.ps1`: prompt 생성, Codex 구현, check, diff 저장, Codex 리뷰, save-review, pass 시 commit/complete-task를 연결한다.
+
+초기 안전 기준:
+
+- full cycle은 처음에 `MaxTasks 1` 중심으로 제한한다.
+- Codex 구현 실행은 `AllowCodex`가 있을 때만 수행한다.
+- Codex 리뷰 실행은 `AllowReviewCodex`가 있을 때만 수행한다.
+- git commit은 `AllowCommit`이 있을 때만 수행한다.
+- git status가 dirty이면 Codex 구현 실행을 기본 중단한다.
+- build/check 실패, package 파일 변경, 리뷰 decision이 `pass`가 아닌 경우 자동 커밋하지 않는다.
+- `git reset`, `git clean`, `npm install`, `git push`는 자동 실행하지 않는다.
+
+자동화 로그와 결과 파일:
+
+- `.ai-dev/codex-result.md`: Codex 구현 실행 결과
+- `.ai-dev/review-response.json`: Codex 리뷰 JSON 원문
+- `.ai-dev/review.md`: 저장된 리뷰 요약
+- `.ai-dev/test-result.md`: check/build 또는 수동 검증 요약
+- `.ai-dev/loop-log.md`: 루프 진행 기록
+- `.ai-dev/state.json`: 현재 상태와 마지막 실패 요약
+
+T001 정책 문서화 단계에서는 위 스크립트를 아직 만들지 않는다. 실제 Codex CLI 호출도 하지 않는다.
 
 ## 운영 원칙
 

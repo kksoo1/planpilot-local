@@ -39,6 +39,18 @@ AI Dev Loop Codex CLI 완전 자동화 도입
 - git reset, git clean, npm install 금지가 명확하다.
 - package 변경 감지와 build 실패 시 자동 commit 금지가 명확하다.
 
+T001 문서화 결과:
+
+- Codex CLI는 구현자 역할에서 `.ai-dev/current-task-prompt.md`를 입력으로 사용한다.
+- Codex CLI는 리뷰어 역할에서 `.ai-dev/review-prompt.md`를 입력으로 사용하고 JSON 리뷰를 생성한다.
+- GPT API, Cline, Copilot CLI, `gh` 없이 Codex CLI만으로 구현/리뷰 흐름을 구성한다.
+- 초기 full auto-cycle은 `MaxTasks 1`과 명시적 Allow 옵션을 기준으로 제한한다.
+- Codex 구현은 `AllowCodex`, Codex 리뷰는 `AllowReviewCodex`, git commit은 `AllowCommit`이 있을 때만 실행한다.
+- git status dirty, package 파일 변경, build/check 실패, 리뷰 decision이 `pass`가 아닌 경우 자동 커밋하지 않는다.
+- `git reset`, `git clean`, `npm install`, `git push`, DB 삭제/복원/마이그레이션은 자동 실행하지 않는다.
+- 실행 결과는 `.ai-dev/codex-result.md`, `.ai-dev/review-response.json`, `.ai-dev/review.md`, `.ai-dev/test-result.md`, `.ai-dev/loop-log.md`, `.ai-dev/state.json`에 기록하는 기준으로 정리했다.
+- T002에서는 위 정책을 바탕으로 `scripts/ai-dev-run-codex.ps1`을 추가할 수 있다.
+
 ### T002 Codex 구현 실행 스크립트 추가
 
 - `scripts/ai-dev-run-codex.ps1`을 추가한다.

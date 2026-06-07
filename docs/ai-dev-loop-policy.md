@@ -452,6 +452,104 @@ T006 같은 최종 검증 task는 build/test/lint 외에도 PowerShell 문법 �
 - 실행하지 않은 검증 항목은 수동 요약에 통과로 적지 않는다.
 - 수동 요약 모드의 `state.json.lastCommandStatus`는 기록 작업 성공 여부를 뜻하며, 검증 자체의 통과/실패/미수행 판단은 `test-result.md` 본문에 남긴다.
 
+## Codex CLI 완전 자동화 정책
+
+AI Dev Loop의 다음 자동화 단계는 Codex CLI를 구현자와 리뷰어로 사용한다. GPT API Key, Cline, Copilot CLI, `gh` 없이 로컬 저장소 안에서 `codex exec` 기반 실행 흐름을 구성한다.
+
+현재 환경 기준:
+
+- Codex CLI: `codex-cli 0.133.0`
+- 실행 방식: `codex exec`
+- workdir: `D:\ai-apps\planpilot-local`
+- approval: `never`
+- sandbox: `workspace-write`
+- Cline: 삭제되어 사용하지 않음
+- Copilot CLI, `gh`: 현재 사용하지 않음
+
+### 역할 분리
+
+- 구현자 역할: `current-task-prompt.md`를 Codex CLI에 전달해 현재 task 범위 안의 코드 또는 문서 수정을 수행한다.
+- 리뷰어 역할: `review-prompt.md`를 Codex CLI에 전달해 지정된 JSON 형식의 리뷰 결과를 생성한다.
+- 리뷰 저장: Codex 리뷰 결과는 `.ai-dev/review-response.json`에 저장한 뒤 `ai-dev-save-review.ps1` 흐름으로 `.ai-dev/review.md`와 `.ai-dev/state.json`에 반영한다.
+- 루프 기록: 구현 결과, 리뷰 결과, 실패 요약은 `.ai-dev/codex-result.md`, `.ai-dev/review-response.json`, `.ai-dev/loop-log.md`, `.ai-dev/state.json`에 남긴다.
+
+### 초기 full auto-cycle 제한
+
+초기 `ai-dev-auto-cycle-full.ps1`는 안전을 위해 작은 범위에서만 동작해야 한다.
+
+- 기본 검증 단위는 `MaxTasks 1`로 제한한다.
+- Codex 구현 실행은 명시적 `AllowCodex` 옵션이 있을 때만 수행한다.
+- Codex 리뷰 실행은 명시적 `AllowReviewCodex` 옵션이 있을 때만 수행한다.
+- git commit은 명시적 `AllowCommit` 옵션이 있을 때만 수행한다.
+- git push, PR 생성, 배포는 자동화 범위에서 제외한다.
+
+### 허용 명령과 허용 단계
+
+명시적 Allow 옵션과 안전 조건을 만족할 때만 다음 단계를 자동화 후보로 둔다.
+
+- `ai-dev-make-prompt.ps1`로 현재 task prompt 생성
+- `ai-dev-run-codex.ps1`로 Codex 구현 실행
+- `ai-dev-check.ps1`로 build/check 실행
+- `ai-dev-save-diff.ps1`로 diff 저장
+- `ai-dev-make-review-prompt.ps1`로 리뷰 prompt 생성
+- `ai-dev-run-review-codex.ps1`로 Codex 리뷰 실행
+- `ai-dev-save-review.ps1`로 리뷰 JSON 저장
+- 리뷰가 `pass`이고 모든 게이트를 통과한 경우에만 `ai-dev-commit.ps1`와 `ai-dev-complete-task.ps1` 연결
+
+### 금지 명령과 금지 단계
+
+다음 작업은 full auto-cycle에서 자동 실행하지 않는다.
+
+- GPT API 직접 호출
+- Cline 실행
+- Copilot CLI 실행
+- `gh` 또는 GitHub PR 자동 연동
+- `git push`
+- `git reset`
+- `git clean`
+- destructive `git checkout` 또는 사용자 변경 되돌리기
+- `npm install`
+- package 대량 교체
+- DB 삭제, 초기화, 복원, 마이그레이션
+- 사용자 데이터 덮어쓰기
+
+### 자동 커밋 게이트
+
+자동 커밋은 다음 조건을 모두 만족해야만 가능하다.
+
+- `AllowCommit`이 명시적으로 지정되어 있다.
+- build/check가 성공했다.
+- 리뷰 decision이 `pass`다.
+- `package.json`과 `package-lock.json`이 변경되지 않았다.
+- 현재 task 범위 밖 파일이 포함되지 않았다.
+- dirty worktree가 예상 변경만 포함한다.
+- `git reset`, `git clean`, `npm install` 없이 완료 가능하다.
+
+다음 경우에는 자동 커밋하지 않는다.
+
+- build/check 실패
+- 리뷰 decision이 `revise` 또는 `blocked`
+- 리뷰 JSON 파싱 실패
+- package 파일 변경 감지
+- 예상하지 못한 사용자 변경 감지
+- 현재 task 범위 밖 수정 감지
+
+### 안전 중단 조건
+
+Codex CLI 자동화는 아래 조건에서 즉시 중단한다.
+
+- Codex 구현 실행 전 `git status`가 dirty인 경우
+- `current-task-prompt.md` 또는 `review-prompt.md`가 없거나 현재 task와 맞지 않는 경우
+- Codex 실행 결과가 실패하거나 출력이 비어 있는 경우
+- Codex 리뷰 결과에서 JSON 객체를 추출할 수 없는 경우
+- build/check가 실패한 경우
+- package 파일 변경이 감지된 경우
+- 리뷰 decision이 `pass`가 아닌 경우
+- DB schema 변경, 데이터 삭제, 복원, 마이그레이션이 필요한 경우
+- 같은 오류가 반복되어 안전하게 진행할 수 없는 경우
+
+실패 시에는 실패를 리뷰 결과로 오인하지 않도록 주의한다. 특히 이미 `completed`인 goal을 임시 입력 오류나 Codex 실행 실패만으로 `blocked`처럼 보이게 만들지 않는다. 필요한 경우 `state.json`에는 실패 요약만 기록하고, 기존 완료 상태를 덮어쓸지 여부는 별도 정책과 사용자 판단을 따른다.
+
 ## 자동 커밋 조건
 
 다음 조건을 모두 만족해야 자동 커밋할 수 있다.
