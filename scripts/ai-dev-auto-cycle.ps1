@@ -29,6 +29,11 @@ function Write-CycleResult {
     Write-Host "Stopped reason: $($Result.stoppedReason)"
     Write-Host "Completed: $($Result.completed)"
     Write-Host "Exit code: $($Result.exitCode)"
+
+    if ($Result.stoppedReason -eq "goal_completed") {
+        Write-Host "Summary: 목표 완료로 종료되었습니다. 더 실행할 task가 없습니다."
+        Write-Host "Next: 다음 목표를 시작하려면 .ai-dev/goal.md, .ai-dev/queue.json, .ai-dev/state.json을 새 목표로 초기화하세요."
+    }
 }
 
 function New-CycleResult {

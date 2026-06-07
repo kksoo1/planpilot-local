@@ -169,6 +169,20 @@ switch ($action) {
             exit 0
         }
 
+        if ($action -eq "goal_completed") {
+            $goalCompletedCommands = @(
+                "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-status.ps1"
+            )
+            $result = New-StepResult `
+                -Action $action `
+                -Executed $false `
+                -ExitCode 0 `
+                -Message "현재 goal은 completed 상태입니다. 더 실행할 task가 없습니다. 다음 목표를 시작하려면 .ai-dev/goal.md, .ai-dev/queue.json, .ai-dev/state.json을 새 목표로 초기화하세요. 상태 확인 명령: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-status.ps1" `
+                -RecommendedCommands $goalCompletedCommands
+            Write-StepResult $result
+            exit 0
+        }
+
         $forbiddenActions = @(
             "run_codex_or_cline",
             "ask_gpt_review",
