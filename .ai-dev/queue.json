@@ -2,8 +2,8 @@
     "goalTitle":  "AI Dev Loop 수동 자동화 UX 개선",
     "goalSource":  ".ai-dev/goal.md",
     "createdAt":  "2026-06-07T00:00:00+09:00",
-    "updatedAt":  "2026-06-07T07:03:09.8221099+00:00",
-    "currentTaskId":  "T005",
+    "updatedAt":  "2026-06-07T07:14:52.9526557+00:00",
+    "currentTaskId":  "T006",
     "tasks":  [
                   {
                       "id":  "T001",
@@ -104,7 +104,7 @@
                       "title":  "최종 검증 기록 흐름 개선",
                       "description":  "T006 같은 최종 검증에서 PowerShell 문법 검증, auto-step/auto-cycle DryRun 결과를 test-result.md에 기록하기 쉬운 흐름을 추가하거나 README에 명확히 정리한다.",
                       "type":  "implementation",
-                      "status":  "in_progress",
+                      "status":  "done",
                       "priority":  "P1",
                       "dependsOn":  [
                                         "T004"
@@ -119,14 +119,16 @@
                                            "기존 build/test/lint 흐름을 깨지 않는지 확인",
                                            "PowerShell 문법 검증"
                                        ],
-                      "commitMessage":  "Improve final verification result recording"
+                      "commitMessage":  "Improve final verification result recording",
+                      "completedAt":  "2026-06-07T07:14:52.9526557+00:00",
+                      "resultSummary":  "T005 완료: ai-dev-check.ps1에 수동 검증 요약 기록 모드 추가, test-result.md manual-summary 기록 확인"
                   },
                   {
                       "id":  "T006",
                       "title":  "최종 검증 및 요약",
                       "description":  "수정된 PowerShell 스크립트 문법 검증, auto-step/auto-cycle DryRun, save-review 실패/성공 흐름 확인, 전체 상태 점검을 수행한다.",
                       "type":  "verification",
-                      "status":  "pending",
+                      "status":  "in_progress",
                       "priority":  "P0",
                       "dependsOn":  [
                                         "T005"

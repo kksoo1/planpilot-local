@@ -30,3 +30,8 @@
 - Task: T004 save-review 실패 시 상태 오염 방지
 - Result: T004 완료: save-review 파싱 실패 시 review.md/state.json 오염 방지, 오류 preview 유지, 정상 JSON 저장 확인
 - Next task: T005 최종 검증 기록 흐름 개선
+## 2026-06-07 16:14:53 - Task completed
+
+- Task: T005 최종 검증 기록 흐름 개선
+- Result: T005 완료: ai-dev-check.ps1에 수동 검증 요약 기록 모드 추가, test-result.md manual-summary 기록 확인
+- Next task: T006 최종 검증 및 요약
