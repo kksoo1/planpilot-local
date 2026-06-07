@@ -20,3 +20,8 @@
 - Task: T002 goal_completed 안내 개선
 - Result: T002 완료: goal_completed 상태의 auto-step/auto-cycle 안내 개선, 문법 검증 및 DryRun/Json 기존 동작 확인
 - Next task: T003 ask_gpt_review auto-cycle 안내 개선
+## 2026-06-07 15:53:32 - Task completed
+
+- Task: T003 ask_gpt_review auto-cycle 안내 개선
+- Result: T003 완료: auto-cycle ask_gpt_review 중단 시 수동 리뷰 브리지 recommendedCommands를 텍스트/Json 출력에 포함
+- Next task: T004 save-review 실패 시 상태 오염 방지
