@@ -1,5 +1,14 @@
 # AI Dev Loop Log
 
+## 2026-06-07 17:00:00 - T004 implementation
+
+- Task: T004 검색 결과 빈 상태 표시
+- Changed files: `src/views/TasksView.tsx`
+- Result: 검색어가 있고 필터링된 업무 목록이 0건이면 기존 검색 결과 없음 문구와 함께 `다른 검색어를 입력해보세요.` 보조 문구를 표시하도록 보강했다.
+- Existing behavior: 검색어가 없는 전체 업무 없음 상태와 프로젝트/완료 업무 필터 empty 상태의 기존 메시지는 유지했다.
+- DB/package impact: IndexedDB 쓰기, DB schema 변경, package 변경 없음.
+- Verification: `npm run build` 성공.
+
 ## 2026-06-07 16:50:00 - T003 implementation
 
 - Task: T003 업무 검색 필터 로직 추가
@@ -60,3 +69,9 @@
 - Task: T003 업무 검색 필터 로직 추가
 - Result: T003 완료: 업무 검색 필터에 Task.memo와 Project.name 검색 추가, 기존 제목/프로젝트/완료 필터 유지, npm run build 통과
 - Next task: T004 검색 결과 빈 상태 표시
+
+## 2026-06-07 19:26:46 - Task completed
+
+- Task: T004 검색 결과 빈 상태 표시
+- Result: T004 완료: 검색 결과 없음 상태에 보조 안내 문구 추가, 기존 empty 상태 유지, npm run build 통과
+- Next task: T005 수동 테스트 체크리스트 업데이트
