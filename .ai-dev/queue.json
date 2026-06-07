@@ -2,8 +2,8 @@
     "goalTitle":  "AI Dev Loop 수동 자동화 UX 개선",
     "goalSource":  ".ai-dev/goal.md",
     "createdAt":  "2026-06-07T00:00:00+09:00",
-    "updatedAt":  "2026-06-07T06:53:32.5731008+00:00",
-    "currentTaskId":  "T004",
+    "updatedAt":  "2026-06-07T07:03:09.8221099+00:00",
+    "currentTaskId":  "T005",
     "tasks":  [
                   {
                       "id":  "T001",
@@ -80,7 +80,7 @@
                       "title":  "save-review 실패 시 상태 오염 방지",
                       "description":  "ai-dev-save-review.ps1이 FromClipboard 파싱 실패 시 review.md/state.json을 blocked로 덮어쓰기 전에 안전하게 처리할 수 있도록 정책 또는 옵션을 개선한다.",
                       "type":  "implementation",
-                      "status":  "in_progress",
+                      "status":  "done",
                       "priority":  "P0",
                       "dependsOn":  [
                                         "T003"
@@ -95,14 +95,16 @@
                                            "정상 JSON 저장은 기존처럼 동작하는지 확인",
                                            "PowerShell 문법 검증"
                                        ],
-                      "commitMessage":  "Avoid state pollution on review parse failure"
+                      "commitMessage":  "Avoid state pollution on review parse failure",
+                      "completedAt":  "2026-06-07T07:03:09.8221099+00:00",
+                      "resultSummary":  "T004 완료: save-review 파싱 실패 시 review.md/state.json 오염 방지, 오류 preview 유지, 정상 JSON 저장 확인"
                   },
                   {
                       "id":  "T005",
                       "title":  "최종 검증 기록 흐름 개선",
                       "description":  "T006 같은 최종 검증에서 PowerShell 문법 검증, auto-step/auto-cycle DryRun 결과를 test-result.md에 기록하기 쉬운 흐름을 추가하거나 README에 명확히 정리한다.",
                       "type":  "implementation",
-                      "status":  "pending",
+                      "status":  "in_progress",
                       "priority":  "P1",
                       "dependsOn":  [
                                         "T004"

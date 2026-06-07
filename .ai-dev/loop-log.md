@@ -25,3 +25,8 @@
 - Task: T003 ask_gpt_review auto-cycle 안내 개선
 - Result: T003 완료: auto-cycle ask_gpt_review 중단 시 수동 리뷰 브리지 recommendedCommands를 텍스트/Json 출력에 포함
 - Next task: T004 save-review 실패 시 상태 오염 방지
+## 2026-06-07 16:03:09 - Task completed
+
+- Task: T004 save-review 실패 시 상태 오염 방지
+- Result: T004 완료: save-review 파싱 실패 시 review.md/state.json 오염 방지, 오류 preview 유지, 정상 JSON 저장 확인
+- Next task: T005 최종 검증 기록 흐름 개선
