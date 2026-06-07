@@ -624,6 +624,48 @@ powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-codex.ps1 -AllowDirt
 
 이 스크립트는 Codex에 전달하는 프롬프트 끝에 추가 안전 규칙을 붙인다. git commit, git reset, git clean, npm install, package 파일 수정, 현재 task 범위 밖 작업을 금지한다. 스크립트 자체도 build/test/lint, git add, git commit을 실행하지 않는다.
 
+### Codex 리뷰 실행
+
+`.ai-dev/review-prompt.md`를 Codex CLI에 전달해 JSON 리뷰를 생성하고 `.ai-dev/review-response.json`에 저장한다. 실행 전 `git status --short`를 확인하고, 작업 트리가 dirty이면 기본 중단한다. 리뷰 대상 변경사항이 남아 있는 상태에서 실행해야 하는 경우에만 `-AllowDirty`를 명시한다.
+
+실행 예정 정보만 확인하려면 `-DryRun`을 사용한다.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-review-codex.ps1 -DryRun
+```
+
+기본 실행은 `codex exec`를 호출하고 stdout/stderr를 `.ai-dev/codex-review-result.md`에 저장한다. Codex 출력에서 첫 번째 유효 JSON 리뷰 객체를 추출해 `.ai-dev/review-response.json`에 저장한다.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-review-codex.ps1
+```
+
+`review-prompt.md`가 없을 때 자동 생성까지 허용하려면 `-GenerateReviewPromptIfMissing`를 사용한다.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-review-codex.ps1 -GenerateReviewPromptIfMissing
+```
+
+리뷰 JSON 저장 후 `ai-dev-save-review.ps1 -ReviewFile .ai-dev/review-response.json` 흐름까지 이어가려면 `-SaveReview`를 사용한다.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-review-codex.ps1 -AllowDirty -SaveReview
+```
+
+자동화에서 결과만 읽고 싶으면 `-Json`을 함께 사용할 수 있다.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-review-codex.ps1 -DryRun -Json
+```
+
+주의:
+
+- Codex 리뷰 실행 프롬프트에는 파일 수정 금지, git 명령 금지, build/test/lint 실행 금지, JSON 객체만 출력하라는 안전 규칙을 추가한다.
+- JSON 리뷰에는 `decision`, `severity`, `summary`, `required_changes`, `optional_suggestions`, `next_step` 필드가 필요하다.
+- JSON 추출에 실패하면 출력 preview를 보여주고 종료 코드 1로 종료한다.
+- `-AllowDirty`는 구현 변경사항을 리뷰해야 할 때만 사용한다. 사용자 변경과 자동화 산출물이 섞여 있으면 리뷰 결과와 후속 저장 상태가 혼동될 수 있다.
+- 이 스크립트는 git add, git commit, build/test/lint, GPT API 호출을 수행하지 않는다.
+
 ### 목표 입력 기반 자동 실행
 
 최종 목표는 사용자가 goal 파일과 queue 파일을 직접 편집하지 않고도 한 줄 명령으로 작은 앱 기능 task를 시작할 수 있게 하는 것이다.
