@@ -181,7 +181,10 @@ export function TasksView({
       )}
 
       {filteredTasks.length === 0 ? (
-        <p className="empty">{emptyMessage}</p>
+        <div className="empty">
+          <p>{emptyMessage}</p>
+          {hasSearchQuery && <p>다른 검색어를 입력해보세요.</p>}
+        </div>
       ) : (
         <ul className="task-list">
           {sortedTasks.map((task) => {
