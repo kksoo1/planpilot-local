@@ -38,3 +38,9 @@
 - Task: T001 업무 목록 구조와 필터 위치 확인
 - Result: T001 완료: 업무 목록 UI 구조, task 타입, 기존 필터/정렬 로직, 프로젝트명 연결 가능성, 검색 상태 위치와 DB schema 변경 불필요 여부 확인
 - Next task: T002 업무 검색 입력 UI 추가
+
+## 2026-06-07 16:54:45 - Task completed
+
+- Task: T002 업무 검색 입력 UI 추가
+- Result: T002 완료: 업무 검색 입력 UI와 taskSearchQuery 상태는 이미 구현되어 있어 추가 src 변경 없이 already-satisfied 처리
+- Next task: T003 업무 검색 필터 로직 추가
