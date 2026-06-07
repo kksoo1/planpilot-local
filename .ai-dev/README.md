@@ -586,7 +586,41 @@ powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cycle.ps1 -DryRun -
 - `.ai-dev/loop-log.md`: 루프 진행 기록
 - `.ai-dev/state.json`: 현재 상태와 마지막 실패 요약
 
-T001 정책 문서화 단계에서는 위 스크립트를 아직 만들지 않는다. 실제 Codex CLI 호출도 하지 않는다.
+### Codex 구현 실행
+
+`.ai-dev/current-task-prompt.md`를 Codex CLI에 전달해 현재 task 구현을 실행한다. 실행 전 `git status --short`를 확인하고, 작업 트리가 dirty이면 기본 중단한다. 단, dirty 파일이 `.ai-dev/current-task-prompt.md`뿐이면 프롬프트 생성 산출물로 보고 진행할 수 있다.
+
+실행 예정 정보만 확인하려면 `-DryRun`을 사용한다.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-codex.ps1 -DryRun
+```
+
+기본 실행은 `codex exec`를 호출하고 stdout/stderr를 `.ai-dev/codex-result.md`에 저장한다.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-codex.ps1
+```
+
+`current-task-prompt.md`가 없을 때 자동 생성까지 허용하려면 `-GeneratePromptIfMissing`을 사용한다.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-codex.ps1 -GeneratePromptIfMissing
+```
+
+자동화에서 결과만 읽고 싶으면 `-Json`을 함께 사용할 수 있다.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-codex.ps1 -DryRun -Json
+```
+
+dirty worktree에서도 실행해야 하는 특별한 경우에만 `-AllowDirty`를 명시한다. 이 옵션은 사용자 변경과 Codex 변경이 섞일 수 있으므로 full cycle에서는 초기 기본값으로 사용하지 않는다.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-codex.ps1 -AllowDirty
+```
+
+이 스크립트는 Codex에 전달하는 프롬프트 끝에 추가 안전 규칙을 붙인다. git commit, git reset, git clean, npm install, package 파일 수정, 현재 task 범위 밖 작업을 금지한다. 스크립트 자체도 build/test/lint, git add, git commit을 실행하지 않는다.
 
 ## 운영 원칙
 
