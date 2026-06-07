@@ -35,3 +35,8 @@
 - Task: T005 최종 검증 기록 흐름 개선
 - Result: T005 완료: ai-dev-check.ps1에 수동 검증 요약 기록 모드 추가, test-result.md manual-summary 기록 확인
 - Next task: T006 최종 검증 및 요약
+## 2026-06-07 16:19:32 - Task completed
+
+- Task: T006 최종 검증 및 요약
+- Result: T006 완료: 수동 자동화 UX 개선 목표 최종 검증 완료, 문법 검증/DryRun/Json/save-review 실패·성공/ManualSummaryOnly 기록 확인
+- Next task: 없음

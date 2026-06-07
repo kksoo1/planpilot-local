@@ -2,8 +2,8 @@
     "goalTitle":  "AI Dev Loop 수동 자동화 UX 개선",
     "goalSource":  ".ai-dev/goal.md",
     "createdAt":  "2026-06-07T00:00:00+09:00",
-    "updatedAt":  "2026-06-07T07:14:52.9526557+00:00",
-    "currentTaskId":  "T006",
+    "updatedAt":  "2026-06-07T07:19:32.6947749+00:00",
+    "currentTaskId":  null,
     "tasks":  [
                   {
                       "id":  "T001",
@@ -128,7 +128,7 @@
                       "title":  "최종 검증 및 요약",
                       "description":  "수정된 PowerShell 스크립트 문법 검증, auto-step/auto-cycle DryRun, save-review 실패/성공 흐름 확인, 전체 상태 점검을 수행한다.",
                       "type":  "verification",
-                      "status":  "in_progress",
+                      "status":  "done",
                       "priority":  "P0",
                       "dependsOn":  [
                                         "T005"
@@ -143,7 +143,9 @@
                                            "save-review 실패/성공 흐름 확인",
                                            "git status clean 확인"
                                        ],
-                      "commitMessage":  null
+                      "commitMessage":  null,
+                      "completedAt":  "2026-06-07T07:19:32.6947749+00:00",
+                      "resultSummary":  "T006 완료: 수동 자동화 UX 개선 목표 최종 검증 완료, 문법 검증/DryRun/Json/save-review 실패·성공/ManualSummaryOnly 기록 확인"
                   }
               ]
 }
