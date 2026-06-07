@@ -37,6 +37,28 @@ PlanPilot Local 업무 검색/필터 UX 개선
 - 기존 완료/미완료 또는 상태 필터를 깨지 않는 구현 방향을 정리한다.
 - DB schema 변경이 필요 없는지 확인한다.
 
+T001 확인 결과:
+
+- 업무 목록 UI는 `src/views/TasksView.tsx`에서 렌더링한다.
+- `src/App.tsx`가 `tasks`, `projects`를 store에서 읽고, 업무 목록 파생 데이터인 `filteredTasks`, `sortedTasks`를 계산한 뒤 `TasksView`에 전달한다.
+- 검색어 상태는 이미 `src/App.tsx`의 `taskSearchQuery` state로 존재하며 `TasksView`에 `taskSearchQuery`, `onTaskSearchQueryChange` props로 전달된다.
+- `TasksView`에는 이미 업무 검색 input이 있으며, 빈 상태 메시지는 검색어 있음/프로젝트 필터/완료 업무 숨김 상태를 구분한다.
+- Task 타입은 `src/types.ts`에 있고 제목 필드는 `title`, 메모 필드는 선택 필드 `memo`, 프로젝트 연결 필드는 `projectId`다.
+- Project 타입은 `src/types.ts`에 있고 프로젝트명 필드는 `name`이다.
+- 프로젝트명 표시는 `src/App.tsx`에서 `getProjectName(projects, projectId)`를 `TasksView`와 `TaskCard`에 전달하는 방식으로 연결된다.
+- 기존 필터/정렬 로직은 `src/utils/taskFilters.ts`의 `filterTasks`, `sortTasks`에 있다.
+- 현재 `filterTasks`는 프로젝트 필터, 완료 업무 표시 여부, 제목 검색만 처리한다.
+- 검색어는 `trim().toLowerCase()`로 처리되어 앞뒤 공백과 대소문자 차이를 이미 무시한다.
+- 현재 검색 대상은 업무 제목뿐이며, 메모와 프로젝트명은 아직 포함되지 않는다.
+- 검색/필터는 `tasks` 배열을 대상으로 한 파생 데이터 계산이므로 IndexedDB 쓰기, DB schema 변경, package 추가가 필요 없다.
+- 다음 구현 task는 새 구조를 만들기보다 기존 `App.tsx`/`TasksView.tsx`/`taskFilters.ts` 흐름을 유지하며 보강하는 방식이 안전하다.
+
+후속 task 제안:
+
+- T002는 이미 검색 input과 검색어 state가 존재하므로, 코드 수정이 필요한지 먼저 확인한다. 요구사항이 이미 충족되어 있으면 코드 수정 없이 already-satisfied 처리할 수 있다.
+- T003는 `taskFilters.ts` 검색 대상에 `memo`와 프로젝트명을 포함할지 검토한다. 프로젝트명 검색을 넣으려면 `filterTasks`에 projects 또는 projectName lookup을 전달하는 최소 변경이 필요하다.
+- T004는 검색 결과 없음 empty 상태가 이미 존재하므로, 문구와 조건이 충분한지 먼저 확인한다.
+
 ### T002 업무 검색 입력 UI 추가
 
 - 업무 목록 화면에 검색어 입력 UI를 추가한다.
