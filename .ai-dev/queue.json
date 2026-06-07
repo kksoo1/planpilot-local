@@ -2,8 +2,8 @@
     "goalTitle":  "AI Dev Loop 수동 자동화 UX 개선",
     "goalSource":  ".ai-dev/goal.md",
     "createdAt":  "2026-06-07T00:00:00+09:00",
-    "updatedAt":  "2026-06-07T05:58:51.9103884+00:00",
-    "currentTaskId":  "T002",
+    "updatedAt":  "2026-06-07T06:09:17.4715506+00:00",
+    "currentTaskId":  "T003",
     "tasks":  [
                   {
                       "id":  "T001",
@@ -33,7 +33,7 @@
                       "title":  "goal_completed 안내 개선",
                       "description":  "ai-dev-auto-step.ps1과 ai-dev-auto-cycle.ps1이 goal_completed 상태에서 더 명확한 완료 안내와 다음 목표 시작 안내를 출력하도록 개선한다.",
                       "type":  "implementation",
-                      "status":  "in_progress",
+                      "status":  "done",
                       "priority":  "P1",
                       "dependsOn":  [
                                         "T001"
@@ -48,14 +48,16 @@
                                            "goal completed 상태에서 auto-cycle DryRun이 completed true로 종료되는지 확인",
                                            "PowerShell 문법 검증"
                                        ],
-                      "commitMessage":  "Improve goal completed auto-step guidance"
+                      "commitMessage":  "Improve goal completed auto-step guidance",
+                      "completedAt":  "2026-06-07T06:09:17.4715506+00:00",
+                      "resultSummary":  "T002 완료: goal_completed 상태의 auto-step/auto-cycle 안내 개선, 문법 검증 및 DryRun/Json 기존 동작 확인"
                   },
                   {
                       "id":  "T003",
                       "title":  "ask_gpt_review auto-cycle 안내 개선",
                       "description":  "ai-dev-auto-cycle.ps1이 ask_gpt_review에서 멈출 때 copy-review-prompt와 save-review FromClipboard 명령을 더 잘 보여주도록 개선한다.",
                       "type":  "implementation",
-                      "status":  "pending",
+                      "status":  "in_progress",
                       "priority":  "P1",
                       "dependsOn":  [
                                         "T002"

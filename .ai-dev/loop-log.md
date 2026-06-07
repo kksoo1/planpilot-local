@@ -15,3 +15,8 @@
 - Task: T001 수동 자동화 UX 개선 정책 문서화
 - Result: T001 완료: 수동 자동화 UX 개선 정책 문서화, goal_completed/ask_gpt_review/save-review 실패/test-result 기록 개선 방향 정리
 - Next task: T002 goal_completed 안내 개선
+## 2026-06-07 15:09:17 - Task completed
+
+- Task: T002 goal_completed 안내 개선
+- Result: T002 완료: goal_completed 상태의 auto-step/auto-cycle 안내 개선, 문법 검증 및 DryRun/Json 기존 동작 확인
+- Next task: T003 ask_gpt_review auto-cycle 안내 개선
