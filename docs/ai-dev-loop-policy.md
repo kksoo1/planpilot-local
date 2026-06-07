@@ -446,7 +446,11 @@ T006 같은 최종 검증 task는 build/test/lint 외에도 PowerShell 문법 �
 - 실행하지 않은 검증은 통과로 기록하지 않는다.
 - 최종 검증에서 확인한 수동 명령, exit code, 주요 출력 요약을 기록한다.
 - build/test/lint 흐름은 기존 `ai-dev-check.ps1` 동작과 충돌하지 않아야 한다.
-- 문법 검증이나 DryRun 결과를 기록하기 위한 helper가 필요하면 별도 task에서 추가한다.
+- 문법 검증이나 DryRun 결과를 기록할 때는 `ai-dev-check.ps1 -ManualSummaryOnly -ManualSummary "..."`를 사용할 수 있다.
+- 수동 요약 기록 모드는 npm build/test/lint를 실행하지 않는다.
+- 수동 요약에는 PowerShell 문법 검증 결과, `auto-step` DryRun 결과, `auto-cycle` DryRun 결과, `save-review` 실패/성공 흐름 확인, git status 확인처럼 사람이 실제로 수행한 항목만 적는다.
+- 실행하지 않은 검증 항목은 수동 요약에 통과로 적지 않는다.
+- 수동 요약 모드의 `state.json.lastCommandStatus`는 기록 작업 성공 여부를 뜻하며, 검증 자체의 통과/실패/미수행 판단은 `test-result.md` 본문에 남긴다.
 
 ## 자동 커밋 조건
 

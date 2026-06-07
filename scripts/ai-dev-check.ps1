@@ -2,7 +2,9 @@
     [switch]$BuildOnly,
     [switch]$SkipBuild,
     [switch]$SkipTest,
-    [switch]$SkipLint
+    [switch]$SkipLint,
+    [switch]$ManualSummaryOnly,
+    [string]$ManualSummary
 )
 
 . "$PSScriptRoot\ai-dev-env.ps1"
@@ -95,7 +97,13 @@ function Invoke-NpmCheck {
     }
 }
 
-foreach ($requiredPath in @($packageRelativePath, $stateRelativePath, $testResultRelativePath)) {
+$requiredPaths = if ($ManualSummaryOnly) {
+    @($stateRelativePath, $testResultRelativePath)
+} else {
+    @($packageRelativePath, $stateRelativePath, $testResultRelativePath)
+}
+
+foreach ($requiredPath in $requiredPaths) {
     $fullPath = Join-Path $projectRoot $requiredPath
 
     if (-not (Test-Path -LiteralPath $fullPath -PathType Leaf)) {
@@ -103,8 +111,58 @@ foreach ($requiredPath in @($packageRelativePath, $stateRelativePath, $testResul
     }
 }
 
-$package = Read-JsonFile $packagePath $packageRelativePath
 $state = Read-JsonFile $statePath $stateRelativePath
+
+if ($ManualSummaryOnly) {
+    if ([string]::IsNullOrWhiteSpace($ManualSummary)) {
+        Stop-WithError "-ManualSummaryOnly를 사용할 때는 -ManualSummary 내용을 입력해야 합니다."
+    }
+
+    $currentTaskId = if ($null -ne $state.currentTaskId -and -not [string]::IsNullOrWhiteSpace([string]$state.currentTaskId)) {
+        [string]$state.currentTaskId
+    } else {
+        "없음"
+    }
+
+    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    $codeFence = '```'
+    $testResultContent = @"
+# AI Dev Test Result
+
+## $timestamp
+
+- Overall result: recorded
+- Current task: $currentTaskId
+- Mode: manual-summary
+- Commands:
+  - npm run build: skipped
+  - npm run test: skipped
+  - npm run lint: skipped
+
+### Manual Verification Summary
+
+${codeFence}text
+$ManualSummary
+$codeFence
+"@
+
+    [System.IO.File]::WriteAllText($testResultPath, $testResultContent, $utf8WithBom)
+
+    $now = [DateTimeOffset]::UtcNow.ToString("o")
+    Set-ObjectProperty $state "lastCommand" "manual-summary"
+    Set-ObjectProperty $state "lastCommandStatus" "passed"
+    Set-ObjectProperty $state "lastErrorSummary" ""
+    Set-ObjectProperty $state "updatedAt" $now
+
+    $stateJson = $state | ConvertTo-Json -Depth 20
+    [System.IO.File]::WriteAllText($statePath, $stateJson, $utf8WithBom)
+
+    Write-Host "수동 검증 요약 기록 완료: $testResultRelativePath"
+    Write-Host "상태 저장 완료: $stateRelativePath"
+    exit 0
+}
+
+$package = Read-JsonFile $packagePath $packageRelativePath
 
 $hasBuild = Test-HasScript $package "build"
 $hasTest = Test-HasScript $package "test"
