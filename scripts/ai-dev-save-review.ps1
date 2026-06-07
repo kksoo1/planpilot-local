@@ -1,7 +1,8 @@
 ﻿param(
     [string]$ReviewFile,
     [string]$ReviewJson,
-    [switch]$FromClipboard
+    [switch]$FromClipboard,
+    [switch]$WriteFailureReview
 )
 
 . "$PSScriptRoot\ai-dev-env.ps1"
@@ -389,6 +390,23 @@ $codeFence
     Save-StateReviewResult $State "blocked" "critical" "failed" $ErrorSummary
 }
 
+function Stop-WithInvalidReviewInput {
+    param(
+        [object]$State,
+        [string]$RawInput,
+        [string]$ErrorSummary
+    )
+
+    if ($WriteFailureReview) {
+        Save-InvalidReview $State $RawInput $ErrorSummary
+        Stop-WithError "리뷰 JSON 저장에 실패했습니다: $ErrorSummary"
+    }
+
+    Write-Host "리뷰 입력 오류로 review.md와 state.json을 수정하지 않았습니다."
+    Write-Host "실패 리뷰를 명시적으로 기록하려면 -WriteFailureReview 옵션을 사용하세요."
+    Stop-WithError "리뷰 JSON 저장에 실패했습니다: $ErrorSummary"
+}
+
 if (-not (Test-Path -LiteralPath $statePath -PathType Leaf)) {
     Stop-WithError "필수 파일이 없습니다: $stateRelativePath"
 }
@@ -399,8 +417,7 @@ $inputPreview = Get-InputPreview $rawReview
 
 if ([string]::IsNullOrWhiteSpace($rawReview)) {
     $errorSummary = "리뷰 입력이 비어 있습니다. ChatGPT가 출력한 JSON 리뷰를 클립보드에 복사한 뒤 다시 실행하세요. 입력 preview: $inputPreview"
-    Save-InvalidReview $state $rawReview $errorSummary
-    Stop-WithError "리뷰 JSON 저장에 실패했습니다: $errorSummary"
+    Stop-WithInvalidReviewInput $state $rawReview $errorSummary
 }
 
 try {
@@ -413,8 +430,7 @@ try {
     }
 } catch {
     $errorSummary = "$($_.Exception.Message) 입력 preview: $inputPreview"
-    Save-InvalidReview $state $rawReview $errorSummary
-    Stop-WithError "리뷰 JSON 저장에 실패했습니다: $errorSummary"
+    Stop-WithInvalidReviewInput $state $rawReview $errorSummary
 }
 
 $prettyJson = $review | ConvertTo-Json -Depth 20
