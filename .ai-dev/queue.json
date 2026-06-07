@@ -2,8 +2,8 @@
     "goalTitle":  "PlanPilot Local 업무 검색/필터 UX 개선",
     "goalSource":  ".ai-dev/goal.md",
     "createdAt":  "2026-06-07T16:22:54.9531604+09:00",
-    "updatedAt":  "2026-06-07T07:54:45.5475461+00:00",
-    "currentTaskId":  "T003",
+    "updatedAt":  "2026-06-07T10:19:25.3882172+00:00",
+    "currentTaskId":  "T004",
     "tasks":  [
                   {
                       "id":  "T001",
@@ -55,7 +55,7 @@
                       "title":  "업무 검색 필터 로직 추가",
                       "description":  "검색어를 기준으로 업무 목록을 필터링한다. 최소 제목 검색을 지원하고, 가능한 경우 설명/메모/프로젝트명도 포함한다.",
                       "type":  "implementation",
-                      "status":  "in_progress",
+                      "status":  "done",
                       "priority":  "P0",
                       "dependsOn":  [
                                         "T002"
@@ -70,14 +70,16 @@
                                            "검색 과정에서 DB 쓰기 코드가 없는지 확인",
                                            "npm run build"
                                        ],
-                      "commitMessage":  "Add task search filtering"
+                      "commitMessage":  "Add task search filtering",
+                      "completedAt":  "2026-06-07T10:19:25.3882172+00:00",
+                      "resultSummary":  "T003 완료: 업무 검색 필터에 Task.memo와 Project.name 검색 추가, 기존 제목/프로젝트/완료 필터 유지, npm run build 통과"
                   },
                   {
                       "id":  "T004",
                       "title":  "검색 결과 빈 상태 표시",
                       "description":  "검색 결과가 없을 때 사용자에게 빈 상태 메시지를 표시한다.",
                       "type":  "implementation",
-                      "status":  "pending",
+                      "status":  "in_progress",
                       "priority":  "P1",
                       "dependsOn":  [
                                         "T003"

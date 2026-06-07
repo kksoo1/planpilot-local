@@ -1,5 +1,15 @@
 # AI Dev Loop Log
 
+## 2026-06-07 16:50:00 - T003 implementation
+
+- Task: T003 업무 검색 필터 로직 추가
+- Changed files: `src/utils/taskFilters.ts`, `src/App.tsx`
+- Result: 기존 제목 검색을 유지하면서 `Task.memo`와 연결된 `Project.name`을 검색 대상에 추가했다.
+- Behavior: 검색어는 기존처럼 `trim().toLowerCase()` 기준으로 처리되어 앞뒤 공백과 대소문자를 무시한다.
+- Existing filters: 프로젝트 필터와 완료 업무 표시 여부 필터는 기존 조건을 유지한다.
+- DB/package impact: 검색은 `tasks`와 `projects` 배열의 파생 계산으로만 처리하며 IndexedDB 쓰기, DB schema 변경, package 변경 없음.
+- Verification: `npm run build` 성공.
+
 ## 2026-06-07 16:40:00 - T002 already satisfied check
 
 - Task: T002 업무 검색 입력 UI 추가
@@ -44,3 +54,9 @@
 - Task: T002 업무 검색 입력 UI 추가
 - Result: T002 완료: 업무 검색 입력 UI와 taskSearchQuery 상태는 이미 구현되어 있어 추가 src 변경 없이 already-satisfied 처리
 - Next task: T003 업무 검색 필터 로직 추가
+
+## 2026-06-07 19:19:25 - Task completed
+
+- Task: T003 업무 검색 필터 로직 추가
+- Result: T003 완료: 업무 검색 필터에 Task.memo와 Project.name 검색 추가, 기존 제목/프로젝트/완료 필터 유지, npm run build 통과
+- Next task: T004 검색 결과 빈 상태 표시
