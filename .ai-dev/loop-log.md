@@ -21,3 +21,9 @@
 - Project lookup: `Task.projectId`와 `Project.id`를 통해 프로젝트명을 연결할 수 있으며, 현재 화면 표시는 `getProjectName(projects, projectId)`를 사용한다.
 - DB/package impact: 검색/필터는 파생 데이터로 처리 가능하므로 IndexedDB schema 변경, DB 쓰기 코드, package 추가가 필요 없다.
 - Follow-up: T002와 T004는 이미 일부 구현된 상태이므로 먼저 already-satisfied 여부를 확인하고, T003에서 메모/프로젝트명 검색 보강을 검토한다.
+
+## 2026-06-07 16:32:29 - Task completed
+
+- Task: T001 업무 목록 구조와 필터 위치 확인
+- Result: T001 완료: 업무 목록 UI 구조, task 타입, 기존 필터/정렬 로직, 프로젝트명 연결 가능성, 검색 상태 위치와 DB schema 변경 불필요 여부 확인
+- Next task: T002 업무 검색 입력 UI 추가
