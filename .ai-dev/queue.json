@@ -2,8 +2,8 @@
     "goalTitle":  "AI Dev Loop Codex CLI 완전 자동화 도입",
     "goalSource":  ".ai-dev/goal.md",
     "createdAt":  "2026-06-07T19:59:48.1282711+09:00",
-    "updatedAt":  "2026-06-07T13:23:42.7240601+00:00",
-    "currentTaskId":  "T004",
+    "updatedAt":  "2026-06-07T13:57:13.9217915+00:00",
+    "currentTaskId":  "T005",
     "tasks":  [
                   {
                       "id":  "T001",
@@ -81,7 +81,7 @@
                       "title":  "full auto-cycle 초안 추가",
                       "description":  "make-prompt, run-codex, check, save-diff, make-review-prompt, run-review-codex를 연결하는 ai-dev-auto-cycle-full.ps1 초안을 추가한다.",
                       "type":  "implementation",
-                      "status":  "in_progress",
+                      "status":  "done",
                       "priority":  "P0",
                       "dependsOn":  [
                                         "T003"
@@ -96,14 +96,16 @@
                                            "AllowCodex, AllowReviewCodex, AllowCommit 같은 명시적 옵션이 있는지 확인",
                                            "PowerShell 문법 검증"
                                        ],
-                      "commitMessage":  "Add full AI dev auto cycle draft"
+                      "commitMessage":  "Add full AI dev auto cycle draft",
+                      "completedAt":  "2026-06-07T13:57:13.9217915+00:00",
+                      "resultSummary":  "T004 완료: make-prompt/run-codex/check/save-diff/make-review-prompt/run-review-codex를 연결하는 ai-dev-auto-cycle-full.ps1 초안 추가, DryRun/Json/AllowCodex 중단 확인"
                   },
                   {
                       "id":  "T005",
                       "title":  "자동 커밋과 task 완료 연결",
                       "description":  "리뷰 결과가 pass일 때만 선택 파일 커밋과 complete-task를 수행하도록 full auto-cycle에 연결한다.",
                       "type":  "implementation",
-                      "status":  "pending",
+                      "status":  "in_progress",
                       "priority":  "P0",
                       "dependsOn":  [
                                         "T004"

@@ -54,3 +54,8 @@
 - Task: T003 Codex 리뷰 실행 스크립트 추가
 - Result: T003 완료: review-prompt.md를 codex exec에 전달해 JSON 리뷰를 생성하는 ai-dev-run-review-codex.ps1 추가, 문법 검증과 DryRun/Json 확인
 - Next task: T004 full auto-cycle 초안 추가
+## 2026-06-07 22:57:13 - Task completed
+
+- Task: T004 full auto-cycle 초안 추가
+- Result: T004 완료: make-prompt/run-codex/check/save-diff/make-review-prompt/run-review-codex를 연결하는 ai-dev-auto-cycle-full.ps1 초안 추가, DryRun/Json/AllowCodex 중단 확인
+- Next task: T005 자동 커밋과 task 완료 연결
