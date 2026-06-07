@@ -1,5 +1,16 @@
 # AI Dev Loop Log
 
+## 2026-06-07 16:40:00 - T002 already satisfied check
+
+- Task: T002 업무 검색 입력 UI 추가
+- Checked files: `src/App.tsx`, `src/views/TasksView.tsx`, `src/utils/taskFilters.ts`
+- Result: 검색 입력 UI는 이미 `TasksView`에 존재하며 placeholder는 `업무 제목 검색`이다.
+- State: 검색어 상태는 이미 `App.tsx`의 `taskSearchQuery`로 관리되고 `TasksView`의 `onTaskSearchQueryChange`로 갱신된다.
+- Existing behavior: 현재 코드에는 이미 `filterTasks`를 통한 제목 검색 필터링도 연결되어 있다.
+- Decision: T002 요구사항의 UI와 상태 관리는 이미 충족되어 있으므로 `src` 코드는 수정하지 않았다. 검색 필터링을 제거하면 기존 동작을 되돌리는 변경이 되므로 수행하지 않았다.
+- DB/package impact: IndexedDB 쓰기, DB schema 변경, package 변경 없음.
+- Verification: `npm run build` 성공.
+
 ## 2026-06-07 16:22:54 - New goal initialized
 
 - Previous goal: AI Dev Loop 수동 자동화 UX 개선
