@@ -666,6 +666,57 @@ powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-review-codex.ps1 -Dr
 - `-AllowDirty`는 구현 변경사항을 리뷰해야 할 때만 사용한다. 사용자 변경과 자동화 산출물이 섞여 있으면 리뷰 결과와 후속 저장 상태가 혼동될 수 있다.
 - 이 스크립트는 git add, git commit, build/test/lint, GPT API 호출을 수행하지 않는다.
 
+### full auto-cycle 초안
+
+`ai-dev-auto-cycle-full.ps1`는 현재 task 기준으로 prompt 생성, Codex 구현, build check, diff 저장, strict review prompt 생성, Codex JSON 리뷰와 save-review 흐름을 순서대로 연결하는 초안이다.
+
+T004 버전의 실행 단계:
+
+1. `ai-dev-make-prompt.ps1`
+2. `ai-dev-run-codex.ps1`
+3. `ai-dev-check.ps1 -BuildOnly`
+4. `ai-dev-save-diff.ps1`
+5. `ai-dev-make-review-prompt.ps1 -Strict`
+6. `ai-dev-run-review-codex.ps1 -AllowDirty -SaveReview`
+
+먼저 DryRun으로 전체 단계를 확인한다. DryRun은 하위 스크립트를 실제 실행하지 않는다.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cycle-full.ps1 -DryRun
+```
+
+자동화 도구에서 결과만 파싱해야 하면 `-Json`을 함께 사용한다.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cycle-full.ps1 -DryRun -Json
+```
+
+기본값은 `MaxTasks 1`, `MaxSteps 20`이다. `MaxTasks`와 `MaxSteps`는 무한 반복을 막기 위한 제한이며, T004 초안은 task 완료 처리를 하지 않으므로 실제로는 현재 task 한 개만 다룬다.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cycle-full.ps1 -DryRun -MaxTasks 1 -MaxSteps 20
+```
+
+`-AllowCodex` 없이 실제 실행하면 prompt 생성 이후 Codex 구현 실행 직전에서 중단하고 추천 명령을 출력한다. Codex 구현까지 허용하려면 명시적으로 `-AllowCodex`를 지정한다.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cycle-full.ps1 -AllowCodex
+```
+
+Codex 구현과 Codex 리뷰까지 이어가려면 `-AllowCodex`와 `-AllowReviewCodex`를 함께 지정한다.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cycle-full.ps1 -AllowCodex -AllowReviewCodex -MaxTasks 1
+```
+
+dirty worktree에서 Codex 구현을 실행해야 하는 특별한 경우에만 `-AllowDirty`를 추가한다. dirty 상태 기본 중단 정책은 `ai-dev-run-codex.ps1`와 `ai-dev-run-review-codex.ps1`의 안전 게이트가 담당한다.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cycle-full.ps1 -AllowCodex -AllowReviewCodex -AllowDirty -MaxTasks 1
+```
+
+`-AllowCommit` 옵션은 T004에서 파라미터와 출력만 제공한다. 실제 `ai-dev-commit.ps1` 실행과 `ai-dev-complete-task.ps1` 연결은 T005에서 구현한다. 따라서 T004 full auto-cycle은 리뷰 저장 후에도 git add, git commit, complete-task를 수행하지 않는다.
+
 ### 목표 입력 기반 자동 실행
 
 최종 목표는 사용자가 goal 파일과 queue 파일을 직접 편집하지 않고도 한 줄 명령으로 작은 앱 기능 task를 시작할 수 있게 하는 것이다.
