@@ -380,6 +380,74 @@ decision별 기준:
 
 `ai-dev-auto-step.ps1`와 `ai-dev-auto-cycle.ps1`는 Codex/Cline 실행, GPT 리뷰 요청, git commit을 자동 실행하지 않는다.
 
+## 수동 자동화 UX 개선 기준
+
+AI Dev Loop는 GPT API 없이도 사람이 다음 행동을 빠르게 판단할 수 있어야 한다. 자동화 스크립트는 실행 여부보다 현재 상태, 중단 이유, 추천 명령, 위험 여부를 명확히 보여주는 것을 우선한다.
+
+### 다음 행동 판단 순서
+
+사용자가 현재 상태를 판단할 때는 아래 명령을 우선 확인한다.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-status.ps1
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-next.ps1
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-manual-cycle.ps1
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-step.ps1 -DryRun
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cycle.ps1 -DryRun -MaxSteps 3
+```
+
+- `status`: 현재 goal/task/test/review/git 상태를 확인한다.
+- `next`: 다음 action과 추천 명령만 확인한다.
+- `manual-cycle`: 상태와 다음 action을 한 화면에서 확인한다.
+- `auto-step -DryRun`: 실제 실행 없이 auto-step이 무엇을 할지 확인한다.
+- `auto-cycle -DryRun -MaxSteps 3`: 제한된 반복 안에서 어디에서 멈출지 확인한다.
+
+### goal_completed 상태 UX
+
+`goal_completed` 상태에서는 더 이상 실행할 task가 없음을 명확히 안내해야 한다.
+
+정책:
+
+- `auto-step`은 완료된 goal에서 추가 작업을 실행하지 않는다.
+- `auto-cycle`은 완료 상태를 반복하지 않고 `completed: true`로 종료해야 한다.
+- 출력에는 새 목표를 시작하려면 `.ai-dev/goal.md`, `.ai-dev/queue.json`, `.ai-dev/state.json`을 새 goal 기준으로 초기화해야 한다는 안내를 포함한다.
+- 완료 상태에서 build/test/review/commit을 자동으로 실행하지 않는다.
+
+### ask_gpt_review 상태 UX
+
+`ask_gpt_review` 상태는 사람이 ChatGPT 웹 화면에서 리뷰를 수행해야 하는 지점이다.
+
+정책:
+
+- `auto-step`과 `auto-cycle`은 GPT API를 호출하지 않는다.
+- `auto-cycle`은 `ask_gpt_review`에서 멈출 때 수동 리뷰 브리지 명령을 함께 보여줘야 한다.
+- JSON 출력에도 `ai-dev-copy-review-prompt.ps1`와 `ai-dev-save-review.ps1 -FromClipboard` 명령이 포함되어야 한다.
+- message에는 review-prompt 복사, ChatGPT 붙여넣기, JSON 리뷰 복사, save-review 실행 흐름을 짧게 설명한다.
+
+### save-review 실패와 상태 오염 방지
+
+리뷰 JSON 파싱 실패는 사용자가 잘못된 클립보드 내용을 복사했을 때 자주 발생할 수 있다. 이 실패가 이미 완료된 goal이나 정상 review 상태를 불필요하게 오염시키면 안 된다.
+
+개선 방향:
+
+- 잘못된 JSON 입력은 preview를 포함해 원인을 설명한다.
+- 가능한 경우 실패 입력을 기존 `review.md`와 `state.json`에 즉시 덮어쓰기 전에 보존 여부를 선택할 수 있게 한다.
+- `goalStatus`가 `completed`인 상태에서는 실패한 임시 리뷰 입력만으로 완료 상태를 `blocked`처럼 보이게 만들지 않는다.
+- 정상 JSON 저장 흐름과 실패 기록 흐름을 구분한다.
+- 상태 파일을 갱신하는 경우 어떤 필드를 바꾸는지 출력 또는 문서로 확인할 수 있어야 한다.
+
+### 최종 검증 결과 기록 UX
+
+T006 같은 최종 검증 task는 build/test/lint 외에도 PowerShell 문법 검증, `auto-step`/`auto-cycle` DryRun, `save-review` 성공/실패 흐름 확인이 필요하다.
+
+정책:
+
+- 실행한 검증 명령과 결과를 `test-result.md`에 남긴다.
+- 실행하지 않은 검증은 통과로 기록하지 않는다.
+- 최종 검증에서 확인한 수동 명령, exit code, 주요 출력 요약을 기록한다.
+- build/test/lint 흐름은 기존 `ai-dev-check.ps1` 동작과 충돌하지 않아야 한다.
+- 문법 검증이나 DryRun 결과를 기록하기 위한 helper가 필요하면 별도 task에서 추가한다.
+
 ## 자동 커밋 조건
 
 다음 조건을 모두 만족해야 자동 커밋할 수 있다.

@@ -24,6 +24,14 @@ AI Dev Loop 수동 자동화 UX 개선
 - `auto-step`/`auto-cycle`/`save-review`/`check`/`test-result.md`의 UX 개선 방향과 안전 기준을 문서화한다.
 - 상태 오염 방지와 사용자 안내 기준을 정리한다.
 
+T001 완료 기준:
+
+- `goal_completed` 상태에서 더 이상 실행할 task가 없고 새 goal 초기화가 필요하다는 안내 기준이 문서화되어 있다.
+- `ask_gpt_review` 상태에서 copy-review-prompt와 save-review FromClipboard로 이어지는 수동 리뷰 브리지 안내 기준이 문서화되어 있다.
+- `save-review` 실패 시 기존 완료 상태나 정상 review 상태를 불필요하게 오염시키지 않는 개선 방향이 문서화되어 있다.
+- 최종 검증 결과를 `test-result.md`에 남기는 흐름이 문서화되어 있다.
+- GPT API, Codex/Cline 자동 호출, git commit 자동 실행이 범위 밖임을 확인할 수 있다.
+
 ### T002 goal_completed 안내 개선
 
 - `goal_completed` 상태에서 `auto-step`과 `auto-cycle`이 더 명확한 완료 안내와 다음 목표 시작 안내를 출력하도록 개선한다.

@@ -490,6 +490,30 @@ auto-cycle은 Codex/Cline 작업, GPT 리뷰, revise, commit, blocked, 사용자
 
 auto-step과 auto-cycle은 Codex/GPT API 호출, git commit, git push를 자동 실행하지 않는다.
 
+## 수동 자동화 UX 판단 순서
+
+GPT API 없이 수동 자동화 흐름을 운영할 때는 먼저 상태를 읽고, 그 다음 안전한 DryRun으로 다음 행동을 확인한다.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-status.ps1
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-next.ps1
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-manual-cycle.ps1
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-step.ps1 -DryRun
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cycle.ps1 -DryRun -MaxSteps 3
+```
+
+확인 기준:
+
+- `goal_completed`: 더 이상 실행할 task가 없으므로 새 goal 초기화가 필요하다.
+- `ask_gpt_review`: `ai-dev-copy-review-prompt.ps1`와 `ai-dev-save-review.ps1 -FromClipboard`를 사용해 수동 리뷰 브리지로 진행한다.
+- `revise`: `ai-dev-make-revise-prompt.ps1`로 재수정 프롬프트를 만든다.
+- `blocked`: 사용자 판단이 필요하므로 자동 진행을 멈춘다.
+- `commit`: 자동 실행하지 않고 커밋 조건과 대상 파일을 사람이 확인한다.
+
+`save-review` 실패는 잘못된 클립보드 입력 때문에 발생할 수 있다. 실패 시에는 오류 preview를 확인하고 JSON 리뷰만 다시 복사한다. 완료된 goal이나 기존 정상 상태를 불필요하게 오염시키지 않도록 실패 기록 방식은 별도 정책에 따라 개선한다.
+
+최종 검증 task에서는 PowerShell 문법 검증, `auto-step`/`auto-cycle` DryRun, `save-review` 성공/실패 흐름 확인 결과를 `test-result.md`에 남기는 것을 원칙으로 한다. 실행하지 않은 검증은 통과로 기록하지 않는다.
+
 ## 운영 원칙
 
 - 저장소의 `AGENTS.md`, 사용자 지시, 보안 정책이 자동 개발 루프보다 우선한다.
