@@ -1,42 +1,11 @@
 # AI Dev Loop Log
 
-## 2026-06-07 00:00:00 - New goal initialized
+## 2026-06-07 16:22:54 - New goal initialized
 
-- Previous goal: AI Dev Loop 수동 리뷰 브리지 자동화
-- Previous result: GPT API 없이 사용하는 수동 리뷰 브리지 흐름, review-prompt 클립보드 복사, save-review FromClipboard 저장, auto-step/manual-cycle 안내 개선이 완료됨
-- New goal: AI Dev Loop 수동 자동화 UX 개선
-- Current task: T001 수동 자동화 UX 개선 정책 문서화
-- Scope: auto-step/auto-cycle/save-review/check/test-result 기록 UX와 안전 기준 개선
-- Excluded: GPT API 직접 호출, Codex/Cline 자동 호출, git commit 자동 실행, `src` 코드 변경, package 파일 변경
+- Previous goal: AI Dev Loop 수동 자동화 UX 개선
+- Previous result: goal_completed 안내, ask_gpt_review auto-cycle 안내, save-review 실패 시 상태 오염 방지, 최종 검증 기록 흐름 개선까지 완료됨
+- New goal: PlanPilot Local 업무 검색/필터 UX 개선
+- Current task: T001 업무 목록 구조와 필터 위치 확인
+- Scope: 업무 목록 검색/필터 UX를 작은 범위로 개선하고 AI Dev Loop가 실제 앱 기능 개발에도 적용되는지 확인
+- Excluded: DB schema 변경, package 추가, package 파일 수정, 대규모 리팩터링, 서버 API/localStorage/로그인/클라우드 동기화
 - Result: `goal.md`, `backlog.md`, `queue.json`, `state.json`, `plan.md`, `test-result.md`, `review.md`, `loop-log.md`를 새 목표 기준으로 초기화함
-
-## 2026-06-07 14:58:51 - Task completed
-
-- Task: T001 수동 자동화 UX 개선 정책 문서화
-- Result: T001 완료: 수동 자동화 UX 개선 정책 문서화, goal_completed/ask_gpt_review/save-review 실패/test-result 기록 개선 방향 정리
-- Next task: T002 goal_completed 안내 개선
-## 2026-06-07 15:09:17 - Task completed
-
-- Task: T002 goal_completed 안내 개선
-- Result: T002 완료: goal_completed 상태의 auto-step/auto-cycle 안내 개선, 문법 검증 및 DryRun/Json 기존 동작 확인
-- Next task: T003 ask_gpt_review auto-cycle 안내 개선
-## 2026-06-07 15:53:32 - Task completed
-
-- Task: T003 ask_gpt_review auto-cycle 안내 개선
-- Result: T003 완료: auto-cycle ask_gpt_review 중단 시 수동 리뷰 브리지 recommendedCommands를 텍스트/Json 출력에 포함
-- Next task: T004 save-review 실패 시 상태 오염 방지
-## 2026-06-07 16:03:09 - Task completed
-
-- Task: T004 save-review 실패 시 상태 오염 방지
-- Result: T004 완료: save-review 파싱 실패 시 review.md/state.json 오염 방지, 오류 preview 유지, 정상 JSON 저장 확인
-- Next task: T005 최종 검증 기록 흐름 개선
-## 2026-06-07 16:14:53 - Task completed
-
-- Task: T005 최종 검증 기록 흐름 개선
-- Result: T005 완료: ai-dev-check.ps1에 수동 검증 요약 기록 모드 추가, test-result.md manual-summary 기록 확인
-- Next task: T006 최종 검증 및 요약
-## 2026-06-07 16:19:32 - Task completed
-
-- Task: T006 최종 검증 및 요약
-- Result: T006 완료: 수동 자동화 UX 개선 목표 최종 검증 완료, 문법 검증/DryRun/Json/save-review 실패·성공/ManualSummaryOnly 기록 확인
-- Next task: 없음

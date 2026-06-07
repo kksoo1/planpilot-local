@@ -2,68 +2,82 @@
 
 ## Goal
 
-AI Dev Loop 수동 자동화 UX 개선
+PlanPilot Local 업무 검색/필터 UX 개선
 
 ## 목표 범위
 
-- GPT API 없이 사용하는 AI Dev Loop의 수동 자동화 흐름을 더 안전하고 이해하기 쉽게 개선한다.
-- `auto-step`, `auto-cycle`, `save-review`, `check`, `test-result.md` 기록 흐름의 사용자 안내를 정리한다.
-- 완료 상태, 리뷰 대기 상태, 검증 결과 기록, 실패 입력 처리처럼 사용자가 다음 행동을 판단해야 하는 지점을 명확하게 만든다.
+- PlanPilot Local의 업무 목록에서 검색/필터 UX를 작게 개선한다.
+- 기존 데이터 구조, IndexedDB 저장 방식, package 구성을 유지한다.
+- 업무 목록 UI 상태와 파생 필터링 로직 중심으로 구현한다.
+- 이번 목표는 AI Dev Loop가 실제 앱 기능 개발에도 안정적으로 적용되는지 확인하는 실험이다.
 
 ## 범위 제한
 
-- GPT API 직접 호출은 구현하지 않는다.
-- Codex CLI 또는 Cline 자동 호출은 구현하지 않는다.
-- git commit, git push, destructive git 명령은 자동 실행하지 않는다.
-- `src` 코드, 앱 기능, DB schema, package 파일은 수정하지 않는다.
+- DB schema를 변경하지 않는다.
+- package.json과 package-lock.json을 수정하지 않는다.
+- 새 package를 추가하지 않는다.
+- 서버 API, localStorage, 로그인, 클라우드 동기화를 추가하지 않는다.
+- 대규모 리팩터링이나 UI 전면 개편을 하지 않는다.
+- 검색/필터 과정에서 IndexedDB 데이터 쓰기 코드를 추가하지 않는다.
 
 ## 작업 순서
 
-### T001 수동 자동화 UX 개선 정책 문서화
+### T001 업무 목록 구조와 필터 위치 확인
 
-- `auto-step`/`auto-cycle`/`save-review`/`check`/`test-result.md`의 UX 개선 방향과 안전 기준을 문서화한다.
-- 상태 오염 방지와 사용자 안내 기준을 정리한다.
+- 업무 목록 렌더링 위치를 확인한다.
+- task 타입과 검색 가능한 필드를 확인한다.
+- 기존 검색/필터/정렬 상태와 파생 데이터 계산 위치를 확인한다.
+- 프로젝트명 검색을 위해 프로젝트 데이터와 연결 가능한지 확인한다.
+- DB schema 변경 없이 구현 가능한 범위를 확정한다.
 
-T001 완료 기준:
+완료 기준:
 
-- `goal_completed` 상태에서 더 이상 실행할 task가 없고 새 goal 초기화가 필요하다는 안내 기준이 문서화되어 있다.
-- `ask_gpt_review` 상태에서 copy-review-prompt와 save-review FromClipboard로 이어지는 수동 리뷰 브리지 안내 기준이 문서화되어 있다.
-- `save-review` 실패 시 기존 완료 상태나 정상 review 상태를 불필요하게 오염시키지 않는 개선 방향이 문서화되어 있다.
-- 최종 검증 결과를 `test-result.md`에 남기는 흐름이 문서화되어 있다.
-- GPT API, Codex/Cline 자동 호출, git commit 자동 실행이 범위 밖임을 확인할 수 있다.
+- 업무 목록 UI 파일 위치를 확인한다.
+- 검색 상태를 둘 위치를 확인한다.
+- 기존 완료/미완료 또는 상태 필터를 깨지 않는 구현 방향을 정리한다.
+- DB schema 변경이 필요 없는지 확인한다.
 
-### T002 goal_completed 안내 개선
+### T002 업무 검색 입력 UI 추가
 
-- `goal_completed` 상태에서 `auto-step`과 `auto-cycle`이 더 명확한 완료 안내와 다음 목표 시작 안내를 출력하도록 개선한다.
-- DryRun과 JSON 출력에서 완료 상태가 이해 가능한지 확인한다.
+- 업무 목록 화면에 검색어 입력 UI를 추가한다.
+- 검색어 상태를 관리한다.
+- 검색어가 없을 때 기존 목록이 유지되는지 확인한다.
+- `npm run build`를 실행한다.
 
-### T003 ask_gpt_review auto-cycle 안내 개선
+### T003 업무 검색 필터 로직 추가
 
-- `auto-cycle`이 `ask_gpt_review`에서 멈출 때 수동 리뷰 브리지 명령을 더 잘 보여주도록 개선한다.
-- JSON 출력에도 copy-review-prompt와 save-review 명령이 포함되는지 확인한다.
+- 검색어를 기준으로 업무 목록을 필터링한다.
+- 최소 업무 제목 검색을 지원한다.
+- 가능한 경우 메모 또는 프로젝트명 검색도 포함한다.
+- 대소문자와 앞뒤 공백을 무시한다.
+- 검색 과정에서 DB 쓰기 코드가 없는지 확인한다.
+- `npm run build`를 실행한다.
 
-### T004 save-review 실패 시 상태 오염 방지
+### T004 검색 결과 빈 상태 표시
 
-- `save-review`가 잘못된 JSON 입력을 받았을 때 기존 완료 상태를 불필요하게 덮어쓰지 않도록 정책 또는 옵션을 개선한다.
-- 오류 preview와 정상 저장 흐름은 유지한다.
+- 검색 결과가 없을 때 사용자에게 빈 상태 메시지를 표시한다.
+- 검색어를 지우면 기존 목록이 다시 표시되는지 확인한다.
+- `npm run build`를 실행한다.
 
-### T005 최종 검증 기록 흐름 개선
+### T005 수동 테스트 체크리스트 업데이트
 
-- 최종 검증에서 PowerShell 문법 검증, `auto-step`/`auto-cycle` DryRun 결과를 `test-result.md`에 남기기 쉬운 흐름을 추가하거나 문서화한다.
-- 기존 build/test/lint 흐름을 깨지 않는다.
+- `docs/manual-test-checklist.md`에 업무 검색/필터 수동 테스트 항목을 추가한다.
+- 검색어 없음, 제목 검색, 결과 없음, 검색어 삭제, 데이터 미변경 항목을 포함한다.
 
-### T006 최종 검증 및 요약
+### T006 빌드 검증 및 최종 요약
 
-- 수정된 PowerShell 스크립트 문법을 검증한다.
-- `auto-step`/`auto-cycle` DryRun을 확인한다.
-- `save-review` 실패/성공 흐름을 확인한다.
-- 전체 상태를 점검하고 다음 자동화 후보를 정리한다.
+- `npm run build`를 실행한다.
+- 전체 git diff를 리뷰한다.
+- DB schema 변경이 없는지 확인한다.
+- package 파일 변경이 없는지 확인한다.
+- 최종 상태와 다음 후보 작업을 정리한다.
 
 ## Stop Conditions
 
-- GPT API 직접 호출이 필요해지는 경우
-- Codex CLI/Cline 자동 호출이 필요해지는 경우
-- git commit 또는 push 자동 실행이 필요해지는 경우
-- package 변경이나 테스트 라이브러리 추가가 필요해지는 경우
-- `src` 코드 또는 앱 기능 수정이 필요해지는 경우
-- 사용자 데이터 변경 가능성이 생기는 경우
+- DB schema 변경이 필요해지는 경우
+- package 추가가 필요해지는 경우
+- App.css 대규모 수정이 필요해지는 경우
+- 기존 완료/미완료 필터 동작을 바꿔야 하는 경우
+- 검색/필터 구현을 위해 IndexedDB 쓰기 로직이 필요해지는 경우
+- 현재 task 범위 밖 파일을 수정해야 하는 경우
+- 같은 오류가 반복되어 작은 범위 안에서 해결하기 어려운 경우

@@ -1,46 +1,60 @@
 # Goal
 
-AI Dev Loop 수동 자동화 UX 개선
+PlanPilot Local 업무 검색/필터 UX 개선
 
 ## Background
 
-GPT API 없이 사용하는 AI Dev Loop의 수동 자동화 흐름을 개선한다. `auto-step`/`auto-cycle`의 안내 메시지, `save-review` 실패 시 상태 오염 방지, 검증 결과 기록, goal completed 상태 안내, 사용자가 다음 행동을 판단하기 쉬운 출력 구조를 정리한다.
+PlanPilot Local의 업무 목록에서 사용자가 업무를 더 쉽게 찾을 수 있도록 검색/필터 UX를 개선한다. 기존 데이터 구조와 저장 방식은 유지하고, UI 상태와 파생 필터링 로직 중심으로 구현한다.
+
+이번 목표는 지금까지 만든 AI Dev Loop 자동화가 실제 앱 기능 개발에도 잘 동작하는지 확인하는 실험이다.
 
 ## Success Criteria
 
-- `goal_completed` 상태에서 `auto-step`/`auto-cycle` 안내가 명확해진다.
-- `ask_gpt_review` 상태에서 `auto-cycle`이 수동 리뷰 브리지 명령을 더 잘 안내한다.
-- `save-review` 실패 시 `state.json`/`review.md` 오염을 줄이는 안전 정책 또는 옵션이 추가된다.
-- T006 같은 최종 검증 결과를 `test-result.md`에 남기는 흐름이 개선된다.
-- README와 정책 문서에 수동 자동화 UX 기준이 정리된다.
-- PowerShell 문법 검증이 통과한다.
-- GPT API 호출, Codex/Cline 자동 호출, git commit 자동 실행은 이번 목표 범위에서 제외한다.
+- 업무 목록에서 검색어로 업무를 필터링할 수 있다.
+- 검색 대상은 최소 업무 제목을 포함한다.
+- 가능한 경우 설명, 메모, 프로젝트명도 검색 대상에 포함한다.
+- 기존 타입 구조를 무리하게 변경하지 않는다.
+- 완료/미완료 또는 상태 기반 필터가 이미 있으면 기존 동작을 깨지 않는다.
+- 검색어가 없으면 기존 목록과 동일하게 표시된다.
+- 검색 결과가 없을 때 사용자에게 빈 상태 메시지를 표시한다.
+- 검색/필터 과정에서 IndexedDB 데이터는 변경되지 않는다.
+- package 추가, DB schema 변경, 대규모 리팩터링을 하지 않는다.
+- `npm run build`가 성공한다.
+- `docs/manual-test-checklist.md`에 검색/필터 수동 테스트 항목을 추가한다.
 
 ## Constraints
 
-- 이번 목표는 AI Dev Loop 수동 자동화 UX 개선에 한정한다.
-- GPT API를 직접 호출하지 않는다.
-- Codex CLI 또는 Cline을 자동 호출하지 않는다.
-- git commit, git push, destructive git 명령은 자동 실행하지 않는다.
-- `src` 코드는 수정하지 않는다.
-- `package.json`, `package-lock.json`은 수정하지 않는다.
-- 앱 데이터, DB schema, 사용자 기능을 변경하지 않는다.
+- 기존 업무/프로젝트 데이터 구조를 유지한다.
+- IndexedDB schema를 변경하지 않는다.
+- package.json과 package-lock.json을 수정하지 않는다.
+- package를 추가하지 않는다.
+- 대규모 리팩터링을 하지 않는다.
+- 검색/필터는 UI 상태와 파생 데이터 계산 중심으로 구현한다.
+- 검색/필터 과정에서 DB 쓰기 코드를 추가하지 않는다.
+- 기존 완료/미완료 표시나 필터 동작을 깨지 않는다.
+- AI Dev Loop 실험 목적이더라도 한 번에 하나의 task만 수행한다.
 
 ## Out of Scope
 
-- GPT API 직접 호출
-- Codex CLI/Cline 자동 호출
-- 자동 git commit 또는 push
-- 앱 기능 추가 또는 UI 변경
-- `src` 코드 리팩터링
-- package 추가 또는 교체
-- CI, GitHub PR 자동 연동
+- DB schema 변경
+- full-text search 엔진 도입
+- 외부 검색 라이브러리 추가
+- 서버 API 추가
+- localStorage 사용
+- 로그인 또는 클라우드 동기화
+- 업무 데이터 마이그레이션
+- 대규모 화면 리디자인
+- 프로젝트 검색/필터 전면 개편
 
 ## Manual Verification
 
-- `goal_completed` 상태의 안내가 다음 목표 시작 흐름을 이해하기 쉽게 보여준다.
-- `ask_gpt_review` 상태의 `auto-cycle` 출력에서 copy-review-prompt와 save-review 명령을 확인할 수 있다.
-- 잘못된 리뷰 JSON 입력이 기존 완료 상태를 불필요하게 오염시키지 않는다.
-- 최종 검증 결과를 `test-result.md`에 남기는 방법이 명확하다.
-- README와 정책 문서에서 GPT API 없이 쓰는 수동 자동화 UX 기준을 확인할 수 있다.
-- 수정된 PowerShell 스크립트가 문법 오류 없이 파싱된다.
+- 검색어가 없을 때 기존 업무 목록이 유지된다.
+- 제목 검색이 동작한다.
+- 가능한 경우 메모 또는 프로젝트명 검색이 동작한다.
+- 검색어 대소문자 차이를 무시한다.
+- 검색어 앞뒤 공백을 무시한다.
+- 완료/미완료 또는 기존 상태 필터와 함께 검색해도 동작한다.
+- 검색 결과가 없을 때 빈 상태 메시지가 표시된다.
+- 검색어를 지우면 기존 목록이 다시 표시된다.
+- 검색/필터 과정에서 기존 업무, 프로젝트, 설정 데이터가 변경되지 않는다.
+- `npm run build`가 성공한다.
