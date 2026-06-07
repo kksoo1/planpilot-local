@@ -481,6 +481,15 @@ powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cycle.ps1 -AllowRev
 
 auto-cycle은 Codex/Cline 작업, GPT 리뷰, revise, commit, blocked, 사용자 개입 필요 action에서 멈춘다. 무한 루프를 피하기 위해 `-MaxSteps` 제한과 같은 action 반복 감지를 사용한다.
 
+auto-cycle이 `ask_gpt_review`에서 멈추면 `stoppedReason`은 `user_intervention_required:ask_gpt_review`로 표시된다. 이때 텍스트 출력과 JSON 출력의 step 항목에는 수동 리뷰 브리지 명령이 함께 표시된다.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-copy-review-prompt.ps1
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-save-review.ps1 -FromClipboard
+```
+
+첫 번째 명령으로 `review-prompt.md`를 ChatGPT 웹 화면에 붙여넣을 수 있도록 복사하고, JSON 리뷰를 받은 뒤 두 번째 명령으로 클립보드의 리뷰 JSON을 저장한다. auto-cycle은 이 단계에서 GPT API를 호출하지 않고 중단한다.
+
 명령 역할 구분:
 
 - `ai-dev-next.ps1`: 현재 상태를 읽고 다음 추천 action과 명령만 출력한다. 자동 실행하지 않는다.

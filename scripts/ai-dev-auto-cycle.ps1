@@ -24,6 +24,19 @@ function Write-CycleResult {
         Write-Host "  Action: $($step.action)"
         Write-Host "  Executed: $($step.executed)"
         Write-Host "  Message: $($step.message)"
+        Write-Host "  Recommended commands:"
+
+        $stepCommands = @($step.recommendedCommands) | Where-Object {
+            -not [string]::IsNullOrWhiteSpace([string]$_)
+        }
+
+        if ($stepCommands.Count -eq 0) {
+            Write-Host "    - 없음"
+        } else {
+            foreach ($command in $stepCommands) {
+                Write-Host "    - $command"
+            }
+        }
     }
 
     Write-Host "Stopped reason: $($Result.stoppedReason)"
@@ -135,12 +148,23 @@ for ($index = 1; $index -le $MaxSteps; $index++) {
     }
 
     $action = [string]$autoStep.action
+    $recommendedCommands = @()
+
+    if ($null -ne $autoStep.recommendedCommands) {
+        foreach ($command in @($autoStep.recommendedCommands)) {
+            if (-not [string]::IsNullOrWhiteSpace([string]$command)) {
+                $recommendedCommands += [string]$command
+            }
+        }
+    }
+
     $stepResult = [ordered]@{
         step = $index
         action = $action
         executed = [bool]$autoStep.executed
         exitCode = [int]$autoStep.exitCode
         message = [string]$autoStep.message
+        recommendedCommands = @($recommendedCommands)
     }
     $steps += [PSCustomObject]$stepResult
 
