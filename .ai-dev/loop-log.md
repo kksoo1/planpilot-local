@@ -1,4 +1,4 @@
-# AI Dev Loop Log
+﻿# AI Dev Loop Log
 
 ## 2026-06-07 19:59:48 - New goal initialized
 
@@ -41,3 +41,16 @@
 - Current task: T003 Codex 리뷰 실행 스크립트 추가
 - Preserved: T001/T002는 `done` 유지, T005/T006/T007은 `pending` 유지, T007 추가 내용 유지
 - Excluded: scripts/src/package 파일 수정 없음, git add/commit 없음, Codex CLI 호출 없음
+
+## 2026-06-07 22:35:00 - Task progress
+
+- Task: T003 Codex 리뷰 실행 스크립트 추가
+- Result: `scripts/ai-dev-run-review-codex.ps1` 추가, `review-prompt.md`를 Codex CLI에 전달하고 JSON 리뷰를 `review-response.json`에 저장하며 `-SaveReview`로 `ai-dev-save-review.ps1 -ReviewFile` 흐름에 연결하도록 구현
+- Docs: `.ai-dev/README.md`에 DryRun, 기본 실행, `-GenerateReviewPromptIfMissing`, `-SaveReview`, `-AllowDirty` 주의사항을 추가
+- Verification: PowerShell 문법 검증 예정. 실제 Codex 실행, build/test/lint, git add/commit은 수행하지 않음
+
+## 2026-06-07 22:23:42 - Task completed
+
+- Task: T003 Codex 리뷰 실행 스크립트 추가
+- Result: T003 완료: review-prompt.md를 codex exec에 전달해 JSON 리뷰를 생성하는 ai-dev-run-review-codex.ps1 추가, 문법 검증과 DryRun/Json 확인
+- Next task: T004 full auto-cycle 초안 추가
