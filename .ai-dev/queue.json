@@ -2,8 +2,8 @@
     "goalTitle":  "AI Dev Loop Codex CLI 완전 자동화 도입",
     "goalSource":  ".ai-dev/goal.md",
     "createdAt":  "2026-06-07T19:59:48.1282711+09:00",
-    "updatedAt":  "2026-06-07T12:58:28.5337607+00:00",
-    "currentTaskId":  "T004",
+    "updatedAt":  "2026-06-07T13:20:00.0000000+00:00",
+    "currentTaskId":  "T003",
     "tasks":  [
                   {
                       "id":  "T001",
@@ -57,7 +57,7 @@
                       "title":  "Codex 리뷰 실행 스크립트 추가",
                       "description":  "review-prompt.md를 Codex CLI에 전달해 JSON 리뷰를 생성하고 review-response.json 및 save-review 흐름에 연결하는 ai-dev-run-review-codex.ps1을 추가한다.",
                       "type":  "implementation",
-                      "status":  "done",
+                      "status":  "in_progress",
                       "priority":  "P0",
                       "dependsOn":  [
                                         "T002"
@@ -72,16 +72,14 @@
                                            "save-review와 연결되는지 확인",
                                            "PowerShell 문법 검증"
                                        ],
-                      "commitMessage":  "Add Codex review runner",
-                      "completedAt":  "2026-06-07T12:58:28.5337607+00:00",
-                      "resultSummary":  "T002 완료: current-task-prompt.md를 codex exec에 전달하는 ai-dev-run-codex.ps1 추가, 문법 검증과 DryRun/Json/dirty 상태 중단 확인"
+                      "commitMessage":  "Add Codex review runner"
                   },
                   {
                       "id":  "T004",
                       "title":  "full auto-cycle 초안 추가",
                       "description":  "make-prompt, run-codex, check, save-diff, make-review-prompt, run-review-codex를 연결하는 ai-dev-auto-cycle-full.ps1 초안을 추가한다.",
                       "type":  "implementation",
-                      "status":  "in_progress",
+                      "status":  "pending",
                       "priority":  "P0",
                       "dependsOn":  [
                                         "T003"
@@ -143,8 +141,32 @@
                                            "Codex 리뷰 JSON 저장 확인",
                                            "pass 시 커밋/complete-task 확인",
                                            "git status clean 확인"
-                                       ],
+                      ],
                       "commitMessage":  null
+                  },
+                  {
+                      "id":  "T007",
+                      "title":  "목표 입력 기반 자동 goal 실행 스크립트 추가",
+                      "description":  "사용자가 GoalTitle과 GoalDescription만 입력하면 Codex CLI를 이용해 goal/queue/state를 생성하고, current-task-prompt 생성 후 auto-cycle-full을 실행할 수 있게 하는 ai-dev-auto-goal.ps1을 추가한다.",
+                      "type":  "implementation",
+                      "status":  "pending",
+                      "priority":  "P0",
+                      "dependsOn":  [
+                                        "T005"
+                                    ],
+                      "filesLikelyToChange":  [
+                                                  "scripts/ai-dev-auto-goal.ps1",
+                                                  ".ai-dev/README.md"
+                                              ],
+                      "verification":  [
+                                           "DryRun에서 생성될 goal/task 계획과 실행 단계가 표시되는지 확인",
+                                           "Json 출력이 가능한지 확인",
+                                           "goal/queue/state JSON 파싱 검증을 수행하는지 확인",
+                                           "auto-cycle-full 호출은 -AllowRun 또는 명시적 실행 옵션에서만 수행되는지 확인",
+                                           "GoalTitle/GoalDescription이 비어 있으면 오류로 종료하는지 확인",
+                                           "PowerShell 문법 검증"
+                                       ],
+                      "commitMessage":  "Add automatic goal runner"
                   }
               ]
 }

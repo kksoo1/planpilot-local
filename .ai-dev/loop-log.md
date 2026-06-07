@@ -26,3 +26,18 @@
 - Task: T003 Codex 리뷰 실행 스크립트 추가
 - Result: T002 완료: current-task-prompt.md를 codex exec에 전달하는 ai-dev-run-codex.ps1 추가, 문법 검증과 DryRun/Json/dirty 상태 중단 확인
 - Next task: T004 full auto-cycle 초안 추가
+
+## 2026-06-07 22:10:00 - Goal expanded
+
+- Goal: AI Dev Loop Codex CLI 완전 자동화 도입
+- Change: T001~T006 진행 상태는 유지하고 T007 목표 입력 기반 자동 goal 실행 스크립트 추가 task를 queue에 추가함
+- Final target command: `powershell -ExecutionPolicy Bypass -File .\scripts\ai-dev-auto-goal.ps1 -GoalTitle "업무 검색 결과 하이라이트 추가" -GoalDescription "검색어와 일치하는 업무 제목/메모/프로젝트명을 화면에서 강조 표시한다." -AllowCodex -AllowReviewCodex -AllowCommit -MaxTasks 1`
+- Scope: scripts/src/package 파일은 수정하지 않고 queue, plan, README, 정책 문서에 auto-goal 목표와 안전 기준만 반영함
+
+## 2026-06-07 22:20:00 - State repaired
+
+- Reason: T003 `Codex 리뷰 실행 스크립트 추가`가 `done`으로 표시되어 있었지만 실제 `scripts/ai-dev-run-review-codex.ps1` 산출물이 누락됨
+- Change: T003 상태를 `in_progress`로 되돌리고 T004 `full auto-cycle 초안 추가` 상태를 `pending`으로 되돌림
+- Current task: T003 Codex 리뷰 실행 스크립트 추가
+- Preserved: T001/T002는 `done` 유지, T005/T006/T007은 `pending` 유지, T007 추가 내용 유지
+- Excluded: scripts/src/package 파일 수정 없음, git add/commit 없음, Codex CLI 호출 없음

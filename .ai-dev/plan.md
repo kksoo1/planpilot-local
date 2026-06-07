@@ -11,6 +11,7 @@ AI Dev Loop Codex CLI 완전 자동화 도입
 - `review-prompt.md`를 Codex CLI에 전달해 JSON 리뷰를 생성한다.
 - Codex 구현, check/build, diff 저장, Codex 리뷰, save-review, pass 시 commit/complete-task 흐름을 연결한다.
 - 초기 버전은 `MaxTasks 1`, 명시적 Allow 옵션, dirty worktree 중단, package 변경 감지, build 실패 시 commit 금지를 적용한다.
+- 최종적으로 사용자가 `GoalTitle`과 `GoalDescription`만 입력해 goal 생성, task 분해, prompt 생성, full auto-cycle 실행까지 한 번에 시작할 수 있는 `ai-dev-auto-goal.ps1`을 도입한다.
 
 ## 범위 제한
 
@@ -68,6 +69,12 @@ T001 문서화 결과:
 - `ai-dev-save-review.ps1` 흐름과 연결한다.
 - DryRun과 PowerShell 문법 검증을 지원한다.
 
+복구 메모:
+
+- `queue.json`에서 T003이 `done`으로 표시되어 있었지만 실제 `scripts/ai-dev-run-review-codex.ps1` 파일이 존재하지 않았다.
+- T004 full auto-cycle은 T003 산출물에 의존하므로 T003을 `in_progress`로 되돌리고 T004를 `pending`으로 되돌린다.
+- 다음 작업은 T003 산출물을 실제로 추가하고 검증한 뒤 T004로 진행한다.
+
 ### T004 full auto-cycle 초안 추가
 
 - `scripts/ai-dev-auto-cycle-full.ps1` 초안을 추가한다.
@@ -91,10 +98,28 @@ T001 문서화 결과:
 - pass 시 커밋과 complete-task가 수행되는지 확인한다.
 - 최종 git status clean 여부를 확인한다.
 
+### T007 목표 입력 기반 자동 goal 실행 스크립트 추가
+
+- `scripts/ai-dev-auto-goal.ps1`을 추가한다.
+- 사용자가 `GoalTitle`과 `GoalDescription`만 입력하면 Codex CLI를 이용해 goal, queue, state 초안을 생성할 수 있게 한다.
+- 생성된 goal/queue/state JSON 파싱 검증을 수행한다.
+- current-task-prompt 생성 후 `ai-dev-auto-cycle-full.ps1` 실행으로 이어질 수 있게 한다.
+- 실제 full cycle 실행은 `-AllowRun` 또는 명시적 실행 옵션이 있을 때만 수행한다.
+- DryRun에서 생성될 goal/task 계획과 실행 단계를 표시한다.
+- Json 출력과 PowerShell 문법 검증을 지원한다.
+
+예상 최종 명령:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\ai-dev-auto-goal.ps1 -GoalTitle "업무 검색 결과 하이라이트 추가" -GoalDescription "검색어와 일치하는 업무 제목/메모/프로젝트명을 화면에서 강조 표시한다." -AllowCodex -AllowReviewCodex -AllowCommit -MaxTasks 1
+```
+
 ## Stop Conditions
 
 - Codex CLI 실행이 현재 환경에서 실패하는 경우
 - git status가 dirty인데 명시적으로 허용되지 않은 경우
+- `GoalTitle` 또는 `GoalDescription`이 비어 있는 경우
+- Codex가 생성한 goal/queue/state JSON을 파싱할 수 없는 경우
 - package.json/package-lock.json 변경이 감지되는 경우
 - build/check 실패가 발생하는 경우
 - 리뷰 decision이 pass가 아닌 경우

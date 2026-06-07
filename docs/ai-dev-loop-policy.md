@@ -481,6 +481,7 @@ AI Dev Loop의 다음 자동화 단계는 Codex CLI를 구현자와 리뷰어로
 - Codex 구현 실행은 명시적 `AllowCodex` 옵션이 있을 때만 수행한다.
 - Codex 리뷰 실행은 명시적 `AllowReviewCodex` 옵션이 있을 때만 수행한다.
 - git commit은 명시적 `AllowCommit` 옵션이 있을 때만 수행한다.
+- goal 입력 기반 실행은 `ai-dev-auto-goal.ps1`에서 시작하되, full cycle 호출은 명시적 실행 옵션이 있을 때만 수행한다.
 - git push, PR 생성, 배포는 자동화 범위에서 제외한다.
 
 ### 허용 명령과 허용 단계
@@ -495,6 +496,37 @@ AI Dev Loop의 다음 자동화 단계는 Codex CLI를 구현자와 리뷰어로
 - `ai-dev-run-review-codex.ps1`로 Codex 리뷰 실행
 - `ai-dev-save-review.ps1`로 리뷰 JSON 저장
 - 리뷰가 `pass`이고 모든 게이트를 통과한 경우에만 `ai-dev-commit.ps1`와 `ai-dev-complete-task.ps1` 연결
+
+### 목표 입력 기반 자동 실행 정책
+
+최종 목표는 사용자가 `GoalTitle`과 `GoalDescription`만 입력해 task 생성부터 Codex 구현, 검증, Codex 리뷰, pass 시 커밋과 task 완료 처리까지 이어갈 수 있게 하는 것이다.
+
+예상 최종 명령:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\ai-dev-auto-goal.ps1 -GoalTitle "업무 검색 결과 하이라이트 추가" -GoalDescription "검색어와 일치하는 업무 제목/메모/프로젝트명을 화면에서 강조 표시한다." -AllowCodex -AllowReviewCodex -AllowCommit -MaxTasks 1
+```
+
+`ai-dev-auto-goal.ps1`의 책임:
+
+- `GoalTitle`과 `GoalDescription` 필수 입력 검증
+- Codex CLI를 이용한 goal/queue/state 초안 생성
+- 생성된 JSON 파싱과 필수 필드 검증
+- `.ai-dev/goal.md`, `.ai-dev/queue.json`, `.ai-dev/state.json` 갱신 후보 표시
+- `.ai-dev/current-task-prompt.md` 생성 연결
+- 명시적 실행 옵션이 있을 때만 `ai-dev-auto-cycle-full.ps1` 호출
+- DryRun에서 생성될 goal/task 계획과 실행 단계를 표시
+- Json 출력에서 사람이 읽는 텍스트를 섞지 않음
+
+안전 기준:
+
+- `GoalTitle` 또는 `GoalDescription`이 비어 있으면 종료한다.
+- Codex가 생성한 goal/queue/state JSON을 파싱할 수 없으면 종료한다.
+- `queue.json` 필수 필드와 task 필수 필드가 없으면 종료한다.
+- `state.json` 필수 필드가 없으면 종료한다.
+- 실제 full cycle 실행은 `AllowRun` 또는 그에 준하는 명시적 실행 옵션이 있을 때만 수행한다.
+- `AllowCodex`, `AllowReviewCodex`, `AllowCommit`은 각각 구현, 리뷰, 커밋 단계를 별도로 연다.
+- package 파일 변경, build/check 실패, 리뷰 decision이 `pass`가 아닌 경우 자동 커밋하지 않는다.
 
 ### 금지 명령과 금지 단계
 

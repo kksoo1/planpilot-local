@@ -566,6 +566,7 @@ powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cycle.ps1 -DryRun -
 - `scripts/ai-dev-run-codex.ps1`: `.ai-dev/current-task-prompt.md`를 Codex CLI에 전달해 현재 task 구현을 수행한다.
 - `scripts/ai-dev-run-review-codex.ps1`: `.ai-dev/review-prompt.md`를 Codex CLI에 전달해 JSON 리뷰를 생성하고 저장 흐름에 연결한다.
 - `scripts/ai-dev-auto-cycle-full.ps1`: prompt 생성, Codex 구현, check, diff 저장, Codex 리뷰, save-review, pass 시 commit/complete-task를 연결한다.
+- `scripts/ai-dev-auto-goal.ps1`: 사용자가 `GoalTitle`과 `GoalDescription`만 입력하면 goal/queue/state 생성, current-task-prompt 생성, full auto-cycle 실행까지 이어지게 한다.
 
 초기 안전 기준:
 
@@ -573,6 +574,7 @@ powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cycle.ps1 -DryRun -
 - Codex 구현 실행은 `AllowCodex`가 있을 때만 수행한다.
 - Codex 리뷰 실행은 `AllowReviewCodex`가 있을 때만 수행한다.
 - git commit은 `AllowCommit`이 있을 때만 수행한다.
+- auto-goal에서 실제 full cycle 실행은 `AllowRun` 또는 명시적 실행 옵션이 있을 때만 수행한다.
 - git status가 dirty이면 Codex 구현 실행을 기본 중단한다.
 - build/check 실패, package 파일 변경, 리뷰 decision이 `pass`가 아닌 경우 자동 커밋하지 않는다.
 - `git reset`, `git clean`, `npm install`, `git push`는 자동 실행하지 않는다.
@@ -621,6 +623,33 @@ powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-codex.ps1 -AllowDirt
 ```
 
 이 스크립트는 Codex에 전달하는 프롬프트 끝에 추가 안전 규칙을 붙인다. git commit, git reset, git clean, npm install, package 파일 수정, 현재 task 범위 밖 작업을 금지한다. 스크립트 자체도 build/test/lint, git add, git commit을 실행하지 않는다.
+
+### 목표 입력 기반 자동 실행
+
+최종 목표는 사용자가 goal 파일과 queue 파일을 직접 편집하지 않고도 한 줄 명령으로 작은 앱 기능 task를 시작할 수 있게 하는 것이다.
+
+예상 최종 명령:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\ai-dev-auto-goal.ps1 -GoalTitle "업무 검색 결과 하이라이트 추가" -GoalDescription "검색어와 일치하는 업무 제목/메모/프로젝트명을 화면에서 강조 표시한다." -AllowCodex -AllowReviewCodex -AllowCommit -MaxTasks 1
+```
+
+예정 동작:
+
+1. `GoalTitle`과 `GoalDescription`을 검증한다.
+2. Codex CLI를 이용해 goal/queue/state 초안을 생성한다.
+3. 생성된 JSON을 파싱해 필수 필드를 확인한다.
+4. `.ai-dev/current-task-prompt.md`를 생성한다.
+5. 명시적 실행 옵션이 있을 때만 `ai-dev-auto-cycle-full.ps1`로 이어간다.
+
+안전 기준:
+
+- `GoalTitle` 또는 `GoalDescription`이 비어 있으면 종료한다.
+- DryRun에서는 생성될 goal/task 계획과 실행 단계만 표시한다.
+- Json 출력은 사람이 읽는 텍스트와 섞지 않는다.
+- 생성된 goal/queue/state JSON 파싱에 실패하면 실제 실행으로 넘어가지 않는다.
+- full cycle 호출은 `-AllowRun` 또는 그에 준하는 명시적 실행 옵션이 있을 때만 수행한다.
+- package 파일 변경, build/check 실패, 리뷰 `pass` 아님, dirty worktree 위험이 있으면 자동 커밋하지 않는다.
 
 ## 운영 원칙
 
