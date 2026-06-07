@@ -1,142 +1,146 @@
-{
-  "goalTitle": "AI Dev Loop Codex CLI 완전 자동화 도입",
-  "goalSource": ".ai-dev/goal.md",
-  "createdAt": "2026-06-07T19:59:48.1282711+09:00",
-  "updatedAt": "2026-06-07T19:59:48.1282711+09:00",
-  "currentTaskId": "T001",
-  "tasks": [
-    {
-      "id": "T001",
-      "title": "Codex CLI 완전 자동화 정책 문서화",
-      "description": "Codex CLI를 구현자와 리뷰어로 사용하는 완전 자동화 정책, 허용/금지 명령, 안전 중단 조건을 문서화한다.",
-      "type": "documentation",
-      "status": "in_progress",
-      "priority": "P0",
-      "dependsOn": [],
-      "filesLikelyToChange": [
-        "docs/ai-dev-loop-policy.md",
-        ".ai-dev/README.md",
-        ".ai-dev/plan.md"
-      ],
-      "verification": [
-        "Codex CLI 사용 방식과 안전 기준이 문서화되었는지 확인",
-        "Cline/Copilot/GPT API 없이 진행하는 구조가 명확한지 확인"
-      ],
-      "commitMessage": "Document Codex CLI automation policy"
-    },
-    {
-      "id": "T002",
-      "title": "Codex 구현 실행 스크립트 추가",
-      "description": "current-task-prompt.md를 Codex CLI에 전달해 현재 task 구현을 수행하는 ai-dev-run-codex.ps1을 추가한다.",
-      "type": "implementation",
-      "status": "pending",
-      "priority": "P0",
-      "dependsOn": [
-        "T001"
-      ],
-      "filesLikelyToChange": [
-        "scripts/ai-dev-run-codex.ps1",
-        ".ai-dev/README.md"
-      ],
-      "verification": [
-        "DryRun에서 실행 예정 명령만 출력되는지 확인",
-        "current-task-prompt.md가 없으면 명확히 안내하는지 확인",
-        "git status dirty 상태에서 기본 중단하는지 확인",
-        "PowerShell 문법 검증"
-      ],
-      "commitMessage": "Add Codex task runner"
-    },
-    {
-      "id": "T003",
-      "title": "Codex 리뷰 실행 스크립트 추가",
-      "description": "review-prompt.md를 Codex CLI에 전달해 JSON 리뷰를 생성하고 review-response.json 및 save-review 흐름에 연결하는 ai-dev-run-review-codex.ps1을 추가한다.",
-      "type": "implementation",
-      "status": "pending",
-      "priority": "P0",
-      "dependsOn": [
-        "T002"
-      ],
-      "filesLikelyToChange": [
-        "scripts/ai-dev-run-review-codex.ps1",
-        ".ai-dev/README.md"
-      ],
-      "verification": [
-        "DryRun에서 실행 예정 명령만 출력되는지 확인",
-        "Codex 출력에서 JSON 객체를 추출해 저장하는지 확인",
-        "save-review와 연결되는지 확인",
-        "PowerShell 문법 검증"
-      ],
-      "commitMessage": "Add Codex review runner"
-    },
-    {
-      "id": "T004",
-      "title": "full auto-cycle 초안 추가",
-      "description": "make-prompt, run-codex, check, save-diff, make-review-prompt, run-review-codex를 연결하는 ai-dev-auto-cycle-full.ps1 초안을 추가한다.",
-      "type": "implementation",
-      "status": "pending",
-      "priority": "P0",
-      "dependsOn": [
-        "T003"
-      ],
-      "filesLikelyToChange": [
-        "scripts/ai-dev-auto-cycle-full.ps1",
-        ".ai-dev/README.md"
-      ],
-      "verification": [
-        "DryRun에서 전체 단계가 표시되는지 확인",
-        "MaxTasks 제한이 있는지 확인",
-        "AllowCodex, AllowReviewCodex, AllowCommit 같은 명시적 옵션이 있는지 확인",
-        "PowerShell 문법 검증"
-      ],
-      "commitMessage": "Add full AI dev auto cycle draft"
-    },
-    {
-      "id": "T005",
-      "title": "자동 커밋과 task 완료 연결",
-      "description": "리뷰 결과가 pass일 때만 선택 파일 커밋과 complete-task를 수행하도록 full auto-cycle에 연결한다.",
-      "type": "implementation",
-      "status": "pending",
-      "priority": "P0",
-      "dependsOn": [
-        "T004"
-      ],
-      "filesLikelyToChange": [
-        "scripts/ai-dev-auto-cycle-full.ps1",
-        ".ai-dev/README.md"
-      ],
-      "verification": [
-        "pass가 아니면 commit하지 않는지 확인",
-        "build 실패 시 commit하지 않는지 확인",
-        "package 파일 변경 감지 시 중단하는지 확인",
-        "complete-task가 pass 이후에만 실행되는지 확인",
-        "PowerShell 문법 검증"
-      ],
-      "commitMessage": "Connect pass review to auto commit and task completion"
-    },
-    {
-      "id": "T006",
-      "title": "작은 앱 task로 end-to-end 검증",
-      "description": "작은 문서 또는 UI 변경 task를 MaxTasks 1로 실행해 Codex 구현부터 리뷰, 커밋, 완료 처리까지 검증한다.",
-      "type": "verification",
-      "status": "pending",
-      "priority": "P0",
-      "dependsOn": [
-        "T005"
-      ],
-      "filesLikelyToChange": [
-        ".ai-dev/plan.md",
-        ".ai-dev/loop-log.md",
-        ".ai-dev/test-result.md"
-      ],
-      "verification": [
-        "full auto-cycle DryRun 확인",
-        "MaxTasks 1 실제 실행 확인",
-        "Codex 구현 로그 확인",
-        "Codex 리뷰 JSON 저장 확인",
-        "pass 시 커밋/complete-task 확인",
-        "git status clean 확인"
-      ],
-      "commitMessage": null
-    }
-  ]
+﻿{
+    "goalTitle":  "AI Dev Loop Codex CLI 완전 자동화 도입",
+    "goalSource":  ".ai-dev/goal.md",
+    "createdAt":  "2026-06-07T19:59:48.1282711+09:00",
+    "updatedAt":  "2026-06-07T12:46:13.9691878+00:00",
+    "currentTaskId":  "T002",
+    "tasks":  [
+                  {
+                      "id":  "T001",
+                      "title":  "Codex CLI 완전 자동화 정책 문서화",
+                      "description":  "Codex CLI를 구현자와 리뷰어로 사용하는 완전 자동화 정책, 허용/금지 명령, 안전 중단 조건을 문서화한다.",
+                      "type":  "documentation",
+                      "status":  "done",
+                      "priority":  "P0",
+                      "dependsOn":  [
+
+                                    ],
+                      "filesLikelyToChange":  [
+                                                  "docs/ai-dev-loop-policy.md",
+                                                  ".ai-dev/README.md",
+                                                  ".ai-dev/plan.md"
+                                              ],
+                      "verification":  [
+                                           "Codex CLI 사용 방식과 안전 기준이 문서화되었는지 확인",
+                                           "Cline/Copilot/GPT API 없이 진행하는 구조가 명확한지 확인"
+                                       ],
+                      "commitMessage":  "Document Codex CLI automation policy",
+                      "completedAt":  "2026-06-07T12:46:13.9691878+00:00",
+                      "resultSummary":  "T001 완료: Codex CLI를 구현자/리뷰어로 사용하는 완전 자동화 정책, 허용/금지 명령, 안전 중단 조건 문서화"
+                  },
+                  {
+                      "id":  "T002",
+                      "title":  "Codex 구현 실행 스크립트 추가",
+                      "description":  "current-task-prompt.md를 Codex CLI에 전달해 현재 task 구현을 수행하는 ai-dev-run-codex.ps1을 추가한다.",
+                      "type":  "implementation",
+                      "status":  "in_progress",
+                      "priority":  "P0",
+                      "dependsOn":  [
+                                        "T001"
+                                    ],
+                      "filesLikelyToChange":  [
+                                                  "scripts/ai-dev-run-codex.ps1",
+                                                  ".ai-dev/README.md"
+                                              ],
+                      "verification":  [
+                                           "DryRun에서 실행 예정 명령만 출력되는지 확인",
+                                           "current-task-prompt.md가 없으면 명확히 안내하는지 확인",
+                                           "git status dirty 상태에서 기본 중단하는지 확인",
+                                           "PowerShell 문법 검증"
+                                       ],
+                      "commitMessage":  "Add Codex task runner"
+                  },
+                  {
+                      "id":  "T003",
+                      "title":  "Codex 리뷰 실행 스크립트 추가",
+                      "description":  "review-prompt.md를 Codex CLI에 전달해 JSON 리뷰를 생성하고 review-response.json 및 save-review 흐름에 연결하는 ai-dev-run-review-codex.ps1을 추가한다.",
+                      "type":  "implementation",
+                      "status":  "pending",
+                      "priority":  "P0",
+                      "dependsOn":  [
+                                        "T002"
+                                    ],
+                      "filesLikelyToChange":  [
+                                                  "scripts/ai-dev-run-review-codex.ps1",
+                                                  ".ai-dev/README.md"
+                                              ],
+                      "verification":  [
+                                           "DryRun에서 실행 예정 명령만 출력되는지 확인",
+                                           "Codex 출력에서 JSON 객체를 추출해 저장하는지 확인",
+                                           "save-review와 연결되는지 확인",
+                                           "PowerShell 문법 검증"
+                                       ],
+                      "commitMessage":  "Add Codex review runner"
+                  },
+                  {
+                      "id":  "T004",
+                      "title":  "full auto-cycle 초안 추가",
+                      "description":  "make-prompt, run-codex, check, save-diff, make-review-prompt, run-review-codex를 연결하는 ai-dev-auto-cycle-full.ps1 초안을 추가한다.",
+                      "type":  "implementation",
+                      "status":  "pending",
+                      "priority":  "P0",
+                      "dependsOn":  [
+                                        "T003"
+                                    ],
+                      "filesLikelyToChange":  [
+                                                  "scripts/ai-dev-auto-cycle-full.ps1",
+                                                  ".ai-dev/README.md"
+                                              ],
+                      "verification":  [
+                                           "DryRun에서 전체 단계가 표시되는지 확인",
+                                           "MaxTasks 제한이 있는지 확인",
+                                           "AllowCodex, AllowReviewCodex, AllowCommit 같은 명시적 옵션이 있는지 확인",
+                                           "PowerShell 문법 검증"
+                                       ],
+                      "commitMessage":  "Add full AI dev auto cycle draft"
+                  },
+                  {
+                      "id":  "T005",
+                      "title":  "자동 커밋과 task 완료 연결",
+                      "description":  "리뷰 결과가 pass일 때만 선택 파일 커밋과 complete-task를 수행하도록 full auto-cycle에 연결한다.",
+                      "type":  "implementation",
+                      "status":  "pending",
+                      "priority":  "P0",
+                      "dependsOn":  [
+                                        "T004"
+                                    ],
+                      "filesLikelyToChange":  [
+                                                  "scripts/ai-dev-auto-cycle-full.ps1",
+                                                  ".ai-dev/README.md"
+                                              ],
+                      "verification":  [
+                                           "pass가 아니면 commit하지 않는지 확인",
+                                           "build 실패 시 commit하지 않는지 확인",
+                                           "package 파일 변경 감지 시 중단하는지 확인",
+                                           "complete-task가 pass 이후에만 실행되는지 확인",
+                                           "PowerShell 문법 검증"
+                                       ],
+                      "commitMessage":  "Connect pass review to auto commit and task completion"
+                  },
+                  {
+                      "id":  "T006",
+                      "title":  "작은 앱 task로 end-to-end 검증",
+                      "description":  "작은 문서 또는 UI 변경 task를 MaxTasks 1로 실행해 Codex 구현부터 리뷰, 커밋, 완료 처리까지 검증한다.",
+                      "type":  "verification",
+                      "status":  "pending",
+                      "priority":  "P0",
+                      "dependsOn":  [
+                                        "T005"
+                                    ],
+                      "filesLikelyToChange":  [
+                                                  ".ai-dev/plan.md",
+                                                  ".ai-dev/loop-log.md",
+                                                  ".ai-dev/test-result.md"
+                                              ],
+                      "verification":  [
+                                           "full auto-cycle DryRun 확인",
+                                           "MaxTasks 1 실제 실행 확인",
+                                           "Codex 구현 로그 확인",
+                                           "Codex 리뷰 JSON 저장 확인",
+                                           "pass 시 커밋/complete-task 확인",
+                                           "git status clean 확인"
+                                       ],
+                      "commitMessage":  null
+                  }
+              ]
 }
