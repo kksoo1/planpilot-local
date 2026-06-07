@@ -2,8 +2,8 @@
     "goalTitle":  "AI Dev Loop Codex CLI 완전 자동화 도입",
     "goalSource":  ".ai-dev/goal.md",
     "createdAt":  "2026-06-07T19:59:48.1282711+09:00",
-    "updatedAt":  "2026-06-07T12:48:36.8786703+00:00",
-    "currentTaskId":  "T003",
+    "updatedAt":  "2026-06-07T12:58:28.5337607+00:00",
+    "currentTaskId":  "T004",
     "tasks":  [
                   {
                       "id":  "T001",
@@ -57,7 +57,7 @@
                       "title":  "Codex 리뷰 실행 스크립트 추가",
                       "description":  "review-prompt.md를 Codex CLI에 전달해 JSON 리뷰를 생성하고 review-response.json 및 save-review 흐름에 연결하는 ai-dev-run-review-codex.ps1을 추가한다.",
                       "type":  "implementation",
-                      "status":  "in_progress",
+                      "status":  "done",
                       "priority":  "P0",
                       "dependsOn":  [
                                         "T002"
@@ -72,14 +72,16 @@
                                            "save-review와 연결되는지 확인",
                                            "PowerShell 문법 검증"
                                        ],
-                      "commitMessage":  "Add Codex review runner"
+                      "commitMessage":  "Add Codex review runner",
+                      "completedAt":  "2026-06-07T12:58:28.5337607+00:00",
+                      "resultSummary":  "T002 완료: current-task-prompt.md를 codex exec에 전달하는 ai-dev-run-codex.ps1 추가, 문법 검증과 DryRun/Json/dirty 상태 중단 확인"
                   },
                   {
                       "id":  "T004",
                       "title":  "full auto-cycle 초안 추가",
                       "description":  "make-prompt, run-codex, check, save-diff, make-review-prompt, run-review-codex를 연결하는 ai-dev-auto-cycle-full.ps1 초안을 추가한다.",
                       "type":  "implementation",
-                      "status":  "pending",
+                      "status":  "in_progress",
                       "priority":  "P0",
                       "dependsOn":  [
                                         "T003"

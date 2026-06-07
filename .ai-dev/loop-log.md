@@ -21,3 +21,8 @@
 - Task: T002 Codex 구현 실행 스크립트 추가
 - Result: T001 완료: Codex CLI를 구현자/리뷰어로 사용하는 완전 자동화 정책, 허용/금지 명령, 안전 중단 조건 문서화
 - Next task: T003 Codex 리뷰 실행 스크립트 추가
+## 2026-06-07 21:58:28 - Task completed
+
+- Task: T003 Codex 리뷰 실행 스크립트 추가
+- Result: T002 완료: current-task-prompt.md를 codex exec에 전달하는 ai-dev-run-codex.ps1 추가, 문법 검증과 DryRun/Json/dirty 상태 중단 확인
+- Next task: T004 full auto-cycle 초안 추가
