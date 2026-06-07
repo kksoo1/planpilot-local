@@ -6,29 +6,34 @@
 
 ## 현재 진행 목표
 
-- PlanPilot Local 업무 검색/필터 UX 개선
+- AI Dev Loop Codex CLI 완전 자동화 도입
 
 ## P0
 
-- 업무 목록 구조와 필터 위치 확인
-- 업무 검색 입력 UI 추가
-- 업무 검색 필터 로직 추가
-- 빌드 검증 및 전체 diff 리뷰
+- Codex CLI 완전 자동화 정책 문서화
+- Codex 구현 실행 스크립트 추가
+- Codex 리뷰 실행 스크립트 추가
+- full auto-cycle 초안 추가
+- 자동 커밋과 task 완료 연결
+- MaxTasks 1 end-to-end 검증
 
 ## P1
 
-- 검색 결과 빈 상태 표시
-- 업무 검색/필터 수동 테스트 체크리스트 업데이트
-- 완료/미완료 필터와 검색 조합 UX 점검
-- 프로젝트명 검색 범위 적용 여부 점검
+- full auto-cycle 로그 구조 개선
+- package 변경 감지 메시지 개선
+- build/check 실패 후 revise 흐름 자동 안내
+- Codex 리뷰 JSON 추출 실패 처리 보강
 
 ## P2
 
-- 업무 필터/정렬 UX 추가 개선
-- 완료 태스크 표시/보관 정책 정리
-- 프로젝트 필터 UX 개선
-- 통계 화면 후보 검토
-- 장기 자동화 루프 GitHub PR 연동 검토
+- GitHub PR 연동 검토
+- Copilot CLI 또는 gh 연동 재검토
+- 장기 실행 자동화 모니터링 정책
+- 병렬 task 실행 가능성 검토
+
+## 잠시 중단한 목표
+
+- PlanPilot Local 업무 검색/필터 UX 개선
 
 ## 완료된 목표
 

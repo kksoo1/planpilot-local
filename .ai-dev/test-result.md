@@ -4,13 +4,16 @@
 
 ## Current Goal
 
-- Goal: PlanPilot Local 업무 검색/필터 UX 개선
-- Current task: T001 업무 목록 구조와 필터 위치 확인
+- Goal: AI Dev Loop Codex CLI 완전 자동화 도입
+- Current task: T001 Codex CLI 완전 자동화 정책 문서화
 
 ## Pending Verification
 
-- T001 분석 결과 기록
-- 업무 목록 UI 위치 확인
-- 검색 상태 위치 확인
-- DB schema 변경 불필요 여부 확인
-- 이후 구현 task별 `npm run build`
+- Codex CLI 실행 정책 문서 확인
+- `ai-dev-run-codex.ps1` DryRun 확인
+- `ai-dev-run-review-codex.ps1` DryRun 확인
+- full auto-cycle DryRun 확인
+- package 파일 변경 감지 확인
+- build 실패 시 commit 금지 확인
+- MaxTasks 1 end-to-end 검증
+- PowerShell 문법 검증

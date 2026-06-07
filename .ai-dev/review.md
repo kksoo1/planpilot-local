@@ -4,8 +4,8 @@
 
 ## Current Goal
 
-- Goal: PlanPilot Local 업무 검색/필터 UX 개선
-- Current task: T001 업무 목록 구조와 필터 위치 확인
+- Goal: AI Dev Loop Codex CLI 완전 자동화 도입
+- Current task: T001 Codex CLI 완전 자동화 정책 문서화
 
 ## Status
 

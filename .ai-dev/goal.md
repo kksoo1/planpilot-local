@@ -1,60 +1,63 @@
 # Goal
 
-PlanPilot Local 업무 검색/필터 UX 개선
+AI Dev Loop Codex CLI 완전 자동화 도입
 
 ## Background
 
-PlanPilot Local의 업무 목록에서 사용자가 업무를 더 쉽게 찾을 수 있도록 검색/필터 UX를 개선한다. 기존 데이터 구조와 저장 방식은 유지하고, UI 상태와 파생 필터링 로직 중심으로 구현한다.
+Codex CLI를 사용해 AI Dev Loop의 구현, 검증, 리뷰, 커밋, task 완료 처리를 가능한 한 end-to-end로 자동화한다.
 
-이번 목표는 지금까지 만든 AI Dev Loop 자동화가 실제 앱 기능 개발에도 잘 동작하는지 확인하는 실험이다.
+`current-task-prompt.md`를 Codex CLI에 전달해 코드 수정을 수행하고, `review-prompt.md`를 Codex CLI에 전달해 JSON 리뷰를 생성한 뒤, `pass`, `revise`, `blocked` 결과에 따라 자동 분기한다.
+
+초기 버전은 안전을 위해 `MaxTasks 1`, 명시적 Allow 옵션, git status clean 확인, package 변경 감지 중단, build 실패 시 commit 금지 정책을 적용한다.
 
 ## Success Criteria
 
-- 업무 목록에서 검색어로 업무를 필터링할 수 있다.
-- 검색 대상은 최소 업무 제목을 포함한다.
-- 가능한 경우 설명, 메모, 프로젝트명도 검색 대상에 포함한다.
-- 기존 타입 구조를 무리하게 변경하지 않는다.
-- 완료/미완료 또는 상태 기반 필터가 이미 있으면 기존 동작을 깨지 않는다.
-- 검색어가 없으면 기존 목록과 동일하게 표시된다.
-- 검색 결과가 없을 때 사용자에게 빈 상태 메시지를 표시한다.
-- 검색/필터 과정에서 IndexedDB 데이터는 변경되지 않는다.
-- package 추가, DB schema 변경, 대규모 리팩터링을 하지 않는다.
-- `npm run build`가 성공한다.
-- `docs/manual-test-checklist.md`에 검색/필터 수동 테스트 항목을 추가한다.
+- Codex CLI 실행 정책이 문서화된다.
+- `current-task-prompt.md`를 Codex CLI에 전달하는 `ai-dev-run-codex.ps1`이 추가된다.
+- `review-prompt.md`를 Codex CLI에 전달하고 JSON 리뷰를 저장하는 `ai-dev-run-review-codex.ps1`이 추가된다.
+- Codex 구현, build/check, diff, Codex 리뷰, save-review 흐름이 연결된다.
+- pass 리뷰에서만 자동 커밋과 complete-task를 수행하는 full cycle 초안이 추가된다.
+- git status가 dirty이면 Codex 실행을 중단한다.
+- package.json 또는 package-lock.json 변경이 감지되면 자동 커밋하지 않는다.
+- build 실패 시 자동 커밋하지 않는다.
+- git reset, git clean, npm install은 자동 실행하지 않는다.
+- PowerShell 문법 검증이 통과한다.
+- 작은 앱 기능 task로 MaxTasks 1 end-to-end 검증이 가능하다.
 
 ## Constraints
 
-- 기존 업무/프로젝트 데이터 구조를 유지한다.
-- IndexedDB schema를 변경하지 않는다.
-- package.json과 package-lock.json을 수정하지 않는다.
-- package를 추가하지 않는다.
-- 대규모 리팩터링을 하지 않는다.
-- 검색/필터는 UI 상태와 파생 데이터 계산 중심으로 구현한다.
-- 검색/필터 과정에서 DB 쓰기 코드를 추가하지 않는다.
-- 기존 완료/미완료 표시나 필터 동작을 깨지 않는다.
-- AI Dev Loop 실험 목적이더라도 한 번에 하나의 task만 수행한다.
+- Codex CLI는 구현자와 리뷰어로 사용한다.
+- GPT API 키 없이 진행한다.
+- Cline은 삭제되어 사용하지 않는다.
+- Copilot CLI와 gh는 현재 사용하지 않는다.
+- 자동화는 명시적 Allow 옵션 없이는 위험한 단계를 실행하지 않는다.
+- git status가 dirty이면 Codex 구현 실행을 기본 중단한다.
+- package.json/package-lock.json 변경이 감지되면 자동 커밋하지 않는다.
+- build/check 실패 시 자동 커밋하지 않는다.
+- git reset, git clean, npm install은 자동 실행하지 않는다.
+- src 코드는 각 구현 task에서만 수정한다.
 
 ## Out of Scope
 
-- DB schema 변경
-- full-text search 엔진 도입
-- 외부 검색 라이브러리 추가
-- 서버 API 추가
-- localStorage 사용
-- 로그인 또는 클라우드 동기화
-- 업무 데이터 마이그레이션
-- 대규모 화면 리디자인
-- 프로젝트 검색/필터 전면 개편
+- GPT API 직접 호출
+- Cline 사용
+- Copilot CLI 사용
+- gh 또는 GitHub PR 자동 연동
+- git push 자동화
+- git reset/git clean 같은 destructive git 명령
+- npm install 자동 실행
+- package 대량 교체
+- DB 삭제, 초기화, 복원, 마이그레이션 자동화
 
 ## Manual Verification
 
-- 검색어가 없을 때 기존 업무 목록이 유지된다.
-- 제목 검색이 동작한다.
-- 가능한 경우 메모 또는 프로젝트명 검색이 동작한다.
-- 검색어 대소문자 차이를 무시한다.
-- 검색어 앞뒤 공백을 무시한다.
-- 완료/미완료 또는 기존 상태 필터와 함께 검색해도 동작한다.
-- 검색 결과가 없을 때 빈 상태 메시지가 표시된다.
-- 검색어를 지우면 기존 목록이 다시 표시된다.
-- 검색/필터 과정에서 기존 업무, 프로젝트, 설정 데이터가 변경되지 않는다.
-- `npm run build`가 성공한다.
+- Codex CLI 실행 정책이 문서화되어 있다.
+- Codex 구현 실행 스크립트가 DryRun과 dirty worktree 중단을 지원한다.
+- Codex 리뷰 실행 스크립트가 JSON 리뷰를 저장하고 save-review 흐름과 연결된다.
+- full auto-cycle DryRun이 전체 단계를 보여준다.
+- full auto-cycle은 MaxTasks 1 제한과 Allow 옵션을 가진다.
+- pass 리뷰가 아니면 자동 커밋하지 않는다.
+- build 실패 시 자동 커밋하지 않는다.
+- package 파일 변경 감지 시 자동 커밋하지 않는다.
+- PowerShell 문법 검증이 통과한다.
+- 작은 task로 MaxTasks 1 end-to-end 검증이 가능하다.
