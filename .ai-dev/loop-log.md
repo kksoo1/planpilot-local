@@ -9,3 +9,9 @@
 - Scope: auto-step/auto-cycle/save-review/check/test-result 기록 UX와 안전 기준 개선
 - Excluded: GPT API 직접 호출, Codex/Cline 자동 호출, git commit 자동 실행, `src` 코드 변경, package 파일 변경
 - Result: `goal.md`, `backlog.md`, `queue.json`, `state.json`, `plan.md`, `test-result.md`, `review.md`, `loop-log.md`를 새 목표 기준으로 초기화함
+
+## 2026-06-07 14:58:51 - Task completed
+
+- Task: T001 수동 자동화 UX 개선 정책 문서화
+- Result: T001 완료: 수동 자동화 UX 개선 정책 문서화, goal_completed/ask_gpt_review/save-review 실패/test-result 기록 개선 방향 정리
+- Next task: T002 goal_completed 안내 개선
