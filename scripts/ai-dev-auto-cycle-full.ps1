@@ -6,7 +6,8 @@
     [switch]$AllowCodex,
     [switch]$AllowReviewCodex,
     [switch]$AllowCommit,
-    [switch]$AllowDirty
+    [switch]$AllowDirty,
+    [string[]]$CommitFiles
 )
 
 . $PSScriptRoot\ai-dev-env.ps1
@@ -14,8 +15,10 @@
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $queueRelativePath = ".ai-dev/queue.json"
 $stateRelativePath = ".ai-dev/state.json"
+$reviewResponseRelativePath = ".ai-dev/review-response.json"
 $queuePath = Join-Path $repoRoot $queueRelativePath
 $statePath = Join-Path $repoRoot $stateRelativePath
+$reviewResponsePath = Join-Path $repoRoot $reviewResponseRelativePath
 
 function Test-HasValue {
     param(
@@ -141,9 +144,6 @@ function Write-CycleResult {
     Write-Host "Completed: $($Result.completed)"
     Write-Host "Exit code: $($Result.exitCode)"
 
-    if ($AllowCommit) {
-        Write-Host "AllowCommit: specified, but T004 does not run commit or complete-task."
-    }
 }
 
 function Stop-Cycle {
@@ -202,6 +202,71 @@ function Get-ScriptPath {
     return $scriptPath
 }
 
+function Invoke-GitCapture {
+    param(
+        [string[]]$Arguments,
+        [string]$DisplayName
+    )
+
+    $output = & git @Arguments 2>&1 | Out-String
+    $exitCode = $LASTEXITCODE
+
+    if ($exitCode -ne 0) {
+        throw "$DisplayName 실행에 실패했습니다. exit code: $exitCode`n$output"
+    }
+
+    return $output.TrimEnd()
+}
+
+function Test-PackageFileChanged {
+    $status = Invoke-GitCapture @("status", "--porcelain", "--", "package.json", "package-lock.json") "git status --porcelain -- package.json package-lock.json"
+    return -not [string]::IsNullOrWhiteSpace($status)
+}
+
+function Get-ReviewGate {
+    $state = Read-JsonFile $statePath $stateRelativePath
+    $nextStep = $null
+
+    if (Test-Path -LiteralPath $reviewResponsePath -PathType Leaf) {
+        $reviewResponse = Read-JsonFile $reviewResponsePath $reviewResponseRelativePath
+
+        if (Test-HasValue $reviewResponse.next_step) {
+            $nextStep = [string]$reviewResponse.next_step
+        }
+    }
+
+    return [PSCustomObject][ordered]@{
+        lastCommandStatus = [string]$state.lastCommandStatus
+        decision = [string]$state.lastReviewDecision
+        nextStep = $nextStep
+    }
+}
+
+function Get-CommitArguments {
+    $arguments = @()
+
+    if ($null -ne $CommitFiles -and $CommitFiles.Count -gt 0) {
+        $normalizedFiles = @($CommitFiles | ForEach-Object { $_ -split "," } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+
+        if ($normalizedFiles.Count -gt 0) {
+            $arguments += "-Files"
+            $arguments += ($normalizedFiles -join ",")
+        }
+    }
+
+    return $arguments
+}
+
+function Get-CommitGate {
+    $state = Read-JsonFile $statePath $stateRelativePath
+
+    return [PSCustomObject][ordered]@{
+        lastCommand = [string]$state.lastCommand
+        lastCommandStatus = [string]$state.lastCommandStatus
+        lastCommitHash = [string]$state.lastCommitHash
+    }
+}
+
 Set-Location $repoRoot
 
 $script:steps = @()
@@ -249,6 +314,8 @@ try {
         saveDiff = Get-ScriptPath "ai-dev-save-diff.ps1"
         makeReviewPrompt = Get-ScriptPath "ai-dev-make-review-prompt.ps1"
         runReviewCodex = Get-ScriptPath "ai-dev-run-review-codex.ps1"
+        commit = Get-ScriptPath "ai-dev-commit.ps1"
+        completeTask = Get-ScriptPath "ai-dev-complete-task.ps1"
     }
 } catch {
     $script:steps += New-StepResult 0 "prepare" "state/queue 확인" $false $false 1 $_.Exception.Message
@@ -261,7 +328,12 @@ $plannedSteps = @(
     "check",
     "save-diff",
     "make-review-prompt",
-    "run-review-codex"
+    "run-review-codex",
+    "review-gate",
+    "package-change-gate",
+    "commit",
+    "commit-result-gate",
+    "complete-task"
 )
 
 if ($plannedSteps.Count -gt $MaxSteps) {
@@ -269,14 +341,14 @@ if ($plannedSteps.Count -gt $MaxSteps) {
 }
 
 if ($MaxTasks -gt 1) {
-    $script:steps += New-StepResult 0 "max-tasks" "MaxTasks=$MaxTasks" $false $true 0 "T004 초안은 task 완료 처리를 하지 않으므로 한 번에 현재 task만 실행합니다."
+    $script:steps += New-StepResult 0 "max-tasks" "MaxTasks=$MaxTasks" $false $true 0 "초기 full cycle은 안전을 위해 현재 task 하나만 실행합니다."
 }
 
 $stepNumber = 1
 Invoke-CycleCommand $stepNumber "make-prompt" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-prompt.ps1" $scriptPaths.makePrompt @()
 $stepNumber++
 
-if (-not $AllowCodex) {
+if (-not $AllowCodex -and -not $DryRun) {
     $command = "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cycle-full.ps1 -AllowCodex -AllowReviewCodex -MaxTasks $MaxTasks"
     if ($AllowDirty) {
         $command = "$command -AllowDirty"
@@ -303,7 +375,7 @@ $stepNumber++
 Invoke-CycleCommand $stepNumber "make-review-prompt" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-review-prompt.ps1 -Strict" $scriptPaths.makeReviewPrompt @("-Strict")
 $stepNumber++
 
-if (-not $AllowReviewCodex) {
+if (-not $AllowReviewCodex -and -not $DryRun) {
     $command = "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cycle-full.ps1 -AllowCodex -AllowReviewCodex -MaxTasks $MaxTasks"
     if ($AllowDirty) {
         $command = "$command -AllowDirty"
@@ -314,11 +386,103 @@ if (-not $AllowReviewCodex) {
 }
 
 Invoke-CycleCommand $stepNumber "run-review-codex" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-review-codex.ps1 -AllowDirty -SaveReview" $scriptPaths.runReviewCodex @("-AllowDirty", "-SaveReview")
+$stepNumber++
 
-$finalMessage = "T004 초안은 여기서 중단합니다. 자동 커밋과 complete-task는 T005에서 연결합니다."
-if ($AllowCommit) {
-    $finalMessage = "$finalMessage -AllowCommit은 지정되었지만 이번 버전에서는 출력만 하고 사용하지 않습니다."
+if ($DryRun) {
+    $script:steps += New-StepResult $stepNumber "review-gate" "state.lastReviewDecision 확인" $false $true 0 "DryRun: 리뷰 pass 여부를 실제 상태에서 읽지 않았습니다."
+    $stepNumber++
+    $script:steps += New-StepResult $stepNumber "package-change-gate" "git status --porcelain -- package.json package-lock.json" $false $true 0 "DryRun: package 파일 변경 여부를 확인하지 않았습니다."
+    $stepNumber++
+    $script:steps += New-StepResult $stepNumber "commit" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-commit.ps1" $false $true 0 "DryRun: git add/commit을 실행하지 않았습니다."
+    $stepNumber++
+    $script:steps += New-StepResult $stepNumber "commit-result-gate" "state.lastCommand/lastCommitHash 확인" $false $true 0 "DryRun: 실제 커밋 생성 여부를 확인하지 않았습니다."
+    $stepNumber++
+    $script:steps += New-StepResult $stepNumber "complete-task" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-complete-task.ps1 -ResultSummary `"리뷰 pass 후 자동 커밋 완료`"" $false $true 0 "DryRun: task 완료 처리를 실행하지 않았습니다."
+    Stop-Cycle $script:steps "dry_run" $false 0
 }
 
-$script:steps += New-StepResult ($stepNumber + 1) "commit-complete-placeholder" "T005에서 ai-dev-commit.ps1 및 ai-dev-complete-task.ps1 연결 예정" $false $true 0 $finalMessage
-Stop-Cycle $script:steps "t004_commit_complete_not_implemented" $false 0
+try {
+    $reviewGate = Get-ReviewGate
+} catch {
+    $script:steps += New-StepResult $stepNumber "review-gate" "state/review-response 확인" $false $false 1 $_.Exception.Message
+    Stop-Cycle $script:steps "review_gate_failed" $false 1
+}
+
+if ($reviewGate.lastCommandStatus -ne "passed") {
+    $script:steps += New-StepResult $stepNumber "review-gate" "state.lastCommandStatus 확인" $false $true 1 "리뷰 저장 또는 직전 명령이 passed가 아니므로 자동 커밋하지 않습니다: $($reviewGate.lastCommandStatus)"
+    Stop-Cycle $script:steps "review_save_not_passed" $false 1
+}
+
+if ($reviewGate.decision -ne "pass") {
+    $script:steps += New-StepResult $stepNumber "review-gate" "state.lastReviewDecision 확인" $false $true 0 "리뷰 decision이 pass가 아니므로 자동 커밋과 complete-task를 실행하지 않습니다: $($reviewGate.decision)"
+    Stop-Cycle $script:steps "review_not_pass" $false 0
+}
+
+if (Test-HasValue $reviewGate.nextStep -and $reviewGate.nextStep -ne "complete_task") {
+    $script:steps += New-StepResult $stepNumber "review-gate" "$reviewResponseRelativePath next_step 확인" $false $true 0 "리뷰 next_step이 complete_task가 아니므로 자동 커밋과 complete-task를 실행하지 않습니다: $($reviewGate.nextStep)"
+    Stop-Cycle $script:steps "review_next_step_not_complete_task" $false 0
+}
+
+$script:steps += New-StepResult $stepNumber "review-gate" "state.lastReviewDecision 확인" $false $false 0 "리뷰 pass 확인. 커밋 게이트로 진행합니다."
+$stepNumber++
+
+try {
+    if (Test-PackageFileChanged) {
+        $script:steps += New-StepResult $stepNumber "package-change-gate" "git status --porcelain -- package.json package-lock.json" $false $true 1 "package.json 또는 package-lock.json 변경이 감지되어 자동 커밋하지 않습니다."
+        Stop-Cycle $script:steps "package_files_changed" $false 1
+    }
+} catch {
+    $script:steps += New-StepResult $stepNumber "package-change-gate" "git status --porcelain -- package.json package-lock.json" $false $false 1 $_.Exception.Message
+    Stop-Cycle $script:steps "package_change_gate_failed" $false 1
+}
+
+$script:steps += New-StepResult $stepNumber "package-change-gate" "git status --porcelain -- package.json package-lock.json" $false $false 0 "package 파일 변경 없음. 커밋 허용 여부를 확인합니다."
+$stepNumber++
+
+if (-not $AllowCommit) {
+    $commitCommand = "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cycle-full.ps1 -AllowCodex -AllowReviewCodex -AllowCommit -CommitFiles <files> -MaxTasks $MaxTasks"
+    if ($AllowDirty) {
+        $commitCommand = "$commitCommand -AllowDirty"
+    }
+
+    if ($null -ne $CommitFiles -and $CommitFiles.Count -gt 0) {
+        $commitCommand = "$commitCommand -CommitFiles $($CommitFiles -join ',')"
+    }
+
+    $script:steps += New-StepResult $stepNumber "commit" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-commit.ps1" $false $true 1 "자동 커밋에는 -AllowCommit이 필요합니다. 추천 명령: $commitCommand"
+    Stop-Cycle $script:steps "allow_commit_required" $false 1
+}
+
+$commitArguments = Get-CommitArguments
+
+if ($commitArguments.Count -eq 0) {
+    $script:steps += New-StepResult $stepNumber "commit" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-commit.ps1 -Files <files>" $false $true 1 "자동 커밋에는 선택 파일 목록이 필요합니다. -CommitFiles scripts/example.ps1,.ai-dev/README.md 형식으로 지정하세요."
+    Stop-Cycle $script:steps "commit_files_required" $false 1
+}
+
+$commitCommandText = "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-commit.ps1"
+if ($commitArguments.Count -gt 0) {
+    $commitCommandText = "$commitCommandText $($commitArguments -join ' ')"
+}
+
+Invoke-CycleCommand $stepNumber "commit" $commitCommandText $scriptPaths.commit $commitArguments
+$stepNumber++
+
+try {
+    $commitGate = Get-CommitGate
+} catch {
+    $script:steps += New-StepResult $stepNumber "commit-result-gate" "state.lastCommand/lastCommitHash 확인" $false $false 1 $_.Exception.Message
+    Stop-Cycle $script:steps "commit_result_gate_failed" $false 1
+}
+
+if ($commitGate.lastCommand -ne "commit" -or $commitGate.lastCommandStatus -ne "passed" -or -not (Test-HasValue $commitGate.lastCommitHash)) {
+    $message = "커밋 완료 상태를 확인하지 못해 complete-task를 실행하지 않습니다. lastCommand=$($commitGate.lastCommand), lastCommandStatus=$($commitGate.lastCommandStatus), lastCommitHash=$($commitGate.lastCommitHash)"
+    $script:steps += New-StepResult $stepNumber "commit-result-gate" "state.lastCommand/lastCommitHash 확인" $false $true 1 $message
+    Stop-Cycle $script:steps "commit_not_confirmed" $false 1
+}
+
+$script:steps += New-StepResult $stepNumber "commit-result-gate" "state.lastCommand/lastCommitHash 확인" $false $false 0 "커밋 생성 확인: $($commitGate.lastCommitHash)"
+$stepNumber++
+
+Invoke-CycleCommand $stepNumber "complete-task" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-complete-task.ps1 -ResultSummary `"리뷰 pass 후 자동 커밋 완료`"" $scriptPaths.completeTask @("-ResultSummary", "리뷰 pass 후 자동 커밋 완료")
+Stop-Cycle $script:steps "completed" $true 0
