@@ -2,8 +2,8 @@
     "goalTitle":  "AI Dev Loop Codex CLI 완전 자동화 도입",
     "goalSource":  ".ai-dev/goal.md",
     "createdAt":  "2026-06-07T19:59:48.1282711+09:00",
-    "updatedAt":  "2026-06-07T13:57:13.9217915+00:00",
-    "currentTaskId":  "T005",
+    "updatedAt":  "2026-06-08T14:11:23.8613636+00:00",
+    "currentTaskId":  "T006",
     "tasks":  [
                   {
                       "id":  "T001",
@@ -105,7 +105,7 @@
                       "title":  "자동 커밋과 task 완료 연결",
                       "description":  "리뷰 결과가 pass일 때만 선택 파일 커밋과 complete-task를 수행하도록 full auto-cycle에 연결한다.",
                       "type":  "implementation",
-                      "status":  "in_progress",
+                      "status":  "done",
                       "priority":  "P0",
                       "dependsOn":  [
                                         "T004"
@@ -121,14 +121,16 @@
                                            "complete-task가 pass 이후에만 실행되는지 확인",
                                            "PowerShell 문법 검증"
                                        ],
-                      "commitMessage":  "Connect pass review to auto commit and task completion"
+                      "commitMessage":  "Connect pass review to auto commit and task completion",
+                      "completedAt":  "2026-06-08T14:11:23.8613636+00:00",
+                      "resultSummary":  "T004 완료: make-prompt/run-codex/check/save-diff/make-review-prompt/run-review-codex를 연결하는 ai-dev-auto-cycle-full.ps1 초안 추가, DryRun/Json/AllowCodex 중단 확인"
                   },
                   {
                       "id":  "T006",
                       "title":  "작은 앱 task로 end-to-end 검증",
                       "description":  "작은 문서 또는 UI 변경 task를 MaxTasks 1로 실행해 Codex 구현부터 리뷰, 커밋, 완료 처리까지 검증한다.",
                       "type":  "verification",
-                      "status":  "pending",
+                      "status":  "in_progress",
                       "priority":  "P0",
                       "dependsOn":  [
                                         "T005"
