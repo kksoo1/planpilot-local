@@ -1,48 +1,17 @@
 ﻿# AI Dev Test Result
 
-## 2026-06-07 23:04:20
+## 2026-06-09 00:17:45
 
-- Overall result: passed
-- Current task: T005
+- Overall result: recorded
+- Current task: T006
+- Mode: manual-summary
 - Commands:
-  - npm run build: passed
+  - npm run build: skipped
   - npm run test: skipped
   - npm run lint: skipped
 
-### npm run build
-
-- Status: passed
-- Exit code: 0
+### Manual Verification Summary
 
 ```text
-
-> planpilot-local@0.0.0 build
-> tsc -b && vite build
-
-[36mvite v8.0.10 [32mbuilding client environment for production...[36m[39m
-[2K
-transforming...✓ 48 modules transformed.
-rendering chunks...
-computing gzip size...
-dist/index.html                   0.46 kB │ gzip:  0.29 kB
-dist/assets/index-DvjxWt30.css    5.69 kB │ gzip:  1.93 kB
-dist/assets/index-C8DmBEYa.js   315.70 kB │ gzip: 99.56 kB
-
-[32m✓ built in 583ms[39m
-```
-### npm run test
-
-- Status: skipped
-- Exit code: 없음
-
-```text
--BuildOnly 옵션으로 건너뛰었습니다.
-```
-### npm run lint
-
-- Status: skipped
-- Exit code: 없음
-
-```text
--BuildOnly 옵션으로 건너뛰었습니다.
+T006 검증 완료: ai-dev-auto-cycle-full.ps1 DryRun/Json에서 make-prompt, run-codex, check, save-diff, make-review-prompt, run-review-codex, review-gate, package-change-gate, commit, commit-result-gate, complete-task 단계가 표시됨을 확인했다. Codex runner 인자 길이 문제를 발견해 ai-dev-run-codex.ps1 및 ai-dev-run-review-codex.ps1을 짧은 wrapper prompt 방식으로 수정했다. 실제 end-to-end 앱 개발 검증은 T007 auto-goal 또는 별도 작은 앱 목표에서 수행한다.
 ```

@@ -72,3 +72,9 @@
 - Docs: `.ai-dev/README.md`에 DryRun, MaxTasks 1/3, `AllowCodex + AllowReviewCodex + AllowCommit`, 선택 파일 커밋 예시를 추가함
 - Verification: PowerShell AST 문법 검증 통과, full auto-cycle DryRun/Json 출력에서 commit 및 complete-task 단계 포함 확인
 - Excluded: 실제 Codex 실행, build/test/lint, git add/commit은 수행하지 않음
+
+## 2026-06-09 00:17:52 - Task completed
+
+- Task: T006 작은 앱 task로 end-to-end 검증
+- Result: T006 완료: full auto-cycle DryRun/Json 구조 검증 및 Codex runner 인자 길이 버그 수정 확인, 실제 end-to-end 검증은 T007 auto-goal 이후 작은 앱 목표로 수행
+- Next task: T007 목표 입력 기반 자동 goal 실행 스크립트 추가
