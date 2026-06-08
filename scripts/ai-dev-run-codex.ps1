@@ -115,29 +115,18 @@ function Test-OnlyAllowedPromptDirty {
 
 function New-CodexPrompt {
     param(
-        [string]$BasePrompt
+        [string]$PromptFilePath
     )
 
-    return @"
-$BasePrompt
-
-## Codex CLI Additional Safety Rules
-
-- git commit을 실행하지 않는다.
-- git reset, git checkout, git clean을 실행하지 않는다.
-- npm install을 실행하지 않는다.
-- package.json 또는 package-lock.json을 수정하지 않는다. 꼭 필요하면 작업을 중단하고 이유만 기록한다.
-- 현재 task 범위 밖 작업을 하지 않는다.
-- build, test, lint는 이 프롬프트가 명시적으로 요청하지 않는 한 실행하지 않는다.
-"@
+    return "Read and follow the full task prompt at this absolute file path: $PromptFilePath"
 }
 
 Set-Location $repoRoot
 
 $promptRelativePath = ConvertTo-RepoRelativePath $PromptPath
 $resultRelativePath = ConvertTo-RepoRelativePath $ResultPath
-$resolvedPromptPath = Resolve-RepoPath $PromptPath
-$resolvedResultPath = Resolve-RepoPath $ResultPath
+$resolvedPromptPath = [System.IO.Path]::GetFullPath((Resolve-RepoPath $PromptPath))
+$resolvedResultPath = [System.IO.Path]::GetFullPath((Resolve-RepoPath $ResultPath))
 $statusLines = @(Get-GitStatusLines)
 
 if ($statusLines.Count -gt 0 -and -not $AllowDirty) {
@@ -171,9 +160,8 @@ if (-not (Test-Path -LiteralPath $resolvedPromptPath -PathType Leaf)) {
     Write-RunResult "run_codex" $false 1 "프롬프트 파일을 찾을 수 없습니다: $promptRelativePath"
 }
 
-$basePrompt = Get-Content -Raw -Encoding UTF8 -LiteralPath $resolvedPromptPath
-$codexPrompt = New-CodexPrompt $basePrompt
-$commandText = "codex exec <content from $promptRelativePath plus safety rules>"
+$codexPrompt = New-CodexPrompt $resolvedPromptPath
+$commandText = "codex exec <short wrapper pointing to $promptRelativePath>"
 
 if ($DryRun) {
     $message = @"

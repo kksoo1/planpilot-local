@@ -236,24 +236,10 @@ function ConvertFrom-CodexReviewOutput {
 
 function New-CodexReviewPrompt {
     param(
-        [string]$BasePrompt
+        [string]$PromptFilePath
     )
 
-    return @"
-$BasePrompt
-
-## Codex CLI Review Safety Rules
-
-- 파일을 수정하지 않는다.
-- git 명령을 실행하지 않는다.
-- build, test, lint를 실행하지 않는다.
-- JSON 객체만 출력한다.
-- JSON 앞뒤에 설명, Markdown 코드 펜스, 추가 문장을 출력하지 않는다.
-- JSON 객체에는 decision, severity, summary, required_changes, optional_suggestions, next_step 필드를 반드시 포함한다.
-- decision은 pass, revise, blocked 중 하나로 출력한다.
-- severity는 none, low, medium, high, critical 중 하나로 출력한다.
-- next_step은 complete_task, revise_with_codex, stop_for_user 중 하나로 출력한다.
-"@
+    return "Read and follow the full review prompt at this absolute file path: $PromptFilePath"
 }
 
 Set-Location $repoRoot
@@ -261,9 +247,9 @@ Set-Location $repoRoot
 $reviewPromptRelativePath = ConvertTo-RepoRelativePath $ReviewPromptPath
 $reviewResponseRelativePath = ConvertTo-RepoRelativePath $ReviewResponsePath
 $resultRelativePath = ConvertTo-RepoRelativePath $ResultPath
-$resolvedReviewPromptPath = Resolve-RepoPath $ReviewPromptPath
-$resolvedReviewResponsePath = Resolve-RepoPath $ReviewResponsePath
-$resolvedResultPath = Resolve-RepoPath $ResultPath
+$resolvedReviewPromptPath = [System.IO.Path]::GetFullPath((Resolve-RepoPath $ReviewPromptPath))
+$resolvedReviewResponsePath = [System.IO.Path]::GetFullPath((Resolve-RepoPath $ReviewResponsePath))
+$resolvedResultPath = [System.IO.Path]::GetFullPath((Resolve-RepoPath $ResultPath))
 $statusLines = @(Get-GitStatusLines)
 
 if ($statusLines.Count -gt 0 -and -not $AllowDirty) {
@@ -279,7 +265,7 @@ if (-not $promptExists -and -not $GenerateReviewPromptIfMissing) {
     Write-RunResult "run_review_codex" $false 1 $message
 }
 
-$commandText = "codex exec <content from $reviewPromptRelativePath plus review safety rules>"
+$commandText = "codex exec <short wrapper pointing to $reviewPromptRelativePath>"
 $saveReviewCommandText = "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-save-review.ps1 -ReviewFile $reviewResponseRelativePath"
 
 if ($DryRun) {
@@ -325,8 +311,7 @@ if ($null -eq $codexCommand) {
     Write-RunResult "run_review_codex" $false 1 "Codex CLI를 찾을 수 없습니다. codex 명령을 사용할 수 있는지 확인하세요."
 }
 
-$basePrompt = Get-Content -Raw -Encoding UTF8 -LiteralPath $resolvedReviewPromptPath
-$codexPrompt = New-CodexReviewPrompt $basePrompt
+$codexPrompt = New-CodexReviewPrompt $resolvedReviewPromptPath
 $startedAt = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
 $codexOutput = & codex exec $codexPrompt 2>&1 | Out-String
 $codexExitCode = $LASTEXITCODE
