@@ -668,7 +668,7 @@ powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-review-codex.ps1 -Dr
 
 ### full auto-cycle 초안
 
-`ai-dev-auto-cycle-full.ps1`는 현재 task 기준으로 prompt 생성, Codex 구현, build check, diff 저장, strict review prompt 생성, Codex JSON 리뷰와 save-review, pass 리뷰 이후의 선택 파일 커밋과 task 완료 처리를 순서대로 연결하는 초안이다.
+`ai-dev-auto-cycle-full.ps1`는 현재 task 기준으로 prompt 생성, Codex 구현, build check, diff 저장, strict review prompt 생성, Codex JSON 리뷰와 save-review, pass 리뷰 이후의 커밋과 task 완료 처리를 순서대로 연결하는 초안이다.
 
 T005 버전의 실행 단계:
 
@@ -680,9 +680,10 @@ T005 버전의 실행 단계:
 6. `ai-dev-run-review-codex.ps1 -AllowDirty -SaveReview`
 7. 리뷰 게이트 확인: `state.lastCommandStatus`가 `passed`이고 `state.lastReviewDecision`이 `pass`여야 한다.
 8. package 파일 변경 게이트 확인: `package.json` 또는 `package-lock.json` 변경이 있으면 자동 커밋하지 않는다.
-9. `-AllowCommit`과 `-CommitFiles`가 있을 때만 `ai-dev-commit.ps1 -Files`를 실행한다.
+9. `-AllowCommit`이 있을 때만 `ai-dev-commit.ps1`을 실행한다. `-CommitFiles`가 있으면 선택 파일만 커밋 대상으로 전달한다.
 10. 커밋 결과 게이트 확인: `state.lastCommand`가 `commit`이고 `lastCommitHash`가 있어야 한다.
 11. 커밋 성공 후에만 `ai-dev-complete-task.ps1`을 실행한다.
+12. `MaxTasks`가 1보다 크면 complete-task 성공 후 다음 task를 다시 읽고 같은 흐름을 반복한다.
 
 먼저 DryRun으로 전체 단계를 확인한다. DryRun은 하위 스크립트를 실제 실행하지 않는다.
 
@@ -696,10 +697,16 @@ powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cycle-full.ps1 -Dry
 powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cycle-full.ps1 -DryRun -Json
 ```
 
-기본값은 `MaxTasks 1`, `MaxSteps 20`이다. `MaxTasks`와 `MaxSteps`는 무한 반복을 막기 위한 제한이며, 초기 full cycle은 안전을 위해 현재 task 한 개만 다룬다.
+기본값은 `MaxTasks 1`, `MaxSteps 20`이다. `MaxTasks`와 `MaxSteps`는 무한 반복을 막기 위한 제한이다. `MaxTasks`가 1보다 크면 각 task가 커밋과 complete-task까지 성공한 경우에만 다음 task로 반복한다.
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cycle-full.ps1 -DryRun -MaxTasks 1 -MaxSteps 20
+```
+
+여러 task 반복 구조를 확인하려면 `MaxTasks`를 늘릴 수 있다. 실제 반복은 각 task의 commit/complete-task가 성공해야 다음 task로 넘어간다.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cycle-full.ps1 -DryRun -MaxTasks 3 -MaxSteps 20
 ```
 
 `-AllowCodex` 없이 실제 실행하면 prompt 생성 이후 Codex 구현 실행 직전에서 중단하고 추천 명령을 출력한다. Codex 구현까지 허용하려면 명시적으로 `-AllowCodex`를 지정한다.
@@ -714,10 +721,22 @@ Codex 구현과 Codex 리뷰까지 이어가려면 `-AllowCodex`와 `-AllowRevie
 powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cycle-full.ps1 -AllowCodex -AllowReviewCodex -MaxTasks 1
 ```
 
-리뷰가 `pass`이고 package 파일 변경이 없을 때 자동 커밋과 task 완료까지 허용하려면 `-AllowCommit`과 `-CommitFiles`를 함께 지정한다. full cycle은 안전을 위해 선택 파일 목록이 없으면 자동 커밋하지 않는다.
+리뷰가 `pass`이고 package 파일 변경이 없을 때 자동 커밋과 task 완료까지 허용하려면 `-AllowCommit`을 함께 지정한다. 커밋 메시지는 기본적으로 현재 task의 `commitMessage`를 사용한다.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cycle-full.ps1 -AllowCodex -AllowReviewCodex -AllowCommit -MaxTasks 1
+```
+
+선택 파일만 커밋하려면 `-CommitFiles`를 지정한다. 이 값은 그대로 `ai-dev-commit.ps1 -Files`에 전달된다.
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cycle-full.ps1 -AllowCodex -AllowReviewCodex -AllowCommit -CommitFiles scripts/ai-dev-auto-cycle-full.ps1,.ai-dev/README.md -MaxTasks 1
+```
+
+최대 3개 task까지 연속 실행하려면 `MaxTasks 3`을 지정한다. complete-task가 queue/state/loop-log를 갱신하므로, 다음 task 구현 실행 시 dirty worktree 정책을 별도로 판단해야 한다.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cycle-full.ps1 -AllowCodex -AllowReviewCodex -AllowCommit -AllowDirty -MaxTasks 3
 ```
 
 dirty worktree에서 Codex 구현을 실행해야 하는 특별한 경우에만 `-AllowDirty`를 추가한다. dirty 상태 기본 중단 정책은 `ai-dev-run-codex.ps1`와 `ai-dev-run-review-codex.ps1`의 안전 게이트가 담당한다.
