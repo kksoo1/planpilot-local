@@ -64,3 +64,11 @@
 - Task: T005 자동 커밋과 task 완료 연결
 - Result: T004 완료: make-prompt/run-codex/check/save-diff/make-review-prompt/run-review-codex를 연결하는 ai-dev-auto-cycle-full.ps1 초안 추가, DryRun/Json/AllowCodex 중단 확인
 - Next task: T006 작은 앱 task로 end-to-end 검증
+
+## 2026-06-08 23:30:00 - Task progress
+
+- Task: T005 자동 커밋과 task 완료 연결
+- Result: `ai-dev-auto-cycle-full.ps1`에서 review pass 이후 package 변경 게이트, `-AllowCommit` 기반 자동 커밋, 커밋 확인 후 complete-task 실행, `MaxTasks` 반복 구조를 정리함
+- Docs: `.ai-dev/README.md`에 DryRun, MaxTasks 1/3, `AllowCodex + AllowReviewCodex + AllowCommit`, 선택 파일 커밋 예시를 추가함
+- Verification: PowerShell AST 문법 검증 통과, full auto-cycle DryRun/Json 출력에서 commit 및 complete-task 단계 포함 확인
+- Excluded: 실제 Codex 실행, build/test/lint, git add/commit은 수행하지 않음
