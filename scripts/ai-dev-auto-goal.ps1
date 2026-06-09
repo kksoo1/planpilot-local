@@ -192,6 +192,7 @@ function Get-JsonObjectCandidates {
     param([string]$RawInput)
 
     $candidates = @()
+    $seen = @{}
 
     for ($start = 0; $start -lt $RawInput.Length; $start++) {
         if ($RawInput[$start] -ne "{") {
@@ -233,14 +234,24 @@ function Get-JsonObjectCandidates {
                 $depth--
 
                 if ($depth -eq 0) {
-                    $candidates += $RawInput.Substring($start, $index - $start + 1).Trim()
+                    $candidateText = $RawInput.Substring($start, $index - $start + 1).Trim()
+
+                    if (-not $seen.ContainsKey($candidateText)) {
+                        $seen[$candidateText] = $true
+                        $candidates += [PSCustomObject]@{
+                            Start = $start
+                            Text = $candidateText
+                            HasPlanShape = ($candidateText -match '"goalMarkdown"\s*:' -and $candidateText -match '"queue"\s*:' -and $candidateText -match '"state"\s*:')
+                        }
+                    }
+
                     break
                 }
             }
         }
     }
 
-    return @($candidates | Select-Object -Unique)
+    return @($candidates | Sort-Object -Property @{ Expression = "HasPlanShape"; Descending = $true }, @{ Expression = "Start"; Descending = $true } | ForEach-Object { $_.Text })
 }
 
 function Get-MissingFields {
