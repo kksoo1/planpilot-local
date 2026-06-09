@@ -2,8 +2,8 @@
     "goalTitle":  "AI Dev Loop Codex CLI 완전 자동화 도입",
     "goalSource":  ".ai-dev/goal.md",
     "createdAt":  "2026-06-07T19:59:48.1282711+09:00",
-    "updatedAt":  "2026-06-08T15:17:52.2846812+00:00",
-    "currentTaskId":  "T007",
+    "updatedAt":  "2026-06-09T14:05:15.9174264+00:00",
+    "currentTaskId":  null,
     "tasks":  [
                   {
                       "id":  "T001",
@@ -157,7 +157,7 @@
                       "title":  "목표 입력 기반 자동 goal 실행 스크립트 추가",
                       "description":  "사용자가 GoalTitle과 GoalDescription만 입력하면 Codex CLI를 이용해 goal/queue/state를 생성하고, current-task-prompt 생성 후 auto-cycle-full을 실행할 수 있게 하는 ai-dev-auto-goal.ps1을 추가한다.",
                       "type":  "implementation",
-                      "status":  "in_progress",
+                      "status":  "done",
                       "priority":  "P0",
                       "dependsOn":  [
                                         "T005"
@@ -174,7 +174,9 @@
                                            "GoalTitle/GoalDescription이 비어 있으면 오류로 종료하는지 확인",
                                            "PowerShell 문법 검증"
                                        ],
-                      "commitMessage":  "Add automatic goal runner"
+                      "commitMessage":  "Add automatic goal runner",
+                      "completedAt":  "2026-06-09T14:05:15.9174264+00:00",
+                      "resultSummary":  "T007 완료: 목표 제목/설명 입력 기반 auto-goal 실행 스크립트 추가, DryRun/Json 출력, 입력 검증, dirty 처리, full auto-cycle 연결 및 Codex 리뷰 pass 확인"
                   }
               ]
 }
