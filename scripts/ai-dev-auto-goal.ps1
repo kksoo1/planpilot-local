@@ -546,6 +546,8 @@ $safeDescription
 function ConvertFrom-CodexAutoGoalOutput {
     param([string]$RawInput)
 
+    $validationFailures = @()
+
     foreach ($candidate in Get-JsonObjectCandidates $RawInput) {
         try {
             $parsed = $candidate | ConvertFrom-Json
@@ -554,7 +556,10 @@ function ConvertFrom-CodexAutoGoalOutput {
                 continue
             }
 
-            if (@(Get-AutoGoalValidationErrors $parsed).Count -gt 0) {
+            $validationErrors = @(Get-AutoGoalValidationErrors $parsed)
+
+            if ($validationErrors.Count -gt 0) {
+                $validationFailures += "Candidate validation failed: $($validationErrors -join '; ')"
                 continue
             }
 
@@ -564,6 +569,10 @@ function ConvertFrom-CodexAutoGoalOutput {
             }
         } catch {
         }
+    }
+
+    if ($validationFailures.Count -gt 0) {
+        throw "No valid auto-goal JSON object was found in Codex output. Validation errors: $($validationFailures -join ' | ')"
     }
 
     throw "No valid auto-goal JSON object was found in Codex output."
@@ -592,6 +601,7 @@ Create a small, safe goal plan for this repository. The response object must hav
 queue rules:
 - goalTitle must equal the supplied title.
 - goalSource must be ".ai-dev/goal.md".
+- createdAt and updatedAt are required and must be ISO 8601 strings.
 - currentTaskId must be "T001".
 - tasks must contain one to three tasks.
 - T001 must be status "in_progress"; later tasks, if any, must be "pending".
