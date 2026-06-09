@@ -112,7 +112,7 @@ export function TasksView({
           type="text"
           value={taskSearchQuery}
           onChange={(event) => onTaskSearchQueryChange(event.target.value)}
-          placeholder="업무 제목 검색"
+          placeholder="업무 제목 또는 메모 내용을 검색하세요"
         />
       </label>
 
