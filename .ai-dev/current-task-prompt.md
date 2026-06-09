@@ -8,76 +8,79 @@
 
 # Goal
 
-JSON 백업 파일 import 시 실제 복원은 하지 않고, 파일 검증과 미리보기까지만 제공하는 기능을 추가한다.
+AI Dev Loop Codex CLI 완전 자동화 도입
 
 ## Background
 
-PlanPilot Local은 `tasks`, `projects`, `appSettings`를 포함한 JSON 백업 파일을 내보낼 수 있다.
+Codex CLI를 사용해 AI Dev Loop의 구현, 검증, 리뷰, 커밋, task 완료 처리를 가능한 한 end-to-end로 자동화한다.
 
-현재 JSON import/복원 정책과 순수 검증 유틸은 준비되어 있지만, 사용자가 파일을 선택하고 검증 결과를 확인할 수 있는 흐름은 아직 없다.
+`current-task-prompt.md`를 Codex CLI에 전달해 코드 수정을 수행하고, `review-prompt.md`를 Codex CLI에 전달해 JSON 리뷰를 생성한 뒤, `pass`, `revise`, `blocked` 결과에 따라 자동 분기한다.
 
-데이터 손상 위험을 줄이기 위해 실제 IndexedDB 반영보다 파일 검증과 영향 범위 미리보기를 먼저 제공한다.
+초기 버전은 안전을 위해 `MaxTasks 1`, 명시적 Allow 옵션, git status clean 확인, package 변경 감지 중단, build 실패 시 commit 금지 정책을 적용한다.
 
 ## Success Criteria
 
-- 사용자가 PlanPilot Local JSON 백업 파일을 선택할 수 있다.
-- `format`이 `planpilot-local-backup`인지 확인한다.
-- `schemaVersion`이 `1`인지 확인한다.
-- `exportedAt`, `tasks`, `projects`, `appSettings` 필수 항목을 확인한다.
-- 검증 실패 시 사용자에게 실패 이유를 표시한다.
-- 검증 성공 시 `tasks` 개수, `projects` 개수, `appSettings` 포함 여부를 표시한다.
-- 파일 검증과 미리보기 과정에서 IndexedDB 데이터는 변경되지 않는다.
-- `docs/manual-test-checklist.md`에 검증과 미리보기 수동 테스트 항목을 반영한다.
-- `npm run build`가 성공한다.
+- Codex CLI 실행 정책이 문서화된다.
+- `current-task-prompt.md`를 Codex CLI에 전달하는 `ai-dev-run-codex.ps1`이 추가된다.
+- `review-prompt.md`를 Codex CLI에 전달하고 JSON 리뷰를 저장하는 `ai-dev-run-review-codex.ps1`이 추가된다.
+- Codex 구현, build/check, diff, Codex 리뷰, save-review 흐름이 연결된다.
+- pass 리뷰에서만 자동 커밋과 complete-task를 수행하는 full cycle 초안이 추가된다.
+- git status가 dirty이면 Codex 실행을 중단한다.
+- package.json 또는 package-lock.json 변경이 감지되면 자동 커밋하지 않는다.
+- build 실패 시 자동 커밋하지 않는다.
+- git reset, git clean, npm install은 자동 실행하지 않는다.
+- PowerShell 문법 검증이 통과한다.
+- 작은 앱 기능 task로 MaxTasks 1 end-to-end 검증이 가능하다.
 
 ## Constraints
 
-- 실제 DB 반영을 하지 않는다.
-- 복원, 덮어쓰기, 병합을 구현하지 않는다.
-- `format`은 `planpilot-local-backup`만 허용한다.
-- `schemaVersion`은 `1`만 허용한다.
-- `exportedAt`, `tasks`, `projects`, `appSettings`를 필수로 확인한다.
-- 검증 실패 이유를 사용자에게 표시한다.
-- 검증 성공 시 데이터 개수와 설정 포함 여부를 표시한다.
-- 서버 API, `localStorage`, 로그인, 클라우드 동기화를 추가하지 않는다.
-- DB schema를 변경하지 않는다.
-- `App.css`를 수정하지 않는다.
-- 현재 task 범위 밖 파일을 수정하지 않는다.
+- Codex CLI는 구현자와 리뷰어로 사용한다.
+- GPT API 키 없이 진행한다.
+- Cline은 삭제되어 사용하지 않는다.
+- Copilot CLI와 gh는 현재 사용하지 않는다.
+- 자동화는 명시적 Allow 옵션 없이는 위험한 단계를 실행하지 않는다.
+- git status가 dirty이면 Codex 구현 실행을 기본 중단한다.
+- package.json/package-lock.json 변경이 감지되면 자동 커밋하지 않는다.
+- build/check 실패 시 자동 커밋하지 않는다.
+- git reset, git clean, npm install은 자동 실행하지 않는다.
+- src 코드는 각 구현 task에서만 수정한다.
 
 ## Out of Scope
 
-- JSON 백업 데이터를 IndexedDB에 저장하는 기능
-- 전체 덮어쓰기 복원
-- 기존 데이터와의 병합
-- 중복 ID 자동 수정
-- 프로젝트 참조 자동 복구
-- appSettings 자동 덮어쓰기
-- 복원 전 자동 백업
-- JSON export 구조 변경
+- GPT API 직접 호출
+- Cline 사용
+- Copilot CLI 사용
+- gh 또는 GitHub PR 자동 연동
+- git push 자동화
+- git reset/git clean 같은 destructive git 명령
+- npm install 자동 실행
+- package 대량 교체
+- DB 삭제, 초기화, 복원, 마이그레이션 자동화
 
 ## Manual Verification
 
-- 정상 백업 파일을 선택하면 검증 성공 상태가 표시된다.
-- 정상 백업 파일의 `tasks`와 `projects` 개수가 표시된다.
-- 정상 백업 파일에 `appSettings`가 포함되어 있는지 표시된다.
-- 잘못된 JSON 파일을 선택하면 검증 실패 이유가 표시된다.
-- `format`이 다른 파일은 거부된다.
-- `schemaVersion`이 `1`이 아닌 파일은 거부된다.
-- 필수 항목이 누락된 파일은 거부된다.
-- 파일을 선택하거나 검증한 뒤에도 기존 업무, 프로젝트, 설정 데이터가 유지된다.
-- `npm run build`가 성공한다.
+- Codex CLI 실행 정책이 문서화되어 있다.
+- Codex 구현 실행 스크립트가 DryRun과 dirty worktree 중단을 지원한다.
+- Codex 리뷰 실행 스크립트가 JSON 리뷰를 저장하고 save-review 흐름과 연결된다.
+- full auto-cycle DryRun이 전체 단계를 보여준다.
+- full auto-cycle은 MaxTasks 1 제한과 Allow 옵션을 가진다.
+- pass 리뷰가 아니면 자동 커밋하지 않는다.
+- build 실패 시 자동 커밋하지 않는다.
+- package 파일 변경 감지 시 자동 커밋하지 않는다.
+- PowerShell 문법 검증이 통과한다.
+- 작은 task로 MaxTasks 1 end-to-end 검증이 가능하다.
 
 
 ## Current Task
 
-- Task ID: T004
-- Title: 검증 실패 메시지와 성공 요약 표시
-- Description: 검증 실패 이유와 성공 시 tasks, projects 개수 및 appSettings 포함 여부를 사용자에게 표시한다.
+- Task ID: T007
+- Title: 목표 입력 기반 자동 goal 실행 스크립트 추가
+- Description: 사용자가 GoalTitle과 GoalDescription만 입력하면 Codex CLI를 이용해 goal/queue/state를 생성하고, current-task-prompt 생성 후 auto-cycle-full을 실행할 수 있게 하는 ai-dev-auto-goal.ps1을 추가한다.
 - Type: implementation
 - Status: in_progress
 - Priority: P0
 - Depends on:
-- T003
+- T005
 
 ## Task Scope
 
@@ -88,13 +91,17 @@ PlanPilot Local은 `tasks`, `projects`, `appSettings`를 포함한 JSON 백업 �
 
 ## Likely Files
 
-- src/views/SettingsView.tsx
+- scripts/ai-dev-auto-goal.ps1
+- .ai-dev/README.md
 
 ## Verification
 
-- 실패 이유가 표시되는지 수동 확인
-- 성공 요약이 표시되는지 수동 확인
-- npm run build
+- DryRun에서 생성될 goal/task 계획과 실행 단계가 표시되는지 확인
+- Json 출력이 가능한지 확인
+- goal/queue/state JSON 파싱 검증을 수행하는지 확인
+- auto-cycle-full 호출은 -AllowRun 또는 명시적 실행 옵션에서만 수행되는지 확인
+- GoalTitle/GoalDescription이 비어 있으면 오류로 종료하는지 확인
+- PowerShell 문법 검증
 
 - 필요한 경우 `npm run build`는 사람이 별도로 실행한다.
 - 이 프롬프트는 자동으로 build, test, lint를 실행하라고 지시하지 않는다.

@@ -751,28 +751,52 @@ powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cycle-full.ps1 -All
 
 최종 목표는 사용자가 goal 파일과 queue 파일을 직접 편집하지 않고도 한 줄 명령으로 작은 앱 기능 task를 시작할 수 있게 하는 것이다.
 
-예상 최종 명령:
+먼저 DryRun으로 생성될 goal/task 계획과 실행 단계를 확인한다.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\ai-dev-auto-goal.ps1 -GoalTitle "업무 검색 결과 하이라이트 추가" -GoalDescription "검색어와 일치하는 업무 제목/메모/프로젝트명을 화면에서 강조 표시한다." -DryRun
+```
+
+자동화 도구에서 결과만 파싱해야 하면 `-Json`을 함께 사용한다. JSON 출력은 사람이 읽는 텍스트와 섞지 않는다.
+DryRun JSON에는 `plan.goalMarkdown`, `plan.queue`, `plan.state` 미리보기가 포함되므로 파일 작성 전에 생성될 goal/task 계획을 검토할 수 있다.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\ai-dev-auto-goal.ps1 -GoalTitle "업무 검색 결과 하이라이트 추가" -GoalDescription "검색어와 일치하는 업무 제목/메모/프로젝트명을 화면에서 강조 표시한다." -DryRun -Json
+```
+
+실제 goal/queue/state 생성과 current-task-prompt 생성까지만 수행하려면 `-DryRun`을 제거한다. 이 모드는 `ai-dev-auto-cycle-full.ps1`을 호출하지 않는다.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\ai-dev-auto-goal.ps1 -GoalTitle "업무 검색 결과 하이라이트 추가" -GoalDescription "검색어와 일치하는 업무 제목/메모/프로젝트명을 화면에서 강조 표시한다."
+```
+
+생성 후 full auto-cycle 래퍼 호출까지 이어가려면 `-AllowRun` 또는 `-AllowCodex`, `-AllowReviewCodex`, `-AllowCommit` 같은 명시적 실행 옵션을 지정한다. `-AllowRun` 단독은 full-cycle 래퍼 호출만 허용하며 Codex 구현이나 Codex 리뷰 권한을 대신하지 않는다. 실제 구현까지 허용하려면 `-AllowCodex`, 리뷰까지 허용하려면 `-AllowReviewCodex`, 자동 커밋과 task 완료까지 허용하려면 기존 full cycle과 동일하게 `-AllowCodex -AllowReviewCodex -AllowCommit`을 함께 지정한다.
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\ai-dev-auto-goal.ps1 -GoalTitle "업무 검색 결과 하이라이트 추가" -GoalDescription "검색어와 일치하는 업무 제목/메모/프로젝트명을 화면에서 강조 표시한다." -AllowCodex -AllowReviewCodex -AllowCommit -MaxTasks 1
 ```
 
-예정 동작:
+동작:
 
 1. `GoalTitle`과 `GoalDescription`을 검증한다.
 2. Codex CLI를 이용해 goal/queue/state 초안을 생성한다.
-3. 생성된 JSON을 파싱해 필수 필드를 확인한다.
-4. `.ai-dev/current-task-prompt.md`를 생성한다.
-5. 명시적 실행 옵션이 있을 때만 `ai-dev-auto-cycle-full.ps1`로 이어간다.
+3. Codex 출력에서 `goalMarkdown`, `queue`, `state` JSON을 추출한다.
+4. `queue.json`과 `state.json`의 필수 필드, currentTaskId, task 배열, enum 값을 검증한다.
+5. `.ai-dev/goal.md`, `.ai-dev/queue.json`, `.ai-dev/state.json`을 작성한다.
+6. `.ai-dev/current-task-prompt.md`를 생성한다.
+7. 명시적 실행 옵션이 있을 때만 `ai-dev-auto-cycle-full.ps1`로 이어간다.
+8. auto-goal이 생성한 `.ai-dev/goal.md`, `queue.json`, `state.json`, `current-task-prompt.md`, 결과 파일 때문에 하위 full cycle의 dirty worktree 게이트가 중단되지 않도록 내부적으로 `-AllowDirty`를 전달한다. 초기 dirty worktree 게이트는 auto-goal 시작 전에 별도로 유지한다.
 
 안전 기준:
 
 - `GoalTitle` 또는 `GoalDescription`이 비어 있으면 종료한다.
-- DryRun에서는 생성될 goal/task 계획과 실행 단계만 표시한다.
+- DryRun에서는 생성될 goal/task 계획과 실행 단계만 표시하고 파일을 수정하지 않는다.
 - Json 출력은 사람이 읽는 텍스트와 섞지 않는다.
-- 생성된 goal/queue/state JSON 파싱에 실패하면 실제 실행으로 넘어가지 않는다.
-- full cycle 호출은 `-AllowRun` 또는 그에 준하는 명시적 실행 옵션이 있을 때만 수행한다.
+- 생성된 goal/queue/state JSON 파싱 또는 필드 검증에 실패하면 파일 작성과 full cycle 실행으로 넘어가지 않는다.
+- full cycle 호출은 `-AllowRun`, `-AllowCodex`, `-AllowReviewCodex`, `-AllowCommit` 중 하나가 있을 때만 수행한다.
+- `-AllowRun` 단독은 구현, 리뷰, 커밋을 수행한다는 의미가 아니다. 하위 full cycle은 여전히 `-AllowCodex`, `-AllowReviewCodex`, `-AllowCommit` 권한에 따라 각 위험 단계를 허용하거나 중단한다.
 - package 파일 변경, build/check 실패, 리뷰 `pass` 아님, dirty worktree 위험이 있으면 자동 커밋하지 않는다.
+- `git reset`, `git clean`, `npm install`, `git push`는 실행하지 않는다.
 
 ## 운영 원칙
 
