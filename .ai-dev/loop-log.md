@@ -83,3 +83,8 @@
 - Task: T007 목표 입력 기반 자동 goal 실행 스크립트 추가
 - Result: T007 완료: 목표 제목/설명 입력 기반 auto-goal 실행 스크립트 추가, DryRun/Json 출력, 입력 검증, dirty 처리, full auto-cycle 연결 및 Codex 리뷰 pass 확인
 - Next task: 없음
+## 2026-06-09 23:50:32 - Task completed
+
+- Task: T001 업무 검색창 placeholder 문구 수정
+- Result: T001 완료: 업무 검색창 placeholder를 업무명과 프로젝트명 검색 대상에 맞는 명확한 한국어 문구로 개선하고 build 및 Codex 리뷰 결과를 확인함
+- Next task: 없음
