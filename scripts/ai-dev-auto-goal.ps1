@@ -25,6 +25,7 @@ $goalRelativePath = ".ai-dev/goal.md"
 $queueRelativePath = ".ai-dev/queue.json"
 $stateRelativePath = ".ai-dev/state.json"
 $promptRelativePath = ".ai-dev/current-task-prompt.md"
+$planningPromptRelativePath = ".ai-dev/auto-goal-planning-prompt.md"
 
 function Resolve-RepoPath {
     param([string]$Path)
@@ -611,6 +612,14 @@ Safety rules:
 "@
 }
 
+function New-CodexAutoGoalWrapperPrompt {
+    param(
+        [string]$PromptFilePath
+    )
+
+    return "Read and follow the full auto-goal planning prompt at this absolute file path: $PromptFilePath"
+}
+
 function Invoke-CycleCommand {
     param(
         [int]$StepNumber,
@@ -678,6 +687,7 @@ $script:autoGoalPlanPreview = $null
 $resolvedGoalPath = [System.IO.Path]::GetFullPath((Resolve-RepoPath $goalRelativePath))
 $resolvedQueuePath = [System.IO.Path]::GetFullPath((Resolve-RepoPath $queueRelativePath))
 $resolvedStatePath = [System.IO.Path]::GetFullPath((Resolve-RepoPath $stateRelativePath))
+$resolvedPlanningPromptPath = [System.IO.Path]::GetFullPath((Resolve-RepoPath $planningPromptRelativePath))
 $resolvedResultPath = [System.IO.Path]::GetFullPath((Resolve-RepoPath $ResultPath))
 
 if (-not (Test-HasValue $GoalTitle)) {
@@ -762,8 +772,11 @@ if ($null -eq $codexCommand) {
 }
 
 $plannerPrompt = New-CodexAutoGoalPrompt $GoalTitle.Trim() $GoalDescription.Trim()
+$codexPrompt = New-CodexAutoGoalWrapperPrompt $resolvedPlanningPromptPath
+$commandText = "codex exec <short wrapper pointing to $planningPromptRelativePath>"
+[System.IO.File]::WriteAllText($resolvedPlanningPromptPath, $plannerPrompt, $utf8WithBom)
 $startedAt = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-$codexOutput = & codex exec $plannerPrompt 2>&1 | Out-String
+$codexOutput = & codex exec $codexPrompt 2>&1 | Out-String
 $codexExitCode = $LASTEXITCODE
 $endedAt = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
 
@@ -776,7 +789,8 @@ $resultContent = @"
 - Ended at: $endedAt
 - Exit code: $codexExitCode
 - Goal title: $($GoalTitle.Trim())
-- Command: codex exec <auto-goal planning prompt>
+- Planning prompt: $planningPromptRelativePath
+- Command: $commandText
 
 ## Output
 
