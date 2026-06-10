@@ -11,16 +11,8 @@ $statePath = Join-Path $projectRoot $stateRelativePath
 $diffPath = Join-Path $projectRoot $diffRelativePath
 $utf8WithBom = New-Object System.Text.UTF8Encoding($true)
 $maxUntrackedFileSize = 200KB
-$generatedArtifactRelativePaths = @(
-    ".ai-dev/diff.md",
-    ".ai-dev/review-prompt.md",
-    ".ai-dev/current-task-prompt.md",
-    ".ai-dev/revise-prompt.md",
-    ".ai-dev/test-result.md",
-    ".ai-dev/review.md",
-    ".ai-dev/review-response.json"
-)
-$generatedArtifactPathspecExcludes = @($generatedArtifactRelativePaths | ForEach-Object { ":(exclude)$_" })
+$aiDevOperationalRoot = ".ai-dev/"
+$reviewDiffPathspecExcludes = @(":(exclude).ai-dev/**")
 
 function Stop-WithError {
     param(
@@ -130,7 +122,16 @@ function Convert-ToCodeBlock {
     return "${codeFence}text`r`n$text`r`n$codeFence"
 }
 
-function Get-TrackedGeneratedArtifactPaths {
+function Test-IsAiDevOperationalPath {
+    param(
+        [string]$RelativePath
+    )
+
+    $normalizedRelativePath = $RelativePath.Replace('\', '/')
+    return $normalizedRelativePath.StartsWith($aiDevOperationalRoot, [System.StringComparison]::OrdinalIgnoreCase)
+}
+
+function Get-ChangedPathsFromPorcelain {
     param(
         [string]$PorcelainStatus
     )
@@ -139,19 +140,32 @@ function Get-TrackedGeneratedArtifactPaths {
     $statusLines = @($PorcelainStatus -split "`r?`n" | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
 
     foreach ($line in $statusLines) {
-        if ($line.Length -lt 4 -or $line.StartsWith("?? ")) {
+        if ($line.StartsWith("?? ")) {
+            $paths += $line.Substring(3)
+            continue
+        }
+
+        if ($line.Length -lt 4) {
             continue
         }
 
         $relativePath = $line.Substring(3)
-        $normalizedRelativePath = $relativePath.Replace('\', '/')
-
-        if ($generatedArtifactRelativePaths -contains $normalizedRelativePath) {
-            $paths += $relativePath
-        }
+        $paths += $relativePath
     }
 
     return @($paths | Select-Object -Unique)
+}
+
+function Convert-ToFileList {
+    param(
+        [string[]]$Paths
+    )
+
+    if ($null -eq $Paths -or $Paths.Count -eq 0) {
+        return "- 없음"
+    }
+
+    return ($Paths | ForEach-Object { "- $_" }) -join "`r`n"
 }
 
 function Get-UntrackedFileSections {
@@ -175,7 +189,7 @@ function Get-UntrackedFileSections {
             continue
         }
 
-        if ($generatedArtifactRelativePaths -contains $normalizedRelativePath) {
+        if (Test-IsAiDevOperationalPath $normalizedRelativePath) {
             $skippedGeneratedArtifacts += $relativePath
             continue
         }
@@ -245,28 +259,28 @@ try {
 try {
     $statusShort = Invoke-GitCapture -Arguments @("status", "--short") -DisplayName "git status --short"
     $statusPorcelain = Invoke-GitCapture -Arguments @("status", "--porcelain") -DisplayName "git status --porcelain"
-    $diffPathspecArguments = @("--", ".") + $generatedArtifactPathspecExcludes
+    $diffPathspecArguments = @("--", ".") + $reviewDiffPathspecExcludes
     $unstagedStat = Invoke-GitCapture -Arguments (@("diff", "--stat") + $diffPathspecArguments) -DisplayName "git diff --stat"
     $unstagedDiff = Invoke-GitCapture -Arguments (@("diff") + $diffPathspecArguments) -DisplayName "git diff"
     $stagedStat = Invoke-GitCapture -Arguments (@("diff", "--staged", "--stat") + $diffPathspecArguments) -DisplayName "git diff --staged --stat"
     $stagedDiff = Invoke-GitCapture -Arguments (@("diff", "--staged") + $diffPathspecArguments) -DisplayName "git diff --staged"
-    $skippedTrackedGeneratedArtifacts = Get-TrackedGeneratedArtifactPaths $statusPorcelain
+    $changedPaths = Get-ChangedPathsFromPorcelain $statusPorcelain
+    $appChangePaths = @($changedPaths | Where-Object { -not (Test-IsAiDevOperationalPath $_) })
+    $aiDevOperationalPaths = @($changedPaths | Where-Object { Test-IsAiDevOperationalPath $_ })
 
     $generatedAt = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
     $sections = @(
         "# AI Dev Diff",
         "## Generated At`r`n`r`n$generatedAt",
         "## Git Status`r`n`r`n$(Convert-ToCodeBlock $statusShort)",
+        "## App Change Files`r`n`r`n$(Convert-ToFileList $appChangePaths)",
+        "## AI Dev Operational Artifact Files`r`n`r`n$(Convert-ToFileList $aiDevOperationalPaths)",
+        "## Review Diff Scope`r`n`r`n아래 diff 본문은 실제 앱 변경 파일 중심으로 검토하도록 `.ai-dev` 운영 산출물 diff를 제외합니다. `.ai-dev` 변경은 위 운영 산출물 목록에서 별도로 확인합니다.",
         "## Unstaged Diff Stat`r`n`r`n$(Convert-ToCodeBlock $unstagedStat)",
         "## Unstaged Diff`r`n`r`n$(Convert-ToCodeBlock $unstagedDiff)",
         "## Staged Diff Stat`r`n`r`n$(Convert-ToCodeBlock $stagedStat)",
         "## Staged Diff`r`n`r`n$(Convert-ToCodeBlock $stagedDiff)"
     )
-
-    if ($skippedTrackedGeneratedArtifacts.Count -gt 0) {
-        $skippedTrackedArtifactList = $skippedTrackedGeneratedArtifacts | ForEach-Object { "- $_" }
-        $sections += "## Skipped Generated AI Dev Artifact Diffs`r`n`r`n$($skippedTrackedArtifactList -join "`r`n")"
-    }
 
     if ($IncludeUntrackedContent) {
         $untrackedResult = Get-UntrackedFileSections $repositoryRoot $statusPorcelain

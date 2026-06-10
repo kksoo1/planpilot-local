@@ -12,6 +12,7 @@ $projectRoot = (Get-Location).Path
 $stateRelativePath = ".ai-dev/state.json"
 $queueRelativePath = ".ai-dev/queue.json"
 $loopLogRelativePath = ".ai-dev/loop-log.md"
+$aiDevOperationalRoot = ".ai-dev/"
 
 $statePath = Join-Path $projectRoot $stateRelativePath
 $queuePath = Join-Path $projectRoot $queueRelativePath
@@ -105,6 +106,47 @@ function Invoke-GitCapture {
     }
 
     return $output.TrimEnd()
+}
+
+function Test-IsAiDevOperationalPath {
+    param(
+        [string]$RelativePath
+    )
+
+    $normalizedRelativePath = $RelativePath.Replace('\', '/')
+    return $normalizedRelativePath.StartsWith($aiDevOperationalRoot, [System.StringComparison]::OrdinalIgnoreCase)
+}
+
+function Convert-ToChangedPath {
+    param(
+        [string]$ChangeLine
+    )
+
+    if ([string]::IsNullOrWhiteSpace($ChangeLine)) {
+        return $null
+    }
+
+    if ($ChangeLine.StartsWith("?? ")) {
+        return $ChangeLine.Substring(3)
+    }
+
+    if ($ChangeLine.Length -ge 4 -and $ChangeLine.Substring(2, 1) -eq " ") {
+        return $ChangeLine.Substring(3)
+    }
+
+    return $ChangeLine
+}
+
+function Convert-ToFileList {
+    param(
+        [string[]]$Paths
+    )
+
+    if ($null -eq $Paths -or $Paths.Count -eq 0) {
+        return @("  - 없음")
+    }
+
+    return @($Paths | ForEach-Object { "  - $_" })
 }
 
 foreach ($requiredPath in @($stateRelativePath, $queueRelativePath, $loopLogRelativePath)) {
@@ -259,15 +301,25 @@ $taskText = if ($null -ne $currentTask) {
     "unknown"
 }
 
+$targetChangedPaths = @($targetChangeLines | ForEach-Object { Convert-ToChangedPath $_ } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -Unique)
+$targetAppChangePaths = @($targetChangedPaths | Where-Object { -not (Test-IsAiDevOperationalPath $_) })
+$targetAiDevOperationalPaths = @($targetChangedPaths | Where-Object { Test-IsAiDevOperationalPath $_ })
+
 if ($DryRun) {
     Write-Host "Dry run: git add/commit을 실행하지 않습니다."
     Write-Host "커밋 메시지: $commitMessage"
     Write-Host "현재 task: $taskText"
-    Write-Host "커밋 대상 변경 파일:"
-    foreach ($line in $targetChangeLines) {
-        Write-Host "  - $line"
+    Write-Host "커밋 대상 앱 변경 파일:"
+    foreach ($line in (Convert-ToFileList $targetAppChangePaths)) {
+        Write-Host $line
     }
-    Write-Host "변경 파일 수: $($targetChangeLines.Count)"
+    Write-Host "커밋 대상 AI Dev 운영 산출물:"
+    foreach ($line in (Convert-ToFileList $targetAiDevOperationalPaths)) {
+        Write-Host $line
+    }
+    Write-Host "앱 변경 파일 수: $($targetAppChangePaths.Count)"
+    Write-Host "AI Dev 운영 산출물 수: $($targetAiDevOperationalPaths.Count)"
+    Write-Host "전체 변경 파일 수: $($targetChangedPaths.Count)"
     exit 0
 }
 
@@ -323,5 +375,7 @@ $logEntry = @"
 
 Write-Host "커밋 메시지: $commitMessage"
 Write-Host "커밋 해시: $commitHash"
-Write-Host "변경 파일 수: $($targetChangeLines.Count)"
+Write-Host "앱 변경 파일 수: $($targetAppChangePaths.Count)"
+Write-Host "AI Dev 운영 산출물 수: $($targetAiDevOperationalPaths.Count)"
+Write-Host "전체 변경 파일 수: $($targetChangedPaths.Count)"
 Write-Host "현재 task: $taskText"
