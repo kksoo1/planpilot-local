@@ -13,7 +13,7 @@
     [switch]$AllowCommit,
     [switch]$AllowDirty,
     [string[]]$CommitFiles,
-    [string]$ResultPath = ".ai-dev/auto-goal-codex-result.md"
+    [string]$ResultPath = ".ai-dev/codex-result.md"
 )
 
 . "$PSScriptRoot\ai-dev-env.ps1"
@@ -26,6 +26,7 @@ $queueRelativePath = ".ai-dev/queue.json"
 $stateRelativePath = ".ai-dev/state.json"
 $promptRelativePath = ".ai-dev/current-task-prompt.md"
 $planningPromptRelativePath = ".ai-dev/auto-goal-planning-prompt.md"
+$legacyAutoGoalResultRelativePath = ".ai-dev/auto-goal-codex-result.md"
 
 function Resolve-RepoPath {
     param([string]$Path)
@@ -145,6 +146,30 @@ function Write-AutoGoalResult {
     Write-Host "Exit code: $($Result.exitCode)"
 }
 
+function Clear-AutoGoalTempArtifacts {
+    $currentResultPath = [System.IO.Path]::GetFullPath((Resolve-RepoPath $ResultPath))
+
+    foreach ($relativePath in @($planningPromptRelativePath, $legacyAutoGoalResultRelativePath)) {
+        $fullPath = [System.IO.Path]::GetFullPath((Resolve-RepoPath $relativePath))
+
+        if (-not $fullPath.StartsWith($repoRoot.TrimEnd("\") + "\", [System.StringComparison]::OrdinalIgnoreCase)) {
+            continue
+        }
+
+        if ($fullPath.Equals($currentResultPath, [System.StringComparison]::OrdinalIgnoreCase)) {
+            continue
+        }
+
+        try {
+            if ([System.IO.File]::Exists($fullPath)) {
+                [System.IO.File]::Delete($fullPath)
+            }
+        } catch {
+            Write-Warning "Failed to clean auto-goal temp artifact: $relativePath"
+        }
+    }
+}
+
 function Stop-AutoGoal {
     param(
         [object[]]$Steps,
@@ -153,6 +178,7 @@ function Stop-AutoGoal {
         [int]$ExitCode
     )
 
+    Clear-AutoGoalTempArtifacts
     Write-AutoGoalResult (New-AutoGoalResult $Steps $StoppedReason $Completed $ExitCode)
     exit $ExitCode
 }
