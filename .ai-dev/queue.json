@@ -2,15 +2,15 @@
     "goalTitle":  "AI Dev Loop lastCommitHash 자동 기록 개선",
     "goalSource":  ".ai-dev/goal.md",
     "createdAt":  "2026-06-10T00:00:00+09:00",
-    "updatedAt":  "2026-06-10T00:00:00+09:00",
-    "currentTaskId":  "T001",
+    "updatedAt":  "2026-06-10T14:34:12.2289013+00:00",
+    "currentTaskId":  null,
     "tasks":  [
                   {
                       "id":  "T001",
                       "title":  "커밋 해시 상태 기록 흐름 개선",
                       "description":  "AI Dev Loop의 커밋 완료 처리 흐름을 확인하고, 자동 또는 수동 커밋 성공 후 `.ai-dev/state.json`의 `lastCommitHash`가 최신 커밋 해시로 남도록 상태 갱신 로직을 보강한다.",
                       "type":  "implementation",
-                      "status":  "in_progress",
+                      "status":  "done",
                       "priority":  "P0",
                       "dependsOn":  [
 
@@ -28,7 +28,9 @@
                                            "커밋이 생성되지 않은 흐름에서 `lastCommitHash`가 잘못된 값으로 갱신되지 않는지 확인한다.",
                                            "관련 스크립트의 상태 갱신 경로가 동일한 기준을 사용하는지 확인한다."
                                        ],
-                      "commitMessage":  "Record last commit hash after commits"
+                      "commitMessage":  "Record last commit hash after commits",
+                      "completedAt":  "2026-06-10T14:34:12.2289013+00:00",
+                      "resultSummary":  "T001 완료: 커밋 성공 후 명시적으로 전달된 커밋 해시를 검증하여 state.lastCommitHash에 기록하도록 commit-result-gate와 complete-task 흐름을 개선함"
                   }
               ]
 }

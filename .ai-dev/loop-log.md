@@ -100,3 +100,9 @@
 - Result: `ai-dev-auto-cycle-full.ps1`의 commit-result-gate가 커밋 전 HEAD와 커밋 후 HEAD를 비교하고, commit/passed 상태에서 최신 HEAD를 `lastCommitHash`에 보강하도록 수정함. `ai-dev-complete-task.ps1`은 완료 처리 전 commit/passed 상태에서 기록된 해시가 있거나 HEAD 커밋 시각이 상태 갱신 이후인 경우에만 `lastCommitHash`를 동기화하도록 수정함
 - Verification: 관련 PowerShell 스크립트 2개 AST 문법 검증 통과
 - Excluded: build/test/lint, 실제 커밋 생성, git 명령 직접 실행은 수행하지 않음
+
+## 2026-06-10 23:34:13 - Task completed
+
+- Task: T001 커밋 해시 상태 기록 흐름 개선
+- Result: T001 완료: 커밋 성공 후 명시적으로 전달된 커밋 해시를 검증하여 state.lastCommitHash에 기록하도록 commit-result-gate와 complete-task 흐름을 개선함
+- Next task: 없음
