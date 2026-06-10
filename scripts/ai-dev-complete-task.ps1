@@ -1,6 +1,7 @@
 ﻿param(
     [string]$TaskId,
     [string]$ResultSummary,
+    [string]$CommitHash,
     [switch]$NoNext
 )
 
@@ -76,6 +77,56 @@ function Write-JsonFile {
 
     $json = $Value | ConvertTo-Json -Depth 20
     [System.IO.File]::WriteAllText($Path, $json, $utf8WithBom)
+}
+
+function Invoke-GitCapture {
+    param(
+        [string[]]$Arguments,
+        [string]$DisplayName
+    )
+
+    $output = & git @Arguments 2>&1 | Out-String
+    $exitCode = $LASTEXITCODE
+
+    if ($exitCode -ne 0) {
+        throw "$DisplayName 실행에 실패했습니다. exit code: $exitCode`n$output"
+    }
+
+    return $output.TrimEnd()
+}
+
+function Resolve-ValidatedCommitHash {
+    param(
+        [string]$Hash
+    )
+
+    $commitRevision = "$Hash^{commit}"
+
+    try {
+        $resolvedCommitHash = Invoke-GitCapture -Arguments @("rev-parse", "--verify", $commitRevision) -DisplayName "git rev-parse --verify $commitRevision"
+    } catch {
+        Stop-WithError "CommitHash가 실제 commit으로 확인되지 않았습니다: $Hash`n$($_.Exception.Message)"
+    }
+
+    try {
+        $headCommitHash = Invoke-GitCapture -Arguments @("rev-parse", "HEAD") -DisplayName "git rev-parse HEAD"
+    } catch {
+        Stop-WithError "현재 git HEAD를 확인하지 못했습니다: $($_.Exception.Message)"
+    }
+
+    if (-not (Test-HasValue $resolvedCommitHash)) {
+        Stop-WithError "CommitHash가 빈 값으로 resolve되었습니다: $Hash"
+    }
+
+    if (-not (Test-HasValue $headCommitHash)) {
+        Stop-WithError "현재 git HEAD가 빈 값으로 확인되었습니다."
+    }
+
+    if ($resolvedCommitHash -ne $headCommitHash) {
+        Stop-WithError "CommitHash가 현재 git HEAD와 일치하지 않습니다. resolved=$resolvedCommitHash, HEAD=$headCommitHash"
+    }
+
+    return $resolvedCommitHash
 }
 
 foreach ($requiredPath in @($queueRelativePath, $stateRelativePath, $loopLogRelativePath)) {
@@ -161,6 +212,12 @@ if ($NoNext) {
 }
 
 Set-ObjectProperty $queue "updatedAt" $now
+
+if (Test-HasValue $CommitHash) {
+    $validatedCommitHash = Resolve-ValidatedCommitHash $CommitHash
+    Set-ObjectProperty $state "lastCommitHash" $validatedCommitHash
+}
+
 Set-ObjectProperty $state "updatedAt" $now
 Set-ObjectProperty $state "lastCommand" "complete-task"
 Set-ObjectProperty $state "lastCommandStatus" "passed"

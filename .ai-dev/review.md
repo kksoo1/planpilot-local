@@ -1,11 +1,12 @@
 ﻿# AI Dev Review
 
-## 2026-06-10 22:17:31
+## 2026-06-10 23:33:02
 
 - Decision: pass
-- Severity: low
+- Severity: none
 - Next step: complete_task
-- Summary: 실제 앱 변경 파일과 .ai-dev 운영 산출물 분리 요구사항을 충족하며, diff 본문도 앱 변경 파일 중심으로 제한되어 있습니다.
+- Summary: 커밋 성공 후 최신 HEAD 해시를 state.lastCommitHash에 남기도록 commit-result-gate와 complete-task 경로를 
+보강했으며, 변경 범위도 AI Dev Loop 상태 갱신 로직에 한정되어 있습니다.
 
 ### Required Changes
 
@@ -13,23 +14,22 @@
 
 ### Optional Suggestions
 
-- scripts/ai-dev-save-diff.ps1: 향후 rename/copy 상태까지 정확히 표시하려면 porcelain 경로 파싱에서 `old -> new` 형식을 별도 처리하는 보강을 고
-려할 수 있습니다.
+- scripts/ai-dev-auto-cycle-full.ps1: 추후 중복을 줄이려면 commit hash 검증/기록 로직을 공통 스크립트나 helper로 분리할 수 있습니다.
 
 ### Raw JSON
 
 ```json
 {
     "decision":  "pass",
-    "severity":  "low",
-    "summary":  "실제 앱 변경 파일과 .ai-dev 운영 산출물 분리 요구사항을 충족하며, diff 본문도 앱 변경 파일 중심으로 제한되어 있습니다.",
+    "severity":  "none",
+    "summary":  "커밋 성공 후 최신 HEAD 해시를 state.lastCommitHash에 남기도록 commit-result-gate와 complete-task 경로를 \r\n보강했으며, 변경 범위도 AI Dev Loop 상태 갱신 로직에 한정되어 있습니다.",
     "required_changes":  [
 
                          ],
     "optional_suggestions":  [
                                  {
-                                     "file":  "scripts/ai-dev-save-diff.ps1",
-                                     "suggestion":  "향후 rename/copy 상태까지 정확히 표시하려면 porcelain 경로 파싱에서 `old -\u003e new` 형식을 별도 처리하는 보강을 고\r\n려할 수 있습니다."
+                                     "file":  "scripts/ai-dev-auto-cycle-full.ps1",
+                                     "suggestion":  "추후 중복을 줄이려면 commit hash 검증/기록 로직을 공통 스크립트나 helper로 분리할 수 있습니다."
                                  }
                              ],
     "scope_check":  {
@@ -43,8 +43,9 @@
                        "test_passed":  false,
                        "lint_passed":  false,
                        "issues":  [
-                                      "npm run test는 BuildOnly 옵션으로 skipped였습니다.",
-                                      "npm run lint는 BuildOnly 옵션으로 skipped였습니다."
+                                      "npm run test는 BuildOnly 옵션으로 skipped 처리되었습니다.",
+                                      "npm run lint는 BuildOnly 옵션으로 skipped 처리되었습니다.",
+                                      "PowerShell 커밋 성공/커밋 없음 흐름에 대한 수동 검증 결과는 리뷰 입력에 포함되지 않았습니다."
                                   ]
                    },
     "next_step":  "complete_task"

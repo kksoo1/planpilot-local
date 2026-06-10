@@ -2,7 +2,7 @@
 
 ## Generated At
 
-2026-06-10 22:16:40
+2026-06-10 23:31:39
 
 ## Git Status
 
@@ -12,22 +12,21 @@
  M .ai-dev/current-task-prompt.md
  M .ai-dev/diff.md
  M .ai-dev/goal.md
+ M .ai-dev/loop-log.md
  M .ai-dev/queue.json
  M .ai-dev/review-prompt.md
  M .ai-dev/review-response.json
  M .ai-dev/review.md
  M .ai-dev/state.json
  M .ai-dev/test-result.md
- M scripts/ai-dev-commit.ps1
- M scripts/ai-dev-make-review-prompt.ps1
- M scripts/ai-dev-save-diff.ps1
+ M scripts/ai-dev-auto-cycle-full.ps1
+ M scripts/ai-dev-complete-task.ps1
 ```
 
 ## App Change Files
 
-- scripts/ai-dev-commit.ps1
-- scripts/ai-dev-make-review-prompt.ps1
-- scripts/ai-dev-save-diff.ps1
+- scripts/ai-dev-auto-cycle-full.ps1
+- scripts/ai-dev-complete-task.ps1
 
 ## AI Dev Operational Artifact Files
 
@@ -36,6 +35,7 @@
 - .ai-dev/current-task-prompt.md
 - .ai-dev/diff.md
 - .ai-dev/goal.md
+- .ai-dev/loop-log.md
 - .ai-dev/queue.json
 - .ai-dev/review-prompt.md
 - .ai-dev/review-response.json
@@ -50,264 +50,217 @@
 ## Unstaged Diff Stat
 
 ```text
- scripts/ai-dev-commit.ps1             | 64 ++++++++++++++++++++++++++++++++---
- scripts/ai-dev-make-review-prompt.ps1 |  4 +++
- scripts/ai-dev-save-diff.ps1          | 64 +++++++++++++++++++++--------------
- 3 files changed, 102 insertions(+), 30 deletions(-)
+ scripts/ai-dev-auto-cycle-full.ps1 | 61 ++++++++++++++++++++++++++++++++++----
+ scripts/ai-dev-complete-task.ps1   | 57 +++++++++++++++++++++++++++++++++++
+ 2 files changed, 113 insertions(+), 5 deletions(-)
 ```
 
 ## Unstaged Diff
 
 ```text
-diff --git a/scripts/ai-dev-commit.ps1 b/scripts/ai-dev-commit.ps1
-index fa4ad37..11d1ba9 100644
---- a/scripts/ai-dev-commit.ps1
-+++ b/scripts/ai-dev-commit.ps1
-@@ -12,6 +12,7 @@ $projectRoot = (Get-Location).Path
- $stateRelativePath = ".ai-dev/state.json"
- $queueRelativePath = ".ai-dev/queue.json"
- $loopLogRelativePath = ".ai-dev/loop-log.md"
-+$aiDevOperationalRoot = ".ai-dev/"
+diff --git a/scripts/ai-dev-auto-cycle-full.ps1 b/scripts/ai-dev-auto-cycle-full.ps1
+index ceb53aa..a1eb93a 100644
+--- a/scripts/ai-dev-auto-cycle-full.ps1
++++ b/scripts/ai-dev-auto-cycle-full.ps1
+@@ -19,6 +19,7 @@ $reviewResponseRelativePath = ".ai-dev/review-response.json"
+ $queuePath = Join-Path $repoRoot $queueRelativePath
+ $statePath = Join-Path $repoRoot $stateRelativePath
+ $reviewResponsePath = Join-Path $repoRoot $reviewResponseRelativePath
++$utf8WithBom = New-Object System.Text.UTF8Encoding($true)
  
- $statePath = Join-Path $projectRoot $stateRelativePath
- $queuePath = Join-Path $projectRoot $queueRelativePath
-@@ -107,6 +108,47 @@ function Invoke-GitCapture {
-     return $output.TrimEnd()
+ function Test-HasValue {
+     param(
+@@ -49,6 +50,30 @@ function Read-JsonFile {
+     }
  }
  
-+function Test-IsAiDevOperationalPath {
++function Set-ObjectProperty {
 +    param(
-+        [string]$RelativePath
++        [object]$InputObject,
++        [string]$Name,
++        [object]$Value
 +    )
 +
-+    $normalizedRelativePath = $RelativePath.Replace('\', '/')
-+    return $normalizedRelativePath.StartsWith($aiDevOperationalRoot, [System.StringComparison]::OrdinalIgnoreCase)
++    if ($InputObject.PSObject.Properties.Name -contains $Name) {
++        $InputObject.$Name = $Value
++    } else {
++        $InputObject | Add-Member -NotePropertyName $Name -NotePropertyValue $Value
++    }
 +}
 +
-+function Convert-ToChangedPath {
++function Write-JsonFile {
 +    param(
-+        [string]$ChangeLine
++        [string]$Path,
++        [object]$Value
 +    )
 +
-+    if ([string]::IsNullOrWhiteSpace($ChangeLine)) {
-+        return $null
-+    }
-+
-+    if ($ChangeLine.StartsWith("?? ")) {
-+        return $ChangeLine.Substring(3)
-+    }
-+
-+    if ($ChangeLine.Length -ge 4 -and $ChangeLine.Substring(2, 1) -eq " ") {
-+        return $ChangeLine.Substring(3)
-+    }
-+
-+    return $ChangeLine
++    $json = $Value | ConvertTo-Json -Depth 20
++    [System.IO.File]::WriteAllText($Path, $json, $utf8WithBom)
 +}
 +
-+function Convert-ToFileList {
+ function Get-CurrentTask {
+     param(
+         [object]$Queue,
+@@ -258,12 +283,31 @@ function Get-CommitArguments {
+ }
+ 
+ function Get-CommitGate {
 +    param(
-+        [string[]]$Paths
++        [string]$PreviousHeadCommitHash
 +    )
 +
-+    if ($null -eq $Paths -or $Paths.Count -eq 0) {
-+        return @("  - 없음")
+     $state = Read-JsonFile $statePath $stateRelativePath
++    $lastCommitHash = if (Test-HasValue $state.lastCommitHash) { [string]$state.lastCommitHash } else { $null }
++    $headCommitHash = Invoke-GitCapture -Arguments @("rev-parse", "HEAD") -DisplayName "git rev-parse HEAD"
++    $commitHashChanged = (Test-HasValue $headCommitHash) -and $headCommitHash -ne $PreviousHeadCommitHash
++    $commitHashMatchesHead = (Test-HasValue $lastCommitHash) -and $lastCommitHash -eq $headCommitHash
++
++    if ($state.lastCommand -eq "commit" -and $state.lastCommandStatus -eq "passed" -and $commitHashChanged -and -not $commitHashMatchesHead) {
++        Set-ObjectProperty $state "lastCommitHash" $headCommitHash
++        Set-ObjectProperty $state "updatedAt" ([DateTimeOffset]::UtcNow.ToString("o"))
++        Write-JsonFile $statePath $state
++
++        $lastCommitHash = $headCommitHash
++        $commitHashMatchesHead = $true
++    }
+ 
+     return [PSCustomObject][ordered]@{
+         lastCommand = [string]$state.lastCommand
+         lastCommandStatus = [string]$state.lastCommandStatus
+-        lastCommitHash = [string]$state.lastCommitHash
++        lastCommitHash = [string]$lastCommitHash
++        commitHashChanged = $commitHashChanged
++        commitHashMatchesHead = $commitHashMatchesHead
+     }
+ }
+ 
+@@ -437,7 +481,7 @@ while ($completedTaskCount -lt $MaxTasks) {
+         $stepNumber++
+         $script:steps += New-StepResult $stepNumber "commit-result-gate" "state.lastCommand/lastCommitHash 확인" $false $true 0 "DryRun: 실제 커밋 생성 여부를 확인하지 않았습니다."
+         $stepNumber++
+-        $script:steps += New-StepResult $stepNumber "complete-task" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-complete-task.ps1 -ResultSummary `"자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료`"" $false $true 0 "DryRun: task 완료 처리를 실행하지 않았습니다."
++        $script:steps += New-StepResult $stepNumber "complete-task" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-complete-task.ps1 -ResultSummary `"자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료`" -CommitHash <commit-hash>" $false $true 0 "DryRun: task 완료 처리를 실행하지 않았습니다."
+         Stop-Cycle $script:steps "dry_run" $false 0
+     }
+ 
+@@ -499,17 +543,24 @@ while ($completedTaskCount -lt $MaxTasks) {
+         $commitCommandText = "$commitCommandText $($commitArguments -join ' ')"
+     }
+ 
++    try {
++        $preCommitHeadCommitHash = Invoke-GitCapture -Arguments @("rev-parse", "HEAD") -DisplayName "git rev-parse HEAD"
++    } catch {
++        $script:steps += New-StepResult $stepNumber "commit" "git rev-parse HEAD" $false $false 1 $_.Exception.Message
++        Stop-Cycle $script:steps "pre_commit_head_failed" $false 1
 +    }
 +
-+    return @($Paths | ForEach-Object { "  - $_" })
+     Invoke-CycleCommand $stepNumber "commit" $commitCommandText $scriptPaths.commit $commitArguments
+     $stepNumber++
+ 
+     try {
+-        $commitGate = Get-CommitGate
++        $commitGate = Get-CommitGate $preCommitHeadCommitHash
+     } catch {
+         $script:steps += New-StepResult $stepNumber "commit-result-gate" "state.lastCommand/lastCommitHash 확인" $false $false 1 $_.Exception.Message
+         Stop-Cycle $script:steps "commit_result_gate_failed" $false 1
+     }
+ 
+-    if ($commitGate.lastCommand -ne "commit" -or $commitGate.lastCommandStatus -ne "passed" -or -not (Test-HasValue $commitGate.lastCommitHash)) {
++    if ($commitGate.lastCommand -ne "commit" -or $commitGate.lastCommandStatus -ne "passed" -or -not $commitGate.commitHashChanged -or -not $commitGate.commitHashMatchesHead) {
+         $message = "커밋 완료 상태를 확인하지 못해 complete-task를 실행하지 않습니다. lastCommand=$($commitGate.lastCommand), lastCommandStatus=$($commitGate.lastCommandStatus), lastCommitHash=$($commitGate.lastCommitHash)"
+         $script:steps += New-StepResult $stepNumber "commit-result-gate" "state.lastCommand/lastCommitHash 확인" $false $true 1 $message
+         Stop-Cycle $script:steps "commit_not_confirmed" $false 1
+@@ -519,7 +570,7 @@ while ($completedTaskCount -lt $MaxTasks) {
+     $stepNumber++
+ 
+     $resultSummary = "자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료"
+-    Invoke-CycleCommand $stepNumber "complete-task" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-complete-task.ps1 -ResultSummary `"$resultSummary`"" $scriptPaths.completeTask @("-ResultSummary", $resultSummary)
++    Invoke-CycleCommand $stepNumber "complete-task" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-complete-task.ps1 -ResultSummary `"$resultSummary`" -CommitHash $($commitGate.lastCommitHash)" $scriptPaths.completeTask @("-ResultSummary", $resultSummary, "-CommitHash", $commitGate.lastCommitHash)
+     $stepNumber++
+     $completedTaskCount++
+ }
+diff --git a/scripts/ai-dev-complete-task.ps1 b/scripts/ai-dev-complete-task.ps1
+index c5da716..50eb511 100644
+--- a/scripts/ai-dev-complete-task.ps1
++++ b/scripts/ai-dev-complete-task.ps1
+@@ -1,6 +1,7 @@
+ ﻿param(
+     [string]$TaskId,
+     [string]$ResultSummary,
++    [string]$CommitHash,
+     [switch]$NoNext
+ )
+ 
+@@ -78,6 +79,56 @@ function Write-JsonFile {
+     [System.IO.File]::WriteAllText($Path, $json, $utf8WithBom)
+ }
+ 
++function Invoke-GitCapture {
++    param(
++        [string[]]$Arguments,
++        [string]$DisplayName
++    )
++
++    $output = & git @Arguments 2>&1 | Out-String
++    $exitCode = $LASTEXITCODE
++
++    if ($exitCode -ne 0) {
++        throw "$DisplayName 실행에 실패했습니다. exit code: $exitCode`n$output"
++    }
++
++    return $output.TrimEnd()
 +}
 +
- foreach ($requiredPath in @($stateRelativePath, $queueRelativePath, $loopLogRelativePath)) {
++function Resolve-ValidatedCommitHash {
++    param(
++        [string]$Hash
++    )
++
++    $commitRevision = "$Hash^{commit}"
++
++    try {
++        $resolvedCommitHash = Invoke-GitCapture -Arguments @("rev-parse", "--verify", $commitRevision) -DisplayName "git rev-parse --verify $commitRevision"
++    } catch {
++        Stop-WithError "CommitHash가 실제 commit으로 확인되지 않았습니다: $Hash`n$($_.Exception.Message)"
++    }
++
++    try {
++        $headCommitHash = Invoke-GitCapture -Arguments @("rev-parse", "HEAD") -DisplayName "git rev-parse HEAD"
++    } catch {
++        Stop-WithError "현재 git HEAD를 확인하지 못했습니다: $($_.Exception.Message)"
++    }
++
++    if (-not (Test-HasValue $resolvedCommitHash)) {
++        Stop-WithError "CommitHash가 빈 값으로 resolve되었습니다: $Hash"
++    }
++
++    if (-not (Test-HasValue $headCommitHash)) {
++        Stop-WithError "현재 git HEAD가 빈 값으로 확인되었습니다."
++    }
++
++    if ($resolvedCommitHash -ne $headCommitHash) {
++        Stop-WithError "CommitHash가 현재 git HEAD와 일치하지 않습니다. resolved=$resolvedCommitHash, HEAD=$headCommitHash"
++    }
++
++    return $resolvedCommitHash
++}
++
+ foreach ($requiredPath in @($queueRelativePath, $stateRelativePath, $loopLogRelativePath)) {
      $fullPath = Join-Path $projectRoot $requiredPath
  
-@@ -259,15 +301,25 @@ $taskText = if ($null -ne $currentTask) {
-     "unknown"
+@@ -161,6 +212,12 @@ if ($NoNext) {
  }
  
-+$targetChangedPaths = @($targetChangeLines | ForEach-Object { Convert-ToChangedPath $_ } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -Unique)
-+$targetAppChangePaths = @($targetChangedPaths | Where-Object { -not (Test-IsAiDevOperationalPath $_) })
-+$targetAiDevOperationalPaths = @($targetChangedPaths | Where-Object { Test-IsAiDevOperationalPath $_ })
+ Set-ObjectProperty $queue "updatedAt" $now
 +
- if ($DryRun) {
-     Write-Host "Dry run: git add/commit을 실행하지 않습니다."
-     Write-Host "커밋 메시지: $commitMessage"
-     Write-Host "현재 task: $taskText"
--    Write-Host "커밋 대상 변경 파일:"
--    foreach ($line in $targetChangeLines) {
--        Write-Host "  - $line"
-+    Write-Host "커밋 대상 앱 변경 파일:"
-+    foreach ($line in (Convert-ToFileList $targetAppChangePaths)) {
-+        Write-Host $line
-+    }
-+    Write-Host "커밋 대상 AI Dev 운영 산출물:"
-+    foreach ($line in (Convert-ToFileList $targetAiDevOperationalPaths)) {
-+        Write-Host $line
-     }
--    Write-Host "변경 파일 수: $($targetChangeLines.Count)"
-+    Write-Host "앱 변경 파일 수: $($targetAppChangePaths.Count)"
-+    Write-Host "AI Dev 운영 산출물 수: $($targetAiDevOperationalPaths.Count)"
-+    Write-Host "전체 변경 파일 수: $($targetChangedPaths.Count)"
-     exit 0
- }
- 
-@@ -323,5 +375,7 @@ $logEntry = @"
- 
- Write-Host "커밋 메시지: $commitMessage"
- Write-Host "커밋 해시: $commitHash"
--Write-Host "변경 파일 수: $($targetChangeLines.Count)"
-+Write-Host "앱 변경 파일 수: $($targetAppChangePaths.Count)"
-+Write-Host "AI Dev 운영 산출물 수: $($targetAiDevOperationalPaths.Count)"
-+Write-Host "전체 변경 파일 수: $($targetChangedPaths.Count)"
- Write-Host "현재 task: $taskText"
-diff --git a/scripts/ai-dev-make-review-prompt.ps1 b/scripts/ai-dev-make-review-prompt.ps1
-index 91fc240..1ad4d44 100644
---- a/scripts/ai-dev-make-review-prompt.ps1
-+++ b/scripts/ai-dev-make-review-prompt.ps1
-@@ -242,6 +242,8 @@ $reviewPromptContent = @"
- 
- - 현재 task의 변경사항이 목표와 일치하는지 검토한다.
- - 빌드/테스트 결과와 git diff를 함께 검토한다.
-+- 리뷰 판단은 `App Change Files`와 diff 본문의 실제 앱 변경 파일을 중심으로 수행한다.
-+- `.ai-dev` 파일은 자동화 상태/로그/프롬프트 산출물로 별도 확인하되, 앱 변경 결함으로 과대평가하지 않는다.
- - 다음 task 범위까지 미리 구현했는지 확인한다.
- 
- ## Project Goal
-@@ -272,6 +274,8 @@ $diffContent
- ## Review Criteria
- 
- - 현재 task 요구사항을 충족했는가
-+- 실제 앱 변경 파일과 `.ai-dev` 운영 산출물이 구분되어 있는가
-+- `.ai-dev` 운영 산출물만 변경된 경우 앱 변경 리뷰로 과대평가하지 않았는가
- - 현재 task 범위를 벗어나지 않았는가
- - 다음 task를 미리 구현하지 않았는가
- - 기존 기능을 깨뜨릴 가능성이 있는가
-diff --git a/scripts/ai-dev-save-diff.ps1 b/scripts/ai-dev-save-diff.ps1
-index 0ea9af1..fcaed07 100644
---- a/scripts/ai-dev-save-diff.ps1
-+++ b/scripts/ai-dev-save-diff.ps1
-@@ -11,16 +11,8 @@ $statePath = Join-Path $projectRoot $stateRelativePath
- $diffPath = Join-Path $projectRoot $diffRelativePath
- $utf8WithBom = New-Object System.Text.UTF8Encoding($true)
- $maxUntrackedFileSize = 200KB
--$generatedArtifactRelativePaths = @(
--    ".ai-dev/diff.md",
--    ".ai-dev/review-prompt.md",
--    ".ai-dev/current-task-prompt.md",
--    ".ai-dev/revise-prompt.md",
--    ".ai-dev/test-result.md",
--    ".ai-dev/review.md",
--    ".ai-dev/review-response.json"
--)
--$generatedArtifactPathspecExcludes = @($generatedArtifactRelativePaths | ForEach-Object { ":(exclude)$_" })
-+$aiDevOperationalRoot = ".ai-dev/"
-+$reviewDiffPathspecExcludes = @(":(exclude).ai-dev/**")
- 
- function Stop-WithError {
-     param(
-@@ -130,7 +122,16 @@ function Convert-ToCodeBlock {
-     return "${codeFence}text`r`n$text`r`n$codeFence"
- }
- 
--function Get-TrackedGeneratedArtifactPaths {
-+function Test-IsAiDevOperationalPath {
-+    param(
-+        [string]$RelativePath
-+    )
-+
-+    $normalizedRelativePath = $RelativePath.Replace('\', '/')
-+    return $normalizedRelativePath.StartsWith($aiDevOperationalRoot, [System.StringComparison]::OrdinalIgnoreCase)
++if (Test-HasValue $CommitHash) {
++    $validatedCommitHash = Resolve-ValidatedCommitHash $CommitHash
++    Set-ObjectProperty $state "lastCommitHash" $validatedCommitHash
 +}
 +
-+function Get-ChangedPathsFromPorcelain {
-     param(
-         [string]$PorcelainStatus
-     )
-@@ -139,21 +140,34 @@ function Get-TrackedGeneratedArtifactPaths {
-     $statusLines = @($PorcelainStatus -split "`r?`n" | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
- 
-     foreach ($line in $statusLines) {
--        if ($line.Length -lt 4 -or $line.StartsWith("?? ")) {
-+        if ($line.StartsWith("?? ")) {
-+            $paths += $line.Substring(3)
-             continue
-         }
- 
--        $relativePath = $line.Substring(3)
--        $normalizedRelativePath = $relativePath.Replace('\', '/')
--
--        if ($generatedArtifactRelativePaths -contains $normalizedRelativePath) {
--            $paths += $relativePath
-+        if ($line.Length -lt 4) {
-+            continue
-         }
-+
-+        $relativePath = $line.Substring(3)
-+        $paths += $relativePath
-     }
- 
-     return @($paths | Select-Object -Unique)
- }
- 
-+function Convert-ToFileList {
-+    param(
-+        [string[]]$Paths
-+    )
-+
-+    if ($null -eq $Paths -or $Paths.Count -eq 0) {
-+        return "- 없음"
-+    }
-+
-+    return ($Paths | ForEach-Object { "- $_" }) -join "`r`n"
-+}
-+
- function Get-UntrackedFileSections {
-     param(
-         [string]$RepositoryRoot,
-@@ -175,7 +189,7 @@ function Get-UntrackedFileSections {
-             continue
-         }
- 
--        if ($generatedArtifactRelativePaths -contains $normalizedRelativePath) {
-+        if (Test-IsAiDevOperationalPath $normalizedRelativePath) {
-             $skippedGeneratedArtifacts += $relativePath
-             continue
-         }
-@@ -245,29 +259,29 @@ try {
- try {
-     $statusShort = Invoke-GitCapture -Arguments @("status", "--short") -DisplayName "git status --short"
-     $statusPorcelain = Invoke-GitCapture -Arguments @("status", "--porcelain") -DisplayName "git status --porcelain"
--    $diffPathspecArguments = @("--", ".") + $generatedArtifactPathspecExcludes
-+    $diffPathspecArguments = @("--", ".") + $reviewDiffPathspecExcludes
-     $unstagedStat = Invoke-GitCapture -Arguments (@("diff", "--stat") + $diffPathspecArguments) -DisplayName "git diff --stat"
-     $unstagedDiff = Invoke-GitCapture -Arguments (@("diff") + $diffPathspecArguments) -DisplayName "git diff"
-     $stagedStat = Invoke-GitCapture -Arguments (@("diff", "--staged", "--stat") + $diffPathspecArguments) -DisplayName "git diff --staged --stat"
-     $stagedDiff = Invoke-GitCapture -Arguments (@("diff", "--staged") + $diffPathspecArguments) -DisplayName "git diff --staged"
--    $skippedTrackedGeneratedArtifacts = Get-TrackedGeneratedArtifactPaths $statusPorcelain
-+    $changedPaths = Get-ChangedPathsFromPorcelain $statusPorcelain
-+    $appChangePaths = @($changedPaths | Where-Object { -not (Test-IsAiDevOperationalPath $_) })
-+    $aiDevOperationalPaths = @($changedPaths | Where-Object { Test-IsAiDevOperationalPath $_ })
- 
-     $generatedAt = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-     $sections = @(
-         "# AI Dev Diff",
-         "## Generated At`r`n`r`n$generatedAt",
-         "## Git Status`r`n`r`n$(Convert-ToCodeBlock $statusShort)",
-+        "## App Change Files`r`n`r`n$(Convert-ToFileList $appChangePaths)",
-+        "## AI Dev Operational Artifact Files`r`n`r`n$(Convert-ToFileList $aiDevOperationalPaths)",
-+        "## Review Diff Scope`r`n`r`n아래 diff 본문은 실제 앱 변경 파일 중심으로 검토하도록 `.ai-dev` 운영 산출물 diff를 제외합니다. `.ai-dev` 변경은 위 운영 산출물 목록에서 별도로 확인합니다.",
-         "## Unstaged Diff Stat`r`n`r`n$(Convert-ToCodeBlock $unstagedStat)",
-         "## Unstaged Diff`r`n`r`n$(Convert-ToCodeBlock $unstagedDiff)",
-         "## Staged Diff Stat`r`n`r`n$(Convert-ToCodeBlock $stagedStat)",
-         "## Staged Diff`r`n`r`n$(Convert-ToCodeBlock $stagedDiff)"
-     )
- 
--    if ($skippedTrackedGeneratedArtifacts.Count -gt 0) {
--        $skippedTrackedArtifactList = $skippedTrackedGeneratedArtifacts | ForEach-Object { "- $_" }
--        $sections += "## Skipped Generated AI Dev Artifact Diffs`r`n`r`n$($skippedTrackedArtifactList -join "`r`n")"
--    }
--
-     if ($IncludeUntrackedContent) {
-         $untrackedResult = Get-UntrackedFileSections $repositoryRoot $statusPorcelain
-         $sections += "## Untracked File Content`r`n`r`n$($untrackedResult.ContentSections -join "`r`n`r`n")"
+ Set-ObjectProperty $state "updatedAt" $now
+ Set-ObjectProperty $state "lastCommand" "complete-task"
+ Set-ObjectProperty $state "lastCommandStatus" "passed"
 ```
 
 ## Staged Diff Stat

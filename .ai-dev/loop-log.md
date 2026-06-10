@@ -93,3 +93,10 @@
 - Task: T001 리뷰 diff 범위 분리 로직 정리
 - Result: T001 완료: 리뷰 diff 생성과 리뷰 프롬프트에서 실제 변경 파일과 .ai-dev 운영 산출물을 분리하고, 앱 변경 중심 리뷰가 가능하도록 개선함
 - Next task: 없음
+
+## 2026-06-10 23:09:10 - Task progress
+
+- Task: T001 커밋 해시 상태 기록 흐름 개선
+- Result: `ai-dev-auto-cycle-full.ps1`의 commit-result-gate가 커밋 전 HEAD와 커밋 후 HEAD를 비교하고, commit/passed 상태에서 최신 HEAD를 `lastCommitHash`에 보강하도록 수정함. `ai-dev-complete-task.ps1`은 완료 처리 전 commit/passed 상태에서 기록된 해시가 있거나 HEAD 커밋 시각이 상태 갱신 이후인 경우에만 `lastCommitHash`를 동기화하도록 수정함
+- Verification: 관련 PowerShell 스크립트 2개 AST 문법 검증 통과
+- Excluded: build/test/lint, 실제 커밋 생성, git 명령 직접 실행은 수행하지 않음

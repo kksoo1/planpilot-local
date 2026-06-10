@@ -7,40 +7,40 @@
 ## Goal
 
 # 목표
-AI Dev Loop의 리뷰 및 패키징 흐름에서 실제 앱 변경 diff와 `.ai-dev` 운영 산출물 diff를 분리한다.
+AI Dev Loop에서 커밋 완료 후 `.ai-dev/state.json`의 `lastCommitHash`가 항상 최신 커밋 해시로 기록되도록 개선한다.
 
 ## 배경
-현재 자동화 상태 파일과 로그 같은 `.ai-dev` 산출물이 앱 변경 diff와 함께 취급되면, Codex 리뷰가 실제 사용자-facing 변경 범위를 판단하기 어려워질 수 있다. 리뷰는 `src` 등 실제 앱 변경 파일을 중심으로 수행하고, `.ai-dev` 파일은 자동화 메타데이터로 별도 취급해야 한다.
+현재 자동 또는 수동 커밋 흐름이 끝난 뒤 `lastCommitHash`가 비어 있을 수 있어, 후속 단계에서 커밋 결과를 일관되게 추적하기 어렵다. `ai-dev-commit`, `commit-result-gate`, `complete-task` 흐름에서 동일한 기준으로 최신 커밋 해시를 남기도록 정리한다.
 
 ## 성공 기준
-- 리뷰 대상 diff를 실제 앱 변경 파일과 `.ai-dev` 운영 산출물로 구분한다.
-- Codex 리뷰 판단 기준은 실제 앱 변경 파일을 중심으로 정리된다.
-- 패키징 또는 요약 단계에서 `.ai-dev` 상태/로그 파일은 자동화 메타데이터로 분리 표시된다.
-- 변경 범위가 작고 기존 AI Dev Loop 구조를 해치지 않는다.
+- 커밋이 성공한 뒤 `.ai-dev/state.json`의 `lastCommitHash`가 null 또는 빈 값으로 남지 않는다.
+- `ai-dev-commit`, `commit-result-gate`, `complete-task` 흐름에서 최신 커밋 해시 기록 방식이 일관된다.
+- 커밋이 없는 상태나 실패 상태에서는 기존 상태 흐름을 깨뜨리지 않는다.
+- 변경 범위가 AI Dev Loop 상태 갱신 로직에 한정된다.
 
 ## 제약사항
-- 한 번에 하나의 작은 구현 변경만 진행한다.
-- 기존 자동화 상태 파일의 의미를 유지한다.
-- 사용자 변경 사항을 되돌리지 않는다.
-- 실제 앱 코드 변경과 운영 메타데이터 변경을 혼동하지 않도록 한다.
+- 기존 작업 큐와 상태 파일 구조를 유지한다.
+- 한 번에 하나의 작은 구현 변경으로 처리한다.
+- 사용자가 만든 변경 사항은 되돌리지 않는다.
+- 불필요한 대규모 구조 변경은 하지 않는다.
 
 ## 범위 제외
-- 앱 기능 자체 변경은 제외한다.
-- 대규모 구조 변경은 제외한다.
-- 새로운 저장소 전체 재구성은 제외한다.
+- 새로운 기능 화면 추가는 하지 않는다.
+- 상태 파일 포맷의 전면 변경은 하지 않는다.
+- AI Dev Loop와 직접 관련 없는 앱 기능은 수정하지 않는다.
 
 ## 수동 검증
-- 실제 앱 변경 파일과 `.ai-dev` 파일이 함께 변경된 상황을 가정해 리뷰/요약 출력에서 구분되는지 확인한다.
-- `.ai-dev` 파일만 변경된 경우 앱 변경 리뷰로 과대평가되지 않는지 확인한다.
+- 커밋 완료 흐름 이후 `.ai-dev/state.json`의 `lastCommitHash`에 최신 커밋 해시가 기록되는지 확인한다.
+- 커밋 실패 또는 커밋 없음 상황에서 상태 값이 부정확하게 갱신되지 않는지 확인한다.
 
 ## Current Task
 
 - Task ID: T001
-- Title: 리뷰 diff 범위 분리 로직 정리
-- Description: AI Dev Loop의 리뷰 및 패키징 흐름에서 실제 앱 변경 파일과 `.ai-dev` 운영 산출물을 구분하도록 최소 범위로 조정한다.
+- Title: 커밋 해시 상태 기록 흐름 개선
+- Description: AI Dev Loop의 커밋 완료 처리 흐름을 확인하고, 자동 또는 수동 커밋 성공 후 `.ai-dev/state.json`의 `lastCommitHash`가 최신 커밋 해시로 남도록 상태 갱신 로직을 보강한다.
 - Type: implementation
 - Status: in_progress
-- Priority: P1
+- Priority: P0
 - Depends on:
 - 없음
 
@@ -53,12 +53,18 @@ AI Dev Loop의 리뷰 및 패키징 흐름에서 실제 앱 변경 diff와 `.ai-
 
 ## Likely Files
 
-- .ai-dev 관련 자동화 스크립트 또는 프롬프트 파일
+- .ai-dev/goal.md
+- .ai-dev/queue.json
+- .ai-dev/state.json
+- .ai-dev/scripts/ai-dev-commit.ps1
+- .ai-dev/scripts/commit-result-gate.ps1
+- .ai-dev/scripts/complete-task.ps1
 
 ## Verification
 
-- 실제 앱 변경 파일과 `.ai-dev` 운영 산출물이 별도 범주로 표시되는지 확인한다.
-- Codex 리뷰 기준이 실제 앱 변경 파일 중심으로 설명되는지 확인한다.
+- 커밋 성공 흐름 뒤 `.ai-dev/state.json`의 `lastCommitHash`가 최신 커밋 해시와 일치하는지 확인한다.
+- 커밋이 생성되지 않은 흐름에서 `lastCommitHash`가 잘못된 값으로 갱신되지 않는지 확인한다.
+- 관련 스크립트의 상태 갱신 경로가 동일한 기준을 사용하는지 확인한다.
 
 - 필요한 경우 `npm run build`는 사람이 별도로 실행한다.
 - 이 프롬프트는 자동으로 build, test, lint를 실행하라고 지시하지 않는다.
