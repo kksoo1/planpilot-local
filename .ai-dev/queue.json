@@ -2,15 +2,15 @@
     "goalTitle":  "AI Dev Loop 리뷰 diff 범위 분리",
     "goalSource":  ".ai-dev/goal.md",
     "createdAt":  "2026-06-09T00:00:00+09:00",
-    "updatedAt":  "2026-06-09T00:00:00+09:00",
-    "currentTaskId":  "T001",
+    "updatedAt":  "2026-06-10T13:22:07.4512234+00:00",
+    "currentTaskId":  null,
     "tasks":  [
                   {
                       "id":  "T001",
                       "title":  "리뷰 diff 범위 분리 로직 정리",
                       "description":  "AI Dev Loop의 리뷰 및 패키징 흐름에서 실제 앱 변경 파일과 `.ai-dev` 운영 산출물을 구분하도록 최소 범위로 조정한다.",
                       "type":  "implementation",
-                      "status":  "in_progress",
+                      "status":  "done",
                       "priority":  "P1",
                       "dependsOn":  [
 
@@ -22,7 +22,9 @@
                                            "실제 앱 변경 파일과 `.ai-dev` 운영 산출물이 별도 범주로 표시되는지 확인한다.",
                                            "Codex 리뷰 기준이 실제 앱 변경 파일 중심으로 설명되는지 확인한다."
                                        ],
-                      "commitMessage":  "Separate review diff scope"
+                      "commitMessage":  "Separate review diff scope",
+                      "completedAt":  "2026-06-10T13:22:07.4512234+00:00",
+                      "resultSummary":  "T001 완료: 리뷰 diff 생성과 리뷰 프롬프트에서 실제 변경 파일과 .ai-dev 운영 산출물을 분리하고, 앱 변경 중심 리뷰가 가능하도록 개선함"
                   }
               ]
 }

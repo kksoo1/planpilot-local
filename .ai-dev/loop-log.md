@@ -88,3 +88,8 @@
 - Task: T001 업무 검색창 placeholder 문구 수정
 - Result: T001 완료: 업무 검색창 placeholder를 업무명과 프로젝트명 검색 대상에 맞는 명확한 한국어 문구로 개선하고 build 및 Codex 리뷰 결과를 확인함
 - Next task: 없음
+## 2026-06-10 22:22:07 - Task completed
+
+- Task: T001 리뷰 diff 범위 분리 로직 정리
+- Result: T001 완료: 리뷰 diff 생성과 리뷰 프롬프트에서 실제 변경 파일과 .ai-dev 운영 산출물을 분리하고, 앱 변경 중심 리뷰가 가능하도록 개선함
+- Next task: 없음
