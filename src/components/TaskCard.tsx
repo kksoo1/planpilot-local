@@ -25,7 +25,7 @@ export function TaskCard({
       </span>
       <span>{task.dueDate ? `마감일: ${task.dueDate}` : "마감일 없음"}</span>
       <button type="button" onClick={() => onToggleDone(task)}>
-        {task.status === "done" ? "미완료로 변경" : "완료"}
+        {task.status === "done" ? "미완료로 변경" : "업무 완료 처리"}
       </button>
       <button type="button" onClick={() => onDelete(task)}>
         삭제

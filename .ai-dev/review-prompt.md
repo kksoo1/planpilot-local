@@ -15,52 +15,53 @@
 ## Project Goal
 
 # 목표
-AI Dev Loop에서 커밋 완료 후 `.ai-dev/state.json`의 `lastCommitHash`가 항상 최신 커밋 해시로 기록되도록 개선한다.
+업무 카드의 완료 처리 버튼 문구를 사용자가 더 명확히 이해할 수 있는 한국어 문구로 개선한다.
 
 ## 배경
-현재 자동 또는 수동 커밋 흐름이 끝난 뒤 `lastCommitHash`가 비어 있을 수 있어, 후속 단계에서 커밋 결과를 일관되게 추적하기 어렵다. `ai-dev-commit`, `commit-result-gate`, `complete-task` 흐름에서 동일한 기준으로 최신 커밋 해시를 남기도록 정리한다.
+현재 업무 카드의 완료 처리 버튼 문구가 사용자에게 동작 의미를 충분히 명확하게 전달하지 못할 수 있다. 기능 동작은 유지하고 표시 문구만 최소 범위로 조정한다.
 
 ## 성공 기준
-- 커밋이 성공한 뒤 `.ai-dev/state.json`의 `lastCommitHash`가 null 또는 빈 값으로 남지 않는다.
-- `ai-dev-commit`, `commit-result-gate`, `complete-task` 흐름에서 최신 커밋 해시 기록 방식이 일관된다.
-- 커밋이 없는 상태나 실패 상태에서는 기존 상태 흐름을 깨뜨리지 않는다.
-- 변경 범위가 AI Dev Loop 상태 갱신 로직에 한정된다.
+- 업무 카드의 완료 처리 버튼 문구가 더 명확한 한국어 표현으로 변경된다.
+- 완료 처리 기능의 동작은 변경되지 않는다.
+- 관련 UI 문구 외의 구조나 상태 로직은 변경하지 않는다.
 
 ## 제약사항
-- 기존 작업 큐와 상태 파일 구조를 유지한다.
-- 한 번에 하나의 작은 구현 변경으로 처리한다.
-- 사용자가 만든 변경 사항은 되돌리지 않는다.
-- 불필요한 대규모 구조 변경은 하지 않는다.
+- 한 번에 하나의 작은 변경만 수행한다.
+- 기존 컴포넌트 구조와 스타일을 유지한다.
+- 사용자-facing UI 문자열은 한국어를 사용한다.
+- `src/App.css`는 수정하지 않는다.
 
 ## 범위 제외
-- 새로운 기능 화면 추가는 하지 않는다.
-- 상태 파일 포맷의 전면 변경은 하지 않는다.
-- AI Dev Loop와 직접 관련 없는 앱 기능은 수정하지 않는다.
+- 완료 처리 동작 변경
+- 업무 데이터 구조 변경
+- 새 화면 또는 복잡한 UI 추가
+- 스타일 전반 조정
 
 ## 수동 검증
-- 커밋 완료 흐름 이후 `.ai-dev/state.json`의 `lastCommitHash`에 최신 커밋 해시가 기록되는지 확인한다.
-- 커밋 실패 또는 커밋 없음 상황에서 상태 값이 부정확하게 갱신되지 않는지 확인한다.
+- 업무 카드에서 완료 처리 버튼 문구가 변경되었는지 확인한다.
+- 버튼 클릭 시 기존과 동일하게 완료 처리되는지 확인한다.
+- 다른 업무 카드 문구나 레이아웃에 의도하지 않은 변화가 없는지 확인한다.
+
 
 ## Current Task
 
 - Task ID: T001
-- Title: 커밋 해시 상태 기록 흐름 개선
-- Description: AI Dev Loop의 커밋 완료 처리 흐름을 확인하고, 자동 또는 수동 커밋 성공 후 `.ai-dev/state.json`의 `lastCommitHash`가 최신 커밋 해시로 남도록 상태 갱신 로직을 보강한다.
+- Title: 업무 카드 완료 버튼 문구 수정
+- Description: 업무 카드의 완료 처리 버튼에 표시되는 한국어 문구만 더 명확한 표현으로 최소 수정한다.
 - Type: implementation
 - Status: in_progress
-- Priority: P0
+- Priority: P1
 - Depends on:
 - 없음
 - Verification:
-- 커밋 성공 흐름 뒤 `.ai-dev/state.json`의 `lastCommitHash`가 최신 커밋 해시와 일치하는지 확인한다.
-- 커밋이 생성되지 않은 흐름에서 `lastCommitHash`가 잘못된 값으로 갱신되지 않는지 확인한다.
-- 관련 스크립트의 상태 갱신 경로가 동일한 기준을 사용하는지 확인한다.
+- 업무 카드 완료 처리 버튼 문구가 더 명확한 한국어 표현으로 표시되는지 확인한다.
+- 완료 처리 동작이 기존과 동일하게 유지되는지 확인한다.
 
 ## Test Result
 
 # AI Dev Test Result
 
-## 2026-06-10 23:31:32
+## 2026-06-10 23:43:37
 
 - Overall result: passed
 - Current task: T001
@@ -86,9 +87,9 @@ rendering chunks...
 computing gzip size...
 dist/index.html                   0.46 kB │ gzip:  0.29 kB
 dist/assets/index-DvjxWt30.css    5.69 kB │ gzip:  1.93 kB
-dist/assets/index-BNHocAt1.js   315.73 kB │ gzip: 99.57 kB
+dist/assets/index-B36sWdpc.js   315.75 kB │ gzip: 99.58 kB
 
-[32m✓ built in 256ms[39m
+[32m✓ built in 312ms[39m
 ```
 ### npm run test
 
@@ -113,7 +114,7 @@ dist/assets/index-BNHocAt1.js   315.73 kB │ gzip: 99.57 kB
 
 ## Generated At
 
-2026-06-10 23:31:39
+2026-06-10 23:43:48
 
 ## Git Status
 
@@ -123,21 +124,18 @@ dist/assets/index-BNHocAt1.js   315.73 kB │ gzip: 99.57 kB
  M .ai-dev/current-task-prompt.md
  M .ai-dev/diff.md
  M .ai-dev/goal.md
- M .ai-dev/loop-log.md
  M .ai-dev/queue.json
  M .ai-dev/review-prompt.md
  M .ai-dev/review-response.json
  M .ai-dev/review.md
  M .ai-dev/state.json
  M .ai-dev/test-result.md
- M scripts/ai-dev-auto-cycle-full.ps1
- M scripts/ai-dev-complete-task.ps1
+ M src/components/TaskCard.tsx
 ```
 
 ## App Change Files
 
-- scripts/ai-dev-auto-cycle-full.ps1
-- scripts/ai-dev-complete-task.ps1
+- src/components/TaskCard.tsx
 
 ## AI Dev Operational Artifact Files
 
@@ -146,7 +144,6 @@ dist/assets/index-BNHocAt1.js   315.73 kB │ gzip: 99.57 kB
 - .ai-dev/current-task-prompt.md
 - .ai-dev/diff.md
 - .ai-dev/goal.md
-- .ai-dev/loop-log.md
 - .ai-dev/queue.json
 - .ai-dev/review-prompt.md
 - .ai-dev/review-response.json
@@ -161,217 +158,26 @@ dist/assets/index-BNHocAt1.js   315.73 kB │ gzip: 99.57 kB
 ## Unstaged Diff Stat
 
 ```text
- scripts/ai-dev-auto-cycle-full.ps1 | 61 ++++++++++++++++++++++++++++++++++----
- scripts/ai-dev-complete-task.ps1   | 57 +++++++++++++++++++++++++++++++++++
- 2 files changed, 113 insertions(+), 5 deletions(-)
+ src/components/TaskCard.tsx | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 ```
 
 ## Unstaged Diff
 
 ```text
-diff --git a/scripts/ai-dev-auto-cycle-full.ps1 b/scripts/ai-dev-auto-cycle-full.ps1
-index ceb53aa..a1eb93a 100644
---- a/scripts/ai-dev-auto-cycle-full.ps1
-+++ b/scripts/ai-dev-auto-cycle-full.ps1
-@@ -19,6 +19,7 @@ $reviewResponseRelativePath = ".ai-dev/review-response.json"
- $queuePath = Join-Path $repoRoot $queueRelativePath
- $statePath = Join-Path $repoRoot $stateRelativePath
- $reviewResponsePath = Join-Path $repoRoot $reviewResponseRelativePath
-+$utf8WithBom = New-Object System.Text.UTF8Encoding($true)
- 
- function Test-HasValue {
-     param(
-@@ -49,6 +50,30 @@ function Read-JsonFile {
-     }
- }
- 
-+function Set-ObjectProperty {
-+    param(
-+        [object]$InputObject,
-+        [string]$Name,
-+        [object]$Value
-+    )
-+
-+    if ($InputObject.PSObject.Properties.Name -contains $Name) {
-+        $InputObject.$Name = $Value
-+    } else {
-+        $InputObject | Add-Member -NotePropertyName $Name -NotePropertyValue $Value
-+    }
-+}
-+
-+function Write-JsonFile {
-+    param(
-+        [string]$Path,
-+        [object]$Value
-+    )
-+
-+    $json = $Value | ConvertTo-Json -Depth 20
-+    [System.IO.File]::WriteAllText($Path, $json, $utf8WithBom)
-+}
-+
- function Get-CurrentTask {
-     param(
-         [object]$Queue,
-@@ -258,12 +283,31 @@ function Get-CommitArguments {
- }
- 
- function Get-CommitGate {
-+    param(
-+        [string]$PreviousHeadCommitHash
-+    )
-+
-     $state = Read-JsonFile $statePath $stateRelativePath
-+    $lastCommitHash = if (Test-HasValue $state.lastCommitHash) { [string]$state.lastCommitHash } else { $null }
-+    $headCommitHash = Invoke-GitCapture -Arguments @("rev-parse", "HEAD") -DisplayName "git rev-parse HEAD"
-+    $commitHashChanged = (Test-HasValue $headCommitHash) -and $headCommitHash -ne $PreviousHeadCommitHash
-+    $commitHashMatchesHead = (Test-HasValue $lastCommitHash) -and $lastCommitHash -eq $headCommitHash
-+
-+    if ($state.lastCommand -eq "commit" -and $state.lastCommandStatus -eq "passed" -and $commitHashChanged -and -not $commitHashMatchesHead) {
-+        Set-ObjectProperty $state "lastCommitHash" $headCommitHash
-+        Set-ObjectProperty $state "updatedAt" ([DateTimeOffset]::UtcNow.ToString("o"))
-+        Write-JsonFile $statePath $state
-+
-+        $lastCommitHash = $headCommitHash
-+        $commitHashMatchesHead = $true
-+    }
- 
-     return [PSCustomObject][ordered]@{
-         lastCommand = [string]$state.lastCommand
-         lastCommandStatus = [string]$state.lastCommandStatus
--        lastCommitHash = [string]$state.lastCommitHash
-+        lastCommitHash = [string]$lastCommitHash
-+        commitHashChanged = $commitHashChanged
-+        commitHashMatchesHead = $commitHashMatchesHead
-     }
- }
- 
-@@ -437,7 +481,7 @@ while ($completedTaskCount -lt $MaxTasks) {
-         $stepNumber++
-         $script:steps += New-StepResult $stepNumber "commit-result-gate" "state.lastCommand/lastCommitHash 확인" $false $true 0 "DryRun: 실제 커밋 생성 여부를 확인하지 않았습니다."
-         $stepNumber++
--        $script:steps += New-StepResult $stepNumber "complete-task" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-complete-task.ps1 -ResultSummary `"자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료`"" $false $true 0 "DryRun: task 완료 처리를 실행하지 않았습니다."
-+        $script:steps += New-StepResult $stepNumber "complete-task" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-complete-task.ps1 -ResultSummary `"자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료`" -CommitHash <commit-hash>" $false $true 0 "DryRun: task 완료 처리를 실행하지 않았습니다."
-         Stop-Cycle $script:steps "dry_run" $false 0
-     }
- 
-@@ -499,17 +543,24 @@ while ($completedTaskCount -lt $MaxTasks) {
-         $commitCommandText = "$commitCommandText $($commitArguments -join ' ')"
-     }
- 
-+    try {
-+        $preCommitHeadCommitHash = Invoke-GitCapture -Arguments @("rev-parse", "HEAD") -DisplayName "git rev-parse HEAD"
-+    } catch {
-+        $script:steps += New-StepResult $stepNumber "commit" "git rev-parse HEAD" $false $false 1 $_.Exception.Message
-+        Stop-Cycle $script:steps "pre_commit_head_failed" $false 1
-+    }
-+
-     Invoke-CycleCommand $stepNumber "commit" $commitCommandText $scriptPaths.commit $commitArguments
-     $stepNumber++
- 
-     try {
--        $commitGate = Get-CommitGate
-+        $commitGate = Get-CommitGate $preCommitHeadCommitHash
-     } catch {
-         $script:steps += New-StepResult $stepNumber "commit-result-gate" "state.lastCommand/lastCommitHash 확인" $false $false 1 $_.Exception.Message
-         Stop-Cycle $script:steps "commit_result_gate_failed" $false 1
-     }
- 
--    if ($commitGate.lastCommand -ne "commit" -or $commitGate.lastCommandStatus -ne "passed" -or -not (Test-HasValue $commitGate.lastCommitHash)) {
-+    if ($commitGate.lastCommand -ne "commit" -or $commitGate.lastCommandStatus -ne "passed" -or -not $commitGate.commitHashChanged -or -not $commitGate.commitHashMatchesHead) {
-         $message = "커밋 완료 상태를 확인하지 못해 complete-task를 실행하지 않습니다. lastCommand=$($commitGate.lastCommand), lastCommandStatus=$($commitGate.lastCommandStatus), lastCommitHash=$($commitGate.lastCommitHash)"
-         $script:steps += New-StepResult $stepNumber "commit-result-gate" "state.lastCommand/lastCommitHash 확인" $false $true 1 $message
-         Stop-Cycle $script:steps "commit_not_confirmed" $false 1
-@@ -519,7 +570,7 @@ while ($completedTaskCount -lt $MaxTasks) {
-     $stepNumber++
- 
-     $resultSummary = "자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료"
--    Invoke-CycleCommand $stepNumber "complete-task" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-complete-task.ps1 -ResultSummary `"$resultSummary`"" $scriptPaths.completeTask @("-ResultSummary", $resultSummary)
-+    Invoke-CycleCommand $stepNumber "complete-task" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-complete-task.ps1 -ResultSummary `"$resultSummary`" -CommitHash $($commitGate.lastCommitHash)" $scriptPaths.completeTask @("-ResultSummary", $resultSummary, "-CommitHash", $commitGate.lastCommitHash)
-     $stepNumber++
-     $completedTaskCount++
- }
-diff --git a/scripts/ai-dev-complete-task.ps1 b/scripts/ai-dev-complete-task.ps1
-index c5da716..50eb511 100644
---- a/scripts/ai-dev-complete-task.ps1
-+++ b/scripts/ai-dev-complete-task.ps1
-@@ -1,6 +1,7 @@
- ﻿param(
-     [string]$TaskId,
-     [string]$ResultSummary,
-+    [string]$CommitHash,
-     [switch]$NoNext
- )
- 
-@@ -78,6 +79,56 @@ function Write-JsonFile {
-     [System.IO.File]::WriteAllText($Path, $json, $utf8WithBom)
- }
- 
-+function Invoke-GitCapture {
-+    param(
-+        [string[]]$Arguments,
-+        [string]$DisplayName
-+    )
-+
-+    $output = & git @Arguments 2>&1 | Out-String
-+    $exitCode = $LASTEXITCODE
-+
-+    if ($exitCode -ne 0) {
-+        throw "$DisplayName 실행에 실패했습니다. exit code: $exitCode`n$output"
-+    }
-+
-+    return $output.TrimEnd()
-+}
-+
-+function Resolve-ValidatedCommitHash {
-+    param(
-+        [string]$Hash
-+    )
-+
-+    $commitRevision = "$Hash^{commit}"
-+
-+    try {
-+        $resolvedCommitHash = Invoke-GitCapture -Arguments @("rev-parse", "--verify", $commitRevision) -DisplayName "git rev-parse --verify $commitRevision"
-+    } catch {
-+        Stop-WithError "CommitHash가 실제 commit으로 확인되지 않았습니다: $Hash`n$($_.Exception.Message)"
-+    }
-+
-+    try {
-+        $headCommitHash = Invoke-GitCapture -Arguments @("rev-parse", "HEAD") -DisplayName "git rev-parse HEAD"
-+    } catch {
-+        Stop-WithError "현재 git HEAD를 확인하지 못했습니다: $($_.Exception.Message)"
-+    }
-+
-+    if (-not (Test-HasValue $resolvedCommitHash)) {
-+        Stop-WithError "CommitHash가 빈 값으로 resolve되었습니다: $Hash"
-+    }
-+
-+    if (-not (Test-HasValue $headCommitHash)) {
-+        Stop-WithError "현재 git HEAD가 빈 값으로 확인되었습니다."
-+    }
-+
-+    if ($resolvedCommitHash -ne $headCommitHash) {
-+        Stop-WithError "CommitHash가 현재 git HEAD와 일치하지 않습니다. resolved=$resolvedCommitHash, HEAD=$headCommitHash"
-+    }
-+
-+    return $resolvedCommitHash
-+}
-+
- foreach ($requiredPath in @($queueRelativePath, $stateRelativePath, $loopLogRelativePath)) {
-     $fullPath = Join-Path $projectRoot $requiredPath
- 
-@@ -161,6 +212,12 @@ if ($NoNext) {
- }
- 
- Set-ObjectProperty $queue "updatedAt" $now
-+
-+if (Test-HasValue $CommitHash) {
-+    $validatedCommitHash = Resolve-ValidatedCommitHash $CommitHash
-+    Set-ObjectProperty $state "lastCommitHash" $validatedCommitHash
-+}
-+
- Set-ObjectProperty $state "updatedAt" $now
- Set-ObjectProperty $state "lastCommand" "complete-task"
- Set-ObjectProperty $state "lastCommandStatus" "passed"
+diff --git a/src/components/TaskCard.tsx b/src/components/TaskCard.tsx
+index 12597da..d6be8ef 100644
+--- a/src/components/TaskCard.tsx
++++ b/src/components/TaskCard.tsx
+@@ -25,7 +25,7 @@ export function TaskCard({
+       </span>
+       <span>{task.dueDate ? `마감일: ${task.dueDate}` : "마감일 없음"}</span>
+       <button type="button" onClick={() => onToggleDone(task)}>
+-        {task.status === "done" ? "미완료로 변경" : "완료"}
++        {task.status === "done" ? "미완료로 변경" : "업무 완료 처리"}
+       </button>
+       <button type="button" onClick={() => onDelete(task)}>
+         삭제
 ```
 
 ## Staged Diff Stat

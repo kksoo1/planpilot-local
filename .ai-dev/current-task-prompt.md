@@ -7,40 +7,42 @@
 ## Goal
 
 # 목표
-AI Dev Loop에서 커밋 완료 후 `.ai-dev/state.json`의 `lastCommitHash`가 항상 최신 커밋 해시로 기록되도록 개선한다.
+업무 카드의 완료 처리 버튼 문구를 사용자가 더 명확히 이해할 수 있는 한국어 문구로 개선한다.
 
 ## 배경
-현재 자동 또는 수동 커밋 흐름이 끝난 뒤 `lastCommitHash`가 비어 있을 수 있어, 후속 단계에서 커밋 결과를 일관되게 추적하기 어렵다. `ai-dev-commit`, `commit-result-gate`, `complete-task` 흐름에서 동일한 기준으로 최신 커밋 해시를 남기도록 정리한다.
+현재 업무 카드의 완료 처리 버튼 문구가 사용자에게 동작 의미를 충분히 명확하게 전달하지 못할 수 있다. 기능 동작은 유지하고 표시 문구만 최소 범위로 조정한다.
 
 ## 성공 기준
-- 커밋이 성공한 뒤 `.ai-dev/state.json`의 `lastCommitHash`가 null 또는 빈 값으로 남지 않는다.
-- `ai-dev-commit`, `commit-result-gate`, `complete-task` 흐름에서 최신 커밋 해시 기록 방식이 일관된다.
-- 커밋이 없는 상태나 실패 상태에서는 기존 상태 흐름을 깨뜨리지 않는다.
-- 변경 범위가 AI Dev Loop 상태 갱신 로직에 한정된다.
+- 업무 카드의 완료 처리 버튼 문구가 더 명확한 한국어 표현으로 변경된다.
+- 완료 처리 기능의 동작은 변경되지 않는다.
+- 관련 UI 문구 외의 구조나 상태 로직은 변경하지 않는다.
 
 ## 제약사항
-- 기존 작업 큐와 상태 파일 구조를 유지한다.
-- 한 번에 하나의 작은 구현 변경으로 처리한다.
-- 사용자가 만든 변경 사항은 되돌리지 않는다.
-- 불필요한 대규모 구조 변경은 하지 않는다.
+- 한 번에 하나의 작은 변경만 수행한다.
+- 기존 컴포넌트 구조와 스타일을 유지한다.
+- 사용자-facing UI 문자열은 한국어를 사용한다.
+- `src/App.css`는 수정하지 않는다.
 
 ## 범위 제외
-- 새로운 기능 화면 추가는 하지 않는다.
-- 상태 파일 포맷의 전면 변경은 하지 않는다.
-- AI Dev Loop와 직접 관련 없는 앱 기능은 수정하지 않는다.
+- 완료 처리 동작 변경
+- 업무 데이터 구조 변경
+- 새 화면 또는 복잡한 UI 추가
+- 스타일 전반 조정
 
 ## 수동 검증
-- 커밋 완료 흐름 이후 `.ai-dev/state.json`의 `lastCommitHash`에 최신 커밋 해시가 기록되는지 확인한다.
-- 커밋 실패 또는 커밋 없음 상황에서 상태 값이 부정확하게 갱신되지 않는지 확인한다.
+- 업무 카드에서 완료 처리 버튼 문구가 변경되었는지 확인한다.
+- 버튼 클릭 시 기존과 동일하게 완료 처리되는지 확인한다.
+- 다른 업무 카드 문구나 레이아웃에 의도하지 않은 변화가 없는지 확인한다.
+
 
 ## Current Task
 
 - Task ID: T001
-- Title: 커밋 해시 상태 기록 흐름 개선
-- Description: AI Dev Loop의 커밋 완료 처리 흐름을 확인하고, 자동 또는 수동 커밋 성공 후 `.ai-dev/state.json`의 `lastCommitHash`가 최신 커밋 해시로 남도록 상태 갱신 로직을 보강한다.
+- Title: 업무 카드 완료 버튼 문구 수정
+- Description: 업무 카드의 완료 처리 버튼에 표시되는 한국어 문구만 더 명확한 표현으로 최소 수정한다.
 - Type: implementation
 - Status: in_progress
-- Priority: P0
+- Priority: P1
 - Depends on:
 - 없음
 
@@ -53,18 +55,12 @@ AI Dev Loop에서 커밋 완료 후 `.ai-dev/state.json`의 `lastCommitHash`가 
 
 ## Likely Files
 
-- .ai-dev/goal.md
-- .ai-dev/queue.json
-- .ai-dev/state.json
-- .ai-dev/scripts/ai-dev-commit.ps1
-- .ai-dev/scripts/commit-result-gate.ps1
-- .ai-dev/scripts/complete-task.ps1
+- src/App.tsx
 
 ## Verification
 
-- 커밋 성공 흐름 뒤 `.ai-dev/state.json`의 `lastCommitHash`가 최신 커밋 해시와 일치하는지 확인한다.
-- 커밋이 생성되지 않은 흐름에서 `lastCommitHash`가 잘못된 값으로 갱신되지 않는지 확인한다.
-- 관련 스크립트의 상태 갱신 경로가 동일한 기준을 사용하는지 확인한다.
+- 업무 카드 완료 처리 버튼 문구가 더 명확한 한국어 표현으로 표시되는지 확인한다.
+- 완료 처리 동작이 기존과 동일하게 유지되는지 확인한다.
 
 - 필요한 경우 `npm run build`는 사람이 별도로 실행한다.
 - 이 프롬프트는 자동으로 build, test, lint를 실행하라고 지시하지 않는다.
