@@ -2,15 +2,15 @@
     "goalTitle":  "업무 카드 완료 버튼 문구 개선",
     "goalSource":  ".ai-dev/goal.md",
     "createdAt":  "2026-06-10T00:00:00+09:00",
-    "updatedAt":  "2026-06-10T00:00:00+09:00",
-    "currentTaskId":  "T001",
+    "updatedAt":  "2026-06-12T15:33:56.3807621+00:00",
+    "currentTaskId":  null,
     "tasks":  [
                   {
                       "id":  "T001",
                       "title":  "업무 카드 완료 버튼 문구 수정",
                       "description":  "업무 카드의 완료 처리 버튼에 표시되는 한국어 문구만 더 명확한 표현으로 최소 수정한다.",
                       "type":  "implementation",
-                      "status":  "in_progress",
+                      "status":  "done",
                       "priority":  "P1",
                       "dependsOn":  [
 
@@ -22,7 +22,9 @@
                                            "업무 카드 완료 처리 버튼 문구가 더 명확한 한국어 표현으로 표시되는지 확인한다.",
                                            "완료 처리 동작이 기존과 동일하게 유지되는지 확인한다."
                                        ],
-                      "commitMessage":  "Improve task completion button label"
+                      "commitMessage":  "Improve task completion button label",
+                      "completedAt":  "2026-06-12T15:33:56.3807621+00:00",
+                      "resultSummary":  "T001 완료: 업무 카드의 미완료 상태 완료 버튼 문구를 더 명확한 한국어 표현으로 개선했으며, 동작 로직이나 구조 변경 없이 UI 문구만 최소 범위로 수정함"
                   }
               ]
 }

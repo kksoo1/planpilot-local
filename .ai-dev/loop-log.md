@@ -106,3 +106,8 @@
 - Task: T001 커밋 해시 상태 기록 흐름 개선
 - Result: T001 완료: 커밋 성공 후 명시적으로 전달된 커밋 해시를 검증하여 state.lastCommitHash에 기록하도록 commit-result-gate와 complete-task 흐름을 개선함
 - Next task: 없음
+## 2026-06-13 00:33:57 - Task completed
+
+- Task: T001 업무 카드 완료 버튼 문구 수정
+- Result: T001 완료: 업무 카드의 미완료 상태 완료 버튼 문구를 더 명확한 한국어 표현으로 개선했으며, 동작 로직이나 구조 변경 없이 UI 문구만 최소 범위로 수정함
+- Next task: 없음
