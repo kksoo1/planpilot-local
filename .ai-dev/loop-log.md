@@ -156,3 +156,13 @@
 - Task: T001 업무 카드 문구 최소 개선
 - Result: T001 완료: 업무 카드 버튼 및 상태 표시의 접근성/안내 문구를 최소 범위로 개선하고 build/lint 검증을 통과함
 - Next task: 없음
+## 2026-06-14 22:29:29 - Commit created
+
+- Task: T001 auto-goal pass 이후 완료 흐름 연결
+- Commit: a41df7ba976d41328ac39cd92a3eefed1e04ba19
+- Message: Wire auto-goal pass completion flow
+## 2026-06-14 22:29:48 - Task completed
+
+- Task: T001 auto-goal pass 이후 완료 흐름 연결
+- Result: T001 완료: auto-goal 실행 경로에서 리뷰 pass 이후 커밋, complete-task -CommitHash 전달, .ai-dev 메타 커밋, 최종 상태 확인까지 이어지도록 개선함
+- Next task: 없음
