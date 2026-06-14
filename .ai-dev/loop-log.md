@@ -176,3 +176,13 @@
 - Task: T001 업무 카드 완료 문구 개선
 - Result: T001 완료: 업무 카드 완료 버튼과 aria-label 문구를 자연스러운 한국어로 최소 개선하고 build/lint 검증을 통과함
 - Next task: 없음
+## 2026-06-14 23:23:51 - Commit created
+
+- Task: T001 auto-goal 완료 판정 흐름 수정
+- Commit: 541b9d02569576d0c56cbe60ede92fe924dbd64c
+- Message: Fix auto-goal completion handling
+## 2026-06-14 23:24:03 - Task completed
+
+- Task: T001 auto-goal 완료 판정 흐름 수정
+- Result: T001 완료: complete_task/complete-task 정규화, 저장된 리뷰 pass 이후 완료 재개, auto-goal 미완료 판정 실패 처리를 반영함
+- Next task: 없음

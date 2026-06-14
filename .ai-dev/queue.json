@@ -1,30 +1,32 @@
 ﻿{
-    "goalTitle":  "업무 카드 완료 안내 문구 미세 개선",
+    "goalTitle":  "AI Dev Loop auto-goal pass 이후 완료 재시도 수정",
     "goalSource":  ".ai-dev/goal.md",
-    "createdAt":  "2026-06-14T00:00:00+09:00",
-    "updatedAt":  "2026-06-14T14:00:20.9295972+00:00",
+    "createdAt":  "2026-06-14T23:04:49.0233050+09:00",
+    "updatedAt":  "2026-06-14T14:24:02.7258373+00:00",
     "currentTaskId":  null,
     "tasks":  [
                   {
                       "id":  "T001",
-                      "title":  "업무 카드 완료 문구 개선",
-                      "description":  "업무 카드의 완료 관련 UI 문구 또는 aria-label을 확인하고, 기능 로직 변경 없이 더 자연스러운 한국어 표현으로 최소 수정한다.",
+                      "title":  "auto-goal 완료 판정 흐름 수정",
+                      "description":  "리뷰 pass 이후 next_step의 complete_task와 complete-task 표기를 모두 허용하고, auto-cycle-full 미완료 종료를 성공으로 오판하지 않도록 완료 판정 조건을 보강한다.",
                       "type":  "implementation",
                       "status":  "done",
-                      "priority":  "P1",
+                      "priority":  "P0",
                       "dependsOn":  [
 
                                     ],
                       "filesLikelyToChange":  [
-                                                  "src/App.tsx"
+                                                  ".ai-dev/scripts/ai-dev-auto-goal.ps1",
+                                                  ".ai-dev/scripts/ai-dev-auto-cycle-full.ps1"
                                               ],
                       "verification":  [
-                                           "변경된 문구가 자연스러운 한국어인지 확인한다.",
-                                           "완료 관련 동작 로직이 변경되지 않았는지 확인한다."
+                                           "complete_task 표기에서 완료 처리 흐름이 이어지는지 확인",
+                                           "complete-task 표기에서 완료 처리 흐름이 이어지는지 확인",
+                                           "auto-cycle-full 미완료 종료 시 auto-goal이 성공으로 처리하지 않는지 확인"
                                        ],
-                      "commitMessage":  "Refine completed task card copy",
-                      "completedAt":  "2026-06-14T14:00:20.9295972+00:00",
-                      "resultSummary":  "T001 완료: 업무 카드 완료 버튼과 aria-label 문구를 자연스러운 한국어로 최소 개선하고 build/lint 검증을 통과함"
+                      "commitMessage":  "Fix auto-goal completion handling",
+                      "completedAt":  "2026-06-14T14:24:02.7258373+00:00",
+                      "resultSummary":  "T001 완료: complete_task/complete-task 정규화, 저장된 리뷰 pass 이후 완료 재개, auto-goal 미완료 판정 실패 처리를 반영함"
                   }
               ]
 }
