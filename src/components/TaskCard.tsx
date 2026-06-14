@@ -47,12 +47,12 @@ export function TaskCard({
         type="button"
         aria-label={
           task.status === "done"
-            ? `${task.title} 업무를 미완료 상태로 변경`
-            : `${task.title} 업무를 완료 상태로 변경`
+            ? `${task.title} 업무 완료 취소`
+            : `${task.title} 업무 완료 처리`
         }
         onClick={() => onToggleDone(task)}
       >
-        {task.status === "done" ? "미완료로 변경" : "완료로 변경"}
+        {task.status === "done" ? "완료 취소" : "완료 처리"}
       </button>
       <button
         type="button"
