@@ -307,12 +307,14 @@ function Get-ChangedAiDevOperationalFiles {
 function Get-ReviewGate {
     $state = Read-JsonFile $statePath $stateRelativePath
     $nextStep = $null
+    $normalizedNextStep = $null
 
     if (Test-Path -LiteralPath $reviewResponsePath -PathType Leaf) {
         $reviewResponse = Read-JsonFile $reviewResponsePath $reviewResponseRelativePath
 
         if (Test-HasValue $reviewResponse.next_step) {
             $nextStep = [string]$reviewResponse.next_step
+            $normalizedNextStep = $nextStep.Trim().ToLowerInvariant().Replace("-", "_")
         }
     }
 
@@ -320,6 +322,7 @@ function Get-ReviewGate {
         lastCommandStatus = [string]$state.lastCommandStatus
         decision = [string]$state.lastReviewDecision
         nextStep = $nextStep
+        normalizedNextStep = $normalizedNextStep
     }
 }
 
@@ -474,6 +477,7 @@ try {
         runReviewCodex = Get-ScriptPath "ai-dev-run-review-codex.ps1"
         commit = Get-ScriptPath "ai-dev-commit.ps1"
         completeTask = Get-ScriptPath "ai-dev-complete-task.ps1"
+        status = Get-ScriptPath "ai-dev-status.ps1"
     }
 } catch {
     $script:steps += New-StepResult 0 "prepare" "state/queue 확인" $false $false 1 $_.Exception.Message
@@ -493,7 +497,8 @@ $plannedSteps = @(
     "commit",
     "commit-result-gate",
     "complete-task",
-    "meta-commit"
+    "meta-commit",
+    "final-status"
 )
 
 if ($plannedSteps.Count -gt $MaxSteps) {
@@ -600,6 +605,8 @@ while ($completedTaskCount -lt $MaxTasks) {
         $script:steps += New-StepResult $stepNumber "complete-task" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-complete-task.ps1 -ResultSummary `"자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료`" -CommitHash <commit-hash>" $false $true 0 "DryRun: task 완료 처리를 실행하지 않았습니다."
         $stepNumber++
         $script:steps += New-StepResult $stepNumber "meta-commit" "direct meta commit: git add scoped .ai-dev files, git commit -m 'chore(ai-dev): record task completion', git status --short" $false $true 0 "DryRun: .ai-dev 메타 상태 직접 커밋을 실행하지 않았습니다."
+        $stepNumber++
+        $script:steps += New-StepResult $stepNumber "final-status" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-status.ps1" $false $true 0 "DryRun: 최종 작업 상태 확인을 실행하지 않았습니다."
         Stop-Cycle $script:steps "dry_run" $false 0
     }
 
@@ -620,12 +627,16 @@ while ($completedTaskCount -lt $MaxTasks) {
         Stop-Cycle $script:steps "review_not_pass" $false 0
     }
 
-    if (Test-HasValue $reviewGate.nextStep -and $reviewGate.nextStep -ne "complete_task") {
+    if (Test-HasValue $reviewGate.nextStep -and $reviewGate.normalizedNextStep -ne "complete_task") {
         $script:steps += New-StepResult $stepNumber "review-gate" "$reviewResponseRelativePath next_step 확인" $false $true 0 "리뷰 next_step이 complete_task가 아니므로 자동 커밋과 complete-task를 실행하지 않습니다: $($reviewGate.nextStep)"
         Stop-Cycle $script:steps "review_next_step_not_complete_task" $false 0
     }
 
-    $script:steps += New-StepResult $stepNumber "review-gate" "state.lastReviewDecision 확인" $false $false 0 "리뷰 pass 확인. 커밋 게이트로 진행합니다."
+    if (Test-HasValue $reviewGate.nextStep) {
+        $script:steps += New-StepResult $stepNumber "review-gate" "state.lastReviewDecision 및 $reviewResponseRelativePath next_step 확인" $false $false 0 "리뷰 pass 및 next_step complete_task 수락: 원본='$($reviewGate.nextStep)', 정규화='$($reviewGate.normalizedNextStep)'. commit/commit-result-gate/complete-task/meta-commit으로 계속 진행합니다."
+    } else {
+        $script:steps += New-StepResult $stepNumber "review-gate" "state.lastReviewDecision 확인" $false $false 0 "리뷰 pass 확인. next_step 값이 없어 기존 동작대로 커밋 게이트로 진행합니다."
+    }
     $stepNumber++
 
     try {
@@ -698,6 +709,9 @@ while ($completedTaskCount -lt $MaxTasks) {
     $stepNumber++
 
     Invoke-DirectMetaCommit $stepNumber
+    $stepNumber++
+
+    Invoke-CycleCommand $stepNumber "final-status" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-status.ps1" $scriptPaths.status @()
     $stepNumber++
 
     $completedTaskCount++

@@ -727,6 +727,22 @@ function Get-FullCycleArguments {
     return $arguments
 }
 
+function Get-CurrentGoalStatus {
+    $statePath = [System.IO.Path]::GetFullPath((Resolve-RepoPath $stateRelativePath))
+
+    try {
+        $state = Get-Content -Raw -Encoding UTF8 -LiteralPath $statePath | ConvertFrom-Json
+    } catch {
+        throw "$stateRelativePath JSON 파싱에 실패했습니다: $($_.Exception.Message)"
+    }
+
+    if ($null -eq $state -or -not ($state.PSObject.Properties.Name -contains "goalStatus")) {
+        throw "$stateRelativePath 파일에서 goalStatus를 찾을 수 없습니다."
+    }
+
+    return [string]$state.goalStatus
+}
+
 Set-Location $repoRoot
 
 $script:steps = @()
@@ -884,6 +900,20 @@ if (-not $shouldRunFullCycle) {
 }
 
 Invoke-CycleCommand 7 "auto-cycle-full" $fullCycleCommandText $autoCycleFullPath $fullCycleArguments
+
+try {
+    $goalStatusAfterFullCycle = Get-CurrentGoalStatus
+} catch {
+    $script:steps += New-StepResult 8 "verify-goal-status" "$stateRelativePath goalStatus 확인" $false $false 1 $_.Exception.Message
+    Stop-AutoGoal $script:steps "goal_status_verify_failed" $false 1
+}
+
+if ($goalStatusAfterFullCycle -ne "completed") {
+    $script:steps += New-StepResult 8 "verify-goal-status" "$stateRelativePath goalStatus 확인" $false $true 0 "auto-cycle-full은 성공 종료했지만 goalStatus가 completed가 아닙니다: $goalStatusAfterFullCycle"
+    Stop-AutoGoal $script:steps "auto_cycle_incomplete" $false 0
+}
+
+$script:steps += New-StepResult 8 "verify-goal-status" "$stateRelativePath goalStatus 확인" $false $false 0 "auto-cycle-full 성공 후 goalStatus completed 확인."
 
 Stop-AutoGoal $script:steps "completed" $true 0
 
