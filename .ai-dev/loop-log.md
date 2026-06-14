@@ -146,3 +146,13 @@
 - Task: T001 검증 기록 흐름 분석 및 lint 기록 개선
 - Result: T001 완료: BuildOnly에서도 lint 실행 결과를 자동 기록하고 test script 부재 사유를 명확히 남기도록 개선함
 - Next task: 없음
+## 2026-06-14 22:13:29 - Commit created
+
+- Task: T001 업무 카드 문구 최소 개선
+- Commit: 151cfa8a95b068d55a652a29c306cbdf5c19e4f5
+- Message: Improve task card accessibility labels
+## 2026-06-14 22:13:38 - Task completed
+
+- Task: T001 업무 카드 문구 최소 개선
+- Result: T001 완료: 업무 카드 버튼 및 상태 표시의 접근성/안내 문구를 최소 범위로 개선하고 build/lint 검증을 통과함
+- Next task: 없음

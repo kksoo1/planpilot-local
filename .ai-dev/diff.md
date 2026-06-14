@@ -2,7 +2,7 @@
 
 ## Generated At
 
-2026-06-14 22:05:08
+2026-06-14 22:11:09
 
 ## Git Status
 
@@ -13,13 +13,13 @@
  M .ai-dev/queue.json
  M .ai-dev/state.json
  M .ai-dev/test-result.md
- M scripts/ai-dev-check.ps1
+ M src/components/TaskCard.tsx
 ?? .ai-dev/auto-goal-planning-prompt.md
 ```
 
 ## App Change Files
 
-- scripts/ai-dev-check.ps1
+- src/components/TaskCard.tsx
 
 ## AI Dev Operational Artifact Files
 
@@ -38,65 +38,60 @@
 ## Unstaged Diff Stat
 
 ```text
- scripts/ai-dev-check.ps1 | 14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ src/components/TaskCard.tsx | 26 +++++++++++++++++++++-----
+ 1 file changed, 21 insertions(+), 5 deletions(-)
 ```
 
 ## Unstaged Diff
 
 ```text
-diff --git a/scripts/ai-dev-check.ps1 b/scripts/ai-dev-check.ps1
-index 8c6fdbd..024cc3d 100644
---- a/scripts/ai-dev-check.ps1
-+++ b/scripts/ai-dev-check.ps1
-@@ -170,7 +170,7 @@ $hasLint = Test-HasScript $package "lint"
- 
- $runBuild = $hasBuild -and -not $SkipBuild
- $runTest = $hasTest -and -not $SkipTest -and -not $BuildOnly
--$runLint = $hasLint -and -not $SkipLint -and -not $BuildOnly
-+$runLint = $hasLint -and -not $SkipLint
- 
- $buildSkipReason = if (-not $hasBuild) {
-     "package.json에 build script가 없습니다."
-@@ -180,19 +180,17 @@ $buildSkipReason = if (-not $hasBuild) {
-     ""
- }
- 
--$testSkipReason = if ($BuildOnly) {
--    "-BuildOnly 옵션으로 건너뛰었습니다."
--} elseif (-not $hasTest) {
-+$testSkipReason = if (-not $hasTest) {
-     "package.json에 test script가 없습니다."
- } elseif ($SkipTest) {
-     "-SkipTest 옵션으로 건너뛰었습니다."
-+} elseif ($BuildOnly) {
-+    "-BuildOnly 옵션으로 건너뛰었습니다."
- } else {
-     ""
- }
- 
--$lintSkipReason = if ($BuildOnly) {
--    "-BuildOnly 옵션으로 건너뛰었습니다."
--} elseif (-not $hasLint) {
-+$lintSkipReason = if (-not $hasLint) {
-     "package.json에 lint script가 없습니다."
- } elseif ($SkipLint) {
-     "-SkipLint 옵션으로 건너뛰었습니다."
-@@ -216,6 +214,7 @@ $currentTaskId = if ($null -ne $state.currentTaskId -and -not [string]::IsNullOr
- }
- 
- $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-+$modeText = if ($BuildOnly) { "BuildOnly (build + lint when available)" } else { "standard" }
- $commandSummary = ($results | ForEach-Object { "  - $($_.Command): $($_.Status)" }) -join "`r`n"
- $detailSections = @()
- $codeFence = '```'
-@@ -243,6 +242,7 @@ $testResultContent = @"
- 
- - Overall result: $overallResult
- - Current task: $currentTaskId
-+- Mode: $modeText
- - Commands:
- $commandSummary
+diff --git a/src/components/TaskCard.tsx b/src/components/TaskCard.tsx
+index 8d388a2..0386f49 100644
+--- a/src/components/TaskCard.tsx
++++ b/src/components/TaskCard.tsx
+@@ -24,7 +24,7 @@ export function TaskCard({
+       <strong>{task.title}</strong>
+       {showDueSoonBadge && (
+         <span
+-          aria-label="마감 임박 배지"
++          aria-label="마감일이 가까운 업무"
+           style={{
+             alignSelf: "flex-start",
+             border: "1px solid #d97706",
+@@ -43,13 +43,29 @@ export function TaskCard({
+         중요도: {getPriorityLabel(task.priority)} · 상태: {getStatusLabel(task.status)} · 프로젝트: {projectName}
+       </span>
+       <span>{task.dueDate ? `마감일: ${task.dueDate}` : "마감일 없음"}</span>
+-      <button type="button" onClick={() => onToggleDone(task)}>
+-        {task.status === "done" ? "미완료로 변경" : "업무 완료 처리"}
++      <button
++        type="button"
++        aria-label={
++          task.status === "done"
++            ? `${task.title} 업무를 미완료 상태로 변경`
++            : `${task.title} 업무를 완료 상태로 변경`
++        }
++        onClick={() => onToggleDone(task)}
++      >
++        {task.status === "done" ? "미완료로 변경" : "완료로 변경"}
+       </button>
+-      <button type="button" onClick={() => onDelete(task)}>
++      <button
++        type="button"
++        aria-label={`${task.title} 업무 삭제`}
++        onClick={() => onDelete(task)}
++      >
+         삭제
+       </button>
+-      <button type="button" onClick={() => onStartEdit(task)}>
++      <button
++        type="button"
++        aria-label={`${task.title} 업무 수정`}
++        onClick={() => onStartEdit(task)}
++      >
+         수정
+       </button>
+     </li>
 ```
 
 ## Staged Diff Stat
