@@ -166,3 +166,13 @@
 - Task: T001 auto-goal pass 이후 완료 흐름 연결
 - Result: T001 완료: auto-goal 실행 경로에서 리뷰 pass 이후 커밋, complete-task -CommitHash 전달, .ai-dev 메타 커밋, 최종 상태 확인까지 이어지도록 개선함
 - Next task: 없음
+## 2026-06-14 23:00:14 - Commit created
+
+- Task: T001 업무 카드 완료 문구 개선
+- Commit: 14b1d6137c5a0fd09b671793c2925f7cd6981bae
+- Message: Refine completed task card copy
+## 2026-06-14 23:00:21 - Task completed
+
+- Task: T001 업무 카드 완료 문구 개선
+- Result: T001 완료: 업무 카드 완료 버튼과 aria-label 문구를 자연스러운 한국어로 최소 개선하고 build/lint 검증을 통과함
+- Next task: 없음

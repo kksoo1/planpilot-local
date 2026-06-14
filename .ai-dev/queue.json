@@ -1,32 +1,30 @@
 ﻿{
-    "goalTitle":  "AI Dev Loop pass 이후 자동 완료 연속 실행",
+    "goalTitle":  "업무 카드 완료 안내 문구 미세 개선",
     "goalSource":  ".ai-dev/goal.md",
     "createdAt":  "2026-06-14T00:00:00+09:00",
-    "updatedAt":  "2026-06-14T13:29:47.7592297+00:00",
+    "updatedAt":  "2026-06-14T14:00:20.9295972+00:00",
     "currentTaskId":  null,
     "tasks":  [
                   {
                       "id":  "T001",
-                      "title":  "auto-goal pass 이후 완료 흐름 연결",
-                      "description":  "Codex 리뷰 pass 이후 실제 auto-goal 실행 경로에서 구현 변경 커밋, complete-task 커밋 해시 전달, .ai-dev 메타 반영, 최종 상태 확인이 순서대로 이어지도록 기존 자동 사이클 흐름을 연결한다.",
+                      "title":  "업무 카드 완료 문구 개선",
+                      "description":  "업무 카드의 완료 관련 UI 문구 또는 aria-label을 확인하고, 기능 로직 변경 없이 더 자연스러운 한국어 표현으로 최소 수정한다.",
                       "type":  "implementation",
                       "status":  "done",
-                      "priority":  "P0",
+                      "priority":  "P1",
                       "dependsOn":  [
 
                                     ],
                       "filesLikelyToChange":  [
-                                                  ".ai-dev/scripts/ai-dev-auto-goal.ps1",
-                                                  ".ai-dev/scripts/ai-dev-auto-cycle-full.ps1"
+                                                  "src/App.tsx"
                                               ],
                       "verification":  [
-                                           "pass 리뷰 결과를 기준으로 후속 단계가 자동 실행되는지 확인한다.",
-                                           "complete-task 호출에 커밋 해시가 포함되는지 확인한다.",
-                                           "완료 후 상태 확인 로그가 출력되는지 확인한다."
+                                           "변경된 문구가 자연스러운 한국어인지 확인한다.",
+                                           "완료 관련 동작 로직이 변경되지 않았는지 확인한다."
                                        ],
-                      "commitMessage":  "Wire auto-goal pass completion flow",
-                      "completedAt":  "2026-06-14T13:29:47.7592297+00:00",
-                      "resultSummary":  "T001 완료: auto-goal 실행 경로에서 리뷰 pass 이후 커밋, complete-task -CommitHash 전달, .ai-dev 메타 커밋, 최종 상태 확인까지 이어지도록 개선함"
+                      "commitMessage":  "Refine completed task card copy",
+                      "completedAt":  "2026-06-14T14:00:20.9295972+00:00",
+                      "resultSummary":  "T001 완료: 업무 카드 완료 버튼과 aria-label 문구를 자연스러운 한국어로 최소 개선하고 build/lint 검증을 통과함"
                   }
               ]
 }
