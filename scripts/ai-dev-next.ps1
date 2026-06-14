@@ -129,6 +129,51 @@ if (Test-HasValue $currentTaskId) {
 
 $gitStatus = "unavailable"
 $gitChangedFilesCount = $null
+$gitImplementationChangedFilesCount = $null
+
+$aiDevOperationalRelativePaths = @(
+    ".ai-dev/state.json",
+    ".ai-dev/queue.json",
+    ".ai-dev/loop-log.md",
+    ".ai-dev/review.md",
+    ".ai-dev/review-response.json",
+    ".ai-dev/diff.md",
+    ".ai-dev/codex-result.md",
+    ".ai-dev/codex-review-result.md",
+    ".ai-dev/current-task-prompt.md",
+    ".ai-dev/test-result.md"
+)
+
+function ConvertTo-GitRelativePath {
+    param(
+        [string]$Path
+    )
+
+    return ($Path -replace "\\", "/").Trim()
+}
+
+function Test-IsAiDevOperationalPath {
+    param(
+        [string]$Path
+    )
+
+    $normalizedPath = ConvertTo-GitRelativePath $Path
+    return $normalizedPath -eq ".ai-dev" -or $normalizedPath -like ".ai-dev/*" -or $aiDevOperationalRelativePaths -contains $normalizedPath
+}
+
+function Get-GitStatusPaths {
+    param(
+        [string]$StatusLine
+    )
+
+    $pathText = $StatusLine.Substring(3).Trim()
+
+    if ($pathText -like "* -> *") {
+        return @($pathText -split " -> " | ForEach-Object { ConvertTo-GitRelativePath $_ })
+    }
+
+    return @(ConvertTo-GitRelativePath $pathText)
+}
 
 try {
     $null = & git rev-parse --show-toplevel 2>&1
@@ -137,7 +182,16 @@ try {
         $gitOutput = & git status --porcelain 2>&1 | Out-String
 
         if ($LASTEXITCODE -eq 0) {
-            $gitChangedFilesCount = @($gitOutput -split "`r?`n" | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }).Count
+            $gitChangedFiles = @($gitOutput -split "`r?`n" | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+            $gitImplementationChangedFiles = @(
+                $gitChangedFiles | Where-Object {
+                    $changedPaths = @(Get-GitStatusPaths $_)
+                    @($changedPaths | Where-Object { -not (Test-IsAiDevOperationalPath $_) }).Count -gt 0
+                }
+            )
+
+            $gitChangedFilesCount = $gitChangedFiles.Count
+            $gitImplementationChangedFilesCount = $gitImplementationChangedFiles.Count
             $gitStatus = "available"
         }
     }
@@ -159,6 +213,8 @@ $lastReviewSeverity = if (Test-HasValue $state.lastReviewSeverity) { [string]$st
 $lastCommitHash = if (Test-HasValue $state.lastCommitHash) { [string]$state.lastCommitHash } else { "" }
 $hasGitChanges = $gitStatus -eq "available" -and $gitChangedFilesCount -gt 0
 $hasNoGitChanges = $gitStatus -eq "available" -and $gitChangedFilesCount -eq 0
+$hasImplementationGitChanges = $gitStatus -eq "available" -and $gitImplementationChangedFilesCount -gt 0
+$hasNoImplementationGitChanges = $gitStatus -eq "available" -and $gitImplementationChangedFilesCount -eq 0
 $reviewNotStarted = Test-IsReviewNotStarted $lastReviewDecision
 $isCheckCommand = Test-IsCheckCommand $lastCommand
 
@@ -180,31 +236,31 @@ if (-not (Test-HasValue $currentTaskId) -and $goalStatus -eq "completed") {
     ) @(
         $(if ($revisePromptExists) { "기존 revise-prompt.md는 현재 리뷰 기준으로 덮어씁니다." } else { "required changes만 반영하세요." })
     )
-} elseif ($lastReviewDecision -eq "pass" -and $lastCommandStatus -eq "passed" -and $hasGitChanges) {
+} elseif ($lastReviewDecision -eq "pass" -and $lastCommandStatus -eq "passed" -and $hasImplementationGitChanges) {
     $nextAction = New-NextAction "commit" "검증과 리뷰가 통과했고 커밋할 변경사항이 있습니다." @(
         "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-commit.ps1"
     ) @("먼저 ai-dev-commit.ps1 -DryRun으로 커밋 대상을 확인하는 것을 권장합니다.")
-} elseif ($lastReviewDecision -eq "pass" -and (Test-HasValue $lastCommitHash) -and $hasNoGitChanges) {
-    $nextAction = New-NextAction "complete_task" "리뷰와 커밋이 완료되었고 작업 트리가 깨끗합니다." @(
-        'powershell -ExecutionPolicy Bypass -File scripts/ai-dev-complete-task.ps1 -ResultSummary "리뷰 및 커밋 완료"'
-    ) @("다음 pending task로 이동하기 전에 현재 task 결과를 확인하세요.")
-} elseif ($hasNoGitChanges -and ($lastCommand -eq "" -or $lastCommand -eq "init" -or $lastCommand -eq "current-task")) {
+} elseif ($lastReviewDecision -eq "pass" -and (Test-HasValue $lastCommitHash) -and $hasNoImplementationGitChanges -and $lastCommand -eq "commit" -and $lastCommandStatus -eq "passed") {
+    $nextAction = New-NextAction "complete_task" "리뷰와 커밋이 완료되었고 남은 구현 변경사항이 없습니다." @(
+        "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-complete-task.ps1 -ResultSummary `"리뷰 및 커밋 완료`" -CommitHash $lastCommitHash"
+    ) @("완료 처리 시 구현 커밋 해시를 함께 전달하세요.")
+} elseif ($hasNoImplementationGitChanges -and ($lastCommand -eq "" -or $lastCommand -eq "init" -or $lastCommand -eq "current-task")) {
     $nextAction = New-NextAction "run_codex_or_cline" "현재 task 프롬프트는 준비되었고 아직 변경사항이 없습니다." @(
         "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-prompt.ps1"
     ) @("current-task-prompt.md를 Codex 또는 Cline에 전달해 현재 task를 수행하세요.")
-} elseif ($hasGitChanges -and $lastCommand -eq "save-diff" -and $reviewNotStarted -and -not $reviewPromptExists) {
+} elseif ($hasImplementationGitChanges -and $lastCommand -eq "save-diff" -and $reviewNotStarted -and -not $reviewPromptExists) {
     $nextAction = New-NextAction "make_review_prompt" "diff가 저장되었고 리뷰 프롬프트가 없습니다." @(
         "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-review-prompt.ps1 -Strict"
     ) @("현재 diff와 검증 결과를 기준으로 리뷰 프롬프트를 생성하세요.")
-} elseif ($hasGitChanges -and $reviewPromptExists -and $reviewNotStarted) {
+} elseif ($hasImplementationGitChanges -and $reviewPromptExists -and $reviewNotStarted) {
     $nextAction = New-NextAction "ask_gpt_review" "리뷰 프롬프트가 준비되었고 아직 리뷰 결과가 없습니다." @(
         "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-save-review.ps1 -FromClipboard"
     ) @("review-prompt.md 내용을 GPT Chat에 붙여넣고 JSON 리뷰 결과를 받은 뒤 save-review를 실행하세요.")
-} elseif ($hasGitChanges -and $isCheckCommand -and $lastCommandStatus -eq "passed" -and (-not $diffExists -or $isCheckCommand)) {
+} elseif ($hasImplementationGitChanges -and $isCheckCommand -and $lastCommandStatus -eq "passed" -and (-not $diffExists -or $isCheckCommand)) {
     $nextAction = New-NextAction "save_diff" "검증이 통과했으며 현재 변경사항의 diff 저장이 필요합니다." @(
         "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-save-diff.ps1"
     ) @("diff 저장 후 리뷰 프롬프트를 생성하세요.")
-} elseif ($hasGitChanges -and ($lastCommandStatus -ne "passed" -or -not $isCheckCommand)) {
+} elseif ($hasImplementationGitChanges -and ($lastCommandStatus -ne "passed" -or -not $isCheckCommand)) {
     $nextAction = New-NextAction "run_check" "변경사항이 있으며 최신 검증 통과 상태를 확인해야 합니다." @(
         "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-check.ps1 -BuildOnly"
     ) @("검증 실패 시 현재 task 범위 안에서만 수정하세요.")
@@ -239,6 +295,7 @@ $output = [ordered]@{
     lastCommitHash = $lastCommitHash
     gitStatus = $gitStatus
     gitChangedFilesCount = $gitChangedFilesCount
+    gitImplementationChangedFilesCount = $gitImplementationChangedFilesCount
     files = [ordered]@{
         currentTaskPromptExists = $currentTaskPromptExists
         testResultExists = $testResultExists
@@ -262,6 +319,7 @@ Write-Host "Goal status: $($output.goalStatus)"
 Write-Host "Last command/status: $($output.lastCommand) / $($output.lastCommandStatus)"
 Write-Host "Last review decision/severity: $($output.lastReviewDecision) / $($output.lastReviewSeverity)"
 Write-Host "Git changed files count: $($output.gitChangedFilesCount)"
+Write-Host "Git implementation changed files count: $($output.gitImplementationChangedFilesCount)"
 Write-Host "Recommended command:"
 
 if ($output.recommendedCommands.Count -eq 0) {

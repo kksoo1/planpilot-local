@@ -16,6 +16,7 @@ $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $queueRelativePath = ".ai-dev/queue.json"
 $stateRelativePath = ".ai-dev/state.json"
 $reviewResponseRelativePath = ".ai-dev/review-response.json"
+$aiDevOperationalRoot = ".ai-dev/"
 $queuePath = Join-Path $repoRoot $queueRelativePath
 $statePath = Join-Path $repoRoot $stateRelativePath
 $reviewResponsePath = Join-Path $repoRoot $reviewResponseRelativePath
@@ -248,6 +249,61 @@ function Test-PackageFileChanged {
     return -not [string]::IsNullOrWhiteSpace($status)
 }
 
+function Convert-ToChangedPath {
+    param(
+        [string]$ChangeLine
+    )
+
+    if ([string]::IsNullOrWhiteSpace($ChangeLine)) {
+        return @()
+    }
+
+    $pathText = $ChangeLine
+
+    if ($ChangeLine.Length -ge 4 -and $ChangeLine.Substring(2, 1) -eq " ") {
+        $pathText = $ChangeLine.Substring(3)
+    }
+
+    if ($pathText.Contains(" -> ")) {
+        return @($pathText -split " -> " | Where-Object { Test-HasValue $_ })
+    }
+
+    return @($pathText)
+}
+
+function Test-IsAiDevOperationalPath {
+    param(
+        [string]$RelativePath
+    )
+
+    $normalizedRelativePath = $RelativePath.Replace('\', '/')
+    return $normalizedRelativePath.StartsWith($aiDevOperationalRoot, [System.StringComparison]::OrdinalIgnoreCase)
+}
+
+function Get-ChangedNonAiDevFiles {
+    $status = Invoke-GitCapture @("status", "--porcelain") "git status --porcelain"
+    $changeLines = @($status -split "`r?`n" | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+
+    return @(
+        $changeLines |
+            ForEach-Object { Convert-ToChangedPath $_ } |
+            Where-Object { (Test-HasValue $_) -and -not (Test-IsAiDevOperationalPath $_) } |
+            Select-Object -Unique
+    )
+}
+
+function Get-ChangedAiDevOperationalFiles {
+    $status = Invoke-GitCapture @("status", "--porcelain") "git status --porcelain"
+    $changeLines = @($status -split "`r?`n" | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+
+    return @(
+        $changeLines |
+            ForEach-Object { Convert-ToChangedPath $_ } |
+            Where-Object { (Test-HasValue $_) -and (Test-IsAiDevOperationalPath $_) } |
+            Select-Object -Unique
+    )
+}
+
 function Get-ReviewGate {
     $state = Read-JsonFile $statePath $stateRelativePath
     $nextStep = $null
@@ -277,9 +333,67 @@ function Get-CommitArguments {
             $arguments += "-Files"
             $arguments += ($normalizedFiles -join ",")
         }
+
+        return $arguments
+    }
+
+    $implementationFiles = Get-ChangedNonAiDevFiles
+
+    if ($implementationFiles.Count -gt 0) {
+        $arguments += "-Files"
+        $arguments += ($implementationFiles -join ",")
     }
 
     return $arguments
+}
+
+function Invoke-DirectMetaCommit {
+    param(
+        [int]$StepNumber
+    )
+
+    $command = "direct meta commit: git add scoped .ai-dev files, git commit -m 'chore(ai-dev): record task completion', git status --short"
+
+    try {
+        $changedAiDevFiles = Get-ChangedAiDevOperationalFiles
+
+        if ($changedAiDevFiles.Count -eq 0) {
+            $remainingStatus = Invoke-GitCapture -Arguments @("status", "--short") -DisplayName "git status --short"
+
+            if (-not [string]::IsNullOrWhiteSpace($remainingStatus)) {
+                throw ".ai-dev 메타 변경사항은 없지만 worktree에 변경 파일이 남아 있습니다.`n$remainingStatus"
+            }
+
+            $script:steps += New-StepResult $StepNumber "meta-commit" $command $false $true 0 ".ai-dev 메타 상태 변경사항이 없어 meta commit을 건너뜁니다. worktree clean."
+            return
+        }
+
+        $addOutput = & git add -- $changedAiDevFiles 2>&1 | Out-String
+        $addExitCode = $LASTEXITCODE
+
+        if ($addExitCode -ne 0) {
+            throw "git add 실행에 실패했습니다. exit code: $addExitCode`n$addOutput"
+        }
+
+        $commitOutput = & git commit -m "chore(ai-dev): record task completion" -- $changedAiDevFiles 2>&1 | Out-String
+        $commitExitCode = $LASTEXITCODE
+
+        if ($commitExitCode -ne 0) {
+            throw "git commit 실행에 실패했습니다. exit code: $commitExitCode`n$commitOutput"
+        }
+
+        $remainingStatus = Invoke-GitCapture -Arguments @("status", "--short") -DisplayName "git status --short"
+
+        if (-not [string]::IsNullOrWhiteSpace($remainingStatus)) {
+            throw "meta commit 이후 worktree에 변경 파일이 남아 있습니다.`n$remainingStatus"
+        }
+
+        $message = ($commitOutput.Trim(), "worktree clean") -join "`n"
+        $script:steps += New-StepResult $StepNumber "meta-commit" $command $true $false 0 $message
+    } catch {
+        $script:steps += New-StepResult $StepNumber "meta-commit" $command $true $false 1 $_.Exception.Message
+        Stop-Cycle $script:steps "meta_commit_failed" $false 1
+    }
 }
 
 function Get-CommitGate {
@@ -367,6 +481,7 @@ try {
 }
 
 $plannedSteps = @(
+    "task-start",
     "make-prompt",
     "run-codex",
     "check",
@@ -377,7 +492,8 @@ $plannedSteps = @(
     "package-change-gate",
     "commit",
     "commit-result-gate",
-    "complete-task"
+    "complete-task",
+    "meta-commit"
 )
 
 if ($plannedSteps.Count -gt $MaxSteps) {
@@ -482,6 +598,8 @@ while ($completedTaskCount -lt $MaxTasks) {
         $script:steps += New-StepResult $stepNumber "commit-result-gate" "state.lastCommand/lastCommitHash 확인" $false $true 0 "DryRun: 실제 커밋 생성 여부를 확인하지 않았습니다."
         $stepNumber++
         $script:steps += New-StepResult $stepNumber "complete-task" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-complete-task.ps1 -ResultSummary `"자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료`" -CommitHash <commit-hash>" $false $true 0 "DryRun: task 완료 처리를 실행하지 않았습니다."
+        $stepNumber++
+        $script:steps += New-StepResult $stepNumber "meta-commit" "direct meta commit: git add scoped .ai-dev files, git commit -m 'chore(ai-dev): record task completion', git status --short" $false $true 0 "DryRun: .ai-dev 메타 상태 직접 커밋을 실행하지 않았습니다."
         Stop-Cycle $script:steps "dry_run" $false 0
     }
 
@@ -538,6 +656,12 @@ while ($completedTaskCount -lt $MaxTasks) {
     }
 
     $commitArguments = Get-CommitArguments
+
+    if ($commitArguments.Count -eq 0) {
+        $script:steps += New-StepResult $stepNumber "commit" "git status --porcelain" $false $true 1 "커밋할 구현 변경사항이 없어 complete-task를 실행하지 않습니다."
+        Stop-Cycle $script:steps "no_implementation_changes" $false 1
+    }
+
     $commitCommandText = "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-commit.ps1"
     if ($commitArguments.Count -gt 0) {
         $commitCommandText = "$commitCommandText $($commitArguments -join ' ')"
@@ -572,7 +696,17 @@ while ($completedTaskCount -lt $MaxTasks) {
     $resultSummary = "자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료"
     Invoke-CycleCommand $stepNumber "complete-task" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-complete-task.ps1 -ResultSummary `"$resultSummary`" -CommitHash $($commitGate.lastCommitHash)" $scriptPaths.completeTask @("-ResultSummary", $resultSummary, "-CommitHash", $commitGate.lastCommitHash)
     $stepNumber++
+
+    Invoke-DirectMetaCommit $stepNumber
+    $stepNumber++
+
     $completedTaskCount++
+
+    $stateAfterComplete = Read-JsonFile $statePath $stateRelativePath
+
+    if ($stateAfterComplete.goalStatus -eq "completed") {
+        Stop-Cycle $script:steps "goal_completed" $true 0
+    }
 }
 
 Stop-Cycle $script:steps "max_tasks_reached" $true 0

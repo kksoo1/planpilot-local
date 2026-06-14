@@ -123,18 +123,56 @@ function Convert-ToChangedPath {
     )
 
     if ([string]::IsNullOrWhiteSpace($ChangeLine)) {
-        return $null
+        return @()
     }
 
-    if ($ChangeLine.StartsWith("?? ")) {
-        return $ChangeLine.Substring(3)
-    }
+    $pathText = $ChangeLine
 
     if ($ChangeLine.Length -ge 4 -and $ChangeLine.Substring(2, 1) -eq " ") {
-        return $ChangeLine.Substring(3)
+        $pathText = $ChangeLine.Substring(3)
     }
 
-    return $ChangeLine
+    if ($pathText.Contains(" -> ")) {
+        return @($pathText -split " -> " | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+    }
+
+    return @($pathText)
+}
+
+function Convert-ToRepoPathspec {
+    param(
+        [string]$Pathspec
+    )
+
+    if ([string]::IsNullOrWhiteSpace($Pathspec)) {
+        Stop-WithError "-Files에는 비어 있지 않은 파일 경로만 지정할 수 있습니다."
+    }
+
+    $trimmedPathspec = $Pathspec.Trim()
+    $normalizedPathspec = $trimmedPathspec.Replace('\', '/')
+    $projectRootFullPath = [System.IO.Path]::GetFullPath($projectRoot).TrimEnd('\', '/')
+    $projectRootPrefix = $projectRootFullPath + [System.IO.Path]::DirectorySeparatorChar
+
+    if ([System.IO.Path]::IsPathRooted($trimmedPathspec)) {
+        $fullPath = [System.IO.Path]::GetFullPath($trimmedPathspec)
+    } else {
+        $fullPath = [System.IO.Path]::GetFullPath((Join-Path $projectRoot $normalizedPathspec))
+    }
+
+    if ($fullPath.Equals($projectRootFullPath, [System.StringComparison]::OrdinalIgnoreCase)) {
+        Stop-WithError "저장소 루트 전체는 선택할 수 없습니다: $Pathspec"
+    }
+
+    if (-not $fullPath.StartsWith($projectRootPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+        Stop-WithError "저장소 밖 파일은 선택할 수 없습니다: $Pathspec"
+    }
+
+    if ([System.IO.Path]::IsPathRooted($trimmedPathspec)) {
+        $relativePath = $fullPath.Substring($projectRootPrefix.Length)
+        return $relativePath.Replace('\', '/')
+    }
+
+    return $normalizedPathspec.TrimStart('/')
 }
 
 function Convert-ToFileList {
@@ -241,17 +279,7 @@ if ($null -ne $Files -and $Files.Count -gt 0) {
             Stop-WithError "-Files에는 비어 있지 않은 파일 경로만 지정할 수 있습니다."
         }
 
-        $normalizedFile = $file.Replace('\', '/')
-        $fullPath = [System.IO.Path]::GetFullPath((Join-Path $projectRoot $normalizedFile))
-        $projectRootPrefix = [System.IO.Path]::GetFullPath($projectRoot).TrimEnd('\', '/') + [System.IO.Path]::DirectorySeparatorChar
-
-        if (-not $fullPath.StartsWith($projectRootPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
-            Stop-WithError "저장소 밖 파일은 선택할 수 없습니다: $file"
-        }
-
-        if (-not (Test-Path -LiteralPath $fullPath -PathType Leaf)) {
-            Stop-WithError "선택한 파일이 존재하지 않습니다: $file"
-        }
+        $normalizedFile = Convert-ToRepoPathspec $file
 
         try {
             $fileStatus = Invoke-GitCapture -Arguments @("status", "--porcelain", "--", $normalizedFile) -DisplayName "git status --porcelain -- $normalizedFile"
@@ -301,7 +329,11 @@ $taskText = if ($null -ne $currentTask) {
     "unknown"
 }
 
-$targetChangedPaths = @($targetChangeLines | ForEach-Object { Convert-ToChangedPath $_ } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -Unique)
+if ($selectedFiles.Count -gt 0) {
+    $targetChangedPaths = @($selectedFiles | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -Unique)
+} else {
+    $targetChangedPaths = @($targetChangeLines | ForEach-Object { Convert-ToChangedPath $_ } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -Unique)
+}
 $targetAppChangePaths = @($targetChangedPaths | Where-Object { -not (Test-IsAiDevOperationalPath $_) })
 $targetAiDevOperationalPaths = @($targetChangedPaths | Where-Object { Test-IsAiDevOperationalPath $_ })
 
