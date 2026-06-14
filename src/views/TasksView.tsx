@@ -96,10 +96,10 @@ export function TasksView({
   const hasVisibilityFilter = !showCompletedTasks;
   const emptyMessage =
     hasSearchQuery
-      ? "검색 결과가 없습니다."
+      ? "검색어와 일치하는 업무가 없어요."
       : hasProjectFilter || hasVisibilityFilter
-        ? "현재 필터 조건에 맞는 업무가 없습니다."
-        : "등록된 업무가 없습니다.";
+        ? "현재 조건에 맞는 업무가 없어요."
+        : "아직 등록된 업무가 없어요.";
 
   return (
     <section className="screen-card">
