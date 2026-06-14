@@ -1,31 +1,32 @@
 ﻿{
-    "goalTitle":  "마감 임박 업무 배지 표시",
+    "goalTitle":  "AI Dev Loop pass 이후 자동 완료 처리",
     "goalSource":  ".ai-dev/goal.md",
-    "createdAt":  "2026-06-13T00:00:00+09:00",
-    "updatedAt":  "2026-06-14T11:18:28.6701272+00:00",
+    "createdAt":  "2026-06-14T00:00:00+09:00",
+    "updatedAt":  "2026-06-14T12:51:06.6968392+00:00",
     "currentTaskId":  null,
     "tasks":  [
                   {
                       "id":  "T001",
-                      "title":  "마감 임박 배지 표시 구현",
-                      "description":  "업무 카드 렌더링 위치를 확인하고, 마감일이 오늘부터 7일 이내인 미완료 업무에만 `마감 임박` 배지를 최소 UI 변경으로 표시한다.",
+                      "title":  "pass 이후 자동 완료 흐름 구현",
+                      "description":  "AI Dev Loop 리뷰 결과가 pass일 때 구현 변경사항 커밋, complete-task 호출, .ai-dev 메타 상태 커밋이 순서대로 실행되도록 기존 루프 흐름에 최소 변경을 적용한다.",
                       "type":  "implementation",
                       "status":  "done",
-                      "priority":  "P1",
+                      "priority":  "P0",
                       "dependsOn":  [
 
                                     ],
                       "filesLikelyToChange":  [
-                                                  "src/App.tsx"
+                                                  ".ai-dev 관련 루프 실행 스크립트",
+                                                  "complete-task 호출부"
                                               ],
                       "verification":  [
-                                           "허용 시 npm run build 실행",
-                                           "미완료 업무 중 마감일이 오늘부터 7일 이내인 카드에만 배지가 표시되는지 확인",
-                                           "완료 업무와 범위 밖 업무에는 배지가 표시되지 않는지 확인"
+                                           "pass 리뷰 결과 시 구현 커밋 해시가 complete-task에 전달되는지 확인한다.",
+                                           "task 완료 후 .ai-dev 메타 상태 커밋이 생성되는지 확인한다.",
+                                           "pass가 아닌 리뷰 결과에서는 자동 완료 처리가 실행되지 않는지 확인한다."
                                        ],
-                      "commitMessage":  "Show due soon badge on task cards",
-                      "completedAt":  "2026-06-14T11:18:28.6701272+00:00",
-                      "resultSummary":  "T001 완료: 미완료 업무 중 마감일이 오늘부터 7일 이내인 경우 업무 카드에 마감 임박 배지를 표시하도록 구현함"
+                      "commitMessage":  "Auto-complete passed dev loop tasks",
+                      "completedAt":  "2026-06-14T12:51:06.6968392+00:00",
+                      "resultSummary":  "T001 완료: pass 이후 구현 커밋, CommitHash 전달 complete-task, .ai-dev 메타 커밋 및 clean 검증 흐름 구현 완료"
                   }
               ]
 }

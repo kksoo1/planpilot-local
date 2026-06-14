@@ -116,3 +116,13 @@
 - Task: T001 마감 임박 배지 표시 구현
 - Result: T001 완료: 미완료 업무 중 마감일이 오늘부터 7일 이내인 경우 업무 카드에 마감 임박 배지를 표시하도록 구현함
 - Next task: 없음
+## 2026-06-14 21:50:57 - Commit created
+
+- Task: T001 pass 이후 자동 완료 흐름 구현
+- Commit: be79d21ea8edc7f08d3634575ad8ccd76c38079d
+- Message: Auto-complete passed dev loop tasks
+## 2026-06-14 21:51:07 - Task completed
+
+- Task: T001 pass 이후 자동 완료 흐름 구현
+- Result: T001 완료: pass 이후 구현 커밋, CommitHash 전달 complete-task, .ai-dev 메타 커밋 및 clean 검증 흐름 구현 완료
+- Next task: 없음
