@@ -186,3 +186,13 @@
 - Task: T001 auto-goal 완료 판정 흐름 수정
 - Result: T001 완료: complete_task/complete-task 정규화, 저장된 리뷰 pass 이후 완료 재개, auto-goal 미완료 판정 실패 처리를 반영함
 - Next task: 없음
+## 2026-06-14 23:28:13 - Commit created
+
+- Task: T001 업무 카드 문구 확인 및 최소 수정
+- Commit: 3dd089ad71e0b17ac45dbc9af09db4e48db57d01
+- Message: Refine task card helper copy
+## 2026-06-14 23:28:16 - Task completed
+
+- Task: T001 업무 카드 문구 확인 및 최소 수정
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
+- Next task: 없음

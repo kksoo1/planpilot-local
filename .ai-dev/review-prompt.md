@@ -15,55 +15,55 @@
 ## Project Goal
 
 # 목표
-AI Dev Loop auto-goal pass 이후 완료 재시도 흐름을 수정한다.
+업무 카드의 보조 안내 문구 또는 aria-label을 더 자연스러운 한국어로 미세 개선한다.
 
 ## 배경
-ai-dev-auto-goal 실행 중 리뷰 결과가 pass이고 next_step이 complete_task인 상태에서도 구현 커밋, complete-task -CommitHash 처리, .ai-dev 메타 커밋으로 이어지지 않고 멈추는 문제가 있다. 또한 auto-cycle-full이 미완료 상태로 끝났을 때 auto-goal이 성공으로 오판하지 않도록 보완이 필요하다.
+현재 업무 카드에 표시되거나 보조 기술에 전달되는 일부 안내 문구가 다소 어색할 수 있다. 기능 동작은 유지하면서 사용자-facing 문구만 작게 다듬는다.
 
 ## 성공 기준
-- 리뷰 결과 pass 이후 next_step 값이 complete_task 또는 complete-task인 경우 모두 완료 처리 흐름으로 이어진다.
-- 구현 커밋 해시가 complete-task -CommitHash 단계에 정상 전달된다.
-- complete-task 처리 후 .ai-dev 메타 변경 커밋 흐름이 누락되지 않는다.
-- auto-cycle-full이 미완료 상태로 끝난 경우 auto-goal이 성공으로 판단하지 않는다.
-- 기존 자동 루프의 정상 완료 경로는 유지된다.
+- 업무 카드 관련 보조 안내 문구 또는 aria-label이 자연스러운 한국어로 개선된다.
+- 기능 로직, 상태 관리, 저장 구조는 변경하지 않는다.
+- 변경 범위는 UI 문구 수준의 최소 수정으로 제한한다.
+- 기존 JSX 구조를 중복 생성하지 않는다.
 
 ## 제약사항
-- 한 번에 하나의 작은 구현 변경으로 처리한다.
-- 기존 스크립트 구조와 상태 파일 형식을 우선 유지한다.
-- 불필요한 대규모 재작성은 하지 않는다.
-- 사용자 변경 사항은 되돌리지 않는다.
+- 기본적으로 한 파일만 수정한다.
+- src/App.css는 수정하지 않는다.
+- localStorage를 사용하지 않는다.
+- IndexedDB/Dexie schema는 변경하지 않는다.
+- 빌드와 lint는 사용자 허용이 있을 때만 실행한다.
 
 ## 범위 제외
-- 새로운 기능 추가는 제외한다.
-- UI 변경은 제외한다.
-- 저장소 구조 변경은 제외한다.
-- 자동 루프 전체 설계 변경은 제외한다.
+- 새 기능 추가
+- 화면 구조 개편
+- 상태 관리 변경
+- 데이터 모델 변경
+- 알림 기능 추가
 
 ## 수동 검증
-- pass와 complete_task 조합에서 완료 처리 단계가 이어지는지 확인한다.
-- pass와 complete-task 조합에서도 동일하게 처리되는지 확인한다.
-- auto-cycle-full이 미완료 상태로 끝난 경우 실패 또는 재시도 대상으로 남는지 확인한다.
+- 업무 카드가 표시되는 화면에서 안내 문구가 자연스럽게 보이는지 확인한다.
+- 버튼 또는 카드의 aria-label이 문맥에 맞는 한국어인지 확인한다.
+- 기존 업무 카드 동작이 그대로 유지되는지 확인한다.
 
 ## Current Task
 
 - Task ID: T001
-- Title: auto-goal 완료 판정 흐름 수정
-- Description: 리뷰 pass 이후 next_step의 complete_task와 complete-task 표기를 모두 허용하고, auto-cycle-full 미완료 종료를 성공으로 오판하지 않도록 완료 판정 조건을 보강한다.
+- Title: 업무 카드 문구 확인 및 최소 수정
+- Description: 업무 카드의 보조 안내 문구와 aria-label을 확인하고, 기능 로직을 바꾸지 않는 범위에서 자연스러운 한국어로 미세 조정한다.
 - Type: implementation
 - Status: in_progress
-- Priority: P0
+- Priority: P1
 - Depends on:
 - 없음
 - Verification:
-- complete_task 표기에서 완료 처리 흐름이 이어지는지 확인
-- complete-task 표기에서 완료 처리 흐름이 이어지는지 확인
-- auto-cycle-full 미완료 종료 시 auto-goal이 성공으로 처리하지 않는지 확인
+- 변경된 문구가 업무 카드 문맥에 자연스럽게 맞는지 확인한다.
+- 기능 로직이나 데이터 저장 관련 코드가 변경되지 않았는지 확인한다.
 
 ## Test Result
 
 # AI Dev Test Result
 
-## 2026-06-14 23:19:44
+## 2026-06-14 23:27:32
 
 - Overall result: passed
 - Current task: T001
@@ -88,11 +88,11 @@ ai-dev-auto-goal 실행 중 리뷰 결과가 pass이고 next_step이 complete_ta
 transforming...✓ 48 modules transformed.
 rendering chunks...
 computing gzip size...
-dist/index.html                   0.46 kB │ gzip:  0.29 kB
+dist/index.html                   0.46 kB │ gzip:  0.30 kB
 dist/assets/index-DvjxWt30.css    5.69 kB │ gzip:  1.93 kB
-dist/assets/index-CWimiEra.js   316.44 kB │ gzip: 99.85 kB
+dist/assets/index-CJKmMJEA.js   316.50 kB │ gzip: 99.87 kB
 
-[32m✓ built in 564ms[39m
+[32m✓ built in 179ms[39m
 ```
 ### npm run test
 
@@ -119,44 +119,34 @@ package.json에 test script가 없습니다.
 
 ## Generated At
 
-2026-06-14 23:19:50
+2026-06-14 23:27:36
 
 ## Git Status
 
 ```text
  M .ai-dev/codex-result.md
- M .ai-dev/codex-review-result.md
  M .ai-dev/current-task-prompt.md
- M .ai-dev/diff.md
  M .ai-dev/goal.md
  M .ai-dev/queue.json
- M .ai-dev/review-prompt.md
- M .ai-dev/review-response.json
- M .ai-dev/review.md
  M .ai-dev/state.json
  M .ai-dev/test-result.md
- M scripts/ai-dev-auto-cycle-full.ps1
- M scripts/ai-dev-auto-goal.ps1
+ M src/components/TaskCard.tsx
+?? .ai-dev/auto-goal-planning-prompt.md
 ```
 
 ## App Change Files
 
-- scripts/ai-dev-auto-cycle-full.ps1
-- scripts/ai-dev-auto-goal.ps1
+- src/components/TaskCard.tsx
 
 ## AI Dev Operational Artifact Files
 
 - .ai-dev/codex-result.md
-- .ai-dev/codex-review-result.md
 - .ai-dev/current-task-prompt.md
-- .ai-dev/diff.md
 - .ai-dev/goal.md
 - .ai-dev/queue.json
-- .ai-dev/review-prompt.md
-- .ai-dev/review-response.json
-- .ai-dev/review.md
 - .ai-dev/state.json
 - .ai-dev/test-result.md
+- .ai-dev/auto-goal-planning-prompt.md
 
 ## Review Diff Scope
 
@@ -165,268 +155,55 @@ package.json에 test script가 없습니다.
 ## Unstaged Diff Stat
 
 ```text
- scripts/ai-dev-auto-cycle-full.ps1 | 168 +++++++++++++++++++++++++------------
- scripts/ai-dev-auto-goal.ps1       |   4 +-
- 2 files changed, 117 insertions(+), 55 deletions(-)
+ src/components/TaskCard.tsx | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 ```
 
 ## Unstaged Diff
 
 ```text
-diff --git a/scripts/ai-dev-auto-cycle-full.ps1 b/scripts/ai-dev-auto-cycle-full.ps1
-index 4746b7b..1697ce8 100644
---- a/scripts/ai-dev-auto-cycle-full.ps1
-+++ b/scripts/ai-dev-auto-cycle-full.ps1
-@@ -306,26 +306,63 @@ function Get-ChangedAiDevOperationalFiles {
- 
- function Get-ReviewGate {
-     $state = Read-JsonFile $statePath $stateRelativePath
-+    $reviewResponse = $null
-+    $decision = $null
-+    $severity = $null
-     $nextStep = $null
-     $normalizedNextStep = $null
-+    $hasNextStep = $false
- 
-     if (Test-Path -LiteralPath $reviewResponsePath -PathType Leaf) {
-         $reviewResponse = Read-JsonFile $reviewResponsePath $reviewResponseRelativePath
- 
--        if (Test-HasValue $reviewResponse.next_step) {
-+        if (Test-HasValue $reviewResponse.decision) {
-+            $decision = [string]$reviewResponse.decision
-+        }
-+
-+        if (Test-HasValue $reviewResponse.severity) {
-+            $severity = [string]$reviewResponse.severity
-+        }
-+
-+        if ($reviewResponse.PSObject.Properties.Name -contains "next_step") {
-+            $hasNextStep = $true
-             $nextStep = [string]$reviewResponse.next_step
-             $normalizedNextStep = $nextStep.Trim().ToLowerInvariant().Replace("-", "_")
+diff --git a/src/components/TaskCard.tsx b/src/components/TaskCard.tsx
+index d9d377f..aff165e 100644
+--- a/src/components/TaskCard.tsx
++++ b/src/components/TaskCard.tsx
+@@ -24,7 +24,7 @@ export function TaskCard({
+       <strong>{task.title}</strong>
+       {showDueSoonBadge && (
+         <span
+-          aria-label="마감일이 가까운 업무"
++          aria-label="마감일이 곧 다가오는 업무"
+           style={{
+             alignSelf: "flex-start",
+             border: "1px solid #d97706",
+@@ -47,23 +47,23 @@ export function TaskCard({
+         type="button"
+         aria-label={
+           task.status === "done"
+-            ? `${task.title} 업무 완료 취소`
+-            : `${task.title} 업무 완료 처리`
++            ? `${task.title} 업무를 미완료로 되돌리기`
++            : `${task.title} 업무를 완료로 표시하기`
          }
-     }
- 
-     return [PSCustomObject][ordered]@{
-+        lastCommand = [string]$state.lastCommand
-         lastCommandStatus = [string]$state.lastCommandStatus
--        decision = [string]$state.lastReviewDecision
-+        stateDecision = [string]$state.lastReviewDecision
-+        decision = $decision
-+        severity = $severity
-+        hasNextStep = $hasNextStep
-         nextStep = $nextStep
-         normalizedNextStep = $normalizedNextStep
-     }
- }
- 
-+function Test-IsAcceptableReviewNextStep {
-+    param(
-+        [object]$ReviewGate
-+    )
-+
-+    return (-not $ReviewGate.hasNextStep) -or $ReviewGate.normalizedNextStep -eq "complete_task"
-+}
-+
-+function Test-IsSavedReviewPassReady {
-+    param(
-+        [object]$ReviewGate
-+    )
-+
-+    return $ReviewGate.lastCommand -eq "save-review" `
-+        -and $ReviewGate.lastCommandStatus -eq "passed" `
-+        -and $ReviewGate.decision -eq "pass" `
-+        -and $ReviewGate.stateDecision -eq "pass" `
-+        -and (Test-IsAcceptableReviewNextStep $ReviewGate)
-+}
-+
- function Get-CommitArguments {
-     $arguments = @()
- 
-@@ -534,65 +571,88 @@ while ($completedTaskCount -lt $MaxTasks) {
-     $script:steps += New-StepResult $stepNumber "task-start" "MaxTasks=$MaxTasks" $false $false 0 "현재 task 실행 시작: $taskLabel"
-     $stepNumber++
- 
--    Invoke-CycleCommand $stepNumber "make-prompt" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-prompt.ps1" $scriptPaths.makePrompt @()
--    $stepNumber++
-+    $resumeFromSavedReview = $false
- 
--    if (-not $AllowCodex -and -not $DryRun) {
--        $command = "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cycle-full.ps1 -AllowCodex -AllowReviewCodex -MaxTasks $MaxTasks"
--        if ($AllowDirty) {
--            $command = "$command -AllowDirty"
-+    if (-not $DryRun) {
-+        try {
-+            $resumeReviewGate = Get-ReviewGate
-+        } catch {
-+            $script:steps += New-StepResult $stepNumber "resume-review-gate" "state/review-response 확인" $false $false 1 $_.Exception.Message
-+            Stop-Cycle $script:steps "resume_review_gate_failed" $false 1
-         }
- 
--        if ($AllowCommit) {
--            $command = "$command -AllowCommit"
--        }
--
--        if ($null -ne $CommitFiles -and $CommitFiles.Count -gt 0) {
--            $command = "$command -CommitFiles $($CommitFiles -join ',')"
-+        if (Test-IsSavedReviewPassReady $resumeReviewGate) {
-+            $resumeFromSavedReview = $true
-+            $script:steps += New-StepResult $stepNumber "resume-review-gate" "state/review-response 재확인" $false $false 0 "이미 저장된 리뷰 pass와 허용 가능한 next_step 상태를 확인했습니다. 구현/리뷰 재실행 없이 commit/complete/meta-commit으로 계속 진행합니다."
-+            $stepNumber++
-+        } elseif ($resumeReviewGate.lastCommand -eq "save-review" -and $resumeReviewGate.lastCommandStatus -eq "passed") {
-+            $message = "save-review 이후 계속 진행할 수 없습니다. review.decision=$($resumeReviewGate.decision), state.lastReviewDecision=$($resumeReviewGate.stateDecision), next_step=$($resumeReviewGate.nextStep)"
-+            $script:steps += New-StepResult $stepNumber "resume-review-gate" "state/review-response 재확인" $false $true 1 $message
-+            Stop-Cycle $script:steps "saved_review_not_ready_to_complete" $false 1
-         }
--
--        $script:steps += New-StepResult $stepNumber "run-codex" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-codex.ps1" $false $true 1 "Codex 구현 실행에는 -AllowCodex가 필요합니다. 추천 명령: $command"
--        Stop-Cycle $script:steps "allow_codex_required" $false 1
-     }
- 
--    $runCodexArguments = @()
--    if ($AllowDirty) {
--        $runCodexArguments += "-AllowDirty"
--    }
-+    if (-not $resumeFromSavedReview) {
-+        Invoke-CycleCommand $stepNumber "make-prompt" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-prompt.ps1" $scriptPaths.makePrompt @()
-+        $stepNumber++
- 
--    Invoke-CycleCommand $stepNumber "run-codex" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-codex.ps1" $scriptPaths.runCodex $runCodexArguments
--    $stepNumber++
-+        if (-not $AllowCodex -and -not $DryRun) {
-+            $command = "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cycle-full.ps1 -AllowCodex -AllowReviewCodex -MaxTasks $MaxTasks"
-+            if ($AllowDirty) {
-+                $command = "$command -AllowDirty"
-+            }
- 
--    Invoke-CycleCommand $stepNumber "check" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-check.ps1 -BuildOnly" $scriptPaths.check @("-BuildOnly")
--    $stepNumber++
-+            if ($AllowCommit) {
-+                $command = "$command -AllowCommit"
-+            }
- 
--    Invoke-CycleCommand $stepNumber "save-diff" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-save-diff.ps1" $scriptPaths.saveDiff @()
--    $stepNumber++
-+            if ($null -ne $CommitFiles -and $CommitFiles.Count -gt 0) {
-+                $command = "$command -CommitFiles $($CommitFiles -join ',')"
-+            }
- 
--    Invoke-CycleCommand $stepNumber "make-review-prompt" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-review-prompt.ps1 -Strict" $scriptPaths.makeReviewPrompt @("-Strict")
--    $stepNumber++
-+            $script:steps += New-StepResult $stepNumber "run-codex" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-codex.ps1" $false $true 1 "Codex 구현 실행에는 -AllowCodex가 필요합니다. 추천 명령: $command"
-+            Stop-Cycle $script:steps "allow_codex_required" $false 1
-+        }
- 
--    if (-not $AllowReviewCodex -and -not $DryRun) {
--        $command = "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cycle-full.ps1 -AllowCodex -AllowReviewCodex -MaxTasks $MaxTasks"
-+        $runCodexArguments = @()
-         if ($AllowDirty) {
--            $command = "$command -AllowDirty"
-+            $runCodexArguments += "-AllowDirty"
-         }
- 
--        if ($AllowCommit) {
--            $command = "$command -AllowCommit"
--        }
-+        Invoke-CycleCommand $stepNumber "run-codex" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-codex.ps1" $scriptPaths.runCodex $runCodexArguments
-+        $stepNumber++
- 
--        if ($null -ne $CommitFiles -and $CommitFiles.Count -gt 0) {
--            $command = "$command -CommitFiles $($CommitFiles -join ',')"
-+        Invoke-CycleCommand $stepNumber "check" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-check.ps1 -BuildOnly" $scriptPaths.check @("-BuildOnly")
-+        $stepNumber++
-+
-+        Invoke-CycleCommand $stepNumber "save-diff" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-save-diff.ps1" $scriptPaths.saveDiff @()
-+        $stepNumber++
-+
-+        Invoke-CycleCommand $stepNumber "make-review-prompt" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-review-prompt.ps1 -Strict" $scriptPaths.makeReviewPrompt @("-Strict")
-+        $stepNumber++
-+
-+        if (-not $AllowReviewCodex -and -not $DryRun) {
-+            $command = "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cycle-full.ps1 -AllowCodex -AllowReviewCodex -MaxTasks $MaxTasks"
-+            if ($AllowDirty) {
-+                $command = "$command -AllowDirty"
-+            }
-+
-+            if ($AllowCommit) {
-+                $command = "$command -AllowCommit"
-+            }
-+
-+            if ($null -ne $CommitFiles -and $CommitFiles.Count -gt 0) {
-+                $command = "$command -CommitFiles $($CommitFiles -join ',')"
-+            }
-+
-+            $script:steps += New-StepResult $stepNumber "run-review-codex" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-review-codex.ps1 -AllowDirty -SaveReview" $false $true 1 "Codex 리뷰 실행에는 -AllowReviewCodex가 필요합니다. 추천 명령: $command"
-+            Stop-Cycle $script:steps "allow_review_codex_required" $false 1
-         }
- 
--        $script:steps += New-StepResult $stepNumber "run-review-codex" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-review-codex.ps1 -AllowDirty -SaveReview" $false $true 1 "Codex 리뷰 실행에는 -AllowReviewCodex가 필요합니다. 추천 명령: $command"
--        Stop-Cycle $script:steps "allow_review_codex_required" $false 1
-+        Invoke-CycleCommand $stepNumber "run-review-codex" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-review-codex.ps1 -AllowDirty -SaveReview" $scriptPaths.runReviewCodex @("-AllowDirty", "-SaveReview")
-+        $stepNumber++
-     }
- 
--    Invoke-CycleCommand $stepNumber "run-review-codex" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-review-codex.ps1 -AllowDirty -SaveReview" $scriptPaths.runReviewCodex @("-AllowDirty", "-SaveReview")
--    $stepNumber++
--
-     if ($DryRun) {
-         $script:steps += New-StepResult $stepNumber "review-gate" "state.lastReviewDecision 확인" $false $true 0 "DryRun: 리뷰 pass 여부를 실제 상태에서 읽지 않았습니다."
-         $stepNumber++
-@@ -617,26 +677,28 @@ while ($completedTaskCount -lt $MaxTasks) {
-         Stop-Cycle $script:steps "review_gate_failed" $false 1
-     }
- 
--    if ($reviewGate.lastCommandStatus -ne "passed") {
--        $script:steps += New-StepResult $stepNumber "review-gate" "state.lastCommandStatus 확인" $false $true 1 "리뷰 저장 또는 직전 명령이 passed가 아니므로 자동 커밋하지 않습니다: $($reviewGate.lastCommandStatus)"
-+    if ($reviewGate.lastCommand -ne "save-review" -or $reviewGate.lastCommandStatus -ne "passed") {
-+        $message = "최신 state가 save-review passed가 아니므로 자동 커밋하지 않습니다: lastCommand=$($reviewGate.lastCommand), lastCommandStatus=$($reviewGate.lastCommandStatus)"
-+        $script:steps += New-StepResult $stepNumber "review-gate" "state.lastCommand/state.lastCommandStatus 확인" $false $true 1 $message
-         Stop-Cycle $script:steps "review_save_not_passed" $false 1
-     }
- 
-     if ($reviewGate.decision -ne "pass") {
--        $script:steps += New-StepResult $stepNumber "review-gate" "state.lastReviewDecision 확인" $false $true 0 "리뷰 decision이 pass가 아니므로 자동 커밋과 complete-task를 실행하지 않습니다: $($reviewGate.decision)"
--        Stop-Cycle $script:steps "review_not_pass" $false 0
-+        $script:steps += New-StepResult $stepNumber "review-gate" "$reviewResponseRelativePath decision 확인" $false $true 1 "리뷰 response decision이 pass가 아니므로 자동 커밋과 complete-task를 실행하지 않습니다: $($reviewGate.decision)"
-+        Stop-Cycle $script:steps "review_not_pass" $false 1
-     }
- 
--    if (Test-HasValue $reviewGate.nextStep -and $reviewGate.normalizedNextStep -ne "complete_task") {
--        $script:steps += New-StepResult $stepNumber "review-gate" "$reviewResponseRelativePath next_step 확인" $false $true 0 "리뷰 next_step이 complete_task가 아니므로 자동 커밋과 complete-task를 실행하지 않습니다: $($reviewGate.nextStep)"
--        Stop-Cycle $script:steps "review_next_step_not_complete_task" $false 0
-+    if ($reviewGate.stateDecision -ne "pass") {
-+        $script:steps += New-StepResult $stepNumber "review-gate" "state.lastReviewDecision 확인" $false $true 1 "state.lastReviewDecision이 pass가 아니므로 자동 커밋과 complete-task를 실행하지 않습니다: $($reviewGate.stateDecision)"
-+        Stop-Cycle $script:steps "state_review_not_pass" $false 1
-     }
- 
--    if (Test-HasValue $reviewGate.nextStep) {
--        $script:steps += New-StepResult $stepNumber "review-gate" "state.lastReviewDecision 및 $reviewResponseRelativePath next_step 확인" $false $false 0 "리뷰 pass 및 next_step complete_task 수락: 원본='$($reviewGate.nextStep)', 정규화='$($reviewGate.normalizedNextStep)'. commit/commit-result-gate/complete-task/meta-commit으로 계속 진행합니다."
--    } else {
--        $script:steps += New-StepResult $stepNumber "review-gate" "state.lastReviewDecision 확인" $false $false 0 "리뷰 pass 확인. next_step 값이 없어 기존 동작대로 커밋 게이트로 진행합니다."
-+    if (-not (Test-IsAcceptableReviewNextStep $reviewGate)) {
-+        $script:steps += New-StepResult $stepNumber "review-gate" "$reviewResponseRelativePath next_step 확인" $false $true 1 "리뷰 next_step이 존재하지만 complete_task가 아니므로 자동 커밋과 complete-task를 실행하지 않습니다: 원본='$($reviewGate.nextStep)', 정규화='$($reviewGate.normalizedNextStep)'"
-+        Stop-Cycle $script:steps "review_next_step_not_complete_task" $false 1
-     }
-+
-+    $script:steps += New-StepResult $stepNumber "review-gate" "최신 state 및 $reviewResponseRelativePath 재확인" $false $false 0 "리뷰 pass 및 허용 가능한 next_step 상태 수락: 존재=$($reviewGate.hasNextStep), 원본='$($reviewGate.nextStep)', 정규화='$($reviewGate.normalizedNextStep)'. commit/commit-result-gate/complete-task/meta-commit으로 계속 진행합니다."
-     $stepNumber++
- 
-     try {
-diff --git a/scripts/ai-dev-auto-goal.ps1 b/scripts/ai-dev-auto-goal.ps1
-index 1efa594..bd06345 100644
---- a/scripts/ai-dev-auto-goal.ps1
-+++ b/scripts/ai-dev-auto-goal.ps1
-@@ -909,8 +909,8 @@ try {
- }
- 
- if ($goalStatusAfterFullCycle -ne "completed") {
--    $script:steps += New-StepResult 8 "verify-goal-status" "$stateRelativePath goalStatus 확인" $false $true 0 "auto-cycle-full은 성공 종료했지만 goalStatus가 completed가 아닙니다: $goalStatusAfterFullCycle"
--    Stop-AutoGoal $script:steps "auto_cycle_incomplete" $false 0
-+    $script:steps += New-StepResult 8 "verify-goal-status" "$stateRelativePath goalStatus 확인" $false $true 1 "auto-cycle-full은 성공 종료했지만 goalStatus가 completed가 아닙니다: $goalStatusAfterFullCycle"
-+    Stop-AutoGoal $script:steps "auto_cycle_incomplete" $false 1
- }
- 
- $script:steps += New-StepResult 8 "verify-goal-status" "$stateRelativePath goalStatus 확인" $false $false 0 "auto-cycle-full 성공 후 goalStatus completed 확인."
+         onClick={() => onToggleDone(task)}
+       >
+-        {task.status === "done" ? "완료 취소" : "완료 처리"}
++        {task.status === "done" ? "미완료로 되돌리기" : "완료로 표시"}
+       </button>
+       <button
+         type="button"
+-        aria-label={`${task.title} 업무 삭제`}
++        aria-label={`${task.title} 업무 삭제하기`}
+         onClick={() => onDelete(task)}
+       >
+         삭제
+       </button>
+       <button
+         type="button"
+-        aria-label={`${task.title} 업무 수정`}
++        aria-label={`${task.title} 업무 수정하기`}
+         onClick={() => onStartEdit(task)}
+       >
+         수정
 ```
 
 ## Staged Diff Stat

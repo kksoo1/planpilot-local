@@ -7,43 +7,44 @@
 ## Goal
 
 # 목표
-AI Dev Loop auto-goal pass 이후 완료 재시도 흐름을 수정한다.
+업무 카드의 보조 안내 문구 또는 aria-label을 더 자연스러운 한국어로 미세 개선한다.
 
 ## 배경
-ai-dev-auto-goal 실행 중 리뷰 결과가 pass이고 next_step이 complete_task인 상태에서도 구현 커밋, complete-task -CommitHash 처리, .ai-dev 메타 커밋으로 이어지지 않고 멈추는 문제가 있다. 또한 auto-cycle-full이 미완료 상태로 끝났을 때 auto-goal이 성공으로 오판하지 않도록 보완이 필요하다.
+현재 업무 카드에 표시되거나 보조 기술에 전달되는 일부 안내 문구가 다소 어색할 수 있다. 기능 동작은 유지하면서 사용자-facing 문구만 작게 다듬는다.
 
 ## 성공 기준
-- 리뷰 결과 pass 이후 next_step 값이 complete_task 또는 complete-task인 경우 모두 완료 처리 흐름으로 이어진다.
-- 구현 커밋 해시가 complete-task -CommitHash 단계에 정상 전달된다.
-- complete-task 처리 후 .ai-dev 메타 변경 커밋 흐름이 누락되지 않는다.
-- auto-cycle-full이 미완료 상태로 끝난 경우 auto-goal이 성공으로 판단하지 않는다.
-- 기존 자동 루프의 정상 완료 경로는 유지된다.
+- 업무 카드 관련 보조 안내 문구 또는 aria-label이 자연스러운 한국어로 개선된다.
+- 기능 로직, 상태 관리, 저장 구조는 변경하지 않는다.
+- 변경 범위는 UI 문구 수준의 최소 수정으로 제한한다.
+- 기존 JSX 구조를 중복 생성하지 않는다.
 
 ## 제약사항
-- 한 번에 하나의 작은 구현 변경으로 처리한다.
-- 기존 스크립트 구조와 상태 파일 형식을 우선 유지한다.
-- 불필요한 대규모 재작성은 하지 않는다.
-- 사용자 변경 사항은 되돌리지 않는다.
+- 기본적으로 한 파일만 수정한다.
+- src/App.css는 수정하지 않는다.
+- localStorage를 사용하지 않는다.
+- IndexedDB/Dexie schema는 변경하지 않는다.
+- 빌드와 lint는 사용자 허용이 있을 때만 실행한다.
 
 ## 범위 제외
-- 새로운 기능 추가는 제외한다.
-- UI 변경은 제외한다.
-- 저장소 구조 변경은 제외한다.
-- 자동 루프 전체 설계 변경은 제외한다.
+- 새 기능 추가
+- 화면 구조 개편
+- 상태 관리 변경
+- 데이터 모델 변경
+- 알림 기능 추가
 
 ## 수동 검증
-- pass와 complete_task 조합에서 완료 처리 단계가 이어지는지 확인한다.
-- pass와 complete-task 조합에서도 동일하게 처리되는지 확인한다.
-- auto-cycle-full이 미완료 상태로 끝난 경우 실패 또는 재시도 대상으로 남는지 확인한다.
+- 업무 카드가 표시되는 화면에서 안내 문구가 자연스럽게 보이는지 확인한다.
+- 버튼 또는 카드의 aria-label이 문맥에 맞는 한국어인지 확인한다.
+- 기존 업무 카드 동작이 그대로 유지되는지 확인한다.
 
 ## Current Task
 
 - Task ID: T001
-- Title: auto-goal 완료 판정 흐름 수정
-- Description: 리뷰 pass 이후 next_step의 complete_task와 complete-task 표기를 모두 허용하고, auto-cycle-full 미완료 종료를 성공으로 오판하지 않도록 완료 판정 조건을 보강한다.
+- Title: 업무 카드 문구 확인 및 최소 수정
+- Description: 업무 카드의 보조 안내 문구와 aria-label을 확인하고, 기능 로직을 바꾸지 않는 범위에서 자연스러운 한국어로 미세 조정한다.
 - Type: implementation
 - Status: in_progress
-- Priority: P0
+- Priority: P1
 - Depends on:
 - 없음
 
@@ -56,14 +57,12 @@ ai-dev-auto-goal 실행 중 리뷰 결과가 pass이고 next_step이 complete_ta
 
 ## Likely Files
 
-- .ai-dev/scripts/ai-dev-auto-goal.ps1
-- .ai-dev/scripts/ai-dev-auto-cycle-full.ps1
+- src/App.tsx
 
 ## Verification
 
-- complete_task 표기에서 완료 처리 흐름이 이어지는지 확인
-- complete-task 표기에서 완료 처리 흐름이 이어지는지 확인
-- auto-cycle-full 미완료 종료 시 auto-goal이 성공으로 처리하지 않는지 확인
+- 변경된 문구가 업무 카드 문맥에 자연스럽게 맞는지 확인한다.
+- 기능 로직이나 데이터 저장 관련 코드가 변경되지 않았는지 확인한다.
 
 - 필요한 경우 `npm run build`는 사람이 별도로 실행한다.
 - 이 프롬프트는 자동으로 build, test, lint를 실행하라고 지시하지 않는다.
