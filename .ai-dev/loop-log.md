@@ -136,3 +136,13 @@
 - Task: T001 업무 목록 빈 상태 문구 수정
 - Result: T001 완료: 업무 목록 빈 상태 안내 문구를 자연스러운 한국어로 개선하고 lint 검증을 통과함
 - Next task: 없음
+## 2026-06-14 22:06:40 - Commit created
+
+- Task: T001 검증 기록 흐름 분석 및 lint 기록 개선
+- Commit: db479f4caa4afbac65caefb6105394df18d9211c
+- Message: Record lint validation results
+## 2026-06-14 22:06:51 - Task completed
+
+- Task: T001 검증 기록 흐름 분석 및 lint 기록 개선
+- Result: T001 완료: BuildOnly에서도 lint 실행 결과를 자동 기록하고 test script 부재 사유를 명확히 남기도록 개선함
+- Next task: 없음

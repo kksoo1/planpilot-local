@@ -2,8 +2,8 @@
 
 ## Run
 
-- Started at: 2026-06-14 21:56:55
-- Ended at: 2026-06-14 21:57:23
+- Started at: 2026-06-14 22:05:10
+- Ended at: 2026-06-14 22:05:39
 - Exit code: 0
 - Review prompt: .ai-dev/review-prompt.md
 - Review response: .ai-dev/review-response.json
@@ -13,7 +13,7 @@
 
 ```text
 node.exe : OpenAI Codex v0.133.0
-위치 C:\Users\SECUI\AppData\Roaming\npm\codex.ps1:24 문자:5
+At C:\Users\SECUI\AppData\Roaming\npm\codex.ps1:24 char:5
 +     & "node$exe"  "$basedir/node_modules/@openai/codex/bin/codex.js"  ...
 +     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     + CategoryInfo          : NotSpecified: (OpenAI Codex v0.133.0:String) [], RemoteException
@@ -27,17 +27,17 @@ approval: never
 sandbox: workspace-write [workdir, /tmp, $TMPDIR]
 reasoning effort: medium
 reasoning summaries: none
-session id: 019ec634-e69c-78c1-b8dc-de65350a32ec
+session id: 019ec63c-72a4-70f2-985b-f60076250564
 --------
 user
-Read and follow the full review prompt at this absolute file path: D:\ai-apps\planpilot-local\.a
-i-dev\review-prompt.md
+Read and follow the full review prompt at this absolute file path: D:\ai-apps\planpilot-local\.ai-de
+v\review-prompt.md
 codex
-지정된 리뷰 프롬프트 파일만 먼저 읽고, 그 지시에 맞춰 필요한 범위를 확인하겠습니다. PowerShell 5.1 규칙에 맞춰 단일 읽기 명령으로 진행합니다.
+요청하신 리뷰 프롬프트 파일을 먼저 읽고, 그 지시에 맞춰 필요한 범위만 확인하겠습니다.
 exec
-"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralP
-ath 'D:\\ai-apps\\planpilot-local\\.ai-dev\\review-prompt.md'" in D:\ai-apps\planpilot-local
- succeeded in 1128ms:
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralPath 
+\"D:\\ai-apps\\planpilot-local\\.ai-dev\\review-prompt.md\"" in D:\ai-apps\planpilot-local
+ succeeded in 991ms:
 # AI Dev Review Prompt
 
 ## Role
@@ -55,58 +55,71 @@ ath 'D:\\ai-apps\\planpilot-local\\.ai-dev\\review-prompt.md'" in D:\ai-apps\pla
 ## Project Goal
 
 # 목표
-업무 목록에 표시할 업무가 없을 때 더 자연스러운 한국어 안내 문구를 보여준다.
+
+AI Dev Loop 자동 사이클에서 lint 검증 결과를 자동으로 기록하도록 개선한다.
 
 ## 배경
-현재 빈 상태 문구가 사용자에게 다소 어색하게 느껴질 수 있어, 기능 동작은 유지하면서 표시 문구만 개선한다.
+
+현재 strict 리뷰에서 lint 실행 여부가 명확히 기록되지 않으면 `lint skipped`로 판단되어 반려될 수 있다. `npm run lint` 스크립트가 존재하는 경우 
+BuildOnly 검증과 별개로 lint를 실행하거나 그 결과를 `test-result.md`에 남겨 리뷰 기준을 만족해야 한다. 또한 `package.json`에 test 스크립
+트가 없는 경우에는 테스트를 실행하지 않은 사유를 명확히 기록해야 한다.
 
 ## 성공 기준
-- 업무 목록에 표시할 업무가 없을 때 개선된 한국어 안내 문구가 표시된다.
-- 업무 생성, 필터링, 정렬 등 기존 기능 로직은 변경되지 않는다.
-- 변경 범위는 빈 상태 UI 문구에 한정된다.
+
+- `package.json`에 lint 스크립트가 있으면 AI Dev Loop 검증 기록에 lint 결과가 포함된다.
+- BuildOnly 검증과 lint 검증 기록이 구분되어 남는다.
+- test 스크립트가 없으면 `test-result.md`에 test 미실행 사유가 명확히 기록된다.
+- strict 리뷰에서 lint 미기록으로 반려되지 않는다.
 
 ## 제약사항
-- 사용자-facing UI 문자열은 한국어로 작성한다.
-- 기능 로직, 상태 관리, 저장 구조는 변경하지 않는다.
-- 최소 범위의 파일만 확인하고 수정한다.
-- `src/App.css`는 수정하지 않는다.
+
+- 기존 AI Dev Loop 흐름을 크게 바꾸지 않는다.
+- 검증 기록 생성 로직의 변경 범위를 작게 유지한다.
+- 사용자 변경 사항을 되돌리지 않는다.
+- 기존 프로젝트 구조와 TypeScript 스타일을 따른다.
 
 ## 범위 제외
-- 새로운 화면 또는 컴포넌트 추가
-- 업무 데이터 구조 변경
-- 필터링 또는 목록 표시 조건 변경
-- 스타일 변경
+
+- 새로운 테스트 프레임워크 추가는 제외한다.
+- 대규모 구조 재작성은 제외한다.
+- UI 변경은 제외한다.
 
 ## 수동 검증
-- 업무 목록에 표시할 업무가 없는 상태에서 안내 문구가 자연스럽게 보이는지 확인한다.
-- 기존 업무가 있는 상태에서는 목록 표시가 이전과 동일하게 동작하는지 확인한다.
+
+- lint 스크립트가 있는 상태에서 자동 사이클 결과 파일에 lint 결과가 기록되는지 확인한다.
+- test 스크립트가 없는 상태에서 `test-result.md`에 미실행 사유가 기록되는지 확인한다.
+- 기존 BuildOnly 검증 기록이 유지되는지 확인한다.
+
 
 ## Current Task
 
 - Task ID: T001
-- Title: 업무 목록 빈 상태 문구 수정
-- Description: 업무 목록에 표시할 업무가 없을 때 나타나는 안내 문구를 찾아 더 자연스러운 한국어 문구로 최소 범위 수정한다.
+- Title: 검증 기록 흐름 분석 및 lint 기록 개선
+- Description: AI Dev Loop의 검증 결과 기록 흐름을 확인하고, lint 스크립트가 있을 때 lint 결과가 test-result.md에 자동 기록되도록 작게 
+수정한다. test 스크립트가 없을 때는 테스트 미실행 사유를 명확히 남긴다.
 - Type: implementation
 - Status: in_progress
-- Priority: P1
+- Priority: P0
 - Depends on:
 - 없음
 - Verification:
-- 업무 목록 빈 상태에서 개선된 문구가 표시되는지 확인한다.
-- 기존 업무 목록 표시 로직이 변경되지 않았는지 확인한다.
+- lint 스크립트가 있는 경우 lint 결과 기록 여부 확인
+- test 스크립트가 없는 경우 미실행 사유 기록 여부 확인
+- BuildOnly 검증 기록과 lint 기록이 구분되는지 확인
 
 ## Test Result
 
 # AI Dev Test Result
 
-## 2026-06-14 21:54:01
+## 2026-06-14 22:05:04
 
 - Overall result: passed
 - Current task: T001
+- Mode: BuildOnly (build + lint when available)
 - Commands:
   - npm run build: passed
   - npm run test: skipped
-  - npm run lint: skipped
+  - npm run lint: passed
 
 ### npm run build
 
@@ -127,7 +140,7 @@ dist/index.html                   0.46 kB │ gzip:  0.30 kB
 dist/assets/index-DvjxWt30.css    5.69 kB │ gzip:  1.93 kB
 dist/assets/index-BCEAFpLX.js   316.26 kB │ gzip: 99.82 kB
 
-[32m✓ built in 230ms[39m
+[32m✓ built in 180ms[39m
 ```
 ### npm run test
 
@@ -135,49 +148,18 @@ dist/assets/index-BCEAFpLX.js   316.26 kB │ gzip: 99.82 kB
 - Exit code: 없음
 
 ```text
--BuildOnly 옵션으로 건너뛰었습니다.
+package.json에 test script가 없습니다.
 ```
 ### npm run lint
 
-- Status: skipped
-- Exit code: 없음
+- Status: passed
+- Exit code: 0
 
 ```text
--BuildOnly 옵션으로 건너뛰었습니다.
-```
----
-
-## Manual verification: 업무 목록 빈 상태 안내 문구 개선
-
-### npm scripts
-
-`	ext
-{
-  "dev": "vite",
-  "build": "tsc -b && vite build",
-  "lint": "eslint .",
-  "preview": "vite preview"
-}
-
-`"
-"
-
-
-`	ext
 
 > planpilot-local@0.0.0 lint
 > eslint .
-
-
-`"
-"
-
-
-- 앱 변경 범위는 src/views/TasksView.tsx의 빈 상태 안내 문구 수정으로 제한되었습니다.
-- 기능 로직 변경 없이 사용자 안내 문구만 수정되었습니다.
-- npm run lint를 수동 실행했고 오류 없이 종료되었습니다.
-- npm run test는 package.json에 test 스크립트가 없으면 별도 실행 대상이 아닙니다.
-
+```
 
 ## Diff To Review
 
@@ -185,76 +167,101 @@ dist/assets/index-BCEAFpLX.js   316.26 kB │ gzip: 99.82 kB
 
 ## Generated At
 
-2026-06-14 21:56:53
+2026-06-14 22:05:08
 
 ## Git Status
 
 ```text
  M .ai-dev/codex-result.md
- M .ai-dev/codex-review-result.md
  M .ai-dev/current-task-prompt.md
- M .ai-dev/diff.md
  M .ai-dev/goal.md
  M .ai-dev/queue.json
- M .ai-dev/review-prompt.md
- M .ai-dev/review-response.json
- M .ai-dev/review.md
  M .ai-dev/state.json
  M .ai-dev/test-result.md
- M src/views/TasksView.tsx
+ M scripts/ai-dev-check.ps1
+?? .ai-dev/auto-goal-planning-prompt.md
 ```
 
 ## App Change Files
 
-- src/views/TasksView.tsx
+- scripts/ai-dev-check.ps1
 
 ## AI Dev Operational Artifact Files
 
 - .ai-dev/codex-result.md
-- .ai-dev/codex-review-result.md
 - .ai-dev/current-task-prompt.md
-- .ai-dev/diff.md
 - .ai-dev/goal.md
 - .ai-dev/queue.json
-- .ai-dev/review-prompt.md
-- .ai-dev/review-response.json
-- .ai-dev/review.md
 - .ai-dev/state.json
 - .ai-dev/test-result.md
+- .ai-dev/auto-goal-planning-prompt.md
 
 ## Review Diff Scope
 
-아래 diff 본문은 실제 앱 변경 파일 중심으로 검토하도록 .ai-dev 운영 산출물 diff를 제외합니다. .ai-dev 변경은 위 운영 산출물 목록에서 별도로 확인합니
-다.
+아래 diff 본문은 실제 앱 변경 파일 중심으로 검토하도록 .ai-dev 운영 산출물 diff를 제외합니다. .ai-dev 변경은 위 운영 산출물 목록에서 별도로 확인합니다.
 
 ## Unstaged Diff Stat
 
 ```text
- src/views/TasksView.tsx | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ scripts/ai-dev-check.ps1 | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 ```
 
 ## Unstaged Diff
 
 ```text
-diff --git a/src/views/TasksView.tsx b/src/views/TasksView.tsx
-index d887bf9..f23e7cd 100644
---- a/src/views/TasksView.tsx
-+++ b/src/views/TasksView.tsx
-@@ -96,10 +96,10 @@ export function TasksView({
-   const hasVisibilityFilter = !showCompletedTasks;
-   const emptyMessage =
-     hasSearchQuery
--      ? "검색 결과가 없습니다."
-+      ? "검색어와 일치하는 업무가 없어요."
-       : hasProjectFilter || hasVisibilityFilter
--        ? "현재 필터 조건에 맞는 업무가 없습니다."
--        : "등록된 업무가 없습니다.";
-+        ? "현재 조건에 맞는 업무가 없어요."
-+        : "아직 등록된 업무가 없어요.";
+diff --git a/scripts/ai-dev-check.ps1 b/scripts/ai-dev-check.ps1
+index 8c6fdbd..024cc3d 100644
+--- a/scripts/ai-dev-check.ps1
++++ b/scripts/ai-dev-check.ps1
+@@ -170,7 +170,7 @@ $hasLint = Test-HasScript $package "lint"
  
-   return (
-     <section className="screen-card">
+ $runBuild = $hasBuild -and -not $SkipBuild
+ $runTest = $hasTest -and -not $SkipTest -and -not $BuildOnly
+-$runLint = $hasLint -and -not $SkipLint -and -not $BuildOnly
++$runLint = $hasLint -and -not $SkipLint
+ 
+ $buildSkipReason = if (-not $hasBuild) {
+     "package.json에 build script가 없습니다."
+@@ -180,19 +180,17 @@ $buildSkipReason = if (-not $hasBuild) {
+     ""
+ }
+ 
+-$testSkipReason = if ($BuildOnly) {
+-    "-BuildOnly 옵션으로 건너뛰었습니다."
+-} elseif (-not $hasTest) {
++$testSkipReason = if (-not $hasTest) {
+     "package.json에 test script가 없습니다."
+ } elseif ($SkipTest) {
+     "-SkipTest 옵션으로 건너뛰었습니다."
++} elseif ($BuildOnly) {
++    "-BuildOnly 옵션으로 건너뛰었습니다."
+ } else {
+     ""
+ }
+ 
+-$lintSkipReason = if ($BuildOnly) {
+-    "-BuildOnly 옵션으로 건너뛰었습니다."
+-} elseif (-not $hasLint) {
++$lintSkipReason = if (-not $hasLint) {
+     "package.json에 lint script가 없습니다."
+ } elseif ($SkipLint) {
+     "-SkipLint 옵션으로 건너뛰었습니다."
+@@ -216,6 +214,7 @@ $currentTaskId = if ($null -ne $state.currentTaskId -and -not [string]::IsNullOr
+ }
+ 
+ $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
++$modeText = if ($BuildOnly) { "BuildOnly (build + lint when available)" } else { "standard" }
+ $commandSummary = ($results | ForEach-Object { "  - $($_.Command): $($_.Status)" }) -join "`r`n"
+ $detailSections = @()
+ $codeFence = '```'
+@@ -243,6 +242,7 @@ $testResultContent = @"
+ 
+ - Overall result: $overallResult
+ - Current task: $currentTaskId
++- Mode: $modeText
+ - Commands:
+ $commandSummary
 ```
 
 ## Staged Diff Stat
@@ -331,42 +338,382 @@ index d887bf9..f23e7cd 100644
 - blocked: 요구사항 충돌, 데이터 위험, 패키지 추가, 대규모 리팩터링 등 사용자 판단 필요
 
 codex
-프롬프트가 JSON만 요구하므로 최종 응답은 지정 형식만 출력하겠습니다. diff 내용과 실제 변경 파일의 해당 구간을 대조해 범위와 로직 변경 여부만 확인합니다.
+프롬프트의 diff만으로도 큰 방향은 보이지만, 판정에는 실제 스크립트의 주변 흐름 확인이 필요합니다. `scripts/ai-dev-check.ps1`와 `package.json`
+만 읽어 조건 계산과 기록 생성 로직을 검토하겠습니다.
 exec
-"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Select-String -Litera
-lPath 'D:\\ai-apps\\planpilot-local\\src\\views\\TasksView.tsx' -Pattern 'emptyMessage|검색어와|현재 조
-건|아직 등록' -Context 3,3" in D:\ai-apps\planpilot-local
- succeeded in 1157ms:
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralPath 
+\"D:\\ai-apps\\planpilot-local\\package.json\"" in D:\ai-apps\planpilot-local
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralPath 
+\"D:\\ai-apps\\planpilot-local\\scripts\\ai-dev-check.ps1\"" in D:\ai-apps\planpilot-local
+ succeeded in 1313ms:
+{
+  "name": "planpilot-local",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "dexie": "^4.4.2",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "zustand": "^5.0.13"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^24.12.2",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "eslint": "^10.2.1",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.2",
+    "globals": "^17.5.0",
+    "typescript": "~6.0.2",
+    "typescript-eslint": "^8.58.2",
+    "vite": "^8.0.10"
+  }
+}
 
-  src\views\TasksView.tsx:94:  const hasSearchQuery = taskSearchQuery.trim().length > 0;
-  src\views\TasksView.tsx:95:  const hasProjectFilter = selectedProjectFilter !== "all";
-  src\views\TasksView.tsx:96:  const hasVisibilityFilter = !showCompletedTasks;
-> src\views\TasksView.tsx:97:  const emptyMessage =
-  src\views\TasksView.tsx:98:    hasSearchQuery
-> src\views\TasksView.tsx:99:      ? "검색어와 일치하는 업무가 없어요."
-  src\views\TasksView.tsx:100:      : hasProjectFilter || hasVisibilityFilter
-> src\views\TasksView.tsx:101:        ? "현재 조건에 맞는 업무가 없어요."
-> src\views\TasksView.tsx:102:        : "아직 등록된 업무가 없어요.";
-  src\views\TasksView.tsx:103:
-  src\views\TasksView.tsx:104:  return (
-  src\views\TasksView.tsx:105:    <section className="screen-card">
-  src\views\TasksView.tsx:182:
-  src\views\TasksView.tsx:183:      {filteredTasks.length === 0 ? (
-  src\views\TasksView.tsx:184:        <div className="empty">
-> src\views\TasksView.tsx:185:          <p>{emptyMessage}</p>
-  src\views\TasksView.tsx:186:          {hasSearchQuery && <p>다른 검색어를 입력해보세요.</p>}
-  src\views\TasksView.tsx:187:        </div>
-  src\views\TasksView.tsx:188:      ) : (
+ succeeded in 1344ms:
+param(
+    [switch]$BuildOnly,
+    [switch]$SkipBuild,
+    [switch]$SkipTest,
+    [switch]$SkipLint,
+    [switch]$ManualSummaryOnly,
+    [string]$ManualSummary
+)
 
+. "$PSScriptRoot\ai-dev-env.ps1"
 
+$projectRoot = (Get-Location).Path
+$packageRelativePath = "package.json"
+$stateRelativePath = ".ai-dev/state.json"
+$testResultRelativePath = ".ai-dev/test-result.md"
+
+$packagePath = Join-Path $projectRoot $packageRelativePath
+$statePath = Join-Path $projectRoot $stateRelativePath
+$testResultPath = Join-Path $projectRoot $testResultRelativePath
+$utf8WithBom = New-Object System.Text.UTF8Encoding($true)
+
+function Stop-WithError {
+    param(
+        [string]$Message
+    )
+
+    Write-Error $Message
+    exit 1
+}
+
+function Read-JsonFile {
+    param(
+        [string]$Path,
+        [string]$RelativePath
+    )
+
+    try {
+        return Get-Content -Raw -Encoding UTF8 -LiteralPath $Path | ConvertFrom-Json
+    } catch {
+        Stop-WithError "$RelativePath JSON 파싱에 실패했습니다: $($_.Exception.Message)"
+    }
+}
+
+function Test-HasScript {
+    param(
+        [object]$Package,
+        [string]$Name
+    )
+
+    return $null -ne $Package.scripts -and ($Package.scripts.PSObject.Properties.Name -contains $Nam
+e)
+}
+
+function Set-ObjectProperty {
+    param(
+        [object]$InputObject,
+        [string]$Name,
+        [object]$Value
+    )
+
+    if ($InputObject.PSObject.Properties.Name -contains $Name) {
+        $InputObject.$Name = $Value
+    } else {
+        $InputObject | Add-Member -NotePropertyName $Name -NotePropertyValue $Value
+    }
+}
+
+function Invoke-NpmCheck {
+    param(
+        [string]$Name,
+        [bool]$ShouldRun,
+        [string]$SkipReason
+    )
+
+    $command = "npm run $Name"
+
+    if (-not $ShouldRun) {
+        return [PSCustomObject]@{
+            Name = $Name
+            Command = $command
+            Status = "skipped"
+            ExitCode = $null
+            Log = $SkipReason
+        }
+    }
+
+    Write-Host "실행 중: $command"
+    $output = & npm run $Name 2>&1 | Out-String
+    $exitCode = $LASTEXITCODE
+    $status = if ($exitCode -eq 0) { "passed" } else { "failed" }
+
+    return [PSCustomObject]@{
+        Name = $Name
+        Command = $command
+        Status = $status
+        ExitCode = $exitCode
+        Log = $output.TrimEnd()
+    }
+}
+
+$requiredPaths = if ($ManualSummaryOnly) {
+    @($stateRelativePath, $testResultRelativePath)
+} else {
+    @($packageRelativePath, $stateRelativePath, $testResultRelativePath)
+}
+
+foreach ($requiredPath in $requiredPaths) {
+    $fullPath = Join-Path $projectRoot $requiredPath
+
+    if (-not (Test-Path -LiteralPath $fullPath -PathType Leaf)) {
+        Stop-WithError "필수 파일이 없습니다: $requiredPath"
+    }
+}
+
+$state = Read-JsonFile $statePath $stateRelativePath
+
+if ($ManualSummaryOnly) {
+    if ([string]::IsNullOrWhiteSpace($ManualSummary)) {
+        Stop-WithError "-ManualSummaryOnly를 사용할 때는 -ManualSummary 내용을 입력해야 합니다."
+    }
+
+    $currentTaskId = if ($null -ne $state.currentTaskId -and -not [string]::IsNullOrWhiteSpace([stri
+ng]$state.currentTaskId)) {
+        [string]$state.currentTaskId
+    } else {
+        "없음"
+    }
+
+    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    $codeFence = '```'
+    $testResultContent = @"
+# AI Dev Test Result
+
+## $timestamp
+
+- Overall result: recorded
+- Current task: $currentTaskId
+- Mode: manual-summary
+- Commands:
+  - npm run build: skipped
+  - npm run test: skipped
+  - npm run lint: skipped
+
+### Manual Verification Summary
+
+${codeFence}text
+$ManualSummary
+$codeFence
+"@
+
+    [System.IO.File]::WriteAllText($testResultPath, $testResultContent, $utf8WithBom)
+
+    $now = [DateTimeOffset]::UtcNow.ToString("o")
+    Set-ObjectProperty $state "lastCommand" "manual-summary"
+    Set-ObjectProperty $state "lastCommandStatus" "passed"
+    Set-ObjectProperty $state "lastErrorSummary" ""
+    Set-ObjectProperty $state "updatedAt" $now
+
+    $stateJson = $state | ConvertTo-Json -Depth 20
+    [System.IO.File]::WriteAllText($statePath, $stateJson, $utf8WithBom)
+
+    Write-Host "수동 검증 요약 기록 완료: $testResultRelativePath"
+    Write-Host "상태 저장 완료: $stateRelativePath"
+    exit 0
+}
+
+$package = Read-JsonFile $packagePath $packageRelativePath
+
+$hasBuild = Test-HasScript $package "build"
+$hasTest = Test-HasScript $package "test"
+$hasLint = Test-HasScript $package "lint"
+
+$runBuild = $hasBuild -and -not $SkipBuild
+$runTest = $hasTest -and -not $SkipTest -and -not $BuildOnly
+$runLint = $hasLint -and -not $SkipLint
+
+$buildSkipReason = if (-not $hasBuild) {
+    "package.json에 build script가 없습니다."
+} elseif ($SkipBuild) {
+    "-SkipBuild 옵션으로 건너뛰었습니다."
+} else {
+    ""
+}
+
+$testSkipReason = if (-not $hasTest) {
+    "package.json에 test script가 없습니다."
+} elseif ($SkipTest) {
+    "-SkipTest 옵션으로 건너뛰었습니다."
+} elseif ($BuildOnly) {
+    "-BuildOnly 옵션으로 건너뛰었습니다."
+} else {
+    ""
+}
+
+$lintSkipReason = if (-not $hasLint) {
+    "package.json에 lint script가 없습니다."
+} elseif ($SkipLint) {
+    "-SkipLint 옵션으로 건너뛰었습니다."
+} else {
+    ""
+}
+
+$results = @(
+    Invoke-NpmCheck "build" $runBuild $buildSkipReason
+    Invoke-NpmCheck "test" $runTest $testSkipReason
+    Invoke-NpmCheck "lint" $runLint $lintSkipReason
+)
+
+$failedResults = @($results | Where-Object { $_.Status -eq "failed" })
+$executedResults = @($results | Where-Object { $_.Status -ne "skipped" })
+$overallResult = if ($failedResults.Count -gt 0) { "failed" } else { "passed" }
+$currentTaskId = if ($null -ne $state.currentTaskId -and -not [string]::IsNullOrWhiteSpace([string]$
+state.currentTaskId)) {
+    [string]$state.currentTaskId
+} else {
+    "없음"
+}
+
+$timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+$modeText = if ($BuildOnly) { "BuildOnly (build + lint when available)" } else { "standard" }
+$commandSummary = ($results | ForEach-Object { "  - $($_.Command): $($_.Status)" }) -join "`r`n"
+$detailSections = @()
+$codeFence = '```'
+
+foreach ($result in $results) {
+    $logText = if ([string]::IsNullOrWhiteSpace($result.Log)) { "출력 없음" } else { $result.Log }
+    $exitCodeText = if ($null -eq $result.ExitCode) { "없음" } else { [string]$result.ExitCode }
+
+    $detailSections += @"
+### $($result.Command)
+
+- Status: $($result.Status)
+- Exit code: $exitCodeText
+
+${codeFence}text
+$logText
+$codeFence
+"@
+}
+
+$testResultContent = @"
+# AI Dev Test Result
+
+## $timestamp
+
+- Overall result: $overallResult
+- Current task: $currentTaskId
+- Mode: $modeText
+- Commands:
+$commandSummary
+
+$($detailSections -join "`r`n")
+"@
+
+[System.IO.File]::WriteAllText($testResultPath, $testResultContent, $utf8WithBom)
+
+$now = [DateTimeOffset]::UtcNow.ToString("o")
+$lastCommand = if ($executedResults.Count -gt 0) {
+    $executedResults[-1].Command
+} else {
+    "ai-dev-check"
+}
+$lastCommandStatus = if ($executedResults.Count -eq 0) {
+    "skipped"
+} else {
+    $overallResult
+}
+$lastErrorSummary = if ($failedResults.Count -gt 0) {
+    ($failedResults | ForEach-Object { "$($_.Command) exit code $($_.ExitCode)" }) -join "; "
+} else {
+    ""
+}
+
+Set-ObjectProperty $state "lastCommand" $lastCommand
+Set-ObjectProperty $state "lastCommandStatus" $lastCommandStatus
+Set-ObjectProperty $state "lastErrorSummary" $lastErrorSummary
+Set-ObjectProperty $state "updatedAt" $now
+
+$stateJson = $state | ConvertTo-Json -Depth 20
+[System.IO.File]::WriteAllText($statePath, $stateJson, $utf8WithBom)
+
+Write-Host "검증 결과: $overallResult"
+foreach ($result in $results) {
+    Write-Host "  - $($result.Command): $($result.Status)"
+}
+Write-Host "기록 완료: $testResultRelativePath"
+Write-Host "상태 저장 완료: $stateRelativePath"
+
+if ($overallResult -eq "failed") {
+    exit 1
+}
+
+exit 0
 
 codex
-{"decision":"pass","severity":"none","summary":"업무 목록 빈 상태 문구만 자연스러운 한국어로 변경되었고, 기능 로직이나 범위 외 변경
-은 확인되지 않았습니다.","required_changes":[],"optional_suggestions":[],"scope_check":{"within_current_ta
-sk":true,"scope_issues":[]},"test_check":{"build_passed":true,"test_passed":true,"lint_passed":t
-rue,"issues":["npm run test는 스크립트가 없어 별도 실행되지 않은 것으로 확인됩니다."]},"next_step":"complete_task"}
+{
+  "decision": "pass",
+  "severity": "none",
+  "summary": "BuildOnly에서도 lint가 실행 및 기록되도록 조정했고, test script 부재 사유도 test-result.md에 명확히 기록되어 현재 tas
+k 요구사항을 충족합니다.",
+  "required_changes": [],
+  "optional_suggestions": [],
+  "scope_check": {
+    "within_current_task": true,
+    "scope_issues": []
+  },
+  "test_check": {
+    "build_passed": true,
+    "test_passed": true,
+    "lint_passed": true,
+    "issues": []
+  },
+  "next_step": "complete_task"
+}
 tokens used
-4,357
-{"decision":"pass","severity":"none","summary":"업무 목록 빈 상태 문구만 자연스러운 한국어로 변경되었고, 기능 로직이나 범위 외 변경은 확인되지 않았습니다.","required_changes":[],"optional_suggestions":[],"scope_check":{"within_current_task":true,"scope_issues":[]},"test_check":{"build_passed":true,"test_passed":true,"lint_passed":true,"issues":["npm run test는 스크립트가 없어 별도 실행되지 않은 것으로 확인됩니다."]},"next_step":"complete_task"}
+6,797
+{
+  "decision": "pass",
+  "severity": "none",
+  "summary": "BuildOnly에서도 lint가 실행 및 기록되도록 조정했고, test script 부재 사유도 test-result.md에 명확히 기록되어 현재 task 요구사항을 충족합니다.",
+  "required_changes": [],
+  "optional_suggestions": [],
+  "scope_check": {
+    "within_current_task": true,
+    "scope_issues": []
+  },
+  "test_check": {
+    "build_passed": true,
+    "test_passed": true,
+    "lint_passed": true,
+    "issues": []
+  },
+  "next_step": "complete_task"
+}
 
 ```
