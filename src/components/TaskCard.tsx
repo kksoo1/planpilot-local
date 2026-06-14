@@ -24,7 +24,7 @@ export function TaskCard({
       <strong>{task.title}</strong>
       {showDueSoonBadge && (
         <span
-          aria-label="마감 임박 배지"
+          aria-label="마감일이 가까운 업무"
           style={{
             alignSelf: "flex-start",
             border: "1px solid #d97706",
@@ -43,13 +43,29 @@ export function TaskCard({
         중요도: {getPriorityLabel(task.priority)} · 상태: {getStatusLabel(task.status)} · 프로젝트: {projectName}
       </span>
       <span>{task.dueDate ? `마감일: ${task.dueDate}` : "마감일 없음"}</span>
-      <button type="button" onClick={() => onToggleDone(task)}>
-        {task.status === "done" ? "미완료로 변경" : "업무 완료 처리"}
+      <button
+        type="button"
+        aria-label={
+          task.status === "done"
+            ? `${task.title} 업무를 미완료 상태로 변경`
+            : `${task.title} 업무를 완료 상태로 변경`
+        }
+        onClick={() => onToggleDone(task)}
+      >
+        {task.status === "done" ? "미완료로 변경" : "완료로 변경"}
       </button>
-      <button type="button" onClick={() => onDelete(task)}>
+      <button
+        type="button"
+        aria-label={`${task.title} 업무 삭제`}
+        onClick={() => onDelete(task)}
+      >
         삭제
       </button>
-      <button type="button" onClick={() => onStartEdit(task)}>
+      <button
+        type="button"
+        aria-label={`${task.title} 업무 수정`}
+        onClick={() => onStartEdit(task)}
+      >
         수정
       </button>
     </li>
