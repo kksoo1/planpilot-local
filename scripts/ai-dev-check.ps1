@@ -170,7 +170,7 @@ $hasLint = Test-HasScript $package "lint"
 
 $runBuild = $hasBuild -and -not $SkipBuild
 $runTest = $hasTest -and -not $SkipTest -and -not $BuildOnly
-$runLint = $hasLint -and -not $SkipLint -and -not $BuildOnly
+$runLint = $hasLint -and -not $SkipLint
 
 $buildSkipReason = if (-not $hasBuild) {
     "package.json에 build script가 없습니다."
@@ -180,19 +180,17 @@ $buildSkipReason = if (-not $hasBuild) {
     ""
 }
 
-$testSkipReason = if ($BuildOnly) {
-    "-BuildOnly 옵션으로 건너뛰었습니다."
-} elseif (-not $hasTest) {
+$testSkipReason = if (-not $hasTest) {
     "package.json에 test script가 없습니다."
 } elseif ($SkipTest) {
     "-SkipTest 옵션으로 건너뛰었습니다."
+} elseif ($BuildOnly) {
+    "-BuildOnly 옵션으로 건너뛰었습니다."
 } else {
     ""
 }
 
-$lintSkipReason = if ($BuildOnly) {
-    "-BuildOnly 옵션으로 건너뛰었습니다."
-} elseif (-not $hasLint) {
+$lintSkipReason = if (-not $hasLint) {
     "package.json에 lint script가 없습니다."
 } elseif ($SkipLint) {
     "-SkipLint 옵션으로 건너뛰었습니다."
@@ -216,6 +214,7 @@ $currentTaskId = if ($null -ne $state.currentTaskId -and -not [string]::IsNullOr
 }
 
 $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+$modeText = if ($BuildOnly) { "BuildOnly (build + lint when available)" } else { "standard" }
 $commandSummary = ($results | ForEach-Object { "  - $($_.Command): $($_.Status)" }) -join "`r`n"
 $detailSections = @()
 $codeFence = '```'
@@ -243,6 +242,7 @@ $testResultContent = @"
 
 - Overall result: $overallResult
 - Current task: $currentTaskId
+- Mode: $modeText
 - Commands:
 $commandSummary
 
