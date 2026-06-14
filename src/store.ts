@@ -85,7 +85,15 @@ export const useStore = create<Store>((set, get) => ({
   fetchAppSettings: async () => {
     const settings = await db.appSettings.get("app-settings");
     if (settings) {
-      const { id: _id, ...appSettings } = settings;
+      const appSettings: AppSettings = {
+        theme: settings.theme,
+        language: settings.language,
+        aiProvider: settings.aiProvider,
+        enableNotifications: settings.enableNotifications,
+        firstLaunchCompleted: settings.firstLaunchCompleted,
+        createdAt: settings.createdAt,
+        updatedAt: settings.updatedAt,
+      };
       set({ appSettings });
     }
   },
