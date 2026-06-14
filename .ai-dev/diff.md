@@ -2,7 +2,7 @@
 
 ## Generated At
 
-2026-06-10 23:43:48
+2026-06-14 20:17:13
 
 ## Git Status
 
@@ -19,11 +19,13 @@
  M .ai-dev/state.json
  M .ai-dev/test-result.md
  M src/components/TaskCard.tsx
+ M src/utils/dateUtils.ts
 ```
 
 ## App Change Files
 
 - src/components/TaskCard.tsx
+- src/utils/dateUtils.ts
 
 ## AI Dev Operational Artifact Files
 
@@ -46,26 +48,71 @@
 ## Unstaged Diff Stat
 
 ```text
- src/components/TaskCard.tsx | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ src/components/TaskCard.tsx | 19 +++++++++++++++++++
+ src/utils/dateUtils.ts      |  9 ++++++++-
+ 2 files changed, 27 insertions(+), 1 deletion(-)
 ```
 
 ## Unstaged Diff
 
 ```text
 diff --git a/src/components/TaskCard.tsx b/src/components/TaskCard.tsx
-index 12597da..d6be8ef 100644
+index d6be8ef..8d388a2 100644
 --- a/src/components/TaskCard.tsx
 +++ b/src/components/TaskCard.tsx
-@@ -25,7 +25,7 @@ export function TaskCard({
-       </span>
-       <span>{task.dueDate ? `마감일: ${task.dueDate}` : "마감일 없음"}</span>
-       <button type="button" onClick={() => onToggleDone(task)}>
--        {task.status === "done" ? "미완료로 변경" : "완료"}
-+        {task.status === "done" ? "미완료로 변경" : "업무 완료 처리"}
-       </button>
-       <button type="button" onClick={() => onDelete(task)}>
-         삭제
+@@ -1,4 +1,5 @@
+ import { getPriorityLabel, getStatusLabel } from "../utils/taskLabels";
++import { isUpcomingTask } from "../utils/dateUtils";
+ import type { Task } from "../types";
+ 
+ type TaskCardProps = {
+@@ -16,9 +17,27 @@ export function TaskCard({
+   onDelete,
+   onStartEdit,
+ }: TaskCardProps) {
++  const showDueSoonBadge = isUpcomingTask(task);
++
+   return (
+     <li className="task-card">
+       <strong>{task.title}</strong>
++      {showDueSoonBadge && (
++        <span
++          aria-label="마감 임박 배지"
++          style={{
++            alignSelf: "flex-start",
++            border: "1px solid #d97706",
++            borderRadius: "999px",
++            color: "#92400e",
++            fontSize: "0.78rem",
++            fontWeight: 700,
++            padding: "0.15rem 0.5rem",
++          }}
++        >
++          마감 임박
++        </span>
++      )}
+       {task.memo && <span>메모: {task.memo}</span>}
+       <span>
+         중요도: {getPriorityLabel(task.priority)} · 상태: {getStatusLabel(task.status)} · 프로젝트: {projectName}
+diff --git a/src/utils/dateUtils.ts b/src/utils/dateUtils.ts
+index a45a39e..f470eb7 100644
+--- a/src/utils/dateUtils.ts
++++ b/src/utils/dateUtils.ts
+@@ -9,7 +9,14 @@ export function startOfToday() {
+ export function parseDueDate(dueDate?: string) {
+   if (!dueDate) return null;
+ 
+-  const parsed = new Date(dueDate);
++  const dateOnlyMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dueDate);
++  const parsed = dateOnlyMatch
++    ? new Date(
++        Number(dateOnlyMatch[1]),
++        Number(dateOnlyMatch[2]) - 1,
++        Number(dateOnlyMatch[3]),
++      )
++    : new Date(dueDate);
+   return Number.isNaN(parsed.getTime()) ? null : parsed;
+ }
 ```
 
 ## Staged Diff Stat

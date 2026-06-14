@@ -1,11 +1,11 @@
 ﻿# AI Dev Review
 
-## 2026-06-10 23:44:24
+## 2026-06-14 20:17:57
 
 - Decision: pass
 - Severity: none
 - Next step: complete_task
-- Summary: 업무 카드 완료 버튼의 미완료 상태 문구만 더 명확한 한국어 표현으로 변경되었고, 동작 로직이나 구조 변경은 없다.
+- Summary: 현재 task 요구사항에 맞게 미완료 업무 중 오늘부터 7일 이내 마감일이 있는 카드에만 배지를 표시하며, 앱 변경 범위도 최소 수준으로 유지됐다.
 
 ### Required Changes
 
@@ -13,7 +13,7 @@
 
 ### Optional Suggestions
 
-- 없음
+- src/components/TaskCard.tsx: 반복 사용 가능성이 생기면 인라인 스타일을 컴포넌트 내부 상수로 분리할 수 있지만, 현재 범위에서는 필수는 아니다.
 
 ### Raw JSON
 
@@ -21,12 +21,15 @@
 {
     "decision":  "pass",
     "severity":  "none",
-    "summary":  "업무 카드 완료 버튼의 미완료 상태 문구만 더 명확한 한국어 표현으로 변경되었고, 동작 로직이나 구조 변경은 없다.",
+    "summary":  "현재 task 요구사항에 맞게 미완료 업무 중 오늘부터 7일 이내 마감일이 있는 카드에만 배지를 표시하며, 앱 변경 범위도 최소 수준으로 유지됐다.",
     "required_changes":  [
 
                          ],
     "optional_suggestions":  [
-
+                                 {
+                                     "file":  "src/components/TaskCard.tsx",
+                                     "suggestion":  "반복 사용 가능성이 생기면 인라인 스타일을 컴포넌트 내부 상수로 분리할 수 있지만, 현재 범위에서는 필수는 아니다."
+                                 }
                              ],
     "scope_check":  {
                         "within_current_task":  true,
@@ -39,8 +42,8 @@
                        "test_passed":  false,
                        "lint_passed":  false,
                        "issues":  [
-                                      "npm run test는 BuildOnly 옵션으로 skipped 처리됨",
-                                      "npm run lint는 BuildOnly 옵션으로 skipped 처리됨"
+                                      "npm run test는 -BuildOnly 옵션으로 skipped 처리됐다.",
+                                      "npm run lint는 -BuildOnly 옵션으로 skipped 처리됐다."
                                   ]
                    },
     "next_step":  "complete_task"
