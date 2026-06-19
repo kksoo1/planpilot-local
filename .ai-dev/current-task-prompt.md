@@ -42,14 +42,14 @@ PlanPilot Local MVP에서 사용자가 현재 진행 중인 업무, 완료된 �
 
 ## Current Task
 
-- Task ID: T001
-- Title: 업무 상태 안내 개선 범위 확인
-- Description: 현재 업무 목록 또는 대시보드 영역의 구조를 확인하고, 기존 데이터 구조를 유지하면서 문구와 상태 표시만 작게 개선할 위치를 정한다.
-- Type: analysis
+- Task ID: T002
+- Title: 업무 흐름 상태 표시 개선
+- Description: 진행 중인 업무, 완료된 업무, 남은 업무를 사용자가 한눈에 이해할 수 있도록 기존 화면의 안내 문구와 상태 라벨을 한국어로 다듬는다.
+- Type: implementation
 - Status: in_progress
 - Priority: P0
 - Depends on:
-- 없음
+- T001
 
 ## Task Scope
 
@@ -64,8 +64,8 @@ PlanPilot Local MVP에서 사용자가 현재 진행 중인 업무, 완료된 �
 
 ## Verification
 
-- 관련 화면 구조와 기존 상태 계산 방식을 확인한다.
-- 수정 범위가 작은 UI 문구와 상태 표시 개선에 머무르는지 확인한다.
+- 업무가 없을 때와 업무가 있을 때의 안내 문구가 모두 자연스러운지 확인한다.
+- 기존 업무 생성과 완료 상태 전환 흐름이 유지되는지 확인한다.
 
 - 필요한 경우 `npm run build`는 사람이 별도로 실행한다.
 - 이 프롬프트는 자동으로 build, test, lint를 실행하라고 지시하지 않는다.

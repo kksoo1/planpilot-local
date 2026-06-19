@@ -50,26 +50,26 @@ PlanPilot Local MVP에서 사용자가 현재 진행 중인 업무, 완료된 �
 
 ## Current Task
 
-- Task ID: T001
-- Title: 업무 상태 안내 개선 범위 확인
-- Description: 현재 업무 목록 또는 대시보드 영역의 구조를 확인하고, 기존 데이터 구조를 유지하면서 문구와 상태 표시만 작게 개선할 위치를 정한다.
-- Type: analysis
+- Task ID: T002
+- Title: 업무 흐름 상태 표시 개선
+- Description: 진행 중인 업무, 완료된 업무, 남은 업무를 사용자가 한눈에 이해할 수 있도록 기존 화면의 안내 문구와 상태 라벨을 한국어로 다듬는다.
+- Type: implementation
 - Status: in_progress
 - Priority: P0
 - Depends on:
-- 없음
+- T001
 - Verification:
-- 관련 화면 구조와 기존 상태 계산 방식을 확인한다.
-- 수정 범위가 작은 UI 문구와 상태 표시 개선에 머무르는지 확인한다.
+- 업무가 없을 때와 업무가 있을 때의 안내 문구가 모두 자연스러운지 확인한다.
+- 기존 업무 생성과 완료 상태 전환 흐름이 유지되는지 확인한다.
 
 ## Test Result
 
 # AI Dev Test Result
 
-## 2026-06-19 22:06:39
+## 2026-06-19 22:17:12
 
 - Overall result: passed
-- Current task: T001
+- Current task: T002
 - Mode: BuildOnly (build + lint when available)
 - Commands:
   - npm run build: passed
@@ -91,11 +91,11 @@ PlanPilot Local MVP에서 사용자가 현재 진행 중인 업무, 완료된 �
 transforming...✓ 48 modules transformed.
 rendering chunks...
 computing gzip size...
-dist/index.html                   0.46 kB │ gzip:  0.30 kB
-dist/assets/index-DvjxWt30.css    5.69 kB │ gzip:  1.93 kB
-dist/assets/index-Bc7EYrNn.js   316.52 kB │ gzip: 99.88 kB
+dist/index.html                   0.46 kB │ gzip:   0.29 kB
+dist/assets/index-DvjxWt30.css    5.69 kB │ gzip:   1.93 kB
+dist/assets/index-CVTFf3OT.js   317.03 kB │ gzip: 100.03 kB
 
-[32m✓ built in 169ms[39m
+[32m✓ built in 185ms[39m
 ```
 ### npm run test
 
@@ -122,33 +122,44 @@ package.json에 test script가 없습니다.
 
 ## Generated At
 
-2026-06-19 22:06:43
+2026-06-19 22:17:17
 
 ## Git Status
 
 ```text
  M .ai-dev/codex-result.md
+ M .ai-dev/codex-review-result.md
  M .ai-dev/current-task-prompt.md
- M .ai-dev/goal.md
- M .ai-dev/queue.json
+ M .ai-dev/diff.md
+ M .ai-dev/loop-log.md
+ M .ai-dev/review-prompt.md
+ M .ai-dev/review-response.json
+ M .ai-dev/review.md
  M .ai-dev/state.json
  M .ai-dev/test-result.md
-?? .ai-dev/auto-goal-planning-prompt.md
+ M src/App.tsx
+ M src/utils/taskLabels.ts
+ M src/views/TasksView.tsx
 ```
 
 ## App Change Files
 
-- 없음
+- src/App.tsx
+- src/utils/taskLabels.ts
+- src/views/TasksView.tsx
 
 ## AI Dev Operational Artifact Files
 
 - .ai-dev/codex-result.md
+- .ai-dev/codex-review-result.md
 - .ai-dev/current-task-prompt.md
-- .ai-dev/goal.md
-- .ai-dev/queue.json
+- .ai-dev/diff.md
+- .ai-dev/loop-log.md
+- .ai-dev/review-prompt.md
+- .ai-dev/review-response.json
+- .ai-dev/review.md
 - .ai-dev/state.json
 - .ai-dev/test-result.md
-- .ai-dev/auto-goal-planning-prompt.md
 
 ## Review Diff Scope
 
@@ -157,13 +168,115 @@ package.json에 test script가 없습니다.
 ## Unstaged Diff Stat
 
 ```text
-변경 없음
+ src/App.tsx             |  8 ++++++++
+ src/utils/taskLabels.ts | 11 ++++++++++-
+ src/views/TasksView.tsx | 22 +++++++++++++++++++++-
+ 3 files changed, 39 insertions(+), 2 deletions(-)
 ```
 
 ## Unstaged Diff
 
 ```text
-변경 없음
+diff --git a/src/App.tsx b/src/App.tsx
+index 95d64ec..5e76eb3 100644
+--- a/src/App.tsx
++++ b/src/App.tsx
+@@ -116,6 +116,13 @@ function App() {
+     projects,
+   });
+ 
++  const summaryTasks = filterTasks(tasks, {
++    selectedProjectFilter,
++    showCompletedTasks: true,
++    taskSearchQuery,
++    projects,
++  });
++
+   const sortedTasks = sortTasks(filteredTasks, taskSortOrder);
+ 
+   const aiProvider = useMemo(() => new RuleBasedAIProvider(), []);
+@@ -152,6 +159,7 @@ function App() {
+           <TasksView
+             projects={projects}
+             filteredTasks={filteredTasks}
++            summaryTasks={summaryTasks}
+             sortedTasks={sortedTasks}
+             selectedProjectFilter={selectedProjectFilter}
+             showCompletedTasks={showCompletedTasks}
+diff --git a/src/utils/taskLabels.ts b/src/utils/taskLabels.ts
+index 1beb326..4c11ca7 100644
+--- a/src/utils/taskLabels.ts
++++ b/src/utils/taskLabels.ts
+@@ -14,5 +14,14 @@ export function getPriorityLabel(priority: Task["priority"]) {
+ }
+ 
+ export function getStatusLabel(status: Task["status"]) {
+-  return status === "done" ? "완료" : "미완료";
++  switch (status) {
++    case "in_progress":
++      return "진행 중";
++    case "done":
++      return "완료";
++    case "todo":
++      return "남은 업무";
++    default:
++      return status;
++  }
+ }
+diff --git a/src/views/TasksView.tsx b/src/views/TasksView.tsx
+index f23e7cd..b2129c1 100644
+--- a/src/views/TasksView.tsx
++++ b/src/views/TasksView.tsx
+@@ -7,6 +7,7 @@ import type { TaskSortOrder } from "../utils/taskFilters";
+ type TasksViewProps = {
+   projects: Project[];
+   filteredTasks: Task[];
++  summaryTasks: Task[];
+   sortedTasks: Task[];
+   selectedProjectFilter: string;
+   showCompletedTasks: boolean;
+@@ -51,6 +52,7 @@ type TasksViewProps = {
+ export function TasksView({
+   projects,
+   filteredTasks,
++  summaryTasks,
+   sortedTasks,
+   selectedProjectFilter,
+   showCompletedTasks,
+@@ -94,6 +96,21 @@ export function TasksView({
+   const hasSearchQuery = taskSearchQuery.trim().length > 0;
+   const hasProjectFilter = selectedProjectFilter !== "all";
+   const hasVisibilityFilter = !showCompletedTasks;
++  const completedTaskCount = summaryTasks.filter(
++    (task) => task.status === "done",
++  ).length;
++  const inProgressTaskCount = summaryTasks.filter(
++    (task) => task.status === "in_progress",
++  ).length;
++  const remainingTaskCount = summaryTasks.filter(
++    (task) => task.status === "todo",
++  ).length;
++  const totalTaskSummary = showCompletedTasks
++    ? `총 ${summaryTasks.length}개`
++    : `표시 ${filteredTasks.length}개 / 조건 일치 ${summaryTasks.length}개`;
++  const completedTaskSummary = showCompletedTasks
++    ? `완료 ${completedTaskCount}개`
++    : `완료 ${completedTaskCount}개(숨김)`;
+   const emptyMessage =
+     hasSearchQuery
+       ? "검색어와 일치하는 업무가 없어요."
+@@ -104,7 +121,10 @@ export function TasksView({
+   return (
+     <section className="screen-card">
+       <h2>전체 업무</h2>
+-      <p className="summary">총 {filteredTasks.length}개</p>
++      <p className="summary">
++        {totalTaskSummary} · 진행 중 {inProgressTaskCount}개 ·{" "}
++        {completedTaskSummary} · 남은 업무 {remainingTaskCount}개
++      </p>
+ 
+       <label>
+         업무 검색
 ```
 
 ## Staged Diff Stat

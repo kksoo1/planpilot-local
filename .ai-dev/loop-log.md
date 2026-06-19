@@ -236,3 +236,21 @@
 - Task: T001 업무 상태 안내 개선 범위 확인
 - Result: T001 완료: 업무 상태 안내 개선 범위를 확인하고, 앱 변경 없이 TaskList 중심으로 개선 위치를 정리했으며 build/lint 검증 및 리뷰 pass를 확인함
 - Next task: T002 업무 흐름 상태 표시 개선
+
+## 2026-06-19 22:10:34 - Task progress
+
+- Task: T002 업무 흐름 상태 표시 개선
+- Result: 업무 목록 상단 요약에 진행 중, 완료, 남은 업무 개수를 표시하고 업무 카드 상태 라벨을 todo/in_progress/done 상태별 한국어 문구로 구분함
+- Verification: build/test/lint는 현재 프롬프트에서 자동 실행 지시가 없어 실행하지 않음
+- Excluded: DB schema 변경, 저장 구조 변경, 새 화면 추가, 대규모 리팩터링, git commit 없음
+
+## 2026-06-19 22:19:24 - Commit created
+
+- Task: T002 업무 흐름 상태 표시 개선
+- Commit: 86280c0fad1af38608410ac6817d2931e0f24314
+- Message: Improve task status guidance
+## 2026-06-19 22:19:43 - Task completed
+
+- Task: T002 업무 흐름 상태 표시 개선
+- Result: T002 완료: 업무 목록 영역에서 진행 중, 완료, 남은 업무 상태 요약과 상태 라벨을 한국어로 명확히 표시하고 build/lint 검증 및 리뷰 pass를 확인함
+- Next task: T003 검증 및 작업 기록 완료

@@ -2,8 +2,8 @@
     "goalTitle":  "PlanPilot Local MVP 업무 흐름 개선",
     "goalSource":  ".ai-dev/goal.md",
     "createdAt":  "2026-06-19T09:00:00+09:00",
-    "updatedAt":  "2026-06-19T13:08:47.9411745+00:00",
-    "currentTaskId":  "T002",
+    "updatedAt":  "2026-06-19T13:19:42.7921784+00:00",
+    "currentTaskId":  "T003",
     "tasks":  [
                   {
                       "id":  "T001",
@@ -31,7 +31,7 @@
                       "title":  "업무 흐름 상태 표시 개선",
                       "description":  "진행 중인 업무, 완료된 업무, 남은 업무를 사용자가 한눈에 이해할 수 있도록 기존 화면의 안내 문구와 상태 라벨을 한국어로 다듬는다.",
                       "type":  "implementation",
-                      "status":  "in_progress",
+                      "status":  "done",
                       "priority":  "P0",
                       "dependsOn":  [
                                         "T001"
@@ -43,14 +43,16 @@
                                            "업무가 없을 때와 업무가 있을 때의 안내 문구가 모두 자연스러운지 확인한다.",
                                            "기존 업무 생성과 완료 상태 전환 흐름이 유지되는지 확인한다."
                                        ],
-                      "commitMessage":  "Improve task status guidance"
+                      "commitMessage":  "Improve task status guidance",
+                      "completedAt":  "2026-06-19T13:19:42.7921784+00:00",
+                      "resultSummary":  "T002 완료: 업무 목록 영역에서 진행 중, 완료, 남은 업무 상태 요약과 상태 라벨을 한국어로 명확히 표시하고 build/lint 검증 및 리뷰 pass를 확인함"
                   },
                   {
                       "id":  "T003",
                       "title":  "검증 및 작업 기록 완료",
                       "description":  "허용된 build와 lint를 실행하고, 리뷰 통과 여부를 확인한 뒤 구현 변경과 AI Dev Loop 메타 변경을 각각 기록한다.",
                       "type":  "verification",
-                      "status":  "pending",
+                      "status":  "in_progress",
                       "priority":  "P1",
                       "dependsOn":  [
                                         "T002"

@@ -1,12 +1,11 @@
 ﻿# AI Dev Review
 
-## 2026-06-19 22:07:20
+## 2026-06-19 22:18:19
 
 - Decision: pass
 - Severity: none
 - Next step: complete_task
-- Summary: 현재 task는 분석 범위 확인이며, 앱 변경 없이 업무 상태 안내 개선 위치를 Tas
-ksView 중심으로 확정해 요구사항을 충족했다.
+- Summary: 업무 목록 영역에서 진행 중, 완료, 남은 업무 상태 요약과 상태 라벨을 한국어로 명확히 표시하며 현재 T002 범위 안에 있다.
 
 ### Required Changes
 
@@ -14,7 +13,7 @@ ksView 중심으로 확정해 요구사항을 충족했다.
 
 ### Optional Suggestions
 
-- unknown: 제안 없음
+- src/views/TasksView.tsx: 업무 수가 많아질 경우 상태별 count를 여러 번 filter하지 않고 한 번의 reduce로 계산하면 더 단순해질 수 있다.
 
 ### Raw JSON
 
@@ -22,14 +21,14 @@ ksView 중심으로 확정해 요구사항을 충족했다.
 {
     "decision":  "pass",
     "severity":  "none",
-    "summary":  "현재 task는 분석 범위 확인이며, 앱 변경 없이 업무 상태 안내 개선 위치를 Tas\r\nksView 중심으로 확정해 요구사항을 충족했다.",
+    "summary":  "업무 목록 영역에서 진행 중, 완료, 남은 업무 상태 요약과 상태 라벨을 한국어로 명확히 표시하며 현재 T002 범위 안에 있다.",
     "required_changes":  [
 
                          ],
     "optional_suggestions":  [
                                  {
-                                     "file":  "unknown",
-                                     "su\r\nggestion":  "다음 구현 task에서는 src/views/TasksView.tsx 한 파일에서 filteredTasks 기준 상태별 요약 문구만 작게 개선하는 범위로 \r\n제한하는 것이 적절하다."
+                                     "file":  "src/views/TasksView.tsx",
+                                     "suggestion":  "업무 수가 많아질 경우 상태별 count를 여러 번 filter하지 않고 한 번의 reduce로 계산하면 더 단순해질 수 있다."
                                  }
                              ],
     "scope_check":  {
@@ -39,11 +38,11 @@ ksView 중심으로 확정해 요구사항을 충족했다.
                                          ]
                     },
     "test_check":  {
-                       "bui\r\nld_passed":  true,
+                       "build_passed":  true,
                        "test_passed":  true,
                        "lint_passed":  true,
                        "issues":  [
-                                      "package.json에 test script가 없어 n\r\npm run test는 skipped로 기록되었지만, 현재 task가 분석 작업이고 build/lint가 통과해 추가 차단 사유로 보지 않는다."
+                                      "npm run test는 package.json에 test script가 없어 skipped 처리되었으나, 현재 제공된 검증 결과에서 build와 lint는 통과했다."
                                   ]
                    },
     "next_step":  "complete_task"
