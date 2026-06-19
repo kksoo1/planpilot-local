@@ -1,6 +1,6 @@
 ﻿# AI Dev Test Result
 
-## 2026-06-19 23:06:43
+## 2026-06-19 23:33:09
 
 - Overall result: passed
 - Current task: T001
@@ -29,7 +29,7 @@ dist/index.html                   0.46 kB │ gzip:   0.29 kB
 dist/assets/index-DvjxWt30.css    5.69 kB │ gzip:   1.93 kB
 dist/assets/index-CVTFf3OT.js   317.03 kB │ gzip: 100.03 kB
 
-[32m✓ built in 181ms[39m
+[32m✓ built in 227ms[39m
 ```
 ### npm run test
 
@@ -49,22 +49,35 @@ package.json에 test script가 없습니다.
 > planpilot-local@0.0.0 lint
 > eslint .
 ```
-## Executable verification: revise retry DryRun guard
+## Executable verification: revise retry stop reason preservation
 
-- Verification type: current dirty repo status comparison before/after auto-cycle-full DryRun.
-- Scenario: saved review decision is revise and next_step is revise_with_codex.
+- Verification target: scripts/ai-dev-auto-cycle-full.ps1
+- Goal: AI Dev Loop revise 재시도 중단 사유 보존 보강
+
+### Scenario 1: DryRun no-mutation
 - Result: PASS_DRYRUN_NO_MUTATION
-- Before dirty count: 12
-- After dirty count: 12
+- Before dirty count: 13
+- After dirty count: 13
+- Interpretation: DryRun must not run Codex/check/review/commit/complete-task as mutating steps and must not change git status.
+
+### Scenario 2: revise repeat stop reason preservation
+- Result: PASS_REVISE_STOP_REASON_PRESERVED
+- Checks:
+  - PASS: decision revise branch exists
+  - PASS: lastReviewDecision is recorded
+  - PASS: severity is included
+  - PASS: next_step is included
+  - PASS: review summary is included
+- Interpretation: when re-review remains decision revise, the script must preserve latest summary, severity, next_step, and lastReviewDecision.
 
 ### DryRun output excerpt
-`	ext
+DRYRUN OUTPUT BEGIN
 Step 1: task-start
   Command: MaxTasks=10
   Executed: False
   Skipped: False
   Exit code: 0
-  Message: ?꾩옱 task ?ㅽ뻾 ?쒖옉: T001 review revise ?먮룞 ?ъ떆???먮쫫 蹂닿컯
+  Message: ?꾩옱 task ?ㅽ뻾 ?쒖옉: T001 revise ?ъ떆??以묐떒 ?ъ쑀 蹂댁〈 蹂닿컯
 Step 2: make-prompt
   Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-prompt.ps1
   Executed: False
@@ -139,8 +152,4 @@ Step 13: meta-commit
   Message: DryRun: .ai-dev 硫뷀? ?곹깭 吏곸젒 而ㅻ컠???ㅽ뻾?섏? ?딆븯?듬땲??
 Step 14: final-status
   Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-status.ps1
-`",
-  ",
-  
-- PASS_DRYRUN_NO_MUTATION means DryRun did not run a mutating revise cycle and did not change git status.
-- This specifically verifies the review concern that DryRun must not enter the normal implementation/review flow before previewing the revise action.
+DRYRUN OUTPUT END

@@ -278,3 +278,16 @@
 - Task: T001 review revise 자동 재시도 흐름 보강
 - Result: T001 완료: auto-cycle-full이 saved review revise/revise_with_codex 상태에서 일반 실행 시 자동 재시도하고, DryRun에서는 Codex/검증/리뷰 단계를 실행하지 않고 변경 없이 preview/stop 처리하도록 보강했으며 build/lint 및 DryRun no-mutation 검증과 리뷰 pass를 확인함
 - Next task: 없음
+
+## 2026-06-19 23:24:20 - Task progress
+
+- Task: T001 revise 재시도 중단 사유 보존 보강
+- Result: auto-cycle-full의 review gate가 pass가 아닌 최신 리뷰에서 summary, severity, next_step, lastReviewDecision을 중단 메시지와 state.lastErrorSummary/stopReason에 보존하도록 보강함
+- Verification: PowerShell parse OK, DryRun preview-only 실행, DryRun 전후 state/queue/review-response/loop-log 해시 동일 확인
+- Remaining risk: build/lint, 실제 revise 반복 실행, 리뷰 pass, git commit, complete-task, 최종 clean 확인은 현재 프롬프트와 저장소 규칙상 실행하지 않음
+
+## 2026-06-19 23:34:08 - Task completed
+
+- Task: T001 revise 재시도 중단 사유 보존 보강
+- Result: T001 완료: revise 재시도 후 재리뷰가 계속 revise인 경우 최신 summary, severity, next_step, lastReviewDecision을 보존해 명확히 중단하도록 보강하고, DryRun no-mutation 및 revise 중단 사유 보존 검증과 리뷰 pass를 확인함
+- Next task: 없음

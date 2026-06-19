@@ -1,16 +1,19 @@
 ﻿{
     "decision":  "revise",
     "severity":  "medium",
-    "summary":  "revise 자동 루프 자체는 추가됐지만, 재리뷰 결과가 계속 revise인 일부 정상 케이스에서 최신 사유를 남기지 못하고 일반 review_no\r\nt_pass로 중단될 수 있습니다.",
+    "summary":  "재리뷰 revise 중단 메시지는 보강됐지만, 중단 상태의 lastReviewDecision을 최신 review-response decision이 \r\n아니라 기존 state 값으로 다시 저장해 최신 리뷰 판단을 보존하지 못할 수 있습니다.",
     "required_changes":  [
                              {
                                  "file":  "scripts/ai-dev-auto-cycle-full.ps1",
-                                 "reason":  "성공 기준은 재수정 후 리뷰가 계속 revise이면 최신 사유를 남기고 명확히 중단해야 한다고 요구합니다. 현재 코드는 재리뷰 결과가 deci\r\nsion=revise 이면서 next_step이 revise_with_codex인 경우에만 summary를 포함한 전용 중단 메시지를 남깁니다. next_step이 stop\r\n_for_user이거나 다른 값이면 아래의 일반 review_not_pass 분기로 떨어져 최신 summary가 누락됩니다.",
-                                 "suggestion":  "Invoke-ReviseRetry 이후에는 Test-IsSavedReviewReviseReady 조건만 보지 말고, reviewGate\r\n.decision -eq \"revise\"인 모든 경우에 대해 summary, severity, next_step, state.lastReviewDecision을 포함한 \r\n전용 중단 메시지를 남기도록 분기를 추가하세요. revise_with_codex가 계속된 경우에는 기존처럼 1회 제한 메시지를 유지하고, 다른 next_step인 revis\r\ne도 최신 리뷰 사유를 포함해 명확히 중단하면 됩니다."
+                                 "reason":  "Save-ReviewStopState가 state.lastReviewDecision에 ReviewGate.stateDecision을 저장합니다\r\n. review-response.json의 최신 decision과 state.lastReviewDecision이 불일치하는 상황에서는 중단 상태에 stale decision\r\n이 남아, 성공 기준의 \u0027최신 review summary, severity, next_step, lastReviewDecision\u0027 보존 요구를 만족하지 못합니다.",
+                                 "suggestion":  "Save-ReviewStopState에서 lastReviewDecision은 ReviewGate.decision을 우선 저장하고, de\r\ncision이 없을 때만 기존 stateDecision을 fallback으로 사용하도록 수정하십시오. 메시지의 state.lastReviewDecision 표기도 최신 저장\r\n 값과 혼동되지 않게 유지하거나 latest/state 값을 구분하십시오."
                              }
                          ],
     "optional_suggestions":  [
-
+                                 {
+                                     "file":  "scripts/ai-dev-auto-cycle-full.ps1",
+                                     "suggestion":  "next_step 속성은 존재하지만 값이 null 또는 공백인 경우 Format-ReviewGateStopMessage가 빈 값으로 출\r\n력될 수 있으므로 \u0027\u003cnone\u003e\u0027 fallback을 적용하면 상태 메시지가 더 명확해집니다."
+                                 }
                              ],
     "scope_check":  {
                         "within_current_task":  true,
@@ -24,7 +27,7 @@
                        "lint_passed":  true,
                        "issues":  [
                                       "package.json에 test script가 없어 npm run test는 skipped입니다.",
-                                      "DryRun no-mutation 검증은 기록되어 있고 build/lint는 통과했습니다."
+                                      "검증 기록은 있으나, latest decision과 기존 stateDecision이 불일치하는 상태 저장 케이스를 직접 보장하지 못합니다."
                                   ]
                    },
     "next_step":  "revise_with_codex"

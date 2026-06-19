@@ -1,29 +1,28 @@
 ﻿# 목표
-AI Dev Loop의 전체 자동 사이클 스크립트가 리뷰 결과 `decision=revise`, `next_step=revise_with_codex` 상태에서 멈추지 않고 제한된 범위의 자동 수정 루프를 수행하도록 보강한다.
+AI Dev Loop의 review revise 자동 재시도 흐름에서 재시도 중단 사유가 일반화되지 않도록 보강한다.
 
 ## 배경
-현재 `ai-dev-auto-cycle-full.ps1`는 리뷰가 수정 요청 상태로 끝나는 경우 후속 revise 흐름을 자동으로 이어가지 못한다. 저장된 리뷰 결과를 기반으로 revise prompt 생성, Codex 수정, 검증, diff 기록, 리뷰 재실행까지 한 번의 사이클 안에서 처리해야 한다.
+현재 재수정 후 재리뷰 결과가 계속 decision=revise인 경우, next_step 값에 따라 최신 리뷰 사유가 충분히 보존되지 않을 수 있다. 특히 revise_with_codex 반복 제한 상황에서도 사용자가 최신 review summary, severity, next_step, lastReviewDecision을 확인할 수 있어야 한다.
 
 ## 성공 기준
-- 리뷰 결과가 `revise` 및 `revise_with_codex`인 경우 자동 revise 흐름이 실행된다.
-- revise 후 build/lint 검증 결과가 `.ai-dev/test-result.md`에 기록된다.
-- 검증 후 diff가 저장되고 리뷰가 재실행된다.
-- 리뷰가 `pass`로 바뀌면 기존 pass 처리 흐름이 유지된다.
-- 리뷰가 계속 `revise`이면 최신 사유를 남기고 명확히 중단한다.
-- 기존 pass 처리, completed final clean, DryRun 동작은 깨지지 않는다.
+- 재수정 후 재리뷰 결과가 계속 decision=revise이면 next_step 값과 관계없이 최신 review summary, severity, next_step, lastReviewDecision을 포함한 명확한 중단 메시지와 상태를 남긴다.
+- next_step=revise_with_codex가 반복된 경우 기존 1회 재시도 제한 메시지를 유지하면서 최신 리뷰 사유를 함께 포함한다.
+- DryRun은 Codex, check, review, commit, complete-task를 실행하지 않고 상태 변경 없이 preview만 출력한다.
+- 기존 pass 처리, completed final clean, AllowCommit 처리, non-.ai-dev dirty 실패 동작은 유지한다.
+- 앱 src 파일은 변경하지 않는다.
+- build/lint 검증, DryRun no-mutation 검증 기록, 리뷰 pass, 구현 커밋, complete-task, .ai-dev 메타 커밋, 최종 clean 상태 확인까지 완료한다.
 
 ## 제약사항
-- 앱 `src` 파일은 변경하지 않는다.
-- 변경 범위는 AI Dev Loop 관련 스크립트와 `.ai-dev` 메타 파일로 제한한다.
-- 기존 동작을 대체하기보다 현재 흐름에 revise 분기만 작게 추가한다.
-- 검증 명령 실행 여부와 결과는 명확히 기록한다.
+- 변경 범위는 AI Dev Loop 스크립트와 관련 메타 파일로 제한한다.
+- 기존 동작을 보존하면서 revise 중단 상태 기록만 좁게 보강한다.
+- 사용자 변경 사항은 되돌리지 않는다.
 
 ## 범위 제외
-- 앱 기능 변경 및 UI 변경은 포함하지 않는다.
-- 저장소 구조의 대규모 재작성은 포함하지 않는다.
-- 새로운 외부 의존성 추가는 포함하지 않는다.
+- 앱 src 파일 변경은 제외한다.
+- AI Dev Loop 전체 구조 재작성은 제외한다.
+- 신규 기능 추가나 UI 변경은 제외한다.
 
 ## 수동 검증
-- DryRun 모드에서 revise 분기가 실제 수정 실행 없이 의도한 단계만 출력되는지 확인한다.
-- 저장된 리뷰 결과가 revise인 샘플 상태에서 revise prompt 생성, 검증 기록, diff 저장, 리뷰 재실행 흐름을 확인한다.
-- pass 리뷰 결과에서는 기존 완료 흐름이 유지되는지 확인한다.
+- DryRun 실행 시 실행 예정 작업만 preview되고 실제 상태 변경이 없는지 확인한다.
+- 재리뷰 revise 반복 시 최신 리뷰 사유가 상태와 메시지에 남는지 확인한다.
+- 기존 pass 및 commit 허용 흐름이 유지되는지 확인한다.
