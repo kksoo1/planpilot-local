@@ -216,3 +216,8 @@
 - Task: T001 업무 카드 접근성 문구 점검 및 미세 수정
 - Result: T001 완료: 업무 카드의 aria-label 문구를 자연스러운 한국어로 최소 수정하고 build/lint 검증 및 리뷰 pass를 확인함
 - Next task: 없음
+## 2026-06-19 21:57:00 - Task completed
+
+- Task: T001 완료 기준 안내 문구 보강
+- Result: T001 완료: AI Dev Loop 완료 기준을 .ai-dev/README.md 운영 원칙에 짧게 보강하고 build/lint 검증 및 리뷰 pass를 확인함
+- Next task: 없음

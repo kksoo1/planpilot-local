@@ -15,51 +15,63 @@
 ## Project Goal
 
 # 목표
-업무 카드의 접근성 보조 문구 또는 aria-label을 자연스러운 한국어로 미세 개선한다.
+
+AI Dev Loop의 완료 기준을 문서 또는 기존 안내 문구에 짧게 보강한다.
 
 ## 배경
-업무 카드에서 스크린 리더나 보조 기술에 전달되는 문구가 어색하지 않도록 최종 점검이 필요하다. 기능 로직, 상태 관리, 저장 구조는 유지하고 UI 문구 수준에서만 최소 변경한다.
+
+현재 AI Dev Loop의 완료 조건을 더 명확히 안내할 필요가 있다. 사용자가 작업 종료 시 기대하는 기준을 빠르게 확인할 수 있도록 기존 문서나 안내 문구에 간결하게 반영한다.
 
 ## 성공 기준
-- 업무 카드 관련 접근성 보조 문구 또는 aria-label이 자연스러운 한국어로 정리된다.
-- 기존 기능 동작, 상태 관리, 저장 구조가 변경되지 않는다.
-- 변경 범위가 업무 카드 문구 수준으로 제한된다.
+
+- 완료 기준에 build/lint 통과가 포함된다.
+- 리뷰 pass가 완료 기준에 포함된다.
+- 구현 커밋이 완료 기준에 포함된다.
+- complete-task 수행이 완료 기준에 포함된다.
+- .ai-dev 메타 커밋이 완료 기준에 포함된다.
+- 최종 git 상태가 깨끗해야 함을 명확히 적는다.
+- 앱 기능 로직과 UI 동작은 변경하지 않는다.
 
 ## 제약사항
-- 한 번에 하나의 작은 변경만 수행한다.
-- 기존 타입, store 액션, DB 구조를 변경하지 않는다.
-- 사용자-facing UI 문자열은 한국어를 기본으로 한다.
-- src/App.css는 수정하지 않는다.
+
+- 문서 또는 기존 안내 문구만 짧게 보강한다.
+- 한 번에 하나의 작은 변경으로 처리한다.
+- 기존 표현과 문서 구조를 최대한 유지한다.
+- 앱 코드, 저장소 구조, 사용자 데이터 처리 방식은 변경하지 않는다.
 
 ## 범위 제외
-- 새로운 기능 추가는 하지 않는다.
-- 화면 구조 개편이나 대규모 컴포넌트 분리는 하지 않는다.
-- 데이터 저장 구조 변경은 하지 않는다.
+
+- 앱 기능 로직 변경
+- UI 동작 변경
+- 새 화면 추가
+- 대규모 문서 재작성
+- 저장 구조 변경
 
 ## 수동 검증
-- 업무 카드 화면에서 접근성 보조 문구가 자연스럽게 읽히는지 확인한다.
-- 주요 업무 카드 조작 버튼의 aria-label이 문맥에 맞는지 확인한다.
-- 기존 업무 생성, 수정, 완료 표시 흐름에 영향이 없는지 확인한다.
+
+- 변경된 문구가 완료 기준을 빠짐없이 포함하는지 확인한다.
+- 앱 기능 또는 UI 동작 관련 파일이 변경되지 않았는지 확인한다.
+- 문구가 짧고 기존 안내 흐름을 해치지 않는지 확인한다.
 
 ## Current Task
 
 - Task ID: T001
-- Title: 업무 카드 접근성 문구 점검 및 미세 수정
-- Description: 업무 카드 관련 aria-label 또는 접근성 보조 문구를 확인하고 자연스러운 한국어로 최소 수정한다.
-- Type: implementation
+- Title: 완료 기준 안내 문구 보강
+- Description: AI Dev Loop 관련 문서 또는 기존 안내 문구에 완료 기준을 짧게 추가하고, 앱 기능 로직과 UI 동작은 변경하지 않는다.
+- Type: documentation
 - Status: in_progress
 - Priority: P1
 - Depends on:
 - 없음
 - Verification:
-- 변경된 문구가 업무 카드 문맥에 자연스럽게 맞는지 확인한다.
-- 기능 로직, 상태 관리, 저장 구조 변경이 없는지 확인한다.
+- 완료 기준에 build/lint 통과, 리뷰 pass, 구현 커밋, complete-task, .ai-dev 메타 커밋, 최종 정리 상태가 포함되는지 확인한다.
+- 앱 기능 로직과 UI 동작 파일이 변경되지 않았는지 확인한다.
 
 ## Test Result
 
 # AI Dev Test Result
 
-## 2026-06-19 21:46:43
+## 2026-06-19 21:52:58
 
 - Overall result: passed
 - Current task: T001
@@ -88,7 +100,7 @@ dist/index.html                   0.46 kB │ gzip:  0.30 kB
 dist/assets/index-DvjxWt30.css    5.69 kB │ gzip:  1.93 kB
 dist/assets/index-Bc7EYrNn.js   316.52 kB │ gzip: 99.88 kB
 
-[32m✓ built in 204ms[39m
+[32m✓ built in 232ms[39m
 ```
 ### npm run test
 
@@ -115,42 +127,35 @@ package.json에 test script가 없습니다.
 
 ## Generated At
 
-2026-06-19 21:46:48
+2026-06-19 21:53:02
 
 ## Git Status
 
 ```text
+ M .ai-dev/README.md
  M .ai-dev/codex-result.md
- M .ai-dev/codex-review-result.md
  M .ai-dev/current-task-prompt.md
- M .ai-dev/diff.md
  M .ai-dev/goal.md
  M .ai-dev/queue.json
- M .ai-dev/review-prompt.md
- M .ai-dev/review-response.json
- M .ai-dev/review.md
  M .ai-dev/state.json
  M .ai-dev/test-result.md
- M src/components/TaskCard.tsx
+?? .ai-dev/auto-goal-planning-prompt.md
 ```
 
 ## App Change Files
 
-- src/components/TaskCard.tsx
+- 없음
 
 ## AI Dev Operational Artifact Files
 
+- .ai-dev/README.md
 - .ai-dev/codex-result.md
-- .ai-dev/codex-review-result.md
 - .ai-dev/current-task-prompt.md
-- .ai-dev/diff.md
 - .ai-dev/goal.md
 - .ai-dev/queue.json
-- .ai-dev/review-prompt.md
-- .ai-dev/review-response.json
-- .ai-dev/review.md
 - .ai-dev/state.json
 - .ai-dev/test-result.md
+- .ai-dev/auto-goal-planning-prompt.md
 
 ## Review Diff Scope
 
@@ -159,54 +164,13 @@ package.json에 test script가 없습니다.
 ## Unstaged Diff Stat
 
 ```text
- src/components/TaskCard.tsx | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+변경 없음
 ```
 
 ## Unstaged Diff
 
 ```text
-diff --git a/src/components/TaskCard.tsx b/src/components/TaskCard.tsx
-index aff165e..7218a1c 100644
---- a/src/components/TaskCard.tsx
-+++ b/src/components/TaskCard.tsx
-@@ -24,7 +24,7 @@ export function TaskCard({
-       <strong>{task.title}</strong>
-       {showDueSoonBadge && (
-         <span
--          aria-label="마감일이 곧 다가오는 업무"
-+          aria-label="마감일이 곧 다가오는 업무입니다"
-           style={{
-             alignSelf: "flex-start",
-             border: "1px solid #d97706",
-@@ -47,8 +47,8 @@ export function TaskCard({
-         type="button"
-         aria-label={
-           task.status === "done"
--            ? `${task.title} 업무를 미완료로 되돌리기`
--            : `${task.title} 업무를 완료로 표시하기`
-+            ? `'${task.title}' 업무를 미완료로 되돌리기`
-+            : `'${task.title}' 업무를 완료로 표시하기`
-         }
-         onClick={() => onToggleDone(task)}
-       >
-@@ -56,14 +56,14 @@ export function TaskCard({
-       </button>
-       <button
-         type="button"
--        aria-label={`${task.title} 업무 삭제하기`}
-+        aria-label={`'${task.title}' 업무 삭제하기`}
-         onClick={() => onDelete(task)}
-       >
-         삭제
-       </button>
-       <button
-         type="button"
--        aria-label={`${task.title} 업무 수정하기`}
-+        aria-label={`'${task.title}' 업무 수정하기`}
-         onClick={() => onStartEdit(task)}
-       >
-         수정
+변경 없음
 ```
 
 ## Staged Diff Stat
