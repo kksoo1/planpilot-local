@@ -196,3 +196,13 @@
 - Task: T001 업무 카드 문구 확인 및 최소 수정
 - Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
 - Next task: 없음
+## 2026-06-19 21:36:52 - Commit created
+
+- Task: T001 auto-goal 종료 전 최종 변경 상태 검증 보강
+- Commit: 058a75bb425c1f488c7b466945f7c2baf66504e1
+- Message: Ensure auto goal final clean state
+## 2026-06-19 21:37:24 - Task completed
+
+- Task: T001 auto-goal 종료 전 최종 변경 상태 검증 보강
+- Result: T001 완료: auto-goal 종료 전 최종 변경 상태 검증을 보강하고, 완료 직전 .ai-dev 운영 변경의 최종 메타 커밋, baseline dirty 보호, non-.ai-dev dirty 실패, completed 상태의 git clean 보장을 반영함
+- Next task: 없음

@@ -2,8 +2,8 @@
 
 ## Run
 
-- Started at: 2026-06-14 23:26:13
-- Ended at: 2026-06-14 23:27:25
+- Started at: 2026-06-14 23:32:37
+- Ended at: 2026-06-14 23:34:49
 - Exit code: 0
 - Prompt: .ai-dev/current-task-prompt.md
 - Command: codex exec <short wrapper pointing to .ai-dev/current-task-prompt.md>
@@ -26,17 +26,17 @@ approval: never
 sandbox: workspace-write [workdir, /tmp, $TMPDIR]
 reasoning effort: medium
 reasoning summaries: none
-session id: 019ec686-a76a-7d80-b42f-79651f541582
+session id: 019ec68c-8387-7043-b323-c06322649eef
 --------
 user
 Read and follow the full task prompt at this absolute file path: D:\ai-apps\planpilot-local\.ai-dev\
 current-task-prompt.md
 codex
-작업 프롬프트를 직접 읽어 요구사항과 수정 범위를 확인하겠습니다. 아직 파일 수정이나 빌드/테스트는 실행하지 않습니다.
+요청하신 작업 지시 파일을 먼저 읽고, 그 안의 범위와 제약을 확인한 뒤 필요한 파일만 추가로 살펴보겠습니다.
 exec
 "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralPath 
 'D:\\ai-apps\\planpilot-local\\.ai-dev\\current-task-prompt.md'" in D:\ai-apps\planpilot-local
- succeeded in 962ms:
+ succeeded in 973ms:
 # Current Task Prompt
 
 ## Role
@@ -46,44 +46,54 @@ exec
 ## Goal
 
 # 목표
-업무 카드의 보조 안내 문구 또는 aria-label을 더 자연스러운 한국어로 미세 개선한다.
+
+AI Dev Loop auto-goal 완료 직전의 최종 상태 검증을 보강하여, completed 상태로 종료된 뒤에도 .ai-dev 운영 파일 변경이 남지 않도록 한다.
 
 ## 배경
-현재 업무 카드에 표시되거나 보조 기술에 전달되는 일부 안내 문구가 다소 어색할 수 있다. 기능 동작은 유지하면서 사용자-facing 문구만 작게 다듬는다.
+
+현재 ai-dev-auto-goal 실행이 goal completed로 끝난 뒤 .ai-dev/auto-goal-planning-prompt.md 삭제 같은 후처리 변경이 남아 작
+업 트리가 변경된 상태가 될 수 있다. 완료 상태의 의미와 실제 저장소 상태가 어긋나므로, auto-cycle-full의 메타 커밋 이후 또는 auto-goal 종료 직전에 최종 
+변경 상태를 확인하는 보호 장치가 필요하다.
 
 ## 성공 기준
-- 업무 카드 관련 보조 안내 문구 또는 aria-label이 자연스러운 한국어로 개선된다.
-- 기능 로직, 상태 관리, 저장 구조는 변경하지 않는다.
-- 변경 범위는 UI 문구 수준의 최소 수정으로 제한한다.
-- 기존 JSX 구조를 중복 생성하지 않는다.
+
+- auto-goal이 completed 상태로 종료되기 직전에 최종 변경 상태를 확인한다.
+- 남은 변경이 .ai-dev 운영 파일의 후처리 변경이면 메타 커밋 흐름에 포함되도록 처리한다.
+- 메타 커밋에 포함할 수 없는 남은 변경이 있으면 completed로 종료하지 않고 실패로 처리한다.
+- completed 상태에서는 후속 실행자가 즉시 확인해도 남은 변경이 없는 상태다.
+- 기존 사용자 변경 사항을 되돌리거나 무시하지 않는다.
 
 ## 제약사항
-- 기본적으로 한 파일만 수정한다.
-- src/App.css는 수정하지 않는다.
-- localStorage를 사용하지 않는다.
-- IndexedDB/Dexie schema는 변경하지 않는다.
-- 빌드와 lint는 사용자 허용이 있을 때만 실행한다.
+
+- 한 번에 하나의 작은 구현 변경으로 처리한다.
+- 기존 AI Dev Loop 흐름과 파일 구조를 우선 따른다.
+- 사용자 변경 사항을 되돌리지 않는다.
+- 서버 API, 로그인, 클라우드 동기화, DB 구조 변경은 다루지 않는다.
+- 광범위한 재작성 없이 종료 검증과 메타 커밋 흐름 주변만 수정한다.
 
 ## 범위 제외
-- 새 기능 추가
-- 화면 구조 개편
-- 상태 관리 변경
-- 데이터 모델 변경
-- 알림 기능 추가
+
+- AI Dev Loop 전체 구조 재설계
+- 새로운 저장소 관리 정책 도입
+- UI 변경
+- 앱 런타임 기능 변경
+- 데이터베이스 마이그레이션
 
 ## 수동 검증
-- 업무 카드가 표시되는 화면에서 안내 문구가 자연스럽게 보이는지 확인한다.
-- 버튼 또는 카드의 aria-label이 문맥에 맞는 한국어인지 확인한다.
-- 기존 업무 카드 동작이 그대로 유지되는지 확인한다.
+
+- auto-goal 완료 직전 후처리 변경이 생기는 상황을 재현하거나 시뮬레이션한다.
+- completed 종료 후 남은 변경 상태가 없는지 확인한다.
+- 남은 변경을 메타 커밋에 포함할 수 없는 경우 completed가 아닌 실패 상태로 종료되는지 확인한다.
 
 ## Current Task
 
 - Task ID: T001
-- Title: 업무 카드 문구 확인 및 최소 수정
-- Description: 업무 카드의 보조 안내 문구와 aria-label을 확인하고, 기능 로직을 바꾸지 않는 범위에서 자연스러운 한국어로 미세 조정한다.
+- Title: auto-goal 종료 전 최종 변경 상태 검증 보강
+- Description: auto-cycle-full의 메타 커밋 이후 또는 auto-goal 종료 직전에 남은 .ai-dev 운영 변경을 확인하고, 처리 가능한 변경은 메타 커
+밋 흐름에 포함하며 처리할 수 없는 변경은 완료가 아닌 실패로 종료하도록 보강한다.
 - Type: implementation
 - Status: in_progress
-- Priority: P1
+- Priority: P0
 - Depends on:
 - 없음
 
@@ -96,12 +106,14 @@ exec
 
 ## Likely Files
 
-- src/App.tsx
+- .ai-dev/auto-goal 관련 PowerShell 스크립트
+- .ai-dev/auto-cycle-full 관련 PowerShell 스크립트
 
 ## Verification
 
-- 변경된 문구가 업무 카드 문맥에 자연스럽게 맞는지 확인한다.
-- 기능 로직이나 데이터 저장 관련 코드가 변경되지 않았는지 확인한다.
+- 완료 직전 남은 .ai-dev 운영 변경이 메타 커밋 흐름에 포함되는지 확인한다.
+- 처리할 수 없는 남은 변경이 있을 때 completed로 종료하지 않는지 확인한다.
+- 기존 사용자 변경 사항을 되돌리지 않는지 확인한다.
 
 - 필요한 경우 `npm run build`는 사람이 별도로 실행한다.
 - 이 프롬프트는 자동으로 build, test, lint를 실행하라고 지시하지 않는다.
@@ -136,1132 +148,3628 @@ exec
 - 같은 오류가 반복되는 경우
 
 codex
-요구사항은 `src/App.tsx`의 업무 카드 관련 문구만 최소 수정하는 것입니다. 이제 해당 파일에서 업무 카드와 `aria-label` 문구가 있는 위치만 찾아 확인하겠습니다
-.
+작업 범위가 `.ai-dev`의 자동 루프 스크립트에 한정되어 있습니다. `src` 밖 수정이 필요하지만, 프롬프트가 지정한 운영 스크립트 보강이므로 해당 범위 안에서만 구조를 확
+인하겠습니다.
 exec
-"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'rg -n "aria-label|업무|카드|t
-ask|Task|완료|삭제|수정" src/App.tsx' in D:\ai-apps\planpilot-local
-exec
-"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralPath 
-'D:\\ai-apps\\planpilot-local\\src\\App.tsx' -TotalCount 240" in D:\ai-apps\planpilot-local
- succeeded in 1272ms:
-import { useEffect, useMemo, useState } from "react";
-import { RuleBasedAIProvider } from "./ai/RuleBasedAIProvider";
-import { useProjectActions } from "./hooks/useProjectActions";
-import { useProjectFormState } from "./hooks/useProjectFormState";
-import { useTaskActions } from "./hooks/useTaskActions";
-import { useTaskFormState } from "./hooks/useTaskFormState";
-import { useStore } from "./store";
-import { startOfToday } from "./utils/dateUtils";
-import { getProjectName } from "./utils/projectLookup";
-import { getOverdueTasks, getUpcomingTasks } from "./utils/taskDates";
-import { filterTasks, sortTasks, type TaskSortOrder } from "./utils/taskFilters";
-import { getTaskSummary } from "./utils/taskSummary";
-import { SettingsView } from "./views/SettingsView";
-import { TasksView } from "./views/TasksView";
-import { ProjectsView } from "./views/ProjectsView";
-import { TodayView } from "./views/TodayView";
-import type { Task } from "./types";
-import "./App.css";
-
-type Tab = "today" | "tasks" | "projects" | "settings";
-
-function App() {
-  const [activeTab, setActiveTab] = useState<Tab>("today");
-  const [recommendedTasks, setRecommendedTasks] = useState<Task[]>([]);
-  const [selectedProjectFilter, setSelectedProjectFilter] = useState("all");
-  const [showCompletedTasks, setShowCompletedTasks] = useState(true);
-  const [taskSortOrder, setTaskSortOrder] = useState<TaskSortOrder>("none");
-  const [taskSearchQuery, setTaskSearchQuery] = useState("");
-
-  const { tasks, projects, appSettings, initializeApp, addTask, updateTask, deleteTask, deleteProjec
-t, addProject, updateProject } = useStore();
-  const taskFormState = useTaskFormState();
-  const {
-    editingTaskId,
-    editTaskTitle,
-    editTaskDueDate,
-    editTaskPriority,
-    editTaskMemo,
-    editTaskProjectId,
-    newTaskTitle,
-    newTaskDueDate,
-    newTaskPriority,
-    newTaskProjectId,
-    newTaskMemo,
-    isTaskFormOpen,
-    setEditTaskTitle,
-    setEditTaskDueDate,
-    setEditTaskPriority,
-    setEditTaskMemo,
-    setEditTaskProjectId,
-    setNewTaskTitle,
-    setNewTaskDueDate,
-    setNewTaskPriority,
-    setNewTaskProjectId,
-    setNewTaskMemo,
-    setIsTaskFormOpen,
-    resetNewTaskForm,
-    resetEditTaskForm,
-    startEditTask,
-  } = taskFormState;
-  const { handleAddTask, handleSaveEditTask, handleToggleTaskDone, handleDeleteTask } = useTaskActio
-ns({
-    addTask,
-    updateTask,
-    deleteTask,
-    newTaskTitle,
-    newTaskDueDate,
-    newTaskPriority,
-    newTaskProjectId,
-    newTaskMemo,
-    editTaskTitle,
-    editTaskDueDate,
-    editTaskPriority,
-    editTaskMemo,
-    editTaskProjectId,
-    resetNewTaskForm,
-    resetEditTaskForm,
-  });
-  const projectFormState = useProjectFormState();
-  const {
-    editingProjectId,
-    editProjectName,
-    editProjectDescription,
-    newProjectName,
-    newProjectDescription,
-    setEditProjectName,
-    setEditProjectDescription,
-    setNewProjectName,
-    setNewProjectDescription,
-    resetNewProjectForm,
-    resetEditProjectForm,
-    startEditProject,
-  } = projectFormState;
-  const { handleAddProject, handleSaveEditProject, handleDeleteProject } = useProjectActions({
-    addProject,
-    updateProject,
-    deleteProject,
-    projects,
-    tasks,
-    newProjectName,
-    newProjectDescription,
-    editProjectName,
-    editProjectDescription,
-    resetNewProjectForm,
-    resetEditProjectForm,
-  });
-
-  const today = startOfToday();
-
-  const overdueTasks = getOverdueTasks(tasks, today);
-  const upcomingTasks = getUpcomingTasks(tasks, today, 7);
-  const taskSummary = getTaskSummary(tasks);
-
-  const filteredTasks = filterTasks(tasks, {
-    selectedProjectFilter,
-    showCompletedTasks,
-    taskSearchQuery,
-    projects,
-  });
-
-  const sortedTasks = sortTasks(filteredTasks, taskSortOrder);
-
-  const aiProvider = useMemo(() => new RuleBasedAIProvider(), []);
-
-  useEffect(() => {
-    void initializeApp();
-  }, [initializeApp]);
-
-  useEffect(() => {
-    void aiProvider.suggestTodayTasks(tasks, 3).then(setRecommendedTasks);
-  }, [aiProvider, tasks]);
-
-  return (
-    <div className="app-shell">
-      <header className="app-header">
-        <p className="eyebrow">Privacy-first local planner</p>
-        <h1>PlanPilot Local</h1>
-        <p>?쒕쾭 ?놁씠 濡쒖뺄????λ릺??媛쒖씤 ?쇱젙쨌?낅Т 愿由???/p>
-      </header>
-
-      <main className="app-main">
-{activeTab === "today" && (
-  <TodayView
-    totalTasks={taskSummary.totalTasks}
-    completedTasks={taskSummary.completedTasks}
-    recommendedTasks={recommendedTasks}
-    overdueTasks={overdueTasks}
-    upcomingTasks={upcomingTasks}
-    getProjectName={(projectId) => getProjectName(projects, projectId)}
-  />
-)}
-
-        {activeTab === "tasks" && (
-          <TasksView
-            projects={projects}
-            filteredTasks={filteredTasks}
-            sortedTasks={sortedTasks}
-            selectedProjectFilter={selectedProjectFilter}
-            showCompletedTasks={showCompletedTasks}
-            taskSortOrder={taskSortOrder}
-            taskSearchQuery={taskSearchQuery}
-            isTaskFormOpen={isTaskFormOpen}
-            newTaskTitle={newTaskTitle}
-            newTaskMemo={newTaskMemo}
-            newTaskDueDate={newTaskDueDate}
-            newTaskPriority={newTaskPriority}
-            newTaskProjectId={newTaskProjectId}
-            editingTaskId={editingTaskId}
-            editTaskTitle={editTaskTitle}
-            editTaskMemo={editTaskMemo}
-            editTaskDueDate={editTaskDueDate}
-            editTaskPriority={editTaskPriority}
-            editTaskProjectId={editTaskProjectId}
-            getProjectName={(projectId) => getProjectName(projects, projectId)}
-            onTaskSearchQueryChange={setTaskSearchQuery}
-            onShowCompletedTasksChange={setShowCompletedTasks}
-            onTaskSortOrderChange={setTaskSortOrder}
-            onSelectedProjectFilterChange={setSelectedProjectFilter}
-            onTaskFormOpenChange={setIsTaskFormOpen}
-            onNewTaskTitleChange={setNewTaskTitle}
-            onNewTaskMemoChange={setNewTaskMemo}
-            onNewTaskDueDateChange={setNewTaskDueDate}
-            onNewTaskPriorityChange={setNewTaskPriority}
-            onNewTaskProjectIdChange={setNewTaskProjectId}
-            onEditTaskTitleChange={setEditTaskTitle}
-            onEditTaskMemoChange={setEditTaskMemo}
-            onEditTaskDueDateChange={setEditTaskDueDate}
-            onEditTaskPriorityChange={setEditTaskPriority}
-            onEditTaskProjectIdChange={setEditTaskProjectId}
-            onAddTask={handleAddTask}
-            onSaveEditTask={handleSaveEditTask}
-            onCancelEditTask={resetEditTaskForm}
-            onToggleTaskDone={handleToggleTaskDone}
-            onDeleteTask={handleDeleteTask}
-            onStartEditTask={startEditTask}
-          />
-        )}
-
-        {activeTab === "projects" && (
-          <ProjectsView
-            projects={projects}
-            tasks={tasks}
-            editingProjectId={editingProjectId}
-            editProjectName={editProjectName}
-            editProjectDescription={editProjectDescription}
-            newProjectName={newProjectName}
-            newProjectDescription={newProjectDescription}
-            onNewProjectNameChange={setNewProjectName}
-            onNewProjectDescriptionChange={setNewProjectDescription}
-            onEditProjectNameChange={setEditProjectName}
-            onEditProjectDescriptionChange={setEditProjectDescription}
-            onAddProject={handleAddProject}
-            onSaveEditProject={handleSaveEditProject}
-            onCancelEditProject={resetEditProjectForm}
-            onDeleteProject={handleDeleteProject}
-            onStartEditProject={startEditProject}
-          />
-        )}
-
-        {activeTab === "settings" && (
-          <SettingsView
-            appSettings={appSettings}
-            tasks={tasks}
-            projects={projects}
-          />
-        )}
-      </main>
-
-      <nav className="bottom-nav" aria-label="?섎떒 硫붾돱">
-        <button
-          className={activeTab === "today" ? "active" : ""}
-          onClick={() => setActiveTab("today")}
-        >
-          ?ㅻ뒛
-        </button>
-        <button
-          className={activeTab === "tasks" ? "active" : ""}
-          onClick={() => setActiveTab("tasks")}
-        >
-          ?낅Т
-        </button>
-        <button
-
- succeeded in 1517ms:
-5:import { useTaskActions } from "./hooks/useTaskActions";
-6:import { useTaskFormState } from "./hooks/useTaskFormState";
-10:import { getOverdueTasks, getUpcomingTasks } from "./utils/taskDates";
-11:import { filterTasks, sortTasks, type TaskSortOrder } from "./utils/taskFilters";
-12:import { getTaskSummary } from "./utils/taskSummary";
-14:import { TasksView } from "./views/TasksView";
-17:import type { Task } from "./types";
-20:type Tab = "today" | "tasks" | "projects" | "settings";
-24:  const [recommendedTasks, setRecommendedTasks] = useState<Task[]>([]);
-26:  const [showCompletedTasks, setShowCompletedTasks] = useState(true);
-27:  const [taskSortOrder, setTaskSortOrder] = useState<TaskSortOrder>("none");
-28:  const [taskSearchQuery, setTaskSearchQuery] = useState("");
-30:  const { tasks, projects, appSettings, initializeApp, addTask, updateTask, deleteTask, deletePro
-ject, addProject, updateProject } = useStore();
-31:  const taskFormState = useTaskFormState();
-33:    editingTaskId,
-34:    editTaskTitle,
-35:    editTaskDueDate,
-36:    editTaskPriority,
-37:    editTaskMemo,
-38:    editTaskProjectId,
-39:    newTaskTitle,
-40:    newTaskDueDate,
-41:    newTaskPriority,
-42:    newTaskProjectId,
-43:    newTaskMemo,
-44:    isTaskFormOpen,
-45:    setEditTaskTitle,
-46:    setEditTaskDueDate,
-47:    setEditTaskPriority,
-48:    setEditTaskMemo,
-49:    setEditTaskProjectId,
-50:    setNewTaskTitle,
-51:    setNewTaskDueDate,
-52:    setNewTaskPriority,
-53:    setNewTaskProjectId,
-54:    setNewTaskMemo,
-55:    setIsTaskFormOpen,
-56:    resetNewTaskForm,
-57:    resetEditTaskForm,
-58:    startEditTask,
-59:  } = taskFormState;
-60:  const { handleAddTask, handleSaveEditTask, handleToggleTaskDone, handleDeleteTask } = useTaskAc
-tions({
-61:    addTask,
-62:    updateTask,
-63:    deleteTask,
-64:    newTaskTitle,
-65:    newTaskDueDate,
-66:    newTaskPriority,
-67:    newTaskProjectId,
-68:    newTaskMemo,
-69:    editTaskTitle,
-70:    editTaskDueDate,
-71:    editTaskPriority,
-72:    editTaskMemo,
-73:    editTaskProjectId,
-74:    resetNewTaskForm,
-75:    resetEditTaskForm,
-97:    tasks,
-108:  const overdueTasks = getOverdueTasks(tasks, today);
-109:  const upcomingTasks = getUpcomingTasks(tasks, today, 7);
-110:  const taskSummary = getTaskSummary(tasks);
-112:  const filteredTasks = filterTasks(tasks, {
-114:    showCompletedTasks,
-115:    taskSearchQuery,
-119:  const sortedTasks = sortTasks(filteredTasks, taskSortOrder);
-128:    void aiProvider.suggestTodayTasks(tasks, 3).then(setRecommendedTasks);
-129:  }, [aiProvider, tasks]);
-136:        <p>서버 없이 로컬에 저장되는 개인 일정·업무 관리 앱</p>
-142:    totalTasks={taskSummary.totalTasks}
-143:    completedTasks={taskSummary.completedTasks}
-144:    recommendedTasks={recommendedTasks}
-145:    overdueTasks={overdueTasks}
-146:    upcomingTasks={upcomingTasks}
-151:        {activeTab === "tasks" && (
-152:          <TasksView
-154:            filteredTasks={filteredTasks}
-155:            sortedTasks={sortedTasks}
-157:            showCompletedTasks={showCompletedTasks}
-158:            taskSortOrder={taskSortOrder}
-159:            taskSearchQuery={taskSearchQuery}
-160:            isTaskFormOpen={isTaskFormOpen}
-161:            newTaskTitle={newTaskTitle}
-162:            newTaskMemo={newTaskMemo}
-163:            newTaskDueDate={newTaskDueDate}
-164:            newTaskPriority={newTaskPriority}
-165:            newTaskProjectId={newTaskProjectId}
-166:            editingTaskId={editingTaskId}
-167:            editTaskTitle={editTaskTitle}
-168:            editTaskMemo={editTaskMemo}
-169:            editTaskDueDate={editTaskDueDate}
-170:            editTaskPriority={editTaskPriority}
-171:            editTaskProjectId={editTaskProjectId}
-173:            onTaskSearchQueryChange={setTaskSearchQuery}
-174:            onShowCompletedTasksChange={setShowCompletedTasks}
-175:            onTaskSortOrderChange={setTaskSortOrder}
-177:            onTaskFormOpenChange={setIsTaskFormOpen}
-178:            onNewTaskTitleChange={setNewTaskTitle}
-179:            onNewTaskMemoChange={setNewTaskMemo}
-180:            onNewTaskDueDateChange={setNewTaskDueDate}
-181:            onNewTaskPriorityChange={setNewTaskPriority}
-182:            onNewTaskProjectIdChange={setNewTaskProjectId}
-183:            onEditTaskTitleChange={setEditTaskTitle}
-184:            onEditTaskMemoChange={setEditTaskMemo}
-185:            onEditTaskDueDateChange={setEditTaskDueDate}
-186:            onEditTaskPriorityChange={setEditTaskPriority}
-187:            onEditTaskProjectIdChange={setEditTaskProjectId}
-188:            onAddTask={handleAddTask}
-189:            onSaveEditTask={handleSaveEditTask}
-190:            onCancelEditTask={resetEditTaskForm}
-191:            onToggleTaskDone={handleToggleTaskDone}
-192:            onDeleteTask={handleDeleteTask}
-193:            onStartEditTask={startEditTask}
-200:            tasks={tasks}
-221:            tasks={tasks}
-227:      <nav className="bottom-nav" aria-label="하단 메뉴">
-235:          className={activeTab === "tasks" ? "active" : ""}
-236:          onClick={() => setActiveTab("tasks")}
-238:          업무
-
-exec
-"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralPath 
-'D:\\ai-apps\\planpilot-local\\src\\App.tsx' | Select-Object -Skip 240 -First 120" in D:\ai-apps\pla
-npilot-local
- succeeded in 977ms:
-          className={activeTab === "projects" ? "active" : ""}
-          onClick={() => setActiveTab("projects")}
-        >
-          ?꾨줈?앺듃
-        </button>
-        <button
-          className={activeTab === "settings" ? "active" : ""}
-          onClick={() => setActiveTab("settings")}
-        >
-          ?ㅼ젙
-        </button>
-      </nav>
-    </div>
-  );
-}
-
-export default App;
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'rg --files .ai-dev' in D:
+\ai-apps\planpilot-local
+ succeeded in 1159ms:
+.ai-dev\test-result.md
+.ai-dev\state.json
+.ai-dev\state.example.json
+.ai-dev\review.md
+.ai-dev\review-response.json
+.ai-dev\review-prompt.md
+.ai-dev\README.md
+.ai-dev\queue.json
+.ai-dev\queue.example.json
+.ai-dev\plan.md
+.ai-dev\loop-log.md
+.ai-dev\goal.md
+.ai-dev\extra-instructions.example.md
+.ai-dev\diff.md
+.ai-dev\current-task-prompt.md
+.ai-dev\codex-review-result.md
+.ai-dev\codex-result.md
+.ai-dev\backlog.md
+.ai-dev\auto-goal-planning-prompt.md
 
 codex
-`App.tsx`는 업무 화면에 props를 전달할 뿐이고, 실제 업무 카드 문구는 분리된 `TasksView`에 있을 가능성이 큽니다. 문구만 최소 수정하려면 실제 렌더링 파일을
- 확인해야 해서 `src/views/TasksView.tsx`를 읽겠습니다.
+`.ai-dev` 최상위에는 스크립트 파일이 바로 보이지 않아 숨김/하위 폴더 구조까지 확인하겠습니다. 이 단계는 수정 대상 후보를 좁히기 위한 읽기 작업입니다.
 exec
-"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'rg -n "aria-label|업무|카드|완
-료|삭제|수정|메모|마감|없습니다|task" src/views/TasksView.tsx' in D:\ai-apps\planpilot-local
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-ChildItem -LiteralPat
+h '.ai-dev' -Force" in D:\ai-apps\planpilot-local
+ succeeded in 992ms:
+
+
+    디렉터리: D:\ai-apps\planpilot-local\.ai-dev
+
+
+Mode                 LastWriteTime         Length Name                                              
+                   
+----                 -------------         ------ ----                                              
+                   
+-a----        2026-06-14  오후 11:31           2667 auto-goal-planning-prompt.md                      
+                   
+-a----        2026-06-07   오후 8:00           1682 backlog.md                                        
+                   
+-a----        2026-06-14  오후 11:32          11543 codex-result.md                                   
+                   
+-a----        2026-06-14  오후 11:28          11138 codex-review-result.md                            
+                   
+-a----        2026-06-14  오후 11:32           4494 current-task-prompt.md                            
+                   
+-a----        2026-06-14  오후 11:27           2665 diff.md                                           
+                   
+-a----        2026-06-04  오전 12:01            307 extra-instructions.example.md                     
+                   
+-a----        2026-06-14  오후 11:32           2037 goal.md                                           
+                   
+-a----        2026-06-14  오후 11:28          12192 loop-log.md                                       
+                   
+-a----        2026-06-07  오후 10:10           6979 plan.md                                           
+                   
+-a----        2026-06-03   오후 4:30           4068 queue.example.json                                
+                   
+-a----        2026-06-14  오후 11:32           1869 queue.json                                        
+                   
+-a----        2026-06-09  오후 10:15          45601 README.md                                         
+                   
+-a----        2026-06-14  오후 11:27           8269 review-prompt.md                                  
+                   
+-a----        2026-06-14  오후 11:28            954 review-response.json                              
+                   
+-a----        2026-06-14  오후 11:28           1305 review.md                                         
+                   
+-a----        2026-06-03   오후 4:30            395 state.example.json                                
+                   
+-a----        2026-06-14  오후 11:32            487 state.json                                        
+                   
+-a----        2026-06-14  오후 11:27            971 test-result.md                                    
+                   
+
+
+
+codex
+운영 파일만 있는 디렉터리라서 자동 실행 스크립트가 다른 위치에 있을 가능성이 큽니다. 저장소 전체에서 `auto-goal`과 `auto-cycle-full` 참조를 검색해 실제 
+진입점을 찾겠습니다.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "rg \"auto-goal|auto-cycle
+-full\" -n --glob '"'!node_modules/**'"' --glob '"'!dist/**'"' --glob '"'!.git/**'"'" in D:\ai-apps\
+planpilot-local
+ exited 1 in 1112ms:
+2026-06-14T14:33:02.910998Z ERROR codex_core::tools::router: error=Exit code: 1
+Wall time: 1.1 seconds
+Output:
+
+codex
+검색 결과가 없어 루프 구현이 저장소 파일이 아니라 상위/인접 자동화 파일에 있을 수 있습니다. 현재 작업 경로의 최상위 파일과 폴더만 확인해 위치를 좁히겠습니다.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-ChildItem -LiteralPat
+h '.' -Force" in D:\ai-apps\planpilot-local
+ succeeded in 990ms:
+
+
+    디렉터리: D:\ai-apps\planpilot-local
+
+
+Mode                 LastWriteTime         Length Name                                              
+                   
+----                 -------------         ------ ----                                              
+                   
+d-----        2026-06-14  오후 11:31                .ai-dev                                           
+                   
+d-----        2026-05-24  오후 12:59                .antigravitycli                                   
+                   
+d-----        2026-05-10   오후 8:10                .clinerules                                       
+                   
+d--h--        2026-06-14  오후 11:32                .git                                              
+                   
+d-----        2026-05-24   오후 1:54                automation-logs                                   
+                   
+d-----        2026-06-14  오후 11:27                dist                                              
+                   
+d-----        2026-06-03   오후 4:26                docs                                              
+                   
+d-----        2026-05-10   오후 7:48                memory-bank                                       
+                   
+d-----        2026-05-05  오후 10:58                node_modules                                      
+                   
+d-----        2026-05-05  오후 10:47                public                                            
+                   
+d-----        2026-06-14  오후 11:08                scripts                                           
+                   
+d-----        2026-06-10  오후 10:42                src                                               
+                   
+-a----        2026-05-17   오후 5:57            162 .clineignore                                      
+                   
+-a----        2026-05-10   오후 7:43           2287 .clinerules.backup.md                             
+                   
+-a----        2026-05-24   오후 1:09            332 .gitignore                                        
+                   
+-a----        2026-05-21  오후 10:51           6728 AGENTS.md                                         
+                   
+-a----        2026-05-24   오후 1:54           2336 automation-state.json                             
+                   
+-a----        2026-05-05  오후 10:41            591 eslint.config.js                                  
+                   
+-a----        2026-05-05  오후 10:47            367 index.html                                        
+                   
+-a----        2026-05-05  오후 10:58          96874 package-lock.json                                 
+                   
+-a----        2026-05-05  오후 10:58            766 package.json                                      
+                   
+-a----        2026-05-29   오후 2:49          10910 README.md                                         
+                   
+-a----        2026-05-29   오후 4:59         132878 ROADMAP.md                                        
+                   
+-a----        2026-05-05  오후 10:41            617 tsconfig.app.json                                 
+                   
+-a----        2026-05-05  오후 10:41            119 tsconfig.json                                     
+                   
+-a----        2026-05-05  오후 10:41            591 tsconfig.node.json                                
+                   
+-a----        2026-05-05  오후 10:41            161 vite.config.ts                                    
+                   
+
+
+
+codex
+`scripts` 폴더가 자동화 진입점일 가능성이 높습니다. 먼저 파일명만 확인하고, 관련 PowerShell 스크립트만 읽겠습니다.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'rg --files scripts' in D:
+\ai-apps\planpilot-local
+ succeeded in 1144ms:
+scripts\ai-dev-init.ps1
+scripts\monitor-and-dev-loop.ps1
+scripts\ai-dev-env.ps1
+scripts\ai-dev-current-task.ps1
+scripts\ai-dev-copy-review-prompt.ps1
+scripts\ai-dev-complete-task.ps1
+scripts\ai-dev-commit.ps1
+scripts\ai-dev-check.ps1
+scripts\ai-dev-auto-step.ps1
+scripts\ai-dev-auto-goal.ps1
+scripts\ai-dev-auto-cycle.ps1
+scripts\ai-dev-run-codex.ps1
+scripts\ai-dev-auto-cycle-full.ps1
+scripts\ai-dev-next.ps1
+scripts\ai-dev-manual-cycle.ps1
+scripts\ai-dev-make-revise-prompt.ps1
+scripts\ai-dev-make-prompt.ps1
+scripts\ai-dev-make-review-prompt.ps1
+scripts\ai-dev-save-diff.ps1
+scripts\ai-dev-run-review-codex.ps1
+scripts\ai-dev-save-review.ps1
+scripts\ai-dev-status.ps1
+
+codex
+관련 후보는 `ai-dev-auto-goal.ps1`, `ai-dev-auto-cycle-full.ps1`, 메타 커밋을 담당할 수 있는 `ai-dev-commit.ps1`입니다.
+ 이 세 파일을 먼저 비교해 종료 흐름과 커밋 흐름의 경계를 확인하겠습니다.
 exec
 "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralPath 
-'D:\\ai-apps\\planpilot-local\\src\\views\\TasksView.tsx' -TotalCount 260" in D:\ai-apps\planpilot-l
-ocal
- succeeded in 1315ms:
-import type { FormEvent } from "react";
-import { TaskCard } from "../components/TaskCard";
-import { TaskForm } from "../components/TaskForm";
-import type { Project, Task } from "../types";
-import type { TaskSortOrder } from "../utils/taskFilters";
+'scripts\\ai-dev-auto-goal.ps1'" in D:\ai-apps\planpilot-local
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralPath 
+'scripts\\ai-dev-auto-cycle-full.ps1'" in D:\ai-apps\planpilot-local
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralPath 
+'scripts\\ai-dev-commit.ps1'" in D:\ai-apps\planpilot-local
+ succeeded in 1592ms:
+param(
+    [AllowEmptyString()]
+    [string]$GoalTitle,
+    [AllowEmptyString()]
+    [string]$GoalDescription,
+    [int]$MaxTasks = 1,
+    [int]$MaxSteps = 20,
+    [switch]$DryRun,
+    [switch]$Json,
+    [switch]$AllowRun,
+    [switch]$AllowCodex,
+    [switch]$AllowReviewCodex,
+    [switch]$AllowCommit,
+    [switch]$AllowDirty,
+    [string[]]$CommitFiles,
+    [string]$ResultPath = ".ai-dev/codex-result.md"
+)
 
-type TasksViewProps = {
-  projects: Project[];
-  filteredTasks: Task[];
-  sortedTasks: Task[];
-  selectedProjectFilter: string;
-  showCompletedTasks: boolean;
-  taskSortOrder: TaskSortOrder;
-  taskSearchQuery: string;
-  isTaskFormOpen: boolean;
-  newTaskTitle: string;
-  newTaskMemo: string;
-  newTaskDueDate: string;
-  newTaskPriority: Task["priority"];
-  newTaskProjectId: string;
-  editingTaskId: string | null;
-  editTaskTitle: string;
-  editTaskMemo: string;
-  editTaskDueDate: string;
-  editTaskPriority: Task["priority"];
-  editTaskProjectId: string;
-  getProjectName: (projectId: string) => string;
-  onTaskSearchQueryChange: (value: string) => void;
-  onShowCompletedTasksChange: (value: boolean) => void;
-  onTaskSortOrderChange: (value: TaskSortOrder) => void;
-  onSelectedProjectFilterChange: (value: string) => void;
-  onTaskFormOpenChange: (updater: (current: boolean) => boolean) => void;
-  onNewTaskTitleChange: (value: string) => void;
-  onNewTaskMemoChange: (value: string) => void;
-  onNewTaskDueDateChange: (value: string) => void;
-  onNewTaskPriorityChange: (value: Task["priority"]) => void;
-  onNewTaskProjectIdChange: (value: string) => void;
-  onEditTaskTitleChange: (value: string) => void;
-  onEditTaskMemoChange: (value: string) => void;
-  onEditTaskDueDateChange: (value: string) => void;
-  onEditTaskPriorityChange: (value: Task["priority"]) => void;
-  onEditTaskProjectIdChange: (value: string) => void;
-  onAddTask: (event: FormEvent<HTMLFormElement>) => void;
-  onSaveEditTask: (task: Task) => void;
-  onCancelEditTask: () => void;
-  onToggleTaskDone: (task: Task) => void;
-  onDeleteTask: (task: Task) => void;
-  onStartEditTask: (task: Task) => void;
-};
+. "$PSScriptRoot\ai-dev-env.ps1"
 
-export function TasksView({
-  projects,
-  filteredTasks,
-  sortedTasks,
-  selectedProjectFilter,
-  showCompletedTasks,
-  taskSortOrder,
-  taskSearchQuery,
-  isTaskFormOpen,
-  newTaskTitle,
-  newTaskMemo,
-  newTaskDueDate,
-  newTaskPriority,
-  newTaskProjectId,
-  editingTaskId,
-  editTaskTitle,
-  editTaskMemo,
-  editTaskDueDate,
-  editTaskPriority,
-  editTaskProjectId,
-  getProjectName,
-  onTaskSearchQueryChange,
-  onShowCompletedTasksChange,
-  onTaskSortOrderChange,
-  onSelectedProjectFilterChange,
-  onTaskFormOpenChange,
-  onNewTaskTitleChange,
-  onNewTaskMemoChange,
-  onNewTaskDueDateChange,
-  onNewTaskPriorityChange,
-  onNewTaskProjectIdChange,
-  onEditTaskTitleChange,
-  onEditTaskMemoChange,
-  onEditTaskDueDateChange,
-  onEditTaskPriorityChange,
-  onEditTaskProjectIdChange,
-  onAddTask,
-  onSaveEditTask,
-  onCancelEditTask,
-  onToggleTaskDone,
-  onDeleteTask,
-  onStartEditTask,
-}: TasksViewProps) {
-  const hasSearchQuery = taskSearchQuery.trim().length > 0;
-  const hasProjectFilter = selectedProjectFilter !== "all";
-  const hasVisibilityFilter = !showCompletedTasks;
-  const emptyMessage =
-    hasSearchQuery
-      ? "寃?됱뼱? ?쇱튂?섎뒗 ?낅Т媛 ?놁뼱??"
-      : hasProjectFilter || hasVisibilityFilter
-        ? "?꾩옱 議곌굔??留욌뒗 ?낅Т媛 ?놁뼱??"
-        : "?꾩쭅 ?깅줉???낅Т媛 ?놁뼱??";
+$repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
+$utf8WithBom = New-Object System.Text.UTF8Encoding($true)
+$codeFence = '```'
+$goalRelativePath = ".ai-dev/goal.md"
+$queueRelativePath = ".ai-dev/queue.json"
+$stateRelativePath = ".ai-dev/state.json"
+$promptRelativePath = ".ai-dev/current-task-prompt.md"
+$planningPromptRelativePath = ".ai-dev/auto-goal-planning-prompt.md"
+$legacyAutoGoalResultRelativePath = ".ai-dev/auto-goal-codex-result.md"
 
-  return (
-    <section className="screen-card">
-      <h2>?꾩껜 ?낅Т</h2>
-      <p className="summary">珥?{filteredTasks.length}媛?/p>
+function Resolve-RepoPath {
+    param([string]$Path)
 
-      <label>
-        ?낅Т 寃??        <input
-          type="text"
-          value={taskSearchQuery}
-          onChange={(event) => onTaskSearchQueryChange(event.target.value)}
-          placeholder="?낅Т ?쒕ぉ ?먮뒗 硫붾え ?댁슜??寃?됲븯?몄슂"
-        />
-      </label>
+    if ([System.IO.Path]::IsPathRooted($Path)) {
+        return $Path
+    }
 
-      <label>
-        <input
-          type="checkbox"
-          checked={showCompletedTasks}
-          onChange={(event) => onShowCompletedTasksChange(event.target.checked)}
-        />
-        ?꾨즺 ?낅Т ?쒖떆
-      </label>
+    return Join-Path $repoRoot $Path
+}
 
-      <label>
-        ?뺣젹
-        <select
-          value={taskSortOrder}
-          onChange={(event) =>
-            onTaskSortOrderChange(event.target.value as TaskSortOrder)
-          }
-        >
-          <option value="none">湲곕낯 ?쒖꽌</option>
-          <option value="dueDateAsc">留덇컧??鍮좊Ⅸ ??/option>
-        </select>
-      </label>
+function ConvertTo-RepoRelativePath {
+    param([string]$Path)
 
-      <label>
-        ?꾨줈?앺듃 ?꾪꽣
-        <select
-          value={selectedProjectFilter}
-          onChange={(event) => onSelectedProjectFilterChange(event.target.value)}
-        >
-          <option value="all">?꾩껜 ?꾨줈?앺듃</option>
-          {projects.map((project) => (
-            <option key={project.id} value={project.id}>
-              {project.name}
-            </option>
-          ))}
-        </select>
-      </label>
+    $fullPath = [System.IO.Path]::GetFullPath((Resolve-RepoPath $Path))
+    $rootWithSeparator = $repoRoot.TrimEnd("\") + "\"
 
-      <button
-        type="button"
-        onClick={() => onTaskFormOpenChange((current) => !current)}
-      >
-        {isTaskFormOpen ? "???낅Т 異붽? ?リ린" : "???낅Т 異붽?"}
-      </button>
+    if ($fullPath.StartsWith($rootWithSeparator, [System.StringComparison]::OrdinalIgnoreCase)) {
+        return $fullPath.Substring($rootWithSeparator.Length).Replace("\", "/")
+    }
 
-      {isTaskFormOpen && (
-        <TaskForm
-          title="???낅Т 異붽?"
-          ariaLabel="?낅Т 異붽?"
-          taskTitle={newTaskTitle}
-          memo={newTaskMemo}
-          dueDate={newTaskDueDate}
-          priority={newTaskPriority}
-          projectId={newTaskProjectId}
-          projects={projects}
-          submitLabel="?낅Т 異붽?"
-          onTitleChange={onNewTaskTitleChange}
-          onMemoChange={onNewTaskMemoChange}
-          onDueDateChange={onNewTaskDueDateChange}
-          onPriorityChange={onNewTaskPriorityChange}
-          onProjectIdChange={onNewTaskProjectIdChange}
-          onSubmit={onAddTask}
-        />
-      )}
+    return $fullPath.Replace("\", "/")
+}
 
-      {filteredTasks.length === 0 ? (
-        <div className="empty">
-          <p>{emptyMessage}</p>
-          {hasSearchQuery && <p>?ㅻⅨ 寃?됱뼱瑜??낅젰?대낫?몄슂.</p>}
-        </div>
-      ) : (
-        <ul className="task-list">
-          {sortedTasks.map((task) => {
-            if (editingTaskId === task.id) {
-              return (
-                <li key={task.id} className="task-card">
-                  <TaskForm
-                    title="?낅Т ?섏젙"
-                    ariaLabel="?낅Т ?섏젙"
-                    taskTitle={editTaskTitle}
-                    memo={editTaskMemo}
-                    dueDate={editTaskDueDate}
-                    priority={editTaskPriority}
-                    projectId={editTaskProjectId}
-                    projects={projects}
-                    submitLabel="???
-                    onTitleChange={onEditTaskTitleChange}
-                    onMemoChange={onEditTaskMemoChange}
-                    onDueDateChange={onEditTaskDueDateChange}
-                    onPriorityChange={onEditTaskPriorityChange}
-                    onProjectIdChange={onEditTaskProjectIdChange}
-                    onSubmit={(event) => {
-                      event.preventDefault();
-                      onSaveEditTask(task);
-                    }}
-                    onCancel={onCancelEditTask}
-                    className=""
-                  />
-                </li>
-              );
+function Test-HasValue {
+    param([object]$Value)
+
+    if ($null -eq $Value) {
+        return $false
+    }
+
+    if ($Value -is [string]) {
+        return -not [string]::IsNullOrWhiteSpace($Value)
+    }
+
+    return $true
+}
+
+function New-StepResult {
+    param(
+        [int]$Step,
+        [string]$Name,
+        [string]$Command,
+        [bool]$Executed,
+        [bool]$Skipped,
+        [int]$ExitCode,
+        [string]$Message
+    )
+
+    return [PSCustomObject][ordered]@{
+        step = $Step
+        name = $Name
+        command = $Command
+        executed = $Executed
+        skipped = $Skipped
+        exitCode = $ExitCode
+        message = $Message
+    }
+}
+
+function New-AutoGoalResult {
+    param(
+        [object[]]$Steps,
+        [string]$StoppedReason,
+        [bool]$Completed,
+        [int]$ExitCode
+    )
+
+    return [PSCustomObject][ordered]@{
+        steps = @($Steps)
+        stoppedReason = $StoppedReason
+        completed = $Completed
+        exitCode = $ExitCode
+        plan = $script:autoGoalPlanPreview
+        goalPath = $goalRelativePath
+        queuePath = $queueRelativePath
+        statePath = $stateRelativePath
+        promptPath = $promptRelativePath
+        resultPath = (ConvertTo-RepoRelativePath $ResultPath)
+    }
+}
+
+function Write-AutoGoalResult {
+    param([object]$Result)
+
+    if ($Json) {
+        $Result | ConvertTo-Json -Depth 30
+        return
+    }
+
+    foreach ($step in @($Result.steps)) {
+        Write-Host "Step $($step.step): $($step.name)"
+        Write-Host "  Command: $($step.command)"
+        Write-Host "  Executed: $($step.executed)"
+        Write-Host "  Skipped: $($step.skipped)"
+        Write-Host "  Exit code: $($step.exitCode)"
+        Write-Host "  Message: $($step.message)"
+    }
+
+    if ($null -ne $Result.plan) {
+        Write-Host "Plan preview:"
+        Write-Host "  Goal title: $($Result.plan.queue.goalTitle)"
+        Write-Host "  Current task id: $($Result.plan.queue.currentTaskId)"
+
+        foreach ($task in @($Result.plan.queue.tasks)) {
+            Write-Host "  Task $($task.id): $($task.title)"
+            Write-Host "    Type: $($task.type)"
+            Write-Host "    Status: $($task.status)"
+            Write-Host "    Priority: $($task.priority)"
+            Write-Host "    Likely files: $((@($task.filesLikelyToChange) -join ', '))"
+            Write-Host "    Verification: $((@($task.verification) -join ' / '))"
+        }
+    }
+
+    Write-Host "Stopped reason: $($Result.stoppedReason)"
+    Write-Host "Completed: $($Result.completed)"
+    Write-Host "Exit code: $($Result.exitCode)"
+}
+
+function Clear-AutoGoalTempArtifacts {
+    $currentResultPath = [System.IO.Path]::GetFullPath((Resolve-RepoPath $ResultPath))
+
+    foreach ($relativePath in @($planningPromptRelativePath, $legacyAutoGoalResultRelativePath)) {
+        $fullPath = [System.IO.Path]::GetFullPath((Resolve-RepoPath $relativePath))
+
+        if (-not $fullPath.StartsWith($repoRoot.TrimEnd("\") + "\", [System.StringComparison]::Ordin
+alIgnoreCase)) {
+            continue
+        }
+
+        if ($fullPath.Equals($currentResultPath, [System.StringComparison]::OrdinalIgnoreCase)) {
+            continue
+        }
+
+        try {
+            if ([System.IO.File]::Exists($fullPath)) {
+                [System.IO.File]::Delete($fullPath)
+            }
+        } catch {
+            Write-Warning "Failed to clean auto-goal temp artifact: $relativePath"
+        }
+    }
+}
+
+function Stop-AutoGoal {
+    param(
+        [object[]]$Steps,
+        [string]$StoppedReason,
+        [bool]$Completed,
+        [int]$ExitCode
+    )
+
+    Clear-AutoGoalTempArtifacts
+    Write-AutoGoalResult (New-AutoGoalResult $Steps $StoppedReason $Completed $ExitCode)
+    exit $ExitCode
+}
+
+function Get-InputPreview {
+    param([string]$RawInput)
+
+    if ($null -eq $RawInput) {
+        return "<null>"
+    }
+
+    $normalized = $RawInput.Replace("`r", " ").Replace("`n", " ").Trim()
+
+    if ($normalized.Length -eq 0) {
+        return "<empty>"
+    }
+
+    if ($normalized.Length -le 500) {
+        return $normalized
+    }
+
+    return $normalized.Substring(0, 500)
+}
+
+function Get-GitStatusLines {
+    $statusOutput = & git status --short 2>&1
+
+    if ($LASTEXITCODE -ne 0) {
+        $script:steps += New-StepResult 2 "dirty-worktree-gate" "git status --short" $false $false 1
+ "git status failed: $($statusOutput -join "`n")"
+        Stop-AutoGoal $script:steps "git_status_failed" $false 1
+    }
+
+    return @($statusOutput | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+}
+
+function Get-JsonObjectCandidates {
+    param([string]$RawInput)
+
+    $candidates = @()
+    $seen = @{}
+
+    for ($start = 0; $start -lt $RawInput.Length; $start++) {
+        if ($RawInput[$start] -ne "{") {
+            continue
+        }
+
+        $depth = 0
+        $inString = $false
+        $escaped = $false
+
+        for ($index = $start; $index -lt $RawInput.Length; $index++) {
+            $char = $RawInput[$index]
+
+            if ($escaped) {
+                $escaped = $false
+                continue
             }
 
-            return (
-              <TaskCard
-                key={task.id}
-                task={task}
-                projectName={getProjectName(task.projectId)}
-                onToggleDone={onToggleTaskDone}
-                onDelete={onDeleteTask}
-                onStartEdit={onStartEditTask}
-              />
-            );
-          })}
-        </ul>
-      )}
-    </section>
-  );
-}
+            if ($char -eq "\") {
+                $escaped = $true
+                continue
+            }
 
- succeeded in 1497ms:
-5:import type { TaskSortOrder } from "../utils/taskFilters";
-13:  taskSortOrder: TaskSortOrder;
-14:  taskSearchQuery: string;
-44:  onSaveEditTask: (task: Task) => void;
-46:  onToggleTaskDone: (task: Task) => void;
-47:  onDeleteTask: (task: Task) => void;
-48:  onStartEditTask: (task: Task) => void;
-57:  taskSortOrder,
-58:  taskSearchQuery,
-94:  const hasSearchQuery = taskSearchQuery.trim().length > 0;
-99:      ? "검색어와 일치하는 업무가 없어요."
-101:        ? "현재 조건에 맞는 업무가 없어요."
-102:        : "아직 등록된 업무가 없어요.";
-106:      <h2>전체 업무</h2>
-110:        업무 검색
-113:          value={taskSearchQuery}
-115:          placeholder="업무 제목 또는 메모 내용을 검색하세요"
-125:        완료 업무 표시
-131:          value={taskSortOrder}
-137:          <option value="dueDateAsc">마감일 빠른 순</option>
-160:        {isTaskFormOpen ? "새 업무 추가 닫기" : "새 업무 추가"}
-165:          title="새 업무 추가"
-166:          ariaLabel="업무 추가"
-167:          taskTitle={newTaskTitle}
-173:          submitLabel="업무 추가"
-189:        <ul className="task-list">
-190:          {sortedTasks.map((task) => {
-191:            if (editingTaskId === task.id) {
-193:                <li key={task.id} className="task-card">
-195:                    title="업무 수정"
-196:                    ariaLabel="업무 수정"
-197:                    taskTitle={editTaskTitle}
-211:                      onSaveEditTask(task);
-222:                key={task.id}
-223:                task={task}
-224:                projectName={getProjectName(task.projectId)}
+            if ($char -eq '"') {
+                $inString = -not $inString
+                continue
+            }
 
-codex
-`TasksView`는 업무 목록의 빈 상태와 폼 문구를 포함하고 있지만, 카드 자체의 버튼 `aria-label`은 `TaskCard` 컴포넌트에 있습니다. 업무 카드 범위를 정
-확히 잡기 위해 `src/components/TaskCard.tsx`만 추가로 확인하겠습니다.
-exec
-"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'rg -n "aria-label|완료|삭제|수
-정|메모|마감|프로젝트|없음|button|task" src/components/TaskCard.tsx' in D:\ai-apps\planpilot-local
-exec
-"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralPath 
-'D:\\ai-apps\\planpilot-local\\src\\components\\TaskCard.tsx'" in D:\ai-apps\planpilot-local
- succeeded in 1290ms:
-import { getPriorityLabel, getStatusLabel } from "../utils/taskLabels";
-import { isUpcomingTask } from "../utils/dateUtils";
-import type { Task } from "../types";
+            if ($inString) {
+                continue
+            }
 
-type TaskCardProps = {
-  task: Task;
-  projectName: string;
-  onToggleDone: (task: Task) => void;
-  onDelete: (task: Task) => void;
-  onStartEdit: (task: Task) => void;
-};
+            if ($char -eq "{") {
+                $depth++
+                continue
+            }
 
-export function TaskCard({
-  task,
-  projectName,
-  onToggleDone,
-  onDelete,
-  onStartEdit,
-}: TaskCardProps) {
-  const showDueSoonBadge = isUpcomingTask(task);
+            if ($char -eq "}") {
+                $depth--
 
-  return (
-    <li className="task-card">
-      <strong>{task.title}</strong>
-      {showDueSoonBadge && (
-        <span
-          aria-label="留덇컧?쇱씠 媛源뚯슫 ?낅Т"
-          style={{
-            alignSelf: "flex-start",
-            border: "1px solid #d97706",
-            borderRadius: "999px",
-            color: "#92400e",
-            fontSize: "0.78rem",
-            fontWeight: 700,
-            padding: "0.15rem 0.5rem",
-          }}
-        >
-          留덇컧 ?꾨컯
-        </span>
-      )}
-      {task.memo && <span>硫붾え: {task.memo}</span>}
-      <span>
-        以묒슂?? {getPriorityLabel(task.priority)} 쨌 ?곹깭: {getStatusLabel(task.status)} 쨌 ?꾨줈?앺듃: {proj
-ectName}
-      </span>
-      <span>{task.dueDate ? `留덇컧?? ${task.dueDate}` : "留덇컧???놁쓬"}</span>
-      <button
-        type="button"
-        aria-label={
-          task.status === "done"
-            ? `${task.title} ?낅Т ?꾨즺 痍⑥냼`
-            : `${task.title} ?낅Т ?꾨즺 泥섎━`
+                if ($depth -eq 0) {
+                    $candidateText = $RawInput.Substring($start, $index - $start + 1).Trim()
+
+                    if (-not $seen.ContainsKey($candidateText)) {
+                        $seen[$candidateText] = $true
+                        $candidates += [PSCustomObject]@{
+                            Start = $start
+                            Text = $candidateText
+                            HasPlanShape = ($candidateText -match '"goalMarkdown"\s*:' -and $candida
+teText -match '"queue"\s*:' -and $candidateText -match '"state"\s*:')
+                        }
+                    }
+
+                    break
+                }
+            }
         }
-        onClick={() => onToggleDone(task)}
-      >
-        {task.status === "done" ? "?꾨즺 痍⑥냼" : "?꾨즺 泥섎━"}
-      </button>
-      <button
-        type="button"
-        aria-label={`${task.title} ?낅Т ??젣`}
-        onClick={() => onDelete(task)}
-      >
-        ??젣
-      </button>
-      <button
-        type="button"
-        aria-label={`${task.title} ?낅Т ?섏젙`}
-        onClick={() => onStartEdit(task)}
-      >
-        ?섏젙
-      </button>
-    </li>
-  );
+    }
+
+    return @($candidates | Sort-Object -Property @{ Expression = "HasPlanShape"; Descending = $true 
+}, @{ Expression = "Start"; Descending = $true } | ForEach-Object { $_.Text })
 }
 
- succeeded in 1532ms:
-1:import { getPriorityLabel, getStatusLabel } from "../utils/taskLabels";
-6:  task: Task;
-8:  onToggleDone: (task: Task) => void;
-9:  onDelete: (task: Task) => void;
-10:  onStartEdit: (task: Task) => void;
-14:  task,
-20:  const showDueSoonBadge = isUpcomingTask(task);
-23:    <li className="task-card">
-24:      <strong>{task.title}</strong>
-27:          aria-label="마감일이 가까운 업무"
-38:          마감 임박
-41:      {task.memo && <span>메모: {task.memo}</span>}
-43:        중요도: {getPriorityLabel(task.priority)} · 상태: {getStatusLabel(task.status)} · 프로젝트: {proje
-ctName}
-45:      <span>{task.dueDate ? `마감일: ${task.dueDate}` : "마감일 없음"}</span>
-46:      <button
-47:        type="button"
-48:        aria-label={
-49:          task.status === "done"
-50:            ? `${task.title} 업무 완료 취소`
-51:            : `${task.title} 업무 완료 처리`
-53:        onClick={() => onToggleDone(task)}
-55:        {task.status === "done" ? "완료 취소" : "완료 처리"}
-56:      </button>
-57:      <button
-58:        type="button"
-59:        aria-label={`${task.title} 업무 삭제`}
-60:        onClick={() => onDelete(task)}
-62:        삭제
-63:      </button>
-64:      <button
-65:        type="button"
-66:        aria-label={`${task.title} 업무 수정`}
-67:        onClick={() => onStartEdit(task)}
-69:        수정
-70:      </button>
+function Get-MissingFields {
+    param(
+        [object]$InputObject,
+        [string[]]$RequiredFields
+    )
 
-codex
-실제 수정 대상은 `src/components/TaskCard.tsx`입니다. 기능 로직은 그대로 두고, 카드 배지와 버튼의 표시 문구 및 `aria-label`만 더 자연스럽게 
-조정하겠습니다.
-exec
-"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralPath 
-'D:\\ai-apps\\planpilot-local\\src\\components\\TaskCard.tsx' -Encoding UTF8" in D:\ai-apps\planpilo
-t-local
- succeeded in 960ms:
-import { getPriorityLabel, getStatusLabel } from "../utils/taskLabels";
-import { isUpcomingTask } from "../utils/dateUtils";
-import type { Task } from "../types";
+    $missingFields = @()
 
-type TaskCardProps = {
-  task: Task;
-  projectName: string;
-  onToggleDone: (task: Task) => void;
-  onDelete: (task: Task) => void;
-  onStartEdit: (task: Task) => void;
-};
-
-export function TaskCard({
-  task,
-  projectName,
-  onToggleDone,
-  onDelete,
-  onStartEdit,
-}: TaskCardProps) {
-  const showDueSoonBadge = isUpcomingTask(task);
-
-  return (
-    <li className="task-card">
-      <strong>{task.title}</strong>
-      {showDueSoonBadge && (
-        <span
-          aria-label="마감일이 가까운 업무"
-          style={{
-            alignSelf: "flex-start",
-            border: "1px solid #d97706",
-            borderRadius: "999px",
-            color: "#92400e",
-            fontSize: "0.78rem",
-            fontWeight: 700,
-            padding: "0.15rem 0.5rem",
-          }}
-        >
-          마감 임박
-        </span>
-      )}
-      {task.memo && <span>메모: {task.memo}</span>}
-      <span>
-        중요도: {getPriorityLabel(task.priority)} · 상태: {getStatusLabel(task.status)} · 프로젝트: {projectN
-ame}
-      </span>
-      <span>{task.dueDate ? `마감일: ${task.dueDate}` : "마감일 없음"}</span>
-      <button
-        type="button"
-        aria-label={
-          task.status === "done"
-            ? `${task.title} 업무 완료 취소`
-            : `${task.title} 업무 완료 처리`
+    foreach ($field in $RequiredFields) {
+        if (-not ($InputObject.PSObject.Properties.Name -contains $field)) {
+            $missingFields += $field
         }
-        onClick={() => onToggleDone(task)}
-      >
-        {task.status === "done" ? "완료 취소" : "완료 처리"}
-      </button>
-      <button
-        type="button"
-        aria-label={`${task.title} 업무 삭제`}
-        onClick={() => onDelete(task)}
-      >
-        삭제
-      </button>
-      <button
-        type="button"
-        aria-label={`${task.title} 업무 수정`}
-        onClick={() => onStartEdit(task)}
-      >
-        수정
-      </button>
-    </li>
-  );
+    }
+
+    return $missingFields
 }
 
+function Get-QueueValidationErrors {
+    param([object]$Queue)
+
+    $errors = @()
+    $requiredFields = @("goalTitle", "goalSource", "createdAt", "updatedAt", "currentTaskId", "tasks
+")
+
+    foreach ($field in @(Get-MissingFields $Queue $requiredFields)) {
+        $errors += "queue missing field: $field"
+    }
+
+    if ($errors.Count -gt 0) {
+        return $errors
+    }
+
+    if (-not (Test-HasValue $Queue.goalTitle)) {
+        $errors += "queue.goalTitle must not be empty."
+    }
+
+    if ($Queue.goalSource -ne $goalRelativePath) {
+        $errors += "queue.goalSource must be $goalRelativePath."
+    }
+
+    if ($Queue.tasks -isnot [System.Collections.IEnumerable] -or $Queue.tasks -is [string]) {
+        $errors += "queue.tasks must be an array."
+        return $errors
+    }
+
+    $tasks = @($Queue.tasks)
+
+    if ($tasks.Count -lt 1) {
+        $errors += "queue.tasks must contain at least one task."
+        return $errors
+    }
+
+    if ($tasks.Count -gt 3) {
+        $errors += "queue.tasks must contain no more than three tasks."
+    }
+
+    if ($Queue.currentTaskId -ne "T001") {
+        $errors += "queue.currentTaskId must be T001."
+    }
+
+    $taskIds = @()
+
+    foreach ($task in $tasks) {
+        $taskRequiredFields = @("id", "title", "description", "type", "status", "priority", "depends
+On", "filesLikelyToChange", "verification", "commitMessage")
+        $taskMissingFields = @(Get-MissingFields $task $taskRequiredFields)
+
+        foreach ($field in $taskMissingFields) {
+            $errors += "task missing field: $field"
+        }
+
+        if ($taskMissingFields.Count -gt 0) {
+            continue
+        }
+
+        if (-not (Test-HasValue $task.id)) {
+            $errors += "task.id must not be empty."
+        } else {
+            $taskIds += [string]$task.id
+        }
+
+        if (-not (Test-HasValue $task.title)) {
+            $errors += "task.title must not be empty."
+        }
+
+        if (-not (Test-HasValue $task.description)) {
+            $errors += "task.description must not be empty."
+        }
+
+        if (@("analysis", "implementation", "documentation", "verification") -notcontains $task.type
+) {
+            $errors += "invalid task.type: $($task.type)"
+        }
+
+        if (@("pending", "in_progress", "done", "blocked") -notcontains $task.status) {
+            $errors += "invalid task.status: $($task.status)"
+        }
+
+        if (@("P0", "P1", "P2") -notcontains $task.priority) {
+            $errors += "invalid task.priority: $($task.priority)"
+        }
+
+        if ($task.dependsOn -isnot [System.Collections.IEnumerable] -or $task.dependsOn -is [string]
+) {
+            $errors += "task.dependsOn must be an array: $($task.id)"
+        }
+
+        if ($task.filesLikelyToChange -isnot [System.Collections.IEnumerable] -or $task.filesLikelyT
+oChange -is [string]) {
+            $errors += "task.filesLikelyToChange must be an array: $($task.id)"
+        }
+
+        if ($task.verification -isnot [System.Collections.IEnumerable] -or $task.verification -is [s
+tring]) {
+            $errors += "task.verification must be an array: $($task.id)"
+        }
+    }
+
+    if ((@($tasks | Where-Object { $_.status -eq "in_progress" })).Count -ne 1) {
+        $errors += "queue.tasks must contain exactly one in_progress task."
+    }
+
+    if (-not (Test-HasValue $Queue.currentTaskId)) {
+        $errors += "queue.currentTaskId must not be empty."
+    } elseif ($taskIds -notcontains [string]$Queue.currentTaskId) {
+        $errors += "queue.currentTaskId does not match a task: $($Queue.currentTaskId)"
+    }
+
+    $firstTask = $tasks | Where-Object { $_.id -eq "T001" } | Select-Object -First 1
+    if ($null -eq $firstTask) {
+        $errors += "queue.tasks must include T001."
+    } elseif ($firstTask.status -ne "in_progress") {
+        $errors += "T001 must be in_progress."
+    }
+
+    foreach ($laterTask in @($tasks | Where-Object { $_.id -ne "T001" })) {
+        if ($laterTask.status -ne "pending") {
+            $errors += "later tasks must be pending: $($laterTask.id)"
+        }
+    }
+
+    return $errors
+}
+
+function Get-StateValidationErrors {
+    param(
+        [object]$State,
+        [object]$Queue
+    )
+
+    $errors = @()
+    $requiredFields = @("goalStatus", "currentTaskId", "currentLoop", "maxLoopsPerTask", "repeatedFa
+ilureCount", "lastCommand", "lastCommandStatus", "lastErrorSummary", "lastReviewDecision", "lastRevi
+ewSeverity", "lastCommitHash", "startedAt", "updatedAt", "stopReason")
+
+    foreach ($field in @(Get-MissingFields $State $requiredFields)) {
+        $errors += "state missing field: $field"
+    }
+
+    if ($errors.Count -gt 0) {
+        return $errors
+    }
+
+    if (@("idle", "in_progress", "completed", "blocked") -notcontains $State.goalStatus) {
+        $errors += "invalid state.goalStatus: $($State.goalStatus)"
+    }
+
+    if ($State.currentTaskId -ne $Queue.currentTaskId) {
+        $errors += "state.currentTaskId must match queue.currentTaskId."
+    }
+
+    if ($State.currentTaskId -ne "T001") {
+        $errors += "state.currentTaskId must be T001."
+    }
+
+    if (@("not_started", "passed", "failed", "blocked") -notcontains $State.lastCommandStatus) {
+        $errors += "invalid state.lastCommandStatus: $($State.lastCommandStatus)"
+    }
+
+    if (@("not_started", "pass", "revise", "blocked") -notcontains $State.lastReviewDecision) {
+        $errors += "invalid state.lastReviewDecision: $($State.lastReviewDecision)"
+    }
+
+    return $errors
+}
+
+function Get-AutoGoalValidationErrors {
+    param([object]$Plan)
+
+    $errors = @()
+
+    foreach ($field in @(Get-MissingFields $Plan @("goalMarkdown", "queue", "state"))) {
+        $errors += "plan missing field: $field"
+    }
+
+    if ($errors.Count -gt 0) {
+        return $errors
+    }
+
+    if (-not (Test-HasValue $Plan.goalMarkdown)) {
+        $errors += "goalMarkdown must not be empty."
+    }
+
+    $errors += @(Get-QueueValidationErrors $Plan.queue)
+    $errors += @(Get-StateValidationErrors $Plan.state $Plan.queue)
+
+    return $errors
+}
+
+function New-DryRunAutoGoalPlan {
+    param(
+        [string]$Title,
+        [string]$Description
+    )
+
+    $now = (Get-Date).ToUniversalTime().ToString("o")
+    $safeTitle = $Title.Trim()
+    $safeDescription = $Description.Trim()
+
+    $plan = [PSCustomObject][ordered]@{
+        goalMarkdown = @"
+# 목표
+
+$safeTitle
+
+## 배경
+
+$safeDescription
+
+## 성공 기준
+
+- 입력한 목표에서 현재 작업을 준비한다.
+- full auto-cycle 실행 전에 현재 작업 프롬프트가 생성된다.
+- full auto-cycle은 명시적인 허용 옵션이 있을 때만 실행된다.
+
+## 제약사항
+
+- 서버 API, 로그인, 클라우드 동기화, npm install, 위험한 git 명령은 사용하지 않는다.
+- 저장소 정책과 현재 작업 범위를 따른다.
+
+## 범위 제외
+
+- 패키지 변경
+- DB 삭제 또는 초기화
+- 광범위한 리팩터링
+
+## 수동 검증
+
+- DryRun 계획과 JSON 출력을 검토한다.
+- 현재 작업 프롬프트 생성 여부를 확인한다.
+- 필요한 경우 빌드와 검증은 별도로 실행한다.
+"@
+        queue = [PSCustomObject][ordered]@{
+            goalTitle = $safeTitle
+            goalSource = $goalRelativePath
+            createdAt = $now
+            updatedAt = $now
+            currentTaskId = "T001"
+            tasks = @(
+                [PSCustomObject][ordered]@{
+                    id = "T001"
+                    title = $safeTitle
+                    description = $safeDescription
+                    type = "implementation"
+                    status = "in_progress"
+                    priority = "P0"
+                    dependsOn = @()
+                    filesLikelyToChange = @()
+                    verification = @(
+                        "변경 범위가 현재 목표와 일치하는지 확인한다.",
+                        "필요한 경우 npm run build를 별도로 실행한다."
+                    )
+                    commitMessage = $null
+                }
+            )
+        }
+        state = [PSCustomObject][ordered]@{
+            goalStatus = "in_progress"
+            currentTaskId = "T001"
+            currentLoop = 0
+            maxLoopsPerTask = 2
+            repeatedFailureCount = 0
+            lastCommand = $null
+            lastCommandStatus = "not_started"
+            lastErrorSummary = $null
+            lastReviewDecision = "not_started"
+            lastReviewSeverity = $null
+            lastCommitHash = $null
+            startedAt = $now
+            updatedAt = $now
+            stopReason = $null
+        }
+    }
+
+    return $plan
+}
+
+function ConvertFrom-CodexAutoGoalOutput {
+    param([string]$RawInput)
+
+    $validationFailures = @()
+
+    foreach ($candidate in Get-JsonObjectCandidates $RawInput) {
+        try {
+            $parsed = $candidate | ConvertFrom-Json
+
+            if ($null -eq $parsed -or $parsed -is [System.Array]) {
+                continue
+            }
+
+            $validationErrors = @(Get-AutoGoalValidationErrors $parsed)
+
+            if ($validationErrors.Count -gt 0) {
+                $validationFailures += "Candidate validation failed: $($validationErrors -join '; ')
+"
+                continue
+            }
+
+            return [PSCustomObject]@{
+                Parsed = $parsed
+                JsonText = ($parsed | ConvertTo-Json -Depth 30)
+            }
+        } catch {
+        }
+    }
+
+    if ($validationFailures.Count -gt 0) {
+        throw "No valid auto-goal JSON object was found in Codex output. Validation errors: $($valid
+ationFailures -join ' | ')"
+    }
+
+    throw "No valid auto-goal JSON object was found in Codex output."
+}
+
+function New-CodexAutoGoalPrompt {
+    param(
+        [string]$Title,
+        [string]$Description
+    )
+
+    return @"
+You are preparing local AI Dev Loop state files for the repository at $repoRoot.
+
+Return exactly one JSON object and no markdown fences or commentary.
+
+The user supplied this new goal:
+Title: $Title
+Description: $Description
+
+Create a small, safe goal plan for this repository. The response object must have these fields:
+- goalMarkdown: .ai-dev/goal.md에 작성할 마크다운 문자열입니다. "# 목표", "배경", "성공 기준", "제약사항", "범위 제외", "수동 검증" 섹션
+을 한국어로 포함해야 합니다.
+- queue: an object for .ai-dev/queue.json.
+- state: an object for .ai-dev/state.json.
+
+queue rules:
+- goalTitle must equal the supplied title.
+- goalSource must be ".ai-dev/goal.md".
+- createdAt and updatedAt are required and must be ISO 8601 strings.
+- currentTaskId must be "T001".
+- tasks must contain one to three tasks.
+- T001 must be status "in_progress"; later tasks, if any, must be "pending".
+- each task must include id, title, description, type, status, priority, dependsOn, filesLikelyToCha
+nge, verification, commitMessage.
+- type must be one of analysis, implementation, documentation, verification.
+- priority must be P0, P1, or P2.
+- dependsOn, filesLikelyToChange, and verification must be arrays.
+- commitMessage must be null or a short English commit message.
+
+state rules:
+- goalStatus must be "in_progress".
+- currentTaskId must be "T001".
+- currentLoop must be 0.
+- maxLoopsPerTask must be 2.
+- repeatedFailureCount must be 0.
+- lastCommand must be null.
+- lastCommandStatus must be "not_started".
+- lastErrorSummary must be null.
+- lastReviewDecision must be "not_started".
+- lastReviewSeverity must be null.
+- lastCommitHash must be null.
+- startedAt and updatedAt must be ISO 8601 strings.
+- stopReason must be null.
+
+Safety rules:
+- Do not mention server APIs, login, cloud sync, npm install, git reset, git clean, git push, DB del
+etion, or broad rewrites as implementation steps.
+- Prefer one small implementation task when the goal is small.
+- Use Korean for user-facing task titles, descriptions, verification, and goalMarkdown.
+"@
+}
+
+function New-CodexAutoGoalWrapperPrompt {
+    param(
+        [string]$PromptFilePath
+    )
+
+    return "Read and follow the full auto-goal planning prompt at this absolute file path: $PromptFi
+lePath"
+}
+
+function Invoke-CycleCommand {
+    param(
+        [int]$StepNumber,
+        [string]$Name,
+        [string]$Command,
+        [string]$ScriptPath,
+        [string[]]$Arguments
+    )
+
+    if ($DryRun) {
+        $script:steps += New-StepResult $StepNumber $Name $Command $false $true 0 "DryRun: child scr
+ipt was not executed."
+        return
+    }
+
+    $output = & powershell -ExecutionPolicy Bypass -File $ScriptPath @Arguments 2>&1 | Out-String
+    $exitCode = $LASTEXITCODE
+    $message = $output.Trim()
+
+    if ([string]::IsNullOrWhiteSpace($message)) {
+        $message = "completed"
+    }
+
+    $script:steps += New-StepResult $StepNumber $Name $Command $true $false $exitCode $message
+
+    if ($exitCode -ne 0) {
+        Stop-AutoGoal $script:steps "$Name`_failed" $false 1
+    }
+}
+
+function Get-FullCycleArguments {
+    $arguments = @("-MaxTasks", ([string]$MaxTasks), "-MaxSteps", ([string]$MaxSteps))
+
+    if ($AllowCodex) {
+        $arguments += "-AllowCodex"
+    }
+
+    if ($AllowReviewCodex) {
+        $arguments += "-AllowReviewCodex"
+    }
+
+    if ($AllowCommit) {
+        $arguments += "-AllowCommit"
+    }
+
+    # auto-goal writes goal/queue/state/current prompt/result files after the initial dirty gate.
+    # The downstream full cycle must tolerate those intended artifacts.
+    $arguments += "-AllowDirty"
+
+    if ($null -ne $CommitFiles -and $CommitFiles.Count -gt 0) {
+        $normalizedFiles = @($CommitFiles | ForEach-Object { $_ -split "," } | Where-Object { -not [
+string]::IsNullOrWhiteSpace($_) })
+
+        if ($normalizedFiles.Count -gt 0) {
+            $arguments += "-CommitFiles"
+            $arguments += ($normalizedFiles -join ",")
+        }
+    }
+
+    return $arguments
+}
+
+function Get-CurrentGoalStatus {
+    $statePath = [System.IO.Path]::GetFullPath((Resolve-RepoPath $stateRelativePath))
+
+    try {
+        $state = Get-Content -Raw -Encoding UTF8 -LiteralPath $statePath | ConvertFrom-Json
+    } catch {
+        throw "$stateRelativePath JSON 파싱에 실패했습니다: $($_.Exception.Message)"
+    }
+
+    if ($null -eq $state -or -not ($state.PSObject.Properties.Name -contains "goalStatus")) {
+        throw "$stateRelativePath 파일에서 goalStatus를 찾을 수 없습니다."
+    }
+
+    return [string]$state.goalStatus
+}
+
+Set-Location $repoRoot
+
+$script:steps = @()
+$script:autoGoalPlanPreview = $null
+$resolvedGoalPath = [System.IO.Path]::GetFullPath((Resolve-RepoPath $goalRelativePath))
+$resolvedQueuePath = [System.IO.Path]::GetFullPath((Resolve-RepoPath $queueRelativePath))
+$resolvedStatePath = [System.IO.Path]::GetFullPath((Resolve-RepoPath $stateRelativePath))
+$resolvedPlanningPromptPath = [System.IO.Path]::GetFullPath((Resolve-RepoPath $planningPromptRelativ
+ePath))
+$resolvedResultPath = [System.IO.Path]::GetFullPath((Resolve-RepoPath $ResultPath))
+
+if (-not (Test-HasValue $GoalTitle)) {
+    $script:steps += New-StepResult 0 "validate-input" "check GoalTitle" $false $false 1 "GoalTitle 
+must not be empty."
+    Stop-AutoGoal $script:steps "invalid_goal_title" $false 1
+}
+
+if (-not (Test-HasValue $GoalDescription)) {
+    $script:steps += New-StepResult 0 "validate-input" "check GoalDescription" $false $false 1 "Goal
+Description must not be empty."
+    Stop-AutoGoal $script:steps "invalid_goal_description" $false 1
+}
+
+if ($MaxTasks -lt 1) {
+    $script:steps += New-StepResult 0 "validate-input" "check MaxTasks" $false $false 1 "MaxTasks mu
+st be at least 1."
+    Stop-AutoGoal $script:steps "max_tasks_must_be_at_least_1" $false 1
+}
+
+if ($MaxSteps -lt 1) {
+    $script:steps += New-StepResult 0 "validate-input" "check MaxSteps" $false $false 1 "MaxSteps mu
+st be at least 1."
+    Stop-AutoGoal $script:steps "max_steps_must_be_at_least_1" $false 1
+}
+
+$makePromptPath = Join-Path $PSScriptRoot "ai-dev-make-prompt.ps1"
+$autoCycleFullPath = Join-Path $PSScriptRoot "ai-dev-auto-cycle-full.ps1"
+
+foreach ($requiredScript in @($makePromptPath, $autoCycleFullPath)) {
+    if (-not (Test-Path -LiteralPath $requiredScript -PathType Leaf)) {
+        $script:steps += New-StepResult 0 "prepare" "check required scripts" $false $false 1 "Missin
+g required script: $requiredScript"
+        Stop-AutoGoal $script:steps "prepare_failed" $false 1
+    }
+}
+
+$shouldRunFullCycle = [bool]($AllowRun -or $AllowCodex -or $AllowReviewCodex -or $AllowCommit)
+$fullCycleArguments = @(Get-FullCycleArguments)
+$fullCycleCommandText = "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cycle-full.ps1
+ $($fullCycleArguments -join ' ')".Trim()
+
+$script:steps += New-StepResult 1 "validate-input" "check GoalTitle/GoalDescription" $false $false 0
+ "Input validation completed: $GoalTitle"
+
+if ($DryRun) {
+    $script:autoGoalPlanPreview = New-DryRunAutoGoalPlan $GoalTitle.Trim() $GoalDescription.Trim()
+    $previewValidationErrors = @(Get-AutoGoalValidationErrors $script:autoGoalPlanPreview)
+
+    if ($previewValidationErrors.Count -gt 0) {
+        $script:steps += New-StepResult 2 "preview-plan" "local dry-run plan preview" $false $false 
+1 "DryRun preview plan validation failed: $($previewValidationErrors -join '; ')"
+        Stop-AutoGoal $script:steps "dry_run_preview_invalid" $false 1
+    }
+
+    $script:steps += New-StepResult 2 "dirty-worktree-gate" "git status --short" $false $true 0 "Dry
+Run: dirty worktree gate was not executed."
+    $script:steps += New-StepResult 3 "plan-goal" "codex exec <auto-goal planning prompt>" $false $t
+rue 0 "DryRun: Codex goal planning was not executed. Preview currentTaskId: T001, task: $GoalTitle"
+    $script:steps += New-StepResult 4 "validate-generated-json" "goal/queue/state JSON validation" $
+false $true 0 "DryRun: preview goal/queue/state plan passed local schema validation."
+    $script:steps += New-StepResult 5 "write-state-files" "$goalRelativePath, $queueRelativePath, $s
+tateRelativePath" $false $true 0 "DryRun: state files were not written."
+    $script:steps += New-StepResult 6 "make-prompt" "powershell -ExecutionPolicy Bypass -File script
+s/ai-dev-make-prompt.ps1" $false $true 0 "DryRun: current-task-prompt.md was not generated."
+
+    if ($shouldRunFullCycle) {
+        $script:steps += New-StepResult 7 "auto-cycle-full" $fullCycleCommandText $false $true 0 "Dr
+yRun: explicit run option is present, but full cycle was not executed. -AllowRun only invokes the fu
+ll-cycle wrapper; implementation and review still require -AllowCodex and -AllowReviewCodex."
+    } else {
+        $script:steps += New-StepResult 7 "auto-cycle-full" $fullCycleCommandText $false $true 0 "Dr
+yRun: full cycle requires -AllowRun or explicit execution options. -AllowRun only invokes the full-c
+ycle wrapper; implementation and review still require -AllowCodex and -AllowReviewCodex."
+    }
+
+    Stop-AutoGoal $script:steps "dry_run" $false 0
+}
+
+$statusLines = @(Get-GitStatusLines)
+
+if ($statusLines.Count -gt 0 -and -not $AllowDirty) {
+    $dirtyText = ($statusLines -join "`n")
+    $script:steps += New-StepResult 2 "dirty-worktree-gate" "git status --short" $false $true 1 "Wor
+ktree is dirty. Use -AllowDirty only when this is intentional.`n$dirtyText"
+    Stop-AutoGoal $script:steps "dirty_worktree" $false 1
+}
+
+if ($statusLines.Count -gt 0) {
+    $script:steps += New-StepResult 2 "dirty-worktree-gate" "git status --short" $false $false 0 "Al
+lowDirty is set. DirtyCount: $($statusLines.Count)"
+} else {
+    $script:steps += New-StepResult 2 "dirty-worktree-gate" "git status --short" $false $false 0 "Wo
+rktree is clean."
+}
+
+$codexCommand = Get-Command codex -ErrorAction SilentlyContinue
+
+if ($null -eq $codexCommand) {
+    $script:steps += New-StepResult 3 "plan-goal" "codex exec <auto-goal planning prompt>" $false $f
+alse 1 "Codex CLI was not found."
+    Stop-AutoGoal $script:steps "codex_not_found" $false 1
+}
+
+$plannerPrompt = New-CodexAutoGoalPrompt $GoalTitle.Trim() $GoalDescription.Trim()
+$codexPrompt = New-CodexAutoGoalWrapperPrompt $resolvedPlanningPromptPath
+$commandText = "codex exec <short wrapper pointing to $planningPromptRelativePath>"
+[System.IO.File]::WriteAllText($resolvedPlanningPromptPath, $plannerPrompt, $utf8WithBom)
+$startedAt = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+$codexOutput = & codex exec $codexPrompt 2>&1 | Out-String
+$codexExitCode = $LASTEXITCODE
+$endedAt = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+
+$resultContent = @"
+# Codex Auto Goal Result
+
+## Run
+
+- Started at: $startedAt
+- Ended at: $endedAt
+- Exit code: $codexExitCode
+- Goal title: $($GoalTitle.Trim())
+- Planning prompt: $planningPromptRelativePath
+- Command: $commandText
+
+## Output
+
+${codeFence}text
+$codexOutput
+$codeFence
+"@
+
+[System.IO.File]::WriteAllText($resolvedResultPath, $resultContent, $utf8WithBom)
+
+if ($codexExitCode -ne 0) {
+    $script:steps += New-StepResult 3 "plan-goal" "codex exec <auto-goal planning prompt>" $true $fa
+lse 1 "Codex goal planning failed. Result: $(ConvertTo-RepoRelativePath $ResultPath)"
+    Stop-AutoGoal $script:steps "codex_plan_failed" $false 1
+}
+
+$script:steps += New-StepResult 3 "plan-goal" "codex exec <auto-goal planning prompt>" $true $false 
+0 "Codex goal planning completed. Result: $(ConvertTo-RepoRelativePath $ResultPath)"
+
+try {
+    $autoGoalPlan = ConvertFrom-CodexAutoGoalOutput $codexOutput
+} catch {
+    $preview = Get-InputPreview $codexOutput
+    $script:steps += New-StepResult 4 "validate-generated-json" "goal/queue/state JSON validation" $
+false $false 1 "Codex plan JSON extraction failed: $($_.Exception.Message) Output preview: $preview"
+    Stop-AutoGoal $script:steps "generated_json_invalid" $false 1
+}
+
+$script:steps += New-StepResult 4 "validate-generated-json" "goal/queue/state JSON validation" $fals
+e $false 0 "goalMarkdown, queue, and state JSON validation completed. currentTaskId: $($autoGoalPlan
+.Parsed.queue.currentTaskId)"
+$script:autoGoalPlanPreview = $autoGoalPlan.Parsed
+
+$goalMarkdown = [string]$autoGoalPlan.Parsed.goalMarkdown
+$queueJson = $autoGoalPlan.Parsed.queue | ConvertTo-Json -Depth 30
+$stateJson = $autoGoalPlan.Parsed.state | ConvertTo-Json -Depth 30
+
+[System.IO.File]::WriteAllText($resolvedGoalPath, $goalMarkdown, $utf8WithBom)
+[System.IO.File]::WriteAllText($resolvedQueuePath, $queueJson, $utf8WithBom)
+[System.IO.File]::WriteAllText($resolvedStatePath, $stateJson, $utf8WithBom)
+
+$script:steps += New-StepResult 5 "write-state-files" "$goalRelativePath, $queueRelativePath, $state
+RelativePath" $true $false 0 "New goal, queue, and state files were written."
+
+Invoke-CycleCommand 6 "make-prompt" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-pr
+ompt.ps1" $makePromptPath @()
+
+if (-not $shouldRunFullCycle) {
+    $script:steps += New-StepResult 7 "auto-cycle-full" $fullCycleCommandText $false $true 0 "Full c
+ycle requires -AllowRun or explicit execution options. -AllowRun only invokes the full-cycle wrapper
+; implementation and review still require -AllowCodex and -AllowReviewCodex."
+    Stop-AutoGoal $script:steps "prepared_without_full_cycle" $true 0
+}
+
+Invoke-CycleCommand 7 "auto-cycle-full" $fullCycleCommandText $autoCycleFullPath $fullCycleArguments
+
+try {
+    $goalStatusAfterFullCycle = Get-CurrentGoalStatus
+} catch {
+    $script:steps += New-StepResult 8 "verify-goal-status" "$stateRelativePath goalStatus 확인" $false
+ $false 1 $_.Exception.Message
+    Stop-AutoGoal $script:steps "goal_status_verify_failed" $false 1
+}
+
+if ($goalStatusAfterFullCycle -ne "completed") {
+    $script:steps += New-StepResult 8 "verify-goal-status" "$stateRelativePath goalStatus 확인" $false
+ $true 1 "auto-cycle-full은 성공 종료했지만 goalStatus가 completed가 아닙니다: $goalStatusAfterFullCycle"
+    Stop-AutoGoal $script:steps "auto_cycle_incomplete" $false 1
+}
+
+$script:steps += New-StepResult 8 "verify-goal-status" "$stateRelativePath goalStatus 확인" $false $fa
+lse 0 "auto-cycle-full 성공 후 goalStatus completed 확인."
+
+Stop-AutoGoal $script:steps "completed" $true 0
+
+
+ succeeded in 1616ms:
+param(
+    [string]$Message,
+    [string[]]$Files,
+    [switch]$AllowWithoutPassedCheck,
+    [switch]$AllowWithoutPassedReview,
+    [switch]$DryRun
+)
+
+. "$PSScriptRoot\ai-dev-env.ps1"
+
+$projectRoot = (Get-Location).Path
+$stateRelativePath = ".ai-dev/state.json"
+$queueRelativePath = ".ai-dev/queue.json"
+$loopLogRelativePath = ".ai-dev/loop-log.md"
+$aiDevOperationalRoot = ".ai-dev/"
+
+$statePath = Join-Path $projectRoot $stateRelativePath
+$queuePath = Join-Path $projectRoot $queueRelativePath
+$loopLogPath = Join-Path $projectRoot $loopLogRelativePath
+$utf8WithBom = New-Object System.Text.UTF8Encoding($true)
+
+function Stop-WithError {
+    param(
+        [string]$Message
+    )
+
+    Write-Error $Message
+    exit 1
+}
+
+function Read-JsonFile {
+    param(
+        [string]$Path,
+        [string]$RelativePath
+    )
+
+    try {
+        return Get-Content -Raw -Encoding UTF8 -LiteralPath $Path | ConvertFrom-Json
+    } catch {
+        Stop-WithError "$RelativePath JSON 파싱에 실패했습니다: $($_.Exception.Message)"
+    }
+}
+
+function Test-HasValue {
+    param(
+        [object]$Value
+    )
+
+    if ($null -eq $Value) {
+        return $false
+    }
+
+    if ($Value -is [string]) {
+        return -not [string]::IsNullOrWhiteSpace($Value)
+    }
+
+    return $true
+}
+
+function Set-ObjectProperty {
+    param(
+        [object]$InputObject,
+        [string]$Name,
+        [object]$Value
+    )
+
+    if ($InputObject.PSObject.Properties.Name -contains $Name) {
+        $InputObject.$Name = $Value
+    } else {
+        $InputObject | Add-Member -NotePropertyName $Name -NotePropertyValue $Value
+    }
+}
+
+function Save-StateResult {
+    param(
+        [object]$State,
+        [string]$Status,
+        [string]$ErrorSummary,
+        [string]$CommitHash
+    )
+
+    Set-ObjectProperty $State "lastCommand" "commit"
+    Set-ObjectProperty $State "lastCommandStatus" $Status
+    Set-ObjectProperty $State "lastErrorSummary" $ErrorSummary
+    Set-ObjectProperty $State "updatedAt" ([DateTimeOffset]::UtcNow.ToString("o"))
+
+    if (Test-HasValue $CommitHash) {
+        Set-ObjectProperty $State "lastCommitHash" $CommitHash
+    }
+
+    $stateJson = $State | ConvertTo-Json -Depth 20
+    [System.IO.File]::WriteAllText($statePath, $stateJson, $utf8WithBom)
+}
+
+function Invoke-GitCapture {
+    param(
+        [string[]]$Arguments,
+        [string]$DisplayName
+    )
+
+    $output = & git @Arguments 2>&1 | Out-String
+    $exitCode = $LASTEXITCODE
+
+    if ($exitCode -ne 0) {
+        throw "$DisplayName 실행에 실패했습니다. exit code: $exitCode`n$output"
+    }
+
+    return $output.TrimEnd()
+}
+
+function Test-IsAiDevOperationalPath {
+    param(
+        [string]$RelativePath
+    )
+
+    $normalizedRelativePath = $RelativePath.Replace('\', '/')
+    return $normalizedRelativePath.StartsWith($aiDevOperationalRoot, [System.StringComparison]::Ordi
+nalIgnoreCase)
+}
+
+function Convert-ToChangedPath {
+    param(
+        [string]$ChangeLine
+    )
+
+    if ([string]::IsNullOrWhiteSpace($ChangeLine)) {
+        return @()
+    }
+
+    $pathText = $ChangeLine
+
+    if ($ChangeLine.Length -ge 4 -and $ChangeLine.Substring(2, 1) -eq " ") {
+        $pathText = $ChangeLine.Substring(3)
+    }
+
+    if ($pathText.Contains(" -> ")) {
+        return @($pathText -split " -> " | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+    }
+
+    return @($pathText)
+}
+
+function Convert-ToRepoPathspec {
+    param(
+        [string]$Pathspec
+    )
+
+    if ([string]::IsNullOrWhiteSpace($Pathspec)) {
+        Stop-WithError "-Files에는 비어 있지 않은 파일 경로만 지정할 수 있습니다."
+    }
+
+    $trimmedPathspec = $Pathspec.Trim()
+    $normalizedPathspec = $trimmedPathspec.Replace('\', '/')
+    $projectRootFullPath = [System.IO.Path]::GetFullPath($projectRoot).TrimEnd('\', '/')
+    $projectRootPrefix = $projectRootFullPath + [System.IO.Path]::DirectorySeparatorChar
+
+    if ([System.IO.Path]::IsPathRooted($trimmedPathspec)) {
+        $fullPath = [System.IO.Path]::GetFullPath($trimmedPathspec)
+    } else {
+        $fullPath = [System.IO.Path]::GetFullPath((Join-Path $projectRoot $normalizedPathspec))
+    }
+
+    if ($fullPath.Equals($projectRootFullPath, [System.StringComparison]::OrdinalIgnoreCase)) {
+        Stop-WithError "저장소 루트 전체는 선택할 수 없습니다: $Pathspec"
+    }
+
+    if (-not $fullPath.StartsWith($projectRootPrefix, [System.StringComparison]::OrdinalIgnoreCase))
+ {
+        Stop-WithError "저장소 밖 파일은 선택할 수 없습니다: $Pathspec"
+    }
+
+    if ([System.IO.Path]::IsPathRooted($trimmedPathspec)) {
+        $relativePath = $fullPath.Substring($projectRootPrefix.Length)
+        return $relativePath.Replace('\', '/')
+    }
+
+    return $normalizedPathspec.TrimStart('/')
+}
+
+function Convert-ToFileList {
+    param(
+        [string[]]$Paths
+    )
+
+    if ($null -eq $Paths -or $Paths.Count -eq 0) {
+        return @("  - 없음")
+    }
+
+    return @($Paths | ForEach-Object { "  - $_" })
+}
+
+foreach ($requiredPath in @($stateRelativePath, $queueRelativePath, $loopLogRelativePath)) {
+    $fullPath = Join-Path $projectRoot $requiredPath
+
+    if (-not (Test-Path -LiteralPath $fullPath -PathType Leaf)) {
+        Stop-WithError "필수 파일이 없습니다: $requiredPath"
+    }
+}
+
+try {
+    $null = Invoke-GitCapture -Arguments @("rev-parse", "--show-toplevel") -DisplayName "git rev-par
+se --show-toplevel"
+} catch {
+    Stop-WithError "현재 위치가 git repository가 아닙니다."
+}
+
+$queue = Read-JsonFile $queuePath $queueRelativePath
+$state = Read-JsonFile $statePath $stateRelativePath
+
+if (-not ($queue.PSObject.Properties.Name -contains "tasks")) {
+    Stop-WithError "$queueRelativePath 필수 필드가 누락되었습니다: tasks"
+}
+
+if ($null -eq $queue.tasks -or -not ($queue.tasks -is [System.Collections.IEnumerable])) {
+    Stop-WithError "$queueRelativePath tasks 필드는 배열이어야 합니다."
+}
+
+$tasks = @($queue.tasks)
+$currentTaskId = $null
+
+if (Test-HasValue $state.currentTaskId) {
+    $currentTaskId = [string]$state.currentTaskId
+} elseif (Test-HasValue $queue.currentTaskId) {
+    $currentTaskId = [string]$queue.currentTaskId
+} else {
+    $inProgressTask = $tasks | Where-Object { $_.status -eq "in_progress" } | Select-Object -First 1
+
+    if ($null -ne $inProgressTask) {
+        $currentTaskId = [string]$inProgressTask.id
+    } else {
+        $pendingTask = $tasks | Where-Object { $_.status -eq "pending" } | Select-Object -First 1
+
+        if ($null -ne $pendingTask) {
+            $currentTaskId = [string]$pendingTask.id
+        }
+    }
+}
+
+$currentTask = $null
+
+if (Test-HasValue $currentTaskId) {
+    $currentTask = $tasks | Where-Object { $_.id -eq $currentTaskId } | Select-Object -First 1
+}
+
+if ($null -eq $currentTask) {
+    Write-Warning "현재 task를 찾지 못했습니다. 기본 커밋 메시지를 사용할 수 있습니다."
+}
+
+if (-not $AllowWithoutPassedCheck -and $state.lastCommandStatus -ne "passed") {
+    Stop-WithError "state.lastCommandStatus가 passed가 아닙니다. 검증 결과를 확인하거나 -AllowWithoutPassedCheck를 사용
+하세요."
+}
+
+if (-not $AllowWithoutPassedReview -and $state.lastReviewDecision -ne "pass") {
+    Stop-WithError "state.lastReviewDecision이 pass가 아닙니다. 리뷰 결과를 확인하거나 -AllowWithoutPassedReview를 사용
+하세요."
+}
+
+try {
+    $statusPorcelain = Invoke-GitCapture -Arguments @("status", "--porcelain") -DisplayName "git sta
+tus --porcelain"
+} catch {
+    Stop-WithError $_.Exception.Message
+}
+
+$changeLines = @($statusPorcelain -split "`r?`n" | Where-Object { -not [string]::IsNullOrWhiteSpace(
+$_) })
+
+if ($changeLines.Count -eq 0) {
+    Write-Host "커밋할 변경사항 없음"
+    exit 0
+}
+
+$selectedFiles = @()
+$targetChangeLines = $changeLines
+
+if ($null -ne $Files -and $Files.Count -gt 0) {
+    $requestedFiles = @($Files | ForEach-Object { $_ -split "," } | Where-Object { -not [string]::Is
+NullOrWhiteSpace($_) })
+
+    if ($requestedFiles.Count -eq 0) {
+        Stop-WithError "-Files에는 비어 있지 않은 파일 경로만 지정할 수 있습니다."
+    }
+
+    foreach ($file in $requestedFiles) {
+        if ([string]::IsNullOrWhiteSpace($file)) {
+            Stop-WithError "-Files에는 비어 있지 않은 파일 경로만 지정할 수 있습니다."
+        }
+
+        $normalizedFile = Convert-ToRepoPathspec $file
+
+        try {
+            $fileStatus = Invoke-GitCapture -Arguments @("status", "--porcelain", "--", $normalizedF
+ile) -DisplayName "git status --porcelain -- $normalizedFile"
+        } catch {
+            Stop-WithError $_.Exception.Message
+        }
+
+        if ([string]::IsNullOrWhiteSpace($fileStatus)) {
+            Stop-WithError "선택한 파일에 커밋할 변경사항이 없습니다: $file"
+        }
+
+        $selectedFiles += $normalizedFile
+    }
+
+    $selectedFiles = @($selectedFiles | Select-Object -Unique)
+    $targetChangeLines = @($selectedFiles)
+
+    try {
+        $stagedFiles = Invoke-GitCapture -Arguments @("diff", "--cached", "--name-only") -DisplayNam
+e "git diff --cached --name-only"
+    } catch {
+        Stop-WithError $_.Exception.Message
+    }
+
+    $stagedFileList = @($stagedFiles -split "`r?`n" | Where-Object { -not [string]::IsNullOrWhiteSpa
+ce($_) })
+    $unexpectedStagedFiles = @($stagedFileList | Where-Object { $selectedFiles -notcontains $_ })
+
+    if ($unexpectedStagedFiles.Count -gt 0) {
+        Stop-WithError "선택 파일 외에 이미 staged 된 파일이 있습니다: $($unexpectedStagedFiles -join ', ')"
+    }
+}
+
+$commitMessage = if (Test-HasValue $Message) {
+    $Message
+} elseif ($null -ne $currentTask -and (Test-HasValue $currentTask.commitMessage)) {
+    [string]$currentTask.commitMessage
+} elseif ($null -ne $currentTask) {
+    "chore(ai-dev): complete $($currentTask.id) $($currentTask.title)"
+} else {
+    "chore(ai-dev): automated task commit"
+}
+
+$taskText = if ($null -ne $currentTask) {
+    "$($currentTask.id) $($currentTask.title)"
+} elseif (Test-HasValue $currentTaskId) {
+    "$currentTaskId unknown"
+} else {
+    "unknown"
+}
+
+if ($selectedFiles.Count -gt 0) {
+    $targetChangedPaths = @($selectedFiles | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } 
+| Select-Object -Unique)
+} else {
+    $targetChangedPaths = @($targetChangeLines | ForEach-Object { Convert-ToChangedPath $_ } | Where
+-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -Unique)
+}
+$targetAppChangePaths = @($targetChangedPaths | Where-Object { -not (Test-IsAiDevOperationalPath $_)
+ })
+$targetAiDevOperationalPaths = @($targetChangedPaths | Where-Object { Test-IsAiDevOperationalPath $_
+ })
+
+if ($DryRun) {
+    Write-Host "Dry run: git add/commit을 실행하지 않습니다."
+    Write-Host "커밋 메시지: $commitMessage"
+    Write-Host "현재 task: $taskText"
+    Write-Host "커밋 대상 앱 변경 파일:"
+    foreach ($line in (Convert-ToFileList $targetAppChangePaths)) {
+        Write-Host $line
+    }
+    Write-Host "커밋 대상 AI Dev 운영 산출물:"
+    foreach ($line in (Convert-ToFileList $targetAiDevOperationalPaths)) {
+        Write-Host $line
+    }
+    Write-Host "앱 변경 파일 수: $($targetAppChangePaths.Count)"
+    Write-Host "AI Dev 운영 산출물 수: $($targetAiDevOperationalPaths.Count)"
+    Write-Host "전체 변경 파일 수: $($targetChangedPaths.Count)"
+    exit 0
+}
+
+try {
+    if ($selectedFiles.Count -gt 0) {
+        $addOutput = & git add -- @selectedFiles 2>&1 | Out-String
+        $addDisplayName = "git add -- <selected files>"
+    } else {
+        $addOutput = & git add -A 2>&1 | Out-String
+        $addDisplayName = "git add -A"
+    }
+
+    if ($LASTEXITCODE -ne 0) {
+        throw "$addDisplayName 실행에 실패했습니다. exit code: $LASTEXITCODE`n$addOutput"
+    }
+
+    if ($selectedFiles.Count -gt 0) {
+        $stagedFilesAfterAdd = Invoke-GitCapture -Arguments @("diff", "--cached", "--name-only") -Di
+splayName "git diff --cached --name-only"
+        $stagedFileListAfterAdd = @($stagedFilesAfterAdd -split "`r?`n" | Where-Object { -not [strin
+g]::IsNullOrWhiteSpace($_) })
+        $unexpectedStagedFilesAfterAdd = @($stagedFileListAfterAdd | Where-Object { $selectedFiles -
+notcontains $_ })
+
+        if ($unexpectedStagedFilesAfterAdd.Count -gt 0) {
+            throw "선택 파일 외의 staged 파일이 감지되었습니다: $($unexpectedStagedFilesAfterAdd -join ', ')"
+        }
+    }
+
+    $commitOutput = & git commit -m $commitMessage 2>&1 | Out-String
+
+    if ($LASTEXITCODE -ne 0) {
+        throw "git commit 실행에 실패했습니다. exit code: $LASTEXITCODE`n$commitOutput"
+    }
+
+    $commitHash = Invoke-GitCapture -Arguments @("rev-parse", "HEAD") -DisplayName "git rev-parse HE
+AD"
+} catch {
+    $errorSummary = $_.Exception.Message
+    Save-StateResult $state "failed" $errorSummary $null
+    Stop-WithError "자동 커밋에 실패했습니다: $errorSummary"
+}
+
+Save-StateResult $state "passed" "" $commitHash
+
+$logTimestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+$logEntry = @"
+
+## $logTimestamp - Commit created
+
+- Task: $taskText
+- Commit: $commitHash
+- Message: $commitMessage
+"@
+
+[System.IO.File]::AppendAllText($loopLogPath, $logEntry, $utf8WithBom)
+
+Write-Host "커밋 메시지: $commitMessage"
+Write-Host "커밋 해시: $commitHash"
+Write-Host "앱 변경 파일 수: $($targetAppChangePaths.Count)"
+Write-Host "AI Dev 운영 산출물 수: $($targetAiDevOperationalPaths.Count)"
+Write-Host "전체 변경 파일 수: $($targetChangedPaths.Count)"
+Write-Host "현재 task: $taskText"
+
+ succeeded in 1667ms:
+param(
+    [int]$MaxTasks = 1,
+    [int]$MaxSteps = 20,
+    [switch]$DryRun,
+    [switch]$Json,
+    [switch]$AllowCodex,
+    [switch]$AllowReviewCodex,
+    [switch]$AllowCommit,
+    [switch]$AllowDirty,
+    [string[]]$CommitFiles
+)
+
+. $PSScriptRoot\ai-dev-env.ps1
+
+$repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
+$queueRelativePath = ".ai-dev/queue.json"
+$stateRelativePath = ".ai-dev/state.json"
+$reviewResponseRelativePath = ".ai-dev/review-response.json"
+$aiDevOperationalRoot = ".ai-dev/"
+$queuePath = Join-Path $repoRoot $queueRelativePath
+$statePath = Join-Path $repoRoot $stateRelativePath
+$reviewResponsePath = Join-Path $repoRoot $reviewResponseRelativePath
+$utf8WithBom = New-Object System.Text.UTF8Encoding($true)
+
+function Test-HasValue {
+    param(
+        [object]$Value
+    )
+
+    if ($null -eq $Value) {
+        return $false
+    }
+
+    if ($Value -is [string]) {
+        return -not [string]::IsNullOrWhiteSpace($Value)
+    }
+
+    return $true
+}
+
+function Read-JsonFile {
+    param(
+        [string]$Path,
+        [string]$RelativePath
+    )
+
+    try {
+        return Get-Content -Raw -Encoding UTF8 -LiteralPath $Path | ConvertFrom-Json
+    } catch {
+        throw "$RelativePath JSON 파싱에 실패했습니다: $($_.Exception.Message)"
+    }
+}
+
+function Set-ObjectProperty {
+    param(
+        [object]$InputObject,
+        [string]$Name,
+        [object]$Value
+    )
+
+    if ($InputObject.PSObject.Properties.Name -contains $Name) {
+        $InputObject.$Name = $Value
+    } else {
+        $InputObject | Add-Member -NotePropertyName $Name -NotePropertyValue $Value
+    }
+}
+
+function Write-JsonFile {
+    param(
+        [string]$Path,
+        [object]$Value
+    )
+
+    $json = $Value | ConvertTo-Json -Depth 20
+    [System.IO.File]::WriteAllText($Path, $json, $utf8WithBom)
+}
+
+function Get-CurrentTask {
+    param(
+        [object]$Queue,
+        [object]$State
+    )
+
+    $tasks = @($Queue.tasks)
+    $currentTaskId = $null
+
+    if (Test-HasValue $State.currentTaskId) {
+        $currentTaskId = [string]$State.currentTaskId
+    } elseif (Test-HasValue $Queue.currentTaskId) {
+        $currentTaskId = [string]$Queue.currentTaskId
+    } else {
+        $inProgressTask = $tasks | Where-Object { $_.status -eq "in_progress" } | Select-Object -Fir
+st 1
+
+        if ($null -ne $inProgressTask) {
+            $currentTaskId = [string]$inProgressTask.id
+        } else {
+            $pendingTask = $tasks | Where-Object { $_.status -eq "pending" } | Select-Object -First 
+1
+
+            if ($null -ne $pendingTask) {
+                $currentTaskId = [string]$pendingTask.id
+            }
+        }
+    }
+
+    if (-not (Test-HasValue $currentTaskId)) {
+        return $null
+    }
+
+    return $tasks | Where-Object { $_.id -eq $currentTaskId } | Select-Object -First 1
+}
+
+function New-StepResult {
+    param(
+        [int]$Step,
+        [string]$Name,
+        [string]$Command,
+        [bool]$Executed,
+        [bool]$Skipped,
+        [int]$ExitCode,
+        [string]$Message
+    )
+
+    return [PSCustomObject][ordered]@{
+        step = $Step
+        name = $Name
+        command = $Command
+        executed = $Executed
+        skipped = $Skipped
+        exitCode = $ExitCode
+        message = $Message
+    }
+}
+
+function New-CycleResult {
+    param(
+        [object[]]$Steps,
+        [string]$StoppedReason,
+        [bool]$Completed,
+        [int]$ExitCode
+    )
+
+    return [PSCustomObject][ordered]@{
+        steps = @($Steps)
+        stoppedReason = $StoppedReason
+        completed = $Completed
+        exitCode = $ExitCode
+    }
+}
+
+function Write-CycleResult {
+    param(
+        [object]$Result
+    )
+
+    if ($Json) {
+        $Result | ConvertTo-Json -Depth 20
+        return
+    }
+
+    foreach ($step in @($Result.steps)) {
+        Write-Host "Step $($step.step): $($step.name)"
+        Write-Host "  Command: $($step.command)"
+        Write-Host "  Executed: $($step.executed)"
+        Write-Host "  Skipped: $($step.skipped)"
+        Write-Host "  Exit code: $($step.exitCode)"
+        Write-Host "  Message: $($step.message)"
+    }
+
+    Write-Host "Stopped reason: $($Result.stoppedReason)"
+    Write-Host "Completed: $($Result.completed)"
+    Write-Host "Exit code: $($Result.exitCode)"
+
+}
+
+function Stop-Cycle {
+    param(
+        [object[]]$Steps,
+        [string]$StoppedReason,
+        [bool]$Completed,
+        [int]$ExitCode
+    )
+
+    $result = New-CycleResult $Steps $StoppedReason $Completed $ExitCode
+    Write-CycleResult $result
+    exit $ExitCode
+}
+
+function Invoke-CycleCommand {
+    param(
+        [int]$StepNumber,
+        [string]$Name,
+        [string]$Command,
+        [string]$ScriptPath,
+        [string[]]$Arguments
+    )
+
+    if ($DryRun) {
+        $script:steps += New-StepResult $StepNumber $Name $Command $false $true 0 "DryRun: 하위 스크립트를 
+실행하지 않았습니다."
+        return
+    }
+
+    $output = & powershell -ExecutionPolicy Bypass -File $ScriptPath @Arguments 2>&1 | Out-String
+    $exitCode = $LASTEXITCODE
+    $message = $output.Trim()
+
+    if ([string]::IsNullOrWhiteSpace($message)) {
+        $message = "완료"
+    }
+
+    $script:steps += New-StepResult $StepNumber $Name $Command $true $false $exitCode $message
+
+    if ($exitCode -ne 0) {
+        Stop-Cycle $script:steps "$Name`_failed" $false 1
+    }
+}
+
+function Get-ScriptPath {
+    param(
+        [string]$Name
+    )
+
+    $scriptPath = Join-Path $PSScriptRoot $Name
+
+    if (-not (Test-Path -LiteralPath $scriptPath -PathType Leaf)) {
+        throw "필수 스크립트를 찾을 수 없습니다: scripts/$Name"
+    }
+
+    return $scriptPath
+}
+
+function Invoke-GitCapture {
+    param(
+        [string[]]$Arguments,
+        [string]$DisplayName
+    )
+
+    $output = & git @Arguments 2>&1 | Out-String
+    $exitCode = $LASTEXITCODE
+
+    if ($exitCode -ne 0) {
+        throw "$DisplayName 실행에 실패했습니다. exit code: $exitCode`n$output"
+    }
+
+    return $output.TrimEnd()
+}
+
+function Test-PackageFileChanged {
+    $status = Invoke-GitCapture @("status", "--porcelain", "--", "package.json", "package-lock.json"
+) "git status --porcelain -- package.json package-lock.json"
+    return -not [string]::IsNullOrWhiteSpace($status)
+}
+
+function Convert-ToChangedPath {
+    param(
+        [string]$ChangeLine
+    )
+
+    if ([string]::IsNullOrWhiteSpace($ChangeLine)) {
+        return @()
+    }
+
+    $pathText = $ChangeLine
+
+    if ($ChangeLine.Length -ge 4 -and $ChangeLine.Substring(2, 1) -eq " ") {
+        $pathText = $ChangeLine.Substring(3)
+    }
+
+    if ($pathText.Contains(" -> ")) {
+        return @($pathText -split " -> " | Where-Object { Test-HasValue $_ })
+    }
+
+    return @($pathText)
+}
+
+function Test-IsAiDevOperationalPath {
+    param(
+        [string]$RelativePath
+    )
+
+    $normalizedRelativePath = $RelativePath.Replace('\', '/')
+    return $normalizedRelativePath.StartsWith($aiDevOperationalRoot, [System.StringComparison]::Ordi
+nalIgnoreCase)
+}
+
+function Get-ChangedNonAiDevFiles {
+    $status = Invoke-GitCapture @("status", "--porcelain") "git status --porcelain"
+    $changeLines = @($status -split "`r?`n" | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+)
+
+    return @(
+        $changeLines |
+            ForEach-Object { Convert-ToChangedPath $_ } |
+            Where-Object { (Test-HasValue $_) -and -not (Test-IsAiDevOperationalPath $_) } |
+            Select-Object -Unique
+    )
+}
+
+function Get-ChangedAiDevOperationalFiles {
+    $status = Invoke-GitCapture @("status", "--porcelain") "git status --porcelain"
+    $changeLines = @($status -split "`r?`n" | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+)
+
+    return @(
+        $changeLines |
+            ForEach-Object { Convert-ToChangedPath $_ } |
+            Where-Object { (Test-HasValue $_) -and (Test-IsAiDevOperationalPath $_) } |
+            Select-Object -Unique
+    )
+}
+
+function Get-ReviewGate {
+    $state = Read-JsonFile $statePath $stateRelativePath
+    $reviewResponse = $null
+    $decision = $null
+    $severity = $null
+    $nextStep = $null
+    $normalizedNextStep = $null
+    $hasNextStep = $false
+
+    if (Test-Path -LiteralPath $reviewResponsePath -PathType Leaf) {
+        $reviewResponse = Read-JsonFile $reviewResponsePath $reviewResponseRelativePath
+
+        if (Test-HasValue $reviewResponse.decision) {
+            $decision = [string]$reviewResponse.decision
+        }
+
+        if (Test-HasValue $reviewResponse.severity) {
+            $severity = [string]$reviewResponse.severity
+        }
+
+        if ($reviewResponse.PSObject.Properties.Name -contains "next_step") {
+            $hasNextStep = $true
+            $nextStep = [string]$reviewResponse.next_step
+            $normalizedNextStep = $nextStep.Trim().ToLowerInvariant().Replace("-", "_")
+        }
+    }
+
+    return [PSCustomObject][ordered]@{
+        lastCommand = [string]$state.lastCommand
+        lastCommandStatus = [string]$state.lastCommandStatus
+        stateDecision = [string]$state.lastReviewDecision
+        decision = $decision
+        severity = $severity
+        hasNextStep = $hasNextStep
+        nextStep = $nextStep
+        normalizedNextStep = $normalizedNextStep
+    }
+}
+
+function Test-IsAcceptableReviewNextStep {
+    param(
+        [object]$ReviewGate
+    )
+
+    return (-not $ReviewGate.hasNextStep) -or $ReviewGate.normalizedNextStep -eq "complete_task"
+}
+
+function Test-IsSavedReviewPassReady {
+    param(
+        [object]$ReviewGate
+    )
+
+    return $ReviewGate.lastCommand -eq "save-review" `
+        -and $ReviewGate.lastCommandStatus -eq "passed" `
+        -and $ReviewGate.decision -eq "pass" `
+        -and $ReviewGate.stateDecision -eq "pass" `
+        -and (Test-IsAcceptableReviewNextStep $ReviewGate)
+}
+
+function Get-CommitArguments {
+    $arguments = @()
+
+    if ($null -ne $CommitFiles -and $CommitFiles.Count -gt 0) {
+        $normalizedFiles = @($CommitFiles | ForEach-Object { $_ -split "," } | Where-Object { -not [
+string]::IsNullOrWhiteSpace($_) })
+
+        if ($normalizedFiles.Count -gt 0) {
+            $arguments += "-Files"
+            $arguments += ($normalizedFiles -join ",")
+        }
+
+        return $arguments
+    }
+
+    $implementationFiles = Get-ChangedNonAiDevFiles
+
+    if ($implementationFiles.Count -gt 0) {
+        $arguments += "-Files"
+        $arguments += ($implementationFiles -join ",")
+    }
+
+    return $arguments
+}
+
+function Invoke-DirectMetaCommit {
+    param(
+        [int]$StepNumber
+    )
+
+    $command = "direct meta commit: git add scoped .ai-dev files, git commit -m 'chore(ai-dev): reco
+rd task completion', git status --short"
+
+    try {
+        $changedAiDevFiles = Get-ChangedAiDevOperationalFiles
+
+        if ($changedAiDevFiles.Count -eq 0) {
+            $remainingStatus = Invoke-GitCapture -Arguments @("status", "--short") -DisplayName "git
+ status --short"
+
+            if (-not [string]::IsNullOrWhiteSpace($remainingStatus)) {
+                throw ".ai-dev 메타 변경사항은 없지만 worktree에 변경 파일이 남아 있습니다.`n$remainingStatus"
+            }
+
+            $script:steps += New-StepResult $StepNumber "meta-commit" $command $false $true 0 ".ai-d
+ev 메타 상태 변경사항이 없어 meta commit을 건너뜁니다. worktree clean."
+            return
+        }
+
+        $addOutput = & git add -- $changedAiDevFiles 2>&1 | Out-String
+        $addExitCode = $LASTEXITCODE
+
+        if ($addExitCode -ne 0) {
+            throw "git add 실행에 실패했습니다. exit code: $addExitCode`n$addOutput"
+        }
+
+        $commitOutput = & git commit -m "chore(ai-dev): record task completion" -- $changedAiDevFile
+s 2>&1 | Out-String
+        $commitExitCode = $LASTEXITCODE
+
+        if ($commitExitCode -ne 0) {
+            throw "git commit 실행에 실패했습니다. exit code: $commitExitCode`n$commitOutput"
+        }
+
+        $remainingStatus = Invoke-GitCapture -Arguments @("status", "--short") -DisplayName "git sta
+tus --short"
+
+        if (-not [string]::IsNullOrWhiteSpace($remainingStatus)) {
+            throw "meta commit 이후 worktree에 변경 파일이 남아 있습니다.`n$remainingStatus"
+        }
+
+        $message = ($commitOutput.Trim(), "worktree clean") -join "`n"
+        $script:steps += New-StepResult $StepNumber "meta-commit" $command $true $false 0 $message
+    } catch {
+        $script:steps += New-StepResult $StepNumber "meta-commit" $command $true $false 1 $_.Excepti
+on.Message
+        Stop-Cycle $script:steps "meta_commit_failed" $false 1
+    }
+}
+
+function Get-CommitGate {
+    param(
+        [string]$PreviousHeadCommitHash
+    )
+
+    $state = Read-JsonFile $statePath $stateRelativePath
+    $lastCommitHash = if (Test-HasValue $state.lastCommitHash) { [string]$state.lastCommitHash } els
+e { $null }
+    $headCommitHash = Invoke-GitCapture -Arguments @("rev-parse", "HEAD") -DisplayName "git rev-pars
+e HEAD"
+    $commitHashChanged = (Test-HasValue $headCommitHash) -and $headCommitHash -ne $PreviousHeadCommi
+tHash
+    $commitHashMatchesHead = (Test-HasValue $lastCommitHash) -and $lastCommitHash -eq $headCommitHas
+h
+
+    if ($state.lastCommand -eq "commit" -and $state.lastCommandStatus -eq "passed" -and $commitHashC
+hanged -and -not $commitHashMatchesHead) {
+        Set-ObjectProperty $state "lastCommitHash" $headCommitHash
+        Set-ObjectProperty $state "updatedAt" ([DateTimeOffset]::UtcNow.ToString("o"))
+        Write-JsonFile $statePath $state
+
+        $lastCommitHash = $headCommitHash
+        $commitHashMatchesHead = $true
+    }
+
+    return [PSCustomObject][ordered]@{
+        lastCommand = [string]$state.lastCommand
+        lastCommandStatus = [string]$state.lastCommandStatus
+        lastCommitHash = [string]$lastCommitHash
+        commitHashChanged = $commitHashChanged
+        commitHashMatchesHead = $commitHashMatchesHead
+    }
+}
+
+Set-Location $repoRoot
+
+$script:steps = @()
+
+if ($MaxTasks -lt 1) {
+    Stop-Cycle $script:steps "max_tasks_must_be_at_least_1" $false 1
+}
+
+if ($MaxSteps -lt 1) {
+    Stop-Cycle $script:steps "max_steps_must_be_at_least_1" $false 1
+}
+
+try {
+    foreach ($requiredPath in @($queuePath, $statePath)) {
+        if (-not (Test-Path -LiteralPath $requiredPath -PathType Leaf)) {
+            throw "필수 상태 파일이 없습니다: $requiredPath"
+        }
+    }
+
+    $queue = Read-JsonFile $queuePath $queueRelativePath
+    $state = Read-JsonFile $statePath $stateRelativePath
+
+    if ($state.goalStatus -eq "completed") {
+        Stop-Cycle $script:steps "goal_completed" $true 0
+    }
+
+    if (-not ($queue.PSObject.Properties.Name -contains "tasks") -or $null -eq $queue.tasks) {
+        Stop-Cycle $script:steps "no_task" $false 0
+    }
+
+    $currentTask = Get-CurrentTask $queue $state
+
+    if ($null -eq $currentTask) {
+        Stop-Cycle $script:steps "no_task" $false 0
+    }
+
+    if ($currentTask.status -eq "done") {
+        Stop-Cycle $script:steps "current_task_done" $true 0
+    }
+
+    $scriptPaths = @{
+        makePrompt = Get-ScriptPath "ai-dev-make-prompt.ps1"
+        runCodex = Get-ScriptPath "ai-dev-run-codex.ps1"
+        check = Get-ScriptPath "ai-dev-check.ps1"
+        saveDiff = Get-ScriptPath "ai-dev-save-diff.ps1"
+        makeReviewPrompt = Get-ScriptPath "ai-dev-make-review-prompt.ps1"
+        runReviewCodex = Get-ScriptPath "ai-dev-run-review-codex.ps1"
+        commit = Get-ScriptPath "ai-dev-commit.ps1"
+        completeTask = Get-ScriptPath "ai-dev-complete-task.ps1"
+        status = Get-ScriptPath "ai-dev-status.ps1"
+    }
+} catch {
+    $script:steps += New-StepResult 0 "prepare" "state/queue 확인" $false $false 1 $_.Exception.Messag
+e
+    Stop-Cycle $script:steps "prepare_failed" $false 1
+}
+
+$plannedSteps = @(
+    "task-start",
+    "make-prompt",
+    "run-codex",
+    "check",
+    "save-diff",
+    "make-review-prompt",
+    "run-review-codex",
+    "review-gate",
+    "package-change-gate",
+    "commit",
+    "commit-result-gate",
+    "complete-task",
+    "meta-commit",
+    "final-status"
+)
+
+if ($plannedSteps.Count -gt $MaxSteps) {
+    Stop-Cycle $script:steps "max_steps_too_small_for_full_cycle" $false 1
+}
+
+$stepNumber = 1
+$completedTaskCount = 0
+
+while ($completedTaskCount -lt $MaxTasks) {
+    try {
+        $queue = Read-JsonFile $queuePath $queueRelativePath
+        $state = Read-JsonFile $statePath $stateRelativePath
+        $currentTask = Get-CurrentTask $queue $state
+    } catch {
+        $script:steps += New-StepResult $stepNumber "load-task" "state/queue 확인" $false $false 1 $_.
+Exception.Message
+        Stop-Cycle $script:steps "load_task_failed" $false 1
+    }
+
+    if ($state.goalStatus -eq "completed") {
+        Stop-Cycle $script:steps "goal_completed" $true 0
+    }
+
+    if ($null -eq $currentTask) {
+        Stop-Cycle $script:steps "no_task" $false 0
+    }
+
+    if ($currentTask.status -eq "done") {
+        Stop-Cycle $script:steps "current_task_done" $true 0
+    }
+
+    $taskLabel = "$($currentTask.id) $($currentTask.title)"
+    $script:steps += New-StepResult $stepNumber "task-start" "MaxTasks=$MaxTasks" $false $false 0 "현
+재 task 실행 시작: $taskLabel"
+    $stepNumber++
+
+    $resumeFromSavedReview = $false
+
+    if (-not $DryRun) {
+        try {
+            $resumeReviewGate = Get-ReviewGate
+        } catch {
+            $script:steps += New-StepResult $stepNumber "resume-review-gate" "state/review-response 
+확인" $false $false 1 $_.Exception.Message
+            Stop-Cycle $script:steps "resume_review_gate_failed" $false 1
+        }
+
+        if (Test-IsSavedReviewPassReady $resumeReviewGate) {
+            $resumeFromSavedReview = $true
+            $script:steps += New-StepResult $stepNumber "resume-review-gate" "state/review-response 
+재확인" $false $false 0 "이미 저장된 리뷰 pass와 허용 가능한 next_step 상태를 확인했습니다. 구현/리뷰 재실행 없이 commit/complete/meta
+-commit으로 계속 진행합니다."
+            $stepNumber++
+        } elseif ($resumeReviewGate.lastCommand -eq "save-review" -and $resumeReviewGate.lastCommand
+Status -eq "passed") {
+            $message = "save-review 이후 계속 진행할 수 없습니다. review.decision=$($resumeReviewGate.decision),
+ state.lastReviewDecision=$($resumeReviewGate.stateDecision), next_step=$($resumeReviewGate.nextStep
+)"
+            $script:steps += New-StepResult $stepNumber "resume-review-gate" "state/review-response 
+재확인" $false $true 1 $message
+            Stop-Cycle $script:steps "saved_review_not_ready_to_complete" $false 1
+        }
+    }
+
+    if (-not $resumeFromSavedReview) {
+        Invoke-CycleCommand $stepNumber "make-prompt" "powershell -ExecutionPolicy Bypass -File scri
+pts/ai-dev-make-prompt.ps1" $scriptPaths.makePrompt @()
+        $stepNumber++
+
+        if (-not $AllowCodex -and -not $DryRun) {
+            $command = "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cycle-full.ps1 
+-AllowCodex -AllowReviewCodex -MaxTasks $MaxTasks"
+            if ($AllowDirty) {
+                $command = "$command -AllowDirty"
+            }
+
+            if ($AllowCommit) {
+                $command = "$command -AllowCommit"
+            }
+
+            if ($null -ne $CommitFiles -and $CommitFiles.Count -gt 0) {
+                $command = "$command -CommitFiles $($CommitFiles -join ',')"
+            }
+
+            $script:steps += New-StepResult $stepNumber "run-codex" "powershell -ExecutionPolicy Byp
+ass -File scripts/ai-dev-run-codex.ps1" $false $true 1 "Codex 구현 실행에는 -AllowCodex가 필요합니다. 추천 명령: $co
+mmand"
+            Stop-Cycle $script:steps "allow_codex_required" $false 1
+        }
+
+        $runCodexArguments = @()
+        if ($AllowDirty) {
+            $runCodexArguments += "-AllowDirty"
+        }
+
+        Invoke-CycleCommand $stepNumber "run-codex" "powershell -ExecutionPolicy Bypass -File script
+s/ai-dev-run-codex.ps1" $scriptPaths.runCodex $runCodexArguments
+        $stepNumber++
+
+        Invoke-CycleCommand $stepNumber "check" "powershell -ExecutionPolicy Bypass -File scripts/ai
+-dev-check.ps1 -BuildOnly" $scriptPaths.check @("-BuildOnly")
+        $stepNumber++
+
+        Invoke-CycleCommand $stepNumber "save-diff" "powershell -ExecutionPolicy Bypass -File script
+s/ai-dev-save-diff.ps1" $scriptPaths.saveDiff @()
+        $stepNumber++
+
+        Invoke-CycleCommand $stepNumber "make-review-prompt" "powershell -ExecutionPolicy Bypass -Fi
+le scripts/ai-dev-make-review-prompt.ps1 -Strict" $scriptPaths.makeReviewPrompt @("-Strict")
+        $stepNumber++
+
+        if (-not $AllowReviewCodex -and -not $DryRun) {
+            $command = "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cycle-full.ps1 
+-AllowCodex -AllowReviewCodex -MaxTasks $MaxTasks"
+            if ($AllowDirty) {
+                $command = "$command -AllowDirty"
+            }
+
+            if ($AllowCommit) {
+                $command = "$command -AllowCommit"
+            }
+
+            if ($null -ne $CommitFiles -and $CommitFiles.Count -gt 0) {
+                $command = "$command -CommitFiles $($CommitFiles -join ',')"
+            }
+
+            $script:steps += New-StepResult $stepNumber "run-review-codex" "powershell -ExecutionPol
+icy Bypass -File scripts/ai-dev-run-review-codex.ps1 -AllowDirty -SaveReview" $false $true 1 "Codex 
+리뷰 실행에는 -AllowReviewCodex가 필요합니다. 추천 명령: $command"
+            Stop-Cycle $script:steps "allow_review_codex_required" $false 1
+        }
+
+        Invoke-CycleCommand $stepNumber "run-review-codex" "powershell -ExecutionPolicy Bypass -File
+ scripts/ai-dev-run-review-codex.ps1 -AllowDirty -SaveReview" $scriptPaths.runReviewCodex @("-AllowD
+irty", "-SaveReview")
+        $stepNumber++
+    }
+
+    if ($DryRun) {
+        $script:steps += New-StepResult $stepNumber "review-gate" "state.lastReviewDecision 확인" $fal
+se $true 0 "DryRun: 리뷰 pass 여부를 실제 상태에서 읽지 않았습니다."
+        $stepNumber++
+        $script:steps += New-StepResult $stepNumber "package-change-gate" "git status --porcelain --
+ package.json package-lock.json" $false $true 0 "DryRun: package 파일 변경 여부를 확인하지 않았습니다."
+        $stepNumber++
+        $script:steps += New-StepResult $stepNumber "commit" "powershell -ExecutionPolicy Bypass -Fi
+le scripts/ai-dev-commit.ps1" $false $true 0 "DryRun: git add/commit을 실행하지 않았습니다."
+        $stepNumber++
+        $script:steps += New-StepResult $stepNumber "commit-result-gate" "state.lastCommand/lastComm
+itHash 확인" $false $true 0 "DryRun: 실제 커밋 생성 여부를 확인하지 않았습니다."
+        $stepNumber++
+        $script:steps += New-StepResult $stepNumber "complete-task" "powershell -ExecutionPolicy Byp
+ass -File scripts/ai-dev-complete-task.ps1 -ResultSummary `"자동 완료: Codex 구현, build/check, Codex 리뷰 p
+ass, 자동 커밋 완료`" -CommitHash <commit-hash>" $false $true 0 "DryRun: task 완료 처리를 실행하지 않았습니다."
+        $stepNumber++
+        $script:steps += New-StepResult $stepNumber "meta-commit" "direct meta commit: git add scope
+d .ai-dev files, git commit -m 'chore(ai-dev): record task completion', git status --short" $false $
+true 0 "DryRun: .ai-dev 메타 상태 직접 커밋을 실행하지 않았습니다."
+        $stepNumber++
+        $script:steps += New-StepResult $stepNumber "final-status" "powershell -ExecutionPolicy Bypa
+ss -File scripts/ai-dev-status.ps1" $false $true 0 "DryRun: 최종 작업 상태 확인을 실행하지 않았습니다."
+        Stop-Cycle $script:steps "dry_run" $false 0
+    }
+
+    try {
+        $reviewGate = Get-ReviewGate
+    } catch {
+        $script:steps += New-StepResult $stepNumber "review-gate" "state/review-response 확인" $false 
+$false 1 $_.Exception.Message
+        Stop-Cycle $script:steps "review_gate_failed" $false 1
+    }
+
+    if ($reviewGate.lastCommand -ne "save-review" -or $reviewGate.lastCommandStatus -ne "passed") {
+        $message = "최신 state가 save-review passed가 아니므로 자동 커밋하지 않습니다: lastCommand=$($reviewGate.lastC
+ommand), lastCommandStatus=$($reviewGate.lastCommandStatus)"
+        $script:steps += New-StepResult $stepNumber "review-gate" "state.lastCommand/state.lastComma
+ndStatus 확인" $false $true 1 $message
+        Stop-Cycle $script:steps "review_save_not_passed" $false 1
+    }
+
+    if ($reviewGate.decision -ne "pass") {
+        $script:steps += New-StepResult $stepNumber "review-gate" "$reviewResponseRelativePath decis
+ion 확인" $false $true 1 "리뷰 response decision이 pass가 아니므로 자동 커밋과 complete-task를 실행하지 않습니다: $($reviewG
+ate.decision)"
+        Stop-Cycle $script:steps "review_not_pass" $false 1
+    }
+
+    if ($reviewGate.stateDecision -ne "pass") {
+        $script:steps += New-StepResult $stepNumber "review-gate" "state.lastReviewDecision 확인" $fal
+se $true 1 "state.lastReviewDecision이 pass가 아니므로 자동 커밋과 complete-task를 실행하지 않습니다: $($reviewGate.stat
+eDecision)"
+        Stop-Cycle $script:steps "state_review_not_pass" $false 1
+    }
+
+    if (-not (Test-IsAcceptableReviewNextStep $reviewGate)) {
+        $script:steps += New-StepResult $stepNumber "review-gate" "$reviewResponseRelativePath next_
+step 확인" $false $true 1 "리뷰 next_step이 존재하지만 complete_task가 아니므로 자동 커밋과 complete-task를 실행하지 않습니다: 원본
+='$($reviewGate.nextStep)', 정규화='$($reviewGate.normalizedNextStep)'"
+        Stop-Cycle $script:steps "review_next_step_not_complete_task" $false 1
+    }
+
+    $script:steps += New-StepResult $stepNumber "review-gate" "최신 state 및 $reviewResponseRelativePat
+h 재확인" $false $false 0 "리뷰 pass 및 허용 가능한 next_step 상태 수락: 존재=$($reviewGate.hasNextStep), 원본='$($revi
+ewGate.nextStep)', 정규화='$($reviewGate.normalizedNextStep)'. commit/commit-result-gate/complete-task/
+meta-commit으로 계속 진행합니다."
+    $stepNumber++
+
+    try {
+        if (Test-PackageFileChanged) {
+            $script:steps += New-StepResult $stepNumber "package-change-gate" "git status --porcelai
+n -- package.json package-lock.json" $false $true 1 "package.json 또는 package-lock.json 변경이 감지되어 자동 커
+밋하지 않습니다."
+            Stop-Cycle $script:steps "package_files_changed" $false 1
+        }
+    } catch {
+        $script:steps += New-StepResult $stepNumber "package-change-gate" "git status --porcelain --
+ package.json package-lock.json" $false $false 1 $_.Exception.Message
+        Stop-Cycle $script:steps "package_change_gate_failed" $false 1
+    }
+
+    $script:steps += New-StepResult $stepNumber "package-change-gate" "git status --porcelain -- pac
+kage.json package-lock.json" $false $false 0 "package 파일 변경 없음. 커밋 허용 여부를 확인합니다."
+    $stepNumber++
+
+    if (-not $AllowCommit) {
+        $commitCommand = "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cycle-full.ps
+1 -AllowCodex -AllowReviewCodex -AllowCommit -MaxTasks $MaxTasks"
+        if ($AllowDirty) {
+            $commitCommand = "$commitCommand -AllowDirty"
+        }
+
+        if ($null -ne $CommitFiles -and $CommitFiles.Count -gt 0) {
+            $commitCommand = "$commitCommand -CommitFiles $($CommitFiles -join ',')"
+        }
+
+        $script:steps += New-StepResult $stepNumber "commit" "powershell -ExecutionPolicy Bypass -Fi
+le scripts/ai-dev-commit.ps1" $false $true 1 "자동 커밋에는 -AllowCommit이 필요합니다. 추천 명령: $commitCommand"
+        Stop-Cycle $script:steps "allow_commit_required" $false 1
+    }
+
+    $commitArguments = Get-CommitArguments
+
+    if ($commitArguments.Count -eq 0) {
+        $script:steps += New-StepResult $stepNumber "commit" "git status --porcelain" $false $true 1
+ "커밋할 구현 변경사항이 없어 complete-task를 실행하지 않습니다."
+        Stop-Cycle $script:steps "no_implementation_changes" $false 1
+    }
+
+    $commitCommandText = "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-commit.ps1"
+    if ($commitArguments.Count -gt 0) {
+        $commitCommandText = "$commitCommandText $($commitArguments -join ' ')"
+    }
+
+    try {
+        $preCommitHeadCommitHash = Invoke-GitCapture -Arguments @("rev-parse", "HEAD") -DisplayName 
+"git rev-parse HEAD"
+    } catch {
+        $script:steps += New-StepResult $stepNumber "commit" "git rev-parse HEAD" $false $false 1 $_
+.Exception.Message
+        Stop-Cycle $script:steps "pre_commit_head_failed" $false 1
+    }
+
+    Invoke-CycleCommand $stepNumber "commit" $commitCommandText $scriptPaths.commit $commitArguments
+    $stepNumber++
+
+    try {
+        $commitGate = Get-CommitGate $preCommitHeadCommitHash
+    } catch {
+        $script:steps += New-StepResult $stepNumber "commit-result-gate" "state.lastCommand/lastComm
+itHash 확인" $false $false 1 $_.Exception.Message
+        Stop-Cycle $script:steps "commit_result_gate_failed" $false 1
+    }
+
+    if ($commitGate.lastCommand -ne "commit" -or $commitGate.lastCommandStatus -ne "passed" -or -not
+ $commitGate.commitHashChanged -or -not $commitGate.commitHashMatchesHead) {
+        $message = "커밋 완료 상태를 확인하지 못해 complete-task를 실행하지 않습니다. lastCommand=$($commitGate.lastComman
+d), lastCommandStatus=$($commitGate.lastCommandStatus), lastCommitHash=$($commitGate.lastCommitHash)
+"
+        $script:steps += New-StepResult $stepNumber "commit-result-gate" "state.lastCommand/lastComm
+itHash 확인" $false $true 1 $message
+        Stop-Cycle $script:steps "commit_not_confirmed" $false 1
+    }
+
+    $script:steps += New-StepResult $stepNumber "commit-result-gate" "state.lastCommand/lastCommitHa
+sh 확인" $false $false 0 "커밋 생성 확인: $($commitGate.lastCommitHash)"
+    $stepNumber++
+
+    $resultSummary = "자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료"
+    Invoke-CycleCommand $stepNumber "complete-task" "powershell -ExecutionPolicy Bypass -File script
+s/ai-dev-complete-task.ps1 -ResultSummary `"$resultSummary`" -CommitHash $($commitGate.lastCommitHas
+h)" $scriptPaths.completeTask @("-ResultSummary", $resultSummary, "-CommitHash", $commitGate.lastCom
+mitHash)
+    $stepNumber++
+
+    Invoke-DirectMetaCommit $stepNumber
+    $stepNumber++
+
+    Invoke-CycleCommand $stepNumber "final-status" "powershell -ExecutionPolicy Bypass -File scripts
+/ai-dev-status.ps1" $scriptPaths.status @()
+    $stepNumber++
+
+    $completedTaskCount++
+
+    $stateAfterComplete = Read-JsonFile $statePath $stateRelativePath
+
+    if ($stateAfterComplete.goalStatus -eq "completed") {
+        Stop-Cycle $script:steps "goal_completed" $true 0
+    }
+}
+
+Stop-Cycle $script:steps "max_tasks_reached" $true 0
+
 codex
-카드의 보조 문구만 바꿉니다: 마감 배지 설명을 더 구체적으로 만들고, 완료 토글/삭제/수정 버튼의 `aria-label`을 한국어 동작 표현으로 다듬겠습니다.
+핵심 원인은 `ai-dev-auto-goal.ps1`이 `auto-cycle-full`의 메타 커밋이 끝난 뒤 `Stop-AutoGoal`에서 임시 산출물을 삭제한다는 점입니다. 
+그래서 completed 직전에 삭제 변경이 새로 생길 수 있으므로, 완료 경로에서만 삭제를 먼저 수행한 뒤 남은 변경을 검사하고 필요 시 `.ai-dev` 메타 커밋으로 닫는 방
+식으로 작게 보강하겠습니다.
+codex
+수정은 `scripts/ai-dev-auto-goal.ps1` 한 파일에만 적용하겠습니다. 완료 경로에서 `Clear-AutoGoalTempArtifacts`를 선행 실행하고, g
+it 상태가 `.ai-dev` 운영 변경만 남은 경우 `-AllowCommit`일 때 별도 메타 커밋으로 포함시키며, 그 외 변경은 실패로 종료하도록 하겠습니다.
 apply patch
 patch: completed
-D:\ai-apps\planpilot-local\src\components\TaskCard.tsx
-diff --git a/src/components/TaskCard.tsx b/src/components/TaskCard.tsx
-index d9d377f66ac54d544c272f2073c134ebe2a57bb3..aff165e7788f4b45f447011d8af645cf5ca54e42
---- a/src/components/TaskCard.tsx
-+++ b/src/components/TaskCard.tsx
-@@ -24,7 +24,7 @@
-       <strong>{task.title}</strong>
-       {showDueSoonBadge && (
-         <span
--          aria-label="마감일이 가까운 업무"
-+          aria-label="마감일이 곧 다가오는 업무"
-           style={{
-             alignSelf: "flex-start",
-             border: "1px solid #d97706",
-@@ -47,23 +47,23 @@
-         type="button"
-         aria-label={
-           task.status === "done"
--            ? `${task.title} 업무 완료 취소`
--            : `${task.title} 업무 완료 처리`
-+            ? `${task.title} 업무를 미완료로 되돌리기`
-+            : `${task.title} 업무를 완료로 표시하기`
-         }
-         onClick={() => onToggleDone(task)}
-       >
--        {task.status === "done" ? "완료 취소" : "완료 처리"}
-+        {task.status === "done" ? "미완료로 되돌리기" : "완료로 표시"}
-       </button>
-       <button
-         type="button"
--        aria-label={`${task.title} 업무 삭제`}
-+        aria-label={`${task.title} 업무 삭제하기`}
-         onClick={() => onDelete(task)}
-       >
-         삭제
-       </button>
-       <button
-         type="button"
--        aria-label={`${task.title} 업무 수정`}
-+        aria-label={`${task.title} 업무 수정하기`}
-         onClick={() => onStartEdit(task)}
-       >
-         수정
+D:\ai-apps\planpilot-local\scripts\ai-dev-auto-goal.ps1
+diff --git a/scripts/ai-dev-auto-goal.ps1 b/scripts/ai-dev-auto-goal.ps1
+index 85e9175fc4b61e6e37e5cfa283569fd39fc801ba..de9a02743bf0a4eb9d93d244b07e74620cdee06a
+--- a/scripts/ai-dev-auto-goal.ps1
++++ b/scripts/ai-dev-auto-goal.ps1
+@@ -24,9 +24,10 @@
+ $goalRelativePath = ".ai-dev/goal.md"
+ $queueRelativePath = ".ai-dev/queue.json"
+ $stateRelativePath = ".ai-dev/state.json"
+-$promptRelativePath = ".ai-dev/current-task-prompt.md"
+-$planningPromptRelativePath = ".ai-dev/auto-goal-planning-prompt.md"
+-$legacyAutoGoalResultRelativePath = ".ai-dev/auto-goal-codex-result.md"
++$promptRelativePath = ".ai-dev/current-task-prompt.md"
++$planningPromptRelativePath = ".ai-dev/auto-goal-planning-prompt.md"
++$legacyAutoGoalResultRelativePath = ".ai-dev/auto-goal-codex-result.md"
++$aiDevOperationalRoot = ".ai-dev/"
+ 
+ function Resolve-RepoPath {
+     param([string]$Path)
+@@ -203,16 +204,109 @@
+     return $normalized.Substring(0, 500)
+ }
+ 
+-function Get-GitStatusLines {
+-    $statusOutput = & git status --short 2>&1
+-
+-    if ($LASTEXITCODE -ne 0) {
+-        $script:steps += New-StepResult 2 "dirty-worktree-gate" "git status --short" $false $false 
+1 "git status failed: $($statusOutput -join "`n")"
++function Get-GitStatusLines {
++    $statusOutput = & git status --short 2>&1
++
++    if ($LASTEXITCODE -ne 0) {
++        $script:steps += New-StepResult 2 "dirty-worktree-gate" "git status --short" $false $false 
+1 "git status failed: $($statusOutput -join "`n")"
+         Stop-AutoGoal $script:steps "git_status_failed" $false 1
+     }
+-
+-    return @($statusOutput | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+-}
++
++    return @($statusOutput | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
++}
++
++function Convert-ToChangedPath {
++    param([string]$ChangeLine)
++
++    if ([string]::IsNullOrWhiteSpace($ChangeLine)) {
++        return @()
++    }
++
++    $pathText = $ChangeLine
++
++    if ($ChangeLine.Length -ge 4 -and $ChangeLine.Substring(2, 1) -eq " ") {
++        $pathText = $ChangeLine.Substring(3)
++    }
++
++    if ($pathText.Contains(" -> ")) {
++        return @($pathText -split " -> " | Where-Object { Test-HasValue $_ })
++    }
++
++    return @($pathText)
++}
++
++function Test-IsAiDevOperationalPath {
++    param([string]$RelativePath)
++
++    $normalizedRelativePath = $RelativePath.Replace('\', '/')
++    return $normalizedRelativePath.StartsWith($aiDevOperationalRoot, [System.StringComparison]::Ord
+inalIgnoreCase)
++}
++
++function Invoke-FinalAutoGoalChangeGate {
++    param(
++        [int]$StepNumber
++    )
++
++    Clear-AutoGoalTempArtifacts
++
++    $statusLines = @(Get-GitStatusLines)
++    $command = "cleanup auto-goal temp artifacts, git status --short"
++
++    if ($statusLines.Count -eq 0) {
++        $script:steps += New-StepResult $StepNumber "final-change-gate" $command $false $false 0 "a
+uto-goal 최종 정리 후 worktree clean."
++        return
++    }
++
++    $changedPaths = @(
++        $statusLines |
++            ForEach-Object { Convert-ToChangedPath $_ } |
++            Where-Object { Test-HasValue $_ } |
++            Select-Object -Unique
++    )
++    $nonAiDevPaths = @($changedPaths | Where-Object { -not (Test-IsAiDevOperationalPath $_) })
++    $aiDevPaths = @($changedPaths | Where-Object { Test-IsAiDevOperationalPath $_ })
++
++    if ($nonAiDevPaths.Count -gt 0) {
++        $message = "auto-goal 완료 직전 .ai-dev 밖 변경이 남아 completed로 종료하지 않습니다.`n$($statusLines -join "`
+n")"
++        $script:steps += New-StepResult $StepNumber "final-change-gate" $command $false $true 1 $me
+ssage
++        Stop-AutoGoal $script:steps "final_non_ai_dev_changes" $false 1
++    }
++
++    if (-not $AllowCommit) {
++        $message = "auto-goal 완료 직전 .ai-dev 운영 변경이 남았지만 -AllowCommit이 없어 메타 커밋에 포함할 수 없습니다.`n$($sta
+tusLines -join "`n")"
++        $script:steps += New-StepResult $StepNumber "final-change-gate" $command $false $true 1 $me
+ssage
++        Stop-AutoGoal $script:steps "final_ai_dev_changes_require_commit" $false 1
++    }
++
++    $addOutput = & git add -- $aiDevPaths 2>&1 | Out-String
++    $addExitCode = $LASTEXITCODE
++
++    if ($addExitCode -ne 0) {
++        $message = "auto-goal 최종 .ai-dev 메타 변경 git add 실패. exit code: $addExitCode`n$addOutput"
++        $script:steps += New-StepResult $StepNumber "final-change-gate" "git add -- <final .ai-dev 
+files>" $true $false 1 $message
++        Stop-AutoGoal $script:steps "final_meta_add_failed" $false 1
++    }
++
++    $commitOutput = & git commit -m "chore(ai-dev): finalize auto-goal state" -- $aiDevPaths 2>&1 |
+ Out-String
++    $commitExitCode = $LASTEXITCODE
++
++    if ($commitExitCode -ne 0) {
++        $message = "auto-goal 최종 .ai-dev 메타 커밋 실패. exit code: $commitExitCode`n$commitOutput"
++        $script:steps += New-StepResult $StepNumber "final-change-gate" "git commit -m 'chore(ai-de
+v): finalize auto-goal state' -- <final .ai-dev files>" $true $false 1 $message
++        Stop-AutoGoal $script:steps "final_meta_commit_failed" $false 1
++    }
++
++    $remainingStatus = @(Get-GitStatusLines)
++
++    if ($remainingStatus.Count -gt 0) {
++        $message = "auto-goal 최종 메타 커밋 이후에도 변경 파일이 남아 completed로 종료하지 않습니다.`n$($remainingStatus -jo
+in "`n")"
++        $script:steps += New-StepResult $StepNumber "final-change-gate" "git status --short" $true 
+$false 1 $message
++        Stop-AutoGoal $script:steps "final_worktree_dirty" $false 1
++    }
++
++    $message = ($commitOutput.Trim(), "worktree clean") -join "`n"
++    $script:steps += New-StepResult $StepNumber "final-change-gate" "git add/commit final .ai-dev o
+perational changes, git status --short" $true $false 0 $message
++}
+ 
+ function Get-JsonObjectCandidates {
+     param([string]$RawInput)
+@@ -913,7 +1007,9 @@
+     Stop-AutoGoal $script:steps "auto_cycle_incomplete" $false 1
+ }
+ 
+-$script:steps += New-StepResult 8 "verify-goal-status" "$stateRelativePath goalStatus 확인" $false $f
+alse 0 "auto-cycle-full 성공 후 goalStatus completed 확인."
+-
+-Stop-AutoGoal $script:steps "completed" $true 0
++$script:steps += New-StepResult 8 "verify-goal-status" "$stateRelativePath goalStatus 확인" $false $f
+alse 0 "auto-cycle-full 성공 후 goalStatus completed 확인."
++
++Invoke-FinalAutoGoalChangeGate 9
++
++Stop-AutoGoal $script:steps "completed" $true 0
+ 
 
-diff --git a/src/components/TaskCard.tsx b/src/components/TaskCard.tsx
-index d9d377f66ac54d544c272f2073c134ebe2a57bb3..aff165e7788f4b45f447011d8af645cf5ca54e42
---- a/src/components/TaskCard.tsx
-+++ b/src/components/TaskCard.tsx
-@@ -24,7 +24,7 @@
-       <strong>{task.title}</strong>
-       {showDueSoonBadge && (
-         <span
--          aria-label="마감일이 가까운 업무"
-+          aria-label="마감일이 곧 다가오는 업무"
-           style={{
-             alignSelf: "flex-start",
-             border: "1px solid #d97706",
-@@ -47,23 +47,23 @@
-         type="button"
-         aria-label={
-           task.status === "done"
--            ? `${task.title} 업무 완료 취소`
--            : `${task.title} 업무 완료 처리`
-+            ? `${task.title} 업무를 미완료로 되돌리기`
-+            : `${task.title} 업무를 완료로 표시하기`
-         }
-         onClick={() => onToggleDone(task)}
-       >
--        {task.status === "done" ? "완료 취소" : "완료 처리"}
-+        {task.status === "done" ? "미완료로 되돌리기" : "완료로 표시"}
-       </button>
-       <button
-         type="button"
--        aria-label={`${task.title} 업무 삭제`}
-+        aria-label={`${task.title} 업무 삭제하기`}
-         onClick={() => onDelete(task)}
-       >
-         삭제
-       </button>
-       <button
-         type="button"
--        aria-label={`${task.title} 업무 수정`}
-+        aria-label={`${task.title} 업무 수정하기`}
-         onClick={() => onStartEdit(task)}
-       >
-         수정
+diff --git a/scripts/ai-dev-auto-goal.ps1 b/scripts/ai-dev-auto-goal.ps1
+index 85e9175fc4b61e6e37e5cfa283569fd39fc801ba..de9a02743bf0a4eb9d93d244b07e74620cdee06a
+--- a/scripts/ai-dev-auto-goal.ps1
++++ b/scripts/ai-dev-auto-goal.ps1
+@@ -24,9 +24,10 @@
+ $goalRelativePath = ".ai-dev/goal.md"
+ $queueRelativePath = ".ai-dev/queue.json"
+ $stateRelativePath = ".ai-dev/state.json"
+-$promptRelativePath = ".ai-dev/current-task-prompt.md"
+-$planningPromptRelativePath = ".ai-dev/auto-goal-planning-prompt.md"
+-$legacyAutoGoalResultRelativePath = ".ai-dev/auto-goal-codex-result.md"
++$promptRelativePath = ".ai-dev/current-task-prompt.md"
++$planningPromptRelativePath = ".ai-dev/auto-goal-planning-prompt.md"
++$legacyAutoGoalResultRelativePath = ".ai-dev/auto-goal-codex-result.md"
++$aiDevOperationalRoot = ".ai-dev/"
+ 
+ function Resolve-RepoPath {
+     param([string]$Path)
+@@ -203,16 +204,109 @@
+     return $normalized.Substring(0, 500)
+ }
+ 
+-function Get-GitStatusLines {
+-    $statusOutput = & git status --short 2>&1
+-
+-    if ($LASTEXITCODE -ne 0) {
+-        $script:steps += New-StepResult 2 "dirty-worktree-gate" "git status --short" $false $false 
+1 "git status failed: $($statusOutput -join "`n")"
++function Get-GitStatusLines {
++    $statusOutput = & git status --short 2>&1
++
++    if ($LASTEXITCODE -ne 0) {
++        $script:steps += New-StepResult 2 "dirty-worktree-gate" "git status --short" $false $false 
+1 "git status failed: $($statusOutput -join "`n")"
+         Stop-AutoGoal $script:steps "git_status_failed" $false 1
+     }
+-
+-    return @($statusOutput | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+-}
++
++    return @($statusOutput | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
++}
++
++function Convert-ToChangedPath {
++    param([string]$ChangeLine)
++
++    if ([string]::IsNullOrWhiteSpace($ChangeLine)) {
++        return @()
++    }
++
++    $pathText = $ChangeLine
++
++    if ($ChangeLine.Length -ge 4 -and $ChangeLine.Substring(2, 1) -eq " ") {
++        $pathText = $ChangeLine.Substring(3)
++    }
++
++    if ($pathText.Contains(" -> ")) {
++        return @($pathText -split " -> " | Where-Object { Test-HasValue $_ })
++    }
++
++    return @($pathText)
++}
++
++function Test-IsAiDevOperationalPath {
++    param([string]$RelativePath)
++
++    $normalizedRelativePath = $RelativePath.Replace('\', '/')
++    return $normalizedRelativePath.StartsWith($aiDevOperationalRoot, [System.StringComparison]::Ord
+inalIgnoreCase)
++}
++
++function Invoke-FinalAutoGoalChangeGate {
++    param(
++        [int]$StepNumber
++    )
++
++    Clear-AutoGoalTempArtifacts
++
++    $statusLines = @(Get-GitStatusLines)
++    $command = "cleanup auto-goal temp artifacts, git status --short"
++
++    if ($statusLines.Count -eq 0) {
++        $script:steps += New-StepResult $StepNumber "final-change-gate" $command $false $false 0 "a
+uto-goal 최종 정리 후 worktree clean."
++        return
++    }
++
++    $changedPaths = @(
++        $statusLines |
++            ForEach-Object { Convert-ToChangedPath $_ } |
++            Where-Object { Test-HasValue $_ } |
++            Select-Object -Unique
++    )
++    $nonAiDevPaths = @($changedPaths | Where-Object { -not (Test-IsAiDevOperationalPath $_) })
++    $aiDevPaths = @($changedPaths | Where-Object { Test-IsAiDevOperationalPath $_ })
++
++    if ($nonAiDevPaths.Count -gt 0) {
++        $message = "auto-goal 완료 직전 .ai-dev 밖 변경이 남아 completed로 종료하지 않습니다.`n$($statusLines -join "`
+n")"
++        $script:steps += New-StepResult $StepNumber "final-change-gate" $command $false $true 1 $me
+ssage
++        Stop-AutoGoal $script:steps "final_non_ai_dev_changes" $false 1
++    }
++
++    if (-not $AllowCommit) {
++        $message = "auto-goal 완료 직전 .ai-dev 운영 변경이 남았지만 -AllowCommit이 없어 메타 커밋에 포함할 수 없습니다.`n$($sta
+tusLines -join "`n")"
++        $script:steps += New-StepResult $StepNumber "final-change-gate" $command $false $true 1 $me
+ssage
++        Stop-AutoGoal $script:steps "final_ai_dev_changes_require_commit" $false 1
++    }
++
++    $addOutput = & git add -- $aiDevPaths 2>&1 | Out-String
++    $addExitCode = $LASTEXITCODE
++
++    if ($addExitCode -ne 0) {
++        $message = "auto-goal 최종 .ai-dev 메타 변경 git add 실패. exit code: $addExitCode`n$addOutput"
++        $script:steps += New-StepResult $StepNumber "final-change-gate" "git add -- <final .ai-dev 
+files>" $true $false 1 $message
++        Stop-AutoGoal $script:steps "final_meta_add_failed" $false 1
++    }
++
++    $commitOutput = & git commit -m "chore(ai-dev): finalize auto-goal state" -- $aiDevPaths 2>&1 |
+ Out-String
++    $commitExitCode = $LASTEXITCODE
++
++    if ($commitExitCode -ne 0) {
++        $message = "auto-goal 최종 .ai-dev 메타 커밋 실패. exit code: $commitExitCode`n$commitOutput"
++        $script:steps += New-StepResult $StepNumber "final-change-gate" "git commit -m 'chore(ai-de
+v): finalize auto-goal state' -- <final .ai-dev files>" $true $false 1 $message
++        Stop-AutoGoal $script:steps "final_meta_commit_failed" $false 1
++    }
++
++    $remainingStatus = @(Get-GitStatusLines)
++
++    if ($remainingStatus.Count -gt 0) {
++        $message = "auto-goal 최종 메타 커밋 이후에도 변경 파일이 남아 completed로 종료하지 않습니다.`n$($remainingStatus -jo
+in "`n")"
++        $script:steps += New-StepResult $StepNumber "final-change-gate" "git status --short" $true 
+$false 1 $message
++        Stop-AutoGoal $script:steps "final_worktree_dirty" $false 1
++    }
++
++    $message = ($commitOutput.Trim(), "worktree clean") -join "`n"
++    $script:steps += New-StepResult $StepNumber "final-change-gate" "git add/commit final .ai-dev o
+perational changes, git status --short" $true $false 0 $message
++}
+ 
+ function Get-JsonObjectCandidates {
+     param([string]$RawInput)
+@@ -913,7 +1007,9 @@
+     Stop-AutoGoal $script:steps "auto_cycle_incomplete" $false 1
+ }
+ 
+-$script:steps += New-StepResult 8 "verify-goal-status" "$stateRelativePath goalStatus 확인" $false $f
+alse 0 "auto-cycle-full 성공 후 goalStatus completed 확인."
+-
+-Stop-AutoGoal $script:steps "completed" $true 0
++$script:steps += New-StepResult 8 "verify-goal-status" "$stateRelativePath goalStatus 확인" $false $f
+alse 0 "auto-cycle-full 성공 후 goalStatus completed 확인."
++
++Invoke-FinalAutoGoalChangeGate 9
++
++Stop-AutoGoal $script:steps "completed" $true 0
+ 
 
 codex
-수정은 `TaskCard.tsx` 한 파일에만 적용했습니다. 이제 변경된 문구가 의도대로 들어갔는지 파일 내용만 다시 확인하겠습니다.
+수정은 완료 경로 뒤쪽에만 들어갔습니다. 이제 실제 git 상태를 건드리지 않는 PowerShell 구문 파싱으로 스크립트 문법을 확인하겠습니다.
 exec
-"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'rg -n "마감일이|미완료|완료로 표시|삭제
-하기|수정하기" src/components/TaskCard.tsx' in D:\ai-apps\planpilot-local
- succeeded in 1152ms:
-27:          aria-label="마감일이 곧 다가오는 업무"
-50:            ? `${task.title} 업무를 미완료로 되돌리기`
-51:            : `${task.title} 업무를 완료로 표시하기`
-55:        {task.status === "done" ? "미완료로 되돌리기" : "완료로 표시"}
-59:        aria-label={`${task.title} 업무 삭제하기`}
-66:        aria-label={`${task.title} 업무 수정하기`}
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command '$errors = $null; [System.
+Management.Automation.PSParser]::Tokenize((Get-Content -Raw -LiteralPath '"'scripts\\ai-dev-auto-goa
+l.ps1'), [ref]"'$errors) | Out-Null; if ($errors.Count -gt 0) { $errors | Format-List *; exit 1 } el
+se { '"'PowerShell parse OK' }" in D:\ai-apps\planpilot-local
+ succeeded in 991ms:
+PowerShell parse OK
 
-diff --git a/src/components/TaskCard.tsx b/src/components/TaskCard.tsx
-index d9d377f66ac54d544c272f2073c134ebe2a57bb3..aff165e7788f4b45f447011d8af645cf5ca54e42
---- a/src/components/TaskCard.tsx
-+++ b/src/components/TaskCard.tsx
-@@ -24,7 +24,7 @@
-       <strong>{task.title}</strong>
-       {showDueSoonBadge && (
-         <span
--          aria-label="마감일이 가까운 업무"
-+          aria-label="마감일이 곧 다가오는 업무"
-           style={{
-             alignSelf: "flex-start",
-             border: "1px solid #d97706",
-@@ -47,23 +47,23 @@
-         type="button"
-         aria-label={
-           task.status === "done"
--            ? `${task.title} 업무 완료 취소`
--            : `${task.title} 업무 완료 처리`
-+            ? `${task.title} 업무를 미완료로 되돌리기`
-+            : `${task.title} 업무를 완료로 표시하기`
-         }
-         onClick={() => onToggleDone(task)}
-       >
--        {task.status === "done" ? "완료 취소" : "완료 처리"}
-+        {task.status === "done" ? "미완료로 되돌리기" : "완료로 표시"}
-       </button>
-       <button
-         type="button"
--        aria-label={`${task.title} 업무 삭제`}
-+        aria-label={`${task.title} 업무 삭제하기`}
-         onClick={() => onDelete(task)}
-       >
-         삭제
-       </button>
-       <button
-         type="button"
--        aria-label={`${task.title} 업무 수정`}
-+        aria-label={`${task.title} 업무 수정하기`}
-         onClick={() => onStartEdit(task)}
-       >
-         수정
+diff --git a/scripts/ai-dev-auto-goal.ps1 b/scripts/ai-dev-auto-goal.ps1
+index 85e9175fc4b61e6e37e5cfa283569fd39fc801ba..de9a02743bf0a4eb9d93d244b07e74620cdee06a
+--- a/scripts/ai-dev-auto-goal.ps1
++++ b/scripts/ai-dev-auto-goal.ps1
+@@ -24,9 +24,10 @@
+ $goalRelativePath = ".ai-dev/goal.md"
+ $queueRelativePath = ".ai-dev/queue.json"
+ $stateRelativePath = ".ai-dev/state.json"
+-$promptRelativePath = ".ai-dev/current-task-prompt.md"
+-$planningPromptRelativePath = ".ai-dev/auto-goal-planning-prompt.md"
+-$legacyAutoGoalResultRelativePath = ".ai-dev/auto-goal-codex-result.md"
++$promptRelativePath = ".ai-dev/current-task-prompt.md"
++$planningPromptRelativePath = ".ai-dev/auto-goal-planning-prompt.md"
++$legacyAutoGoalResultRelativePath = ".ai-dev/auto-goal-codex-result.md"
++$aiDevOperationalRoot = ".ai-dev/"
+ 
+ function Resolve-RepoPath {
+     param([string]$Path)
+@@ -203,16 +204,109 @@
+     return $normalized.Substring(0, 500)
+ }
+ 
+-function Get-GitStatusLines {
+-    $statusOutput = & git status --short 2>&1
+-
+-    if ($LASTEXITCODE -ne 0) {
+-        $script:steps += New-StepResult 2 "dirty-worktree-gate" "git status --short" $false $false 
+1 "git status failed: $($statusOutput -join "`n")"
++function Get-GitStatusLines {
++    $statusOutput = & git status --short 2>&1
++
++    if ($LASTEXITCODE -ne 0) {
++        $script:steps += New-StepResult 2 "dirty-worktree-gate" "git status --short" $false $false 
+1 "git status failed: $($statusOutput -join "`n")"
+         Stop-AutoGoal $script:steps "git_status_failed" $false 1
+     }
+-
+-    return @($statusOutput | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+-}
++
++    return @($statusOutput | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
++}
++
++function Convert-ToChangedPath {
++    param([string]$ChangeLine)
++
++    if ([string]::IsNullOrWhiteSpace($ChangeLine)) {
++        return @()
++    }
++
++    $pathText = $ChangeLine
++
++    if ($ChangeLine.Length -ge 4 -and $ChangeLine.Substring(2, 1) -eq " ") {
++        $pathText = $ChangeLine.Substring(3)
++    }
++
++    if ($pathText.Contains(" -> ")) {
++        return @($pathText -split " -> " | Where-Object { Test-HasValue $_ })
++    }
++
++    return @($pathText)
++}
++
++function Test-IsAiDevOperationalPath {
++    param([string]$RelativePath)
++
++    $normalizedRelativePath = $RelativePath.Replace('\', '/')
++    return $normalizedRelativePath.StartsWith($aiDevOperationalRoot, [System.StringComparison]::Ord
+inalIgnoreCase)
++}
++
++function Invoke-FinalAutoGoalChangeGate {
++    param(
++        [int]$StepNumber
++    )
++
++    Clear-AutoGoalTempArtifacts
++
++    $statusLines = @(Get-GitStatusLines)
++    $command = "cleanup auto-goal temp artifacts, git status --short"
++
++    if ($statusLines.Count -eq 0) {
++        $script:steps += New-StepResult $StepNumber "final-change-gate" $command $false $false 0 "a
+uto-goal 최종 정리 후 worktree clean."
++        return
++    }
++
++    $changedPaths = @(
++        $statusLines |
++            ForEach-Object { Convert-ToChangedPath $_ } |
++            Where-Object { Test-HasValue $_ } |
++            Select-Object -Unique
++    )
++    $nonAiDevPaths = @($changedPaths | Where-Object { -not (Test-IsAiDevOperationalPath $_) })
++    $aiDevPaths = @($changedPaths | Where-Object { Test-IsAiDevOperationalPath $_ })
++
++    if ($nonAiDevPaths.Count -gt 0) {
++        $message = "auto-goal 완료 직전 .ai-dev 밖 변경이 남아 completed로 종료하지 않습니다.`n$($statusLines -join "`
+n")"
++        $script:steps += New-StepResult $StepNumber "final-change-gate" $command $false $true 1 $me
+ssage
++        Stop-AutoGoal $script:steps "final_non_ai_dev_changes" $false 1
++    }
++
++    if (-not $AllowCommit) {
++        $message = "auto-goal 완료 직전 .ai-dev 운영 변경이 남았지만 -AllowCommit이 없어 메타 커밋에 포함할 수 없습니다.`n$($sta
+tusLines -join "`n")"
++        $script:steps += New-StepResult $StepNumber "final-change-gate" $command $false $true 1 $me
+ssage
++        Stop-AutoGoal $script:steps "final_ai_dev_changes_require_commit" $false 1
++    }
++
++    $addOutput = & git add -- $aiDevPaths 2>&1 | Out-String
++    $addExitCode = $LASTEXITCODE
++
++    if ($addExitCode -ne 0) {
++        $message = "auto-goal 최종 .ai-dev 메타 변경 git add 실패. exit code: $addExitCode`n$addOutput"
++        $script:steps += New-StepResult $StepNumber "final-change-gate" "git add -- <final .ai-dev 
+files>" $true $false 1 $message
++        Stop-AutoGoal $script:steps "final_meta_add_failed" $false 1
++    }
++
++    $commitOutput = & git commit -m "chore(ai-dev): finalize auto-goal state" -- $aiDevPaths 2>&1 |
+ Out-String
++    $commitExitCode = $LASTEXITCODE
++
++    if ($commitExitCode -ne 0) {
++        $message = "auto-goal 최종 .ai-dev 메타 커밋 실패. exit code: $commitExitCode`n$commitOutput"
++        $script:steps += New-StepResult $StepNumber "final-change-gate" "git commit -m 'chore(ai-de
+v): finalize auto-goal state' -- <final .ai-dev files>" $true $false 1 $message
++        Stop-AutoGoal $script:steps "final_meta_commit_failed" $false 1
++    }
++
++    $remainingStatus = @(Get-GitStatusLines)
++
++    if ($remainingStatus.Count -gt 0) {
++        $message = "auto-goal 최종 메타 커밋 이후에도 변경 파일이 남아 completed로 종료하지 않습니다.`n$($remainingStatus -jo
+in "`n")"
++        $script:steps += New-StepResult $StepNumber "final-change-gate" "git status --short" $true 
+$false 1 $message
++        Stop-AutoGoal $script:steps "final_worktree_dirty" $false 1
++    }
++
++    $message = ($commitOutput.Trim(), "worktree clean") -join "`n"
++    $script:steps += New-StepResult $StepNumber "final-change-gate" "git add/commit final .ai-dev o
+perational changes, git status --short" $true $false 0 $message
++}
+ 
+ function Get-JsonObjectCandidates {
+     param([string]$RawInput)
+@@ -913,7 +1007,9 @@
+     Stop-AutoGoal $script:steps "auto_cycle_incomplete" $false 1
+ }
+ 
+-$script:steps += New-StepResult 8 "verify-goal-status" "$stateRelativePath goalStatus 확인" $false $f
+alse 0 "auto-cycle-full 성공 후 goalStatus completed 확인."
+-
+-Stop-AutoGoal $script:steps "completed" $true 0
++$script:steps += New-StepResult 8 "verify-goal-status" "$stateRelativePath goalStatus 확인" $false $f
+alse 0 "auto-cycle-full 성공 후 goalStatus completed 확인."
++
++Invoke-FinalAutoGoalChangeGate 9
++
++Stop-AutoGoal $script:steps "completed" $true 0
+ 
 
 codex
-변경 완료했습니다.
+문법 검증은 통과했습니다. 최종 답변에서 정확한 위치를 짚을 수 있도록 변경된 함수와 완료 호출부의 줄 번호만 확인하겠습니다.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Select-String -LiteralPat
+h 'scripts\\ai-dev-auto-goal.ps1' -Pattern 'aiDevOperationalRoot|function Convert-ToChangedPath|func
+tion Test-IsAiDevOperationalPath'" in D:\ai-apps\planpilot-local
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Select-String -LiteralPat
+h 'scripts\\ai-dev-auto-goal.ps1' -Pattern 'function Invoke-FinalAutoGoalChangeGate|final-change-gat
+e|Stop-AutoGoal \\"'$script:steps "completed"'"'" in D:\ai-apps\planpilot-local
+ succeeded in 1336ms:
 
-변경한 파일:
-- [src/components/TaskCard.tsx](D:/ai-apps/planpilot-local/src/components/TaskCard.tsx:27)
+scripts\ai-dev-auto-goal.ps1:30:$aiDevOperationalRoot = ".ai-dev/"
+scripts\ai-dev-auto-goal.ps1:218:function Convert-ToChangedPath {
+scripts\ai-dev-auto-goal.ps1:238:function Test-IsAiDevOperationalPath {
+scripts\ai-dev-auto-goal.ps1:242:    return $normalizedRelativePath.StartsWith($aiDevOperationalRoot
+, [System.StringCom
+parison]::OrdinalIgnoreCase)
 
-요약:
-- 마감 임박 배지 `aria-label`: `마감일이 가까운 업무` → `마감일이 곧 다가오는 업무`
-- 완료 토글 버튼 문구/`aria-label`을 더 자연스러운 동작 표현으로 조정
-- 삭제/수정 버튼 `aria-label`에 `삭제하기`, `수정하기` 표현 적용
-- 기능 로직, 상태 관리, 저장 구조는 변경하지 않았습니다.
+
+
+ succeeded in 1336ms:
+
+scripts\ai-dev-auto-goal.ps1:245:function Invoke-FinalAutoGoalChangeGate {
+scripts\ai-dev-auto-goal.ps1:256:        $script:steps += New-StepResult $StepNumber "final-change-g
+ate" $command $fals
+e $false 0 "auto-goal 최종 정리 후 worktree clean."
+scripts\ai-dev-auto-goal.ps1:271:        $script:steps += New-StepResult $StepNumber "final-change-g
+ate" $command $fals
+e $true 1 $message
+scripts\ai-dev-auto-goal.ps1:277:        $script:steps += New-StepResult $StepNumber "final-change-g
+ate" $command $fals
+e $true 1 $message
+scripts\ai-dev-auto-goal.ps1:286:        $script:steps += New-StepResult $StepNumber "final-change-g
+ate" "git add -- <f
+inal .ai-dev files>" $true $false 1 $message
+scripts\ai-dev-auto-goal.ps1:295:        $script:steps += New-StepResult $StepNumber "final-change-g
+ate" "git commit -m
+ 'chore(ai-dev): finalize auto-goal state' -- <final .ai-dev files>" $true $false 1 $message
+scripts\ai-dev-auto-goal.ps1:303:        $script:steps += New-StepResult $StepNumber "final-change-g
+ate" "git status --
+short" $true $false 1 $message
+scripts\ai-dev-auto-goal.ps1:308:    $script:steps += New-StepResult $StepNumber "final-change-gate"
+ "git add/commit fi
+nal .ai-dev operational changes, git status --short" $true $false 0 $message
+scripts\ai-dev-auto-goal.ps1:1014:Stop-AutoGoal $script:steps "completed" $true 0
+
+
+
+diff --git a/scripts/ai-dev-auto-goal.ps1 b/scripts/ai-dev-auto-goal.ps1
+index 85e9175fc4b61e6e37e5cfa283569fd39fc801ba..de9a02743bf0a4eb9d93d244b07e74620cdee06a
+--- a/scripts/ai-dev-auto-goal.ps1
++++ b/scripts/ai-dev-auto-goal.ps1
+@@ -24,9 +24,10 @@
+ $goalRelativePath = ".ai-dev/goal.md"
+ $queueRelativePath = ".ai-dev/queue.json"
+ $stateRelativePath = ".ai-dev/state.json"
+-$promptRelativePath = ".ai-dev/current-task-prompt.md"
+-$planningPromptRelativePath = ".ai-dev/auto-goal-planning-prompt.md"
+-$legacyAutoGoalResultRelativePath = ".ai-dev/auto-goal-codex-result.md"
++$promptRelativePath = ".ai-dev/current-task-prompt.md"
++$planningPromptRelativePath = ".ai-dev/auto-goal-planning-prompt.md"
++$legacyAutoGoalResultRelativePath = ".ai-dev/auto-goal-codex-result.md"
++$aiDevOperationalRoot = ".ai-dev/"
+ 
+ function Resolve-RepoPath {
+     param([string]$Path)
+@@ -203,16 +204,109 @@
+     return $normalized.Substring(0, 500)
+ }
+ 
+-function Get-GitStatusLines {
+-    $statusOutput = & git status --short 2>&1
+-
+-    if ($LASTEXITCODE -ne 0) {
+-        $script:steps += New-StepResult 2 "dirty-worktree-gate" "git status --short" $false $false 
+1 "git status failed: $($statusOutput -join "`n")"
++function Get-GitStatusLines {
++    $statusOutput = & git status --short 2>&1
++
++    if ($LASTEXITCODE -ne 0) {
++        $script:steps += New-StepResult 2 "dirty-worktree-gate" "git status --short" $false $false 
+1 "git status failed: $($statusOutput -join "`n")"
+         Stop-AutoGoal $script:steps "git_status_failed" $false 1
+     }
+-
+-    return @($statusOutput | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+-}
++
++    return @($statusOutput | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
++}
++
++function Convert-ToChangedPath {
++    param([string]$ChangeLine)
++
++    if ([string]::IsNullOrWhiteSpace($ChangeLine)) {
++        return @()
++    }
++
++    $pathText = $ChangeLine
++
++    if ($ChangeLine.Length -ge 4 -and $ChangeLine.Substring(2, 1) -eq " ") {
++        $pathText = $ChangeLine.Substring(3)
++    }
++
++    if ($pathText.Contains(" -> ")) {
++        return @($pathText -split " -> " | Where-Object { Test-HasValue $_ })
++    }
++
++    return @($pathText)
++}
++
++function Test-IsAiDevOperationalPath {
++    param([string]$RelativePath)
++
++    $normalizedRelativePath = $RelativePath.Replace('\', '/')
++    return $normalizedRelativePath.StartsWith($aiDevOperationalRoot, [System.StringComparison]::Ord
+inalIgnoreCase)
++}
++
++function Invoke-FinalAutoGoalChangeGate {
++    param(
++        [int]$StepNumber
++    )
++
++    Clear-AutoGoalTempArtifacts
++
++    $statusLines = @(Get-GitStatusLines)
++    $command = "cleanup auto-goal temp artifacts, git status --short"
++
++    if ($statusLines.Count -eq 0) {
++        $script:steps += New-StepResult $StepNumber "final-change-gate" $command $false $false 0 "a
+uto-goal 최종 정리 후 worktree clean."
++        return
++    }
++
++    $changedPaths = @(
++        $statusLines |
++            ForEach-Object { Convert-ToChangedPath $_ } |
++            Where-Object { Test-HasValue $_ } |
++            Select-Object -Unique
++    )
++    $nonAiDevPaths = @($changedPaths | Where-Object { -not (Test-IsAiDevOperationalPath $_) })
++    $aiDevPaths = @($changedPaths | Where-Object { Test-IsAiDevOperationalPath $_ })
++
++    if ($nonAiDevPaths.Count -gt 0) {
++        $message = "auto-goal 완료 직전 .ai-dev 밖 변경이 남아 completed로 종료하지 않습니다.`n$($statusLines -join "`
+n")"
++        $script:steps += New-StepResult $StepNumber "final-change-gate" $command $false $true 1 $me
+ssage
++        Stop-AutoGoal $script:steps "final_non_ai_dev_changes" $false 1
++    }
++
++    if (-not $AllowCommit) {
++        $message = "auto-goal 완료 직전 .ai-dev 운영 변경이 남았지만 -AllowCommit이 없어 메타 커밋에 포함할 수 없습니다.`n$($sta
+tusLines -join "`n")"
++        $script:steps += New-StepResult $StepNumber "final-change-gate" $command $false $true 1 $me
+ssage
++        Stop-AutoGoal $script:steps "final_ai_dev_changes_require_commit" $false 1
++    }
++
++    $addOutput = & git add -- $aiDevPaths 2>&1 | Out-String
++    $addExitCode = $LASTEXITCODE
++
++    if ($addExitCode -ne 0) {
++        $message = "auto-goal 최종 .ai-dev 메타 변경 git add 실패. exit code: $addExitCode`n$addOutput"
++        $script:steps += New-StepResult $StepNumber "final-change-gate" "git add -- <final .ai-dev 
+files>" $true $false 1 $message
++        Stop-AutoGoal $script:steps "final_meta_add_failed" $false 1
++    }
++
++    $commitOutput = & git commit -m "chore(ai-dev): finalize auto-goal state" -- $aiDevPaths 2>&1 |
+ Out-String
++    $commitExitCode = $LASTEXITCODE
++
++    if ($commitExitCode -ne 0) {
++        $message = "auto-goal 최종 .ai-dev 메타 커밋 실패. exit code: $commitExitCode`n$commitOutput"
++        $script:steps += New-StepResult $StepNumber "final-change-gate" "git commit -m 'chore(ai-de
+v): finalize auto-goal state' -- <final .ai-dev files>" $true $false 1 $message
++        Stop-AutoGoal $script:steps "final_meta_commit_failed" $false 1
++    }
++
++    $remainingStatus = @(Get-GitStatusLines)
++
++    if ($remainingStatus.Count -gt 0) {
++        $message = "auto-goal 최종 메타 커밋 이후에도 변경 파일이 남아 completed로 종료하지 않습니다.`n$($remainingStatus -jo
+in "`n")"
++        $script:steps += New-StepResult $StepNumber "final-change-gate" "git status --short" $true 
+$false 1 $message
++        Stop-AutoGoal $script:steps "final_worktree_dirty" $false 1
++    }
++
++    $message = ($commitOutput.Trim(), "worktree clean") -join "`n"
++    $script:steps += New-StepResult $StepNumber "final-change-gate" "git add/commit final .ai-dev o
+perational changes, git status --short" $true $false 0 $message
++}
+ 
+ function Get-JsonObjectCandidates {
+     param([string]$RawInput)
+@@ -913,7 +1007,9 @@
+     Stop-AutoGoal $script:steps "auto_cycle_incomplete" $false 1
+ }
+ 
+-$script:steps += New-StepResult 8 "verify-goal-status" "$stateRelativePath goalStatus 확인" $false $f
+alse 0 "auto-cycle-full 성공 후 goalStatus completed 확인."
+-
+-Stop-AutoGoal $script:steps "completed" $true 0
++$script:steps += New-StepResult 8 "verify-goal-status" "$stateRelativePath goalStatus 확인" $false $f
+alse 0 "auto-cycle-full 성공 후 goalStatus completed 확인."
++
++Invoke-FinalAutoGoalChangeGate 9
++
++Stop-AutoGoal $script:steps "completed" $true 0
+ 
+
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Select-String -LiteralPat
+h 'scripts\\ai-dev-auto-goal.ps1' -Pattern 'Invoke-FinalAutoGoalChangeGate'" in D:\ai-apps\planpilot
+-local
+ succeeded in 965ms:
+
+scripts\ai-dev-auto-goal.ps1:245:function Invoke-FinalAutoGoalChangeGate {
+scripts\ai-dev-auto-goal.ps1:1012:Invoke-FinalAutoGoalChangeGate 9
+
+
+
+diff --git a/scripts/ai-dev-auto-goal.ps1 b/scripts/ai-dev-auto-goal.ps1
+index 85e9175fc4b61e6e37e5cfa283569fd39fc801ba..de9a02743bf0a4eb9d93d244b07e74620cdee06a
+--- a/scripts/ai-dev-auto-goal.ps1
++++ b/scripts/ai-dev-auto-goal.ps1
+@@ -24,9 +24,10 @@
+ $goalRelativePath = ".ai-dev/goal.md"
+ $queueRelativePath = ".ai-dev/queue.json"
+ $stateRelativePath = ".ai-dev/state.json"
+-$promptRelativePath = ".ai-dev/current-task-prompt.md"
+-$planningPromptRelativePath = ".ai-dev/auto-goal-planning-prompt.md"
+-$legacyAutoGoalResultRelativePath = ".ai-dev/auto-goal-codex-result.md"
++$promptRelativePath = ".ai-dev/current-task-prompt.md"
++$planningPromptRelativePath = ".ai-dev/auto-goal-planning-prompt.md"
++$legacyAutoGoalResultRelativePath = ".ai-dev/auto-goal-codex-result.md"
++$aiDevOperationalRoot = ".ai-dev/"
+ 
+ function Resolve-RepoPath {
+     param([string]$Path)
+@@ -203,16 +204,109 @@
+     return $normalized.Substring(0, 500)
+ }
+ 
+-function Get-GitStatusLines {
+-    $statusOutput = & git status --short 2>&1
+-
+-    if ($LASTEXITCODE -ne 0) {
+-        $script:steps += New-StepResult 2 "dirty-worktree-gate" "git status --short" $false $false 
+1 "git status failed: $($statusOutput -join "`n")"
++function Get-GitStatusLines {
++    $statusOutput = & git status --short 2>&1
++
++    if ($LASTEXITCODE -ne 0) {
++        $script:steps += New-StepResult 2 "dirty-worktree-gate" "git status --short" $false $false 
+1 "git status failed: $($statusOutput -join "`n")"
+         Stop-AutoGoal $script:steps "git_status_failed" $false 1
+     }
+-
+-    return @($statusOutput | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+-}
++
++    return @($statusOutput | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
++}
++
++function Convert-ToChangedPath {
++    param([string]$ChangeLine)
++
++    if ([string]::IsNullOrWhiteSpace($ChangeLine)) {
++        return @()
++    }
++
++    $pathText = $ChangeLine
++
++    if ($ChangeLine.Length -ge 4 -and $ChangeLine.Substring(2, 1) -eq " ") {
++        $pathText = $ChangeLine.Substring(3)
++    }
++
++    if ($pathText.Contains(" -> ")) {
++        return @($pathText -split " -> " | Where-Object { Test-HasValue $_ })
++    }
++
++    return @($pathText)
++}
++
++function Test-IsAiDevOperationalPath {
++    param([string]$RelativePath)
++
++    $normalizedRelativePath = $RelativePath.Replace('\', '/')
++    return $normalizedRelativePath.StartsWith($aiDevOperationalRoot, [System.StringComparison]::Ord
+inalIgnoreCase)
++}
++
++function Invoke-FinalAutoGoalChangeGate {
++    param(
++        [int]$StepNumber
++    )
++
++    Clear-AutoGoalTempArtifacts
++
++    $statusLines = @(Get-GitStatusLines)
++    $command = "cleanup auto-goal temp artifacts, git status --short"
++
++    if ($statusLines.Count -eq 0) {
++        $script:steps += New-StepResult $StepNumber "final-change-gate" $command $false $false 0 "a
+uto-goal 최종 정리 후 worktree clean."
++        return
++    }
++
++    $changedPaths = @(
++        $statusLines |
++            ForEach-Object { Convert-ToChangedPath $_ } |
++            Where-Object { Test-HasValue $_ } |
++            Select-Object -Unique
++    )
++    $nonAiDevPaths = @($changedPaths | Where-Object { -not (Test-IsAiDevOperationalPath $_) })
++    $aiDevPaths = @($changedPaths | Where-Object { Test-IsAiDevOperationalPath $_ })
++
++    if ($nonAiDevPaths.Count -gt 0) {
++        $message = "auto-goal 완료 직전 .ai-dev 밖 변경이 남아 completed로 종료하지 않습니다.`n$($statusLines -join "`
+n")"
++        $script:steps += New-StepResult $StepNumber "final-change-gate" $command $false $true 1 $me
+ssage
++        Stop-AutoGoal $script:steps "final_non_ai_dev_changes" $false 1
++    }
++
++    if (-not $AllowCommit) {
++        $message = "auto-goal 완료 직전 .ai-dev 운영 변경이 남았지만 -AllowCommit이 없어 메타 커밋에 포함할 수 없습니다.`n$($sta
+tusLines -join "`n")"
++        $script:steps += New-StepResult $StepNumber "final-change-gate" $command $false $true 1 $me
+ssage
++        Stop-AutoGoal $script:steps "final_ai_dev_changes_require_commit" $false 1
++    }
++
++    $addOutput = & git add -- $aiDevPaths 2>&1 | Out-String
++    $addExitCode = $LASTEXITCODE
++
++    if ($addExitCode -ne 0) {
++        $message = "auto-goal 최종 .ai-dev 메타 변경 git add 실패. exit code: $addExitCode`n$addOutput"
++        $script:steps += New-StepResult $StepNumber "final-change-gate" "git add -- <final .ai-dev 
+files>" $true $false 1 $message
++        Stop-AutoGoal $script:steps "final_meta_add_failed" $false 1
++    }
++
++    $commitOutput = & git commit -m "chore(ai-dev): finalize auto-goal state" -- $aiDevPaths 2>&1 |
+ Out-String
++    $commitExitCode = $LASTEXITCODE
++
++    if ($commitExitCode -ne 0) {
++        $message = "auto-goal 최종 .ai-dev 메타 커밋 실패. exit code: $commitExitCode`n$commitOutput"
++        $script:steps += New-StepResult $StepNumber "final-change-gate" "git commit -m 'chore(ai-de
+v): finalize auto-goal state' -- <final .ai-dev files>" $true $false 1 $message
++        Stop-AutoGoal $script:steps "final_meta_commit_failed" $false 1
++    }
++
++    $remainingStatus = @(Get-GitStatusLines)
++
++    if ($remainingStatus.Count -gt 0) {
++        $message = "auto-goal 최종 메타 커밋 이후에도 변경 파일이 남아 completed로 종료하지 않습니다.`n$($remainingStatus -jo
+in "`n")"
++        $script:steps += New-StepResult $StepNumber "final-change-gate" "git status --short" $true 
+$false 1 $message
++        Stop-AutoGoal $script:steps "final_worktree_dirty" $false 1
++    }
++
++    $message = ($commitOutput.Trim(), "worktree clean") -join "`n"
++    $script:steps += New-StepResult $StepNumber "final-change-gate" "git add/commit final .ai-dev o
+perational changes, git status --short" $true $false 0 $message
++}
+ 
+ function Get-JsonObjectCandidates {
+     param([string]$RawInput)
+@@ -913,7 +1007,9 @@
+     Stop-AutoGoal $script:steps "auto_cycle_incomplete" $false 1
+ }
+ 
+-$script:steps += New-StepResult 8 "verify-goal-status" "$stateRelativePath goalStatus 확인" $false $f
+alse 0 "auto-cycle-full 성공 후 goalStatus completed 확인."
+-
+-Stop-AutoGoal $script:steps "completed" $true 0
++$script:steps += New-StepResult 8 "verify-goal-status" "$stateRelativePath goalStatus 확인" $false $f
+alse 0 "auto-cycle-full 성공 후 goalStatus completed 확인."
++
++Invoke-FinalAutoGoalChangeGate 9
++
++Stop-AutoGoal $script:steps "completed" $true 0
+ 
+
+codex
+`scripts/ai-dev-auto-goal.ps1`만 수정했습니다.
+
+구현 내용:
+- completed 종료 직전 `Clear-AutoGoalTempArtifacts`를 먼저 실행하도록 보강했습니다.
+- 최종 정리 뒤 worktree 상태를 확인하는 `final-change-gate`를 추가했습니다.
+- 남은 변경이 `.ai-dev/` 운영 파일뿐이고 `-AllowCommit`이 있으면 별도 메타 커밋(`chore(ai-dev): finalize auto-goal state`)
+으로 포함합니다.
+- `.ai-dev` 밖 변경이 남거나, `.ai-dev` 변경을 커밋할 수 없는 상태면 completed로 종료하지 않고 실패 처리합니다.
 
 검증:
-- `rg`로 변경 문구가 정확히 반영된 것만 확인했습니다.
-- 사용자 허용이 없어 `npm run build`, `npm run lint`, 브라우저 검증은 실행하지 않았습니다.
+- PowerShell 파서로 `scripts/ai-dev-auto-goal.ps1` 구문 검증 완료: `PowerShell parse OK`
+- 규칙상 `git`, `npm run build`, `npm run test`, `npm run lint`는 실행하지 않았습니다.
+- 실제 auto-goal 완료 시나리오 재현은 실행하지 못했습니다.
 
 남은 위험:
-- 실제 화면에서 버튼 폭이 충분한지는 수동 확인이 필요합니다. 문구가 조금 길어진 버튼은 `미완료로 되돌리기`입니다.
+- 실제 git 상태 기반 시나리오는 미실행이라, 다음 수동 검증에서 `auto-goal-planning-prompt.md` 삭제 변경이 최종 메타 커밋에 포함되는지 확인이 필요합
+니다.
 
-다음 task 진행 여부:
-- 현재 task 범위는 완료되어 다음 task로 넘어가도 됩니다.
+다음 task로 넘어가도 되는지:
+- 코드 변경과 정적 구문 검증 기준으로는 넘어갈 수 있습니다.
+- 다만 운영 루프에서는 수동 시나리오 검증 후 넘어가는 것이 안전합니다.
 
 `.ai-dev/loop-log.md` 기록용 요약:
-- `T001`: `src/components/TaskCard.tsx`의 업무 카드 보조 문구와 버튼 `aria-label`을 자연스러운 한국어로 최소 수정했다. 기능 로직과 데이
-터 구조 변경은 없으며, 빌드/lint는 사용자 허용이 없어 실행하지 않았다.
-diff --git a/src/components/TaskCard.tsx b/src/components/TaskCard.tsx
-index d9d377f66ac54d544c272f2073c134ebe2a57bb3..aff165e7788f4b45f447011d8af645cf5ca54e42
---- a/src/components/TaskCard.tsx
-+++ b/src/components/TaskCard.tsx
-@@ -24,7 +24,7 @@
-       <strong>{task.title}</strong>
-       {showDueSoonBadge && (
-         <span
--          aria-label="마감일이 가까운 업무"
-+          aria-label="마감일이 곧 다가오는 업무"
-           style={{
-             alignSelf: "flex-start",
-             border: "1px solid #d97706",
-@@ -47,23 +47,23 @@
-         type="button"
-         aria-label={
-           task.status === "done"
--            ? `${task.title} 업무 완료 취소`
--            : `${task.title} 업무 완료 처리`
-+            ? `${task.title} 업무를 미완료로 되돌리기`
-+            : `${task.title} 업무를 완료로 표시하기`
-         }
-         onClick={() => onToggleDone(task)}
-       >
--        {task.status === "done" ? "완료 취소" : "완료 처리"}
-+        {task.status === "done" ? "미완료로 되돌리기" : "완료로 표시"}
-       </button>
-       <button
-         type="button"
--        aria-label={`${task.title} 업무 삭제`}
-+        aria-label={`${task.title} 업무 삭제하기`}
-         onClick={() => onDelete(task)}
-       >
-         삭제
-       </button>
-       <button
-         type="button"
--        aria-label={`${task.title} 업무 수정`}
-+        aria-label={`${task.title} 업무 수정하기`}
-         onClick={() => onStartEdit(task)}
-       >
-         수정
+```md
+- auto-goal completed 종료 직전 최종 변경 상태 검증을 추가했다.
+- auto-goal 임시 산출물 정리 후 남은 `.ai-dev` 운영 변경은 `-AllowCommit`이 있을 때 최종 메타 커밋으로 포함한다.
+- `.ai-dev` 밖 변경 또는 커밋 불가 변경이 남으면 completed로 종료하지 않고 실패 처리한다.
+- PowerShell 구문 검증을 통과했으며, 실제 git 기반 완료 시나리오는 수동 검증 대상으로 남았다.
+```
+diff --git a/scripts/ai-dev-auto-goal.ps1 b/scripts/ai-dev-auto-goal.ps1
+index 85e9175fc4b61e6e37e5cfa283569fd39fc801ba..de9a02743bf0a4eb9d93d244b07e74620cdee06a
+--- a/scripts/ai-dev-auto-goal.ps1
++++ b/scripts/ai-dev-auto-goal.ps1
+@@ -24,9 +24,10 @@
+ $goalRelativePath = ".ai-dev/goal.md"
+ $queueRelativePath = ".ai-dev/queue.json"
+ $stateRelativePath = ".ai-dev/state.json"
+-$promptRelativePath = ".ai-dev/current-task-prompt.md"
+-$planningPromptRelativePath = ".ai-dev/auto-goal-planning-prompt.md"
+-$legacyAutoGoalResultRelativePath = ".ai-dev/auto-goal-codex-result.md"
++$promptRelativePath = ".ai-dev/current-task-prompt.md"
++$planningPromptRelativePath = ".ai-dev/auto-goal-planning-prompt.md"
++$legacyAutoGoalResultRelativePath = ".ai-dev/auto-goal-codex-result.md"
++$aiDevOperationalRoot = ".ai-dev/"
+ 
+ function Resolve-RepoPath {
+     param([string]$Path)
+@@ -203,16 +204,109 @@
+     return $normalized.Substring(0, 500)
+ }
+ 
+-function Get-GitStatusLines {
+-    $statusOutput = & git status --short 2>&1
+-
+-    if ($LASTEXITCODE -ne 0) {
+-        $script:steps += New-StepResult 2 "dirty-worktree-gate" "git status --short" $false $false 
+1 "git status failed: $($statusOutput -join "`n")"
++function Get-GitStatusLines {
++    $statusOutput = & git status --short 2>&1
++
++    if ($LASTEXITCODE -ne 0) {
++        $script:steps += New-StepResult 2 "dirty-worktree-gate" "git status --short" $false $false 
+1 "git status failed: $($statusOutput -join "`n")"
+         Stop-AutoGoal $script:steps "git_status_failed" $false 1
+     }
+-
+-    return @($statusOutput | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+-}
++
++    return @($statusOutput | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
++}
++
++function Convert-ToChangedPath {
++    param([string]$ChangeLine)
++
++    if ([string]::IsNullOrWhiteSpace($ChangeLine)) {
++        return @()
++    }
++
++    $pathText = $ChangeLine
++
++    if ($ChangeLine.Length -ge 4 -and $ChangeLine.Substring(2, 1) -eq " ") {
++        $pathText = $ChangeLine.Substring(3)
++    }
++
++    if ($pathText.Contains(" -> ")) {
++        return @($pathText -split " -> " | Where-Object { Test-HasValue $_ })
++    }
++
++    return @($pathText)
++}
++
++function Test-IsAiDevOperationalPath {
++    param([string]$RelativePath)
++
++    $normalizedRelativePath = $RelativePath.Replace('\', '/')
++    return $normalizedRelativePath.StartsWith($aiDevOperationalRoot, [System.StringComparison]::Ord
+inalIgnoreCase)
++}
++
++function Invoke-FinalAutoGoalChangeGate {
++    param(
++        [int]$StepNumber
++    )
++
++    Clear-AutoGoalTempArtifacts
++
++    $statusLines = @(Get-GitStatusLines)
++    $command = "cleanup auto-goal temp artifacts, git status --short"
++
++    if ($statusLines.Count -eq 0) {
++        $script:steps += New-StepResult $StepNumber "final-change-gate" $command $false $false 0 "a
+uto-goal 최종 정리 후 worktree clean."
++        return
++    }
++
++    $changedPaths = @(
++        $statusLines |
++            ForEach-Object { Convert-ToChangedPath $_ } |
++            Where-Object { Test-HasValue $_ } |
++            Select-Object -Unique
++    )
++    $nonAiDevPaths = @($changedPaths | Where-Object { -not (Test-IsAiDevOperationalPath $_) })
++    $aiDevPaths = @($changedPaths | Where-Object { Test-IsAiDevOperationalPath $_ })
++
++    if ($nonAiDevPaths.Count -gt 0) {
++        $message = "auto-goal 완료 직전 .ai-dev 밖 변경이 남아 completed로 종료하지 않습니다.`n$($statusLines -join "`
+n")"
++        $script:steps += New-StepResult $StepNumber "final-change-gate" $command $false $true 1 $me
+ssage
++        Stop-AutoGoal $script:steps "final_non_ai_dev_changes" $false 1
++    }
++
++    if (-not $AllowCommit) {
++        $message = "auto-goal 완료 직전 .ai-dev 운영 변경이 남았지만 -AllowCommit이 없어 메타 커밋에 포함할 수 없습니다.`n$($sta
+tusLines -join "`n")"
++        $script:steps += New-StepResult $StepNumber "final-change-gate" $command $false $true 1 $me
+ssage
++        Stop-AutoGoal $script:steps "final_ai_dev_changes_require_commit" $false 1
++    }
++
++    $addOutput = & git add -- $aiDevPaths 2>&1 | Out-String
++    $addExitCode = $LASTEXITCODE
++
++    if ($addExitCode -ne 0) {
++        $message = "auto-goal 최종 .ai-dev 메타 변경 git add 실패. exit code: $addExitCode`n$addOutput"
++        $script:steps += New-StepResult $StepNumber "final-change-gate" "git add -- <final .ai-dev 
+files>" $true $false 1 $message
++        Stop-AutoGoal $script:steps "final_meta_add_failed" $false 1
++    }
++
++    $commitOutput = & git commit -m "chore(ai-dev): finalize auto-goal state" -- $aiDevPaths 2>&1 |
+ Out-String
++    $commitExitCode = $LASTEXITCODE
++
++    if ($commitExitCode -ne 0) {
++        $message = "auto-goal 최종 .ai-dev 메타 커밋 실패. exit code: $commitExitCode`n$commitOutput"
++        $script:steps += New-StepResult $StepNumber "final-change-gate" "git commit -m 'chore(ai-de
+v): finalize auto-goal state' -- <final .ai-dev files>" $true $false 1 $message
++        Stop-AutoGoal $script:steps "final_meta_commit_failed" $false 1
++    }
++
++    $remainingStatus = @(Get-GitStatusLines)
++
++    if ($remainingStatus.Count -gt 0) {
++        $message = "auto-goal 최종 메타 커밋 이후에도 변경 파일이 남아 completed로 종료하지 않습니다.`n$($remainingStatus -jo
+in "`n")"
++        $script:steps += New-StepResult $StepNumber "final-change-gate" "git status --short" $true 
+$false 1 $message
++        Stop-AutoGoal $script:steps "final_worktree_dirty" $false 1
++    }
++
++    $message = ($commitOutput.Trim(), "worktree clean") -join "`n"
++    $script:steps += New-StepResult $StepNumber "final-change-gate" "git add/commit final .ai-dev o
+perational changes, git status --short" $true $false 0 $message
++}
+ 
+ function Get-JsonObjectCandidates {
+     param([string]$RawInput)
+@@ -913,7 +1007,9 @@
+     Stop-AutoGoal $script:steps "auto_cycle_incomplete" $false 1
+ }
+ 
+-$script:steps += New-StepResult 8 "verify-goal-status" "$stateRelativePath goalStatus 확인" $false $f
+alse 0 "auto-cycle-full 성공 후 goalStatus completed 확인."
+-
+-Stop-AutoGoal $script:steps "completed" $true 0
++$script:steps += New-StepResult 8 "verify-goal-status" "$stateRelativePath goalStatus 확인" $false $f
+alse 0 "auto-cycle-full 성공 후 goalStatus completed 확인."
++
++Invoke-FinalAutoGoalChangeGate 9
++
++Stop-AutoGoal $script:steps "completed" $true 0
+ 
 
+`scripts/ai-dev-auto-goal.ps1`만 수정했습니다.
+
+구현 내용:
+- completed 종료 직전 `Clear-AutoGoalTempArtifacts`를 먼저 실행하도록 보강했습니다.
+- 최종 정리 뒤 worktree 상태를 확인하는 `final-change-gate`를 추가했습니다.
+- 남은 변경이 `.ai-dev/` 운영 파일뿐이고 `-AllowCommit`이 있으면 별도 메타 커밋(`chore(ai-dev): finalize auto-goal state`)으로 포함합니다.
+- `.ai-dev` 밖 변경이 남거나, `.ai-dev` 변경을 커밋할 수 없는 상태면 completed로 종료하지 않고 실패 처리합니다.
+
+검증:
+- PowerShell 파서로 `scripts/ai-dev-auto-goal.ps1` 구문 검증 완료: `PowerShell parse OK`
+- 규칙상 `git`, `npm run build`, `npm run test`, `npm run lint`는 실행하지 않았습니다.
+- 실제 auto-goal 완료 시나리오 재현은 실행하지 못했습니다.
+
+남은 위험:
+- 실제 git 상태 기반 시나리오는 미실행이라, 다음 수동 검증에서 `auto-goal-planning-prompt.md` 삭제 변경이 최종 메타 커밋에 포함되는지 확인이 필요합니다.
+
+다음 task로 넘어가도 되는지:
+- 코드 변경과 정적 구문 검증 기준으로는 넘어갈 수 있습니다.
+- 다만 운영 루프에서는 수동 시나리오 검증 후 넘어가는 것이 안전합니다.
+
+`.ai-dev/loop-log.md` 기록용 요약:
+```md
+- auto-goal completed 종료 직전 최종 변경 상태 검증을 추가했다.
+- auto-goal 임시 산출물 정리 후 남은 `.ai-dev` 운영 변경은 `-AllowCommit`이 있을 때 최종 메타 커밋으로 포함한다.
+- `.ai-dev` 밖 변경 또는 커밋 불가 변경이 남으면 completed로 종료하지 않고 실패 처리한다.
+- PowerShell 구문 검증을 통과했으며, 실제 git 기반 완료 시나리오는 수동 검증 대상으로 남았다.
+```
 tokens used
-46,337
-변경 완료했습니다.
-
-변경한 파일:
-- [src/components/TaskCard.tsx](D:/ai-apps/planpilot-local/src/components/TaskCard.tsx:27)
-
-요약:
-- 마감 임박 배지 `aria-label`: `마감일이 가까운 업무` → `마감일이 곧 다가오는 업무`
-- 완료 토글 버튼 문구/`aria-label`을 더 자연스러운 동작 표현으로 조정
-- 삭제/수정 버튼 `aria-label`에 `삭제하기`, `수정하기` 표현 적용
-- 기능 로직, 상태 관리, 저장 구조는 변경하지 않았습니다.
-
-검증:
-- `rg`로 변경 문구가 정확히 반영된 것만 확인했습니다.
-- 사용자 허용이 없어 `npm run build`, `npm run lint`, 브라우저 검증은 실행하지 않았습니다.
-
-남은 위험:
-- 실제 화면에서 버튼 폭이 충분한지는 수동 확인이 필요합니다. 문구가 조금 길어진 버튼은 `미완료로 되돌리기`입니다.
-
-다음 task 진행 여부:
-- 현재 task 범위는 완료되어 다음 task로 넘어가도 됩니다.
-
-`.ai-dev/loop-log.md` 기록용 요약:
-- `T001`: `src/components/TaskCard.tsx`의 업무 카드 보조 문구와 버튼 `aria-label`을 자연스러운 한국어로 최소 수정했다. 기능 로직과 데이터 구조 변경은 없으며, 빌드/lint는 사용자 허용이 없어 실행하지 않았다.
+52,932
 
 ```
