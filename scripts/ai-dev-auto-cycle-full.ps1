@@ -7,6 +7,7 @@
     [switch]$AllowReviewCodex,
     [switch]$AllowCommit,
     [switch]$AllowDirty,
+    [string[]]$ProtectedBaselineDirtyPaths,
     [string[]]$CommitFiles
 )
 
@@ -185,6 +186,86 @@ function Stop-Cycle {
     exit $ExitCode
 }
 
+function Complete-Cycle {
+    param(
+        [object[]]$Steps,
+        [string]$StoppedReason,
+        [int]$StepNumber
+    )
+
+    try {
+        $remainingStatus = Invoke-GitCapture -Arguments @("status", "--short") -DisplayName "git status --short"
+
+        if (-not [string]::IsNullOrWhiteSpace($remainingStatus)) {
+            $changeLines = @($remainingStatus -split "`r?`n" | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+            $changedPaths = @(
+                $changeLines |
+                    ForEach-Object { Convert-ToChangedPath $_ } |
+                    ForEach-Object { ConvertTo-NormalizedChangedPath $_ } |
+                    Where-Object { Test-HasValue $_ } |
+                    Select-Object -Unique
+            )
+            $protectedPaths = @($changedPaths | Where-Object { Test-IsProtectedBaselineDirtyPath $_ })
+            $nonAiDevPaths = @($changedPaths | Where-Object { -not (Test-IsAiDevOperationalPath $_) })
+            $eligibleAiDevPaths = @($changedPaths | Where-Object { (Test-IsAiDevOperationalPath $_) -and -not (Test-IsProtectedBaselineDirtyPath $_) })
+
+            if ($nonAiDevPaths.Count -gt 0) {
+                $Steps += New-StepResult $StepNumber "completed-clean-gate" "git status --short" $true $false 1 "Completed clean verification failed: non-.ai-dev changes remain after all full-cycle result/state files were written.`n$remainingStatus"
+                Stop-Cycle $Steps "completed_non_ai_dev_changes" $false 1
+            }
+
+            if ($protectedPaths.Count -gt 0) {
+                $Steps += New-StepResult $StepNumber "completed-clean-gate" "git status --short" $true $false 1 "Completed clean verification failed: protected baseline dirty .ai-dev paths remain and must not be absorbed into the final meta commit.`n$($protectedPaths -join "`n")`n$remainingStatus"
+                Stop-Cycle $Steps "completed_protected_baseline_dirty" $false 1
+            }
+
+            if ($eligibleAiDevPaths.Count -eq 0) {
+                $Steps += New-StepResult $StepNumber "completed-clean-gate" "git status --short" $true $false 1 "Completed clean verification failed: worktree still has changes, but none are eligible new .ai-dev operational changes.`n$remainingStatus"
+                Stop-Cycle $Steps "completed_no_eligible_meta_changes" $false 1
+            }
+
+            if (-not $AllowCommit) {
+                $Steps += New-StepResult $StepNumber "completed-clean-gate" "git status --short" $true $false 1 "Completed clean verification failed: only new .ai-dev operational changes remain, but -AllowCommit is required for the final auto-cycle meta commit.`n$remainingStatus"
+                Stop-Cycle $Steps "completed_ai_dev_changes_require_commit" $false 1
+            }
+
+            $addOutput = & git add -- $eligibleAiDevPaths 2>&1 | Out-String
+            $addExitCode = $LASTEXITCODE
+
+            if ($addExitCode -ne 0) {
+                $Steps += New-StepResult $StepNumber "completed-clean-gate" "git add -- <final .ai-dev files>" $true $false 1 "Final auto-cycle .ai-dev meta add failed. exit code: $addExitCode`n$addOutput"
+                Stop-Cycle $Steps "completed_meta_add_failed" $false 1
+            }
+
+            $metaCommitMessage = "chore(ai-dev): record final auto-cycle state"
+            $commitOutput = & git commit -m $metaCommitMessage -- $eligibleAiDevPaths 2>&1 | Out-String
+            $commitExitCode = $LASTEXITCODE
+
+            if ($commitExitCode -ne 0) {
+                $Steps += New-StepResult $StepNumber "completed-clean-gate" "git commit -m '$metaCommitMessage' -- <final .ai-dev files>" $true $false 1 "Final auto-cycle .ai-dev meta commit failed. exit code: $commitExitCode`n$commitOutput"
+                Stop-Cycle $Steps "completed_meta_commit_failed" $false 1
+            }
+
+            $remainingStatus = Invoke-GitCapture -Arguments @("status", "--short") -DisplayName "git status --short"
+
+            if (-not [string]::IsNullOrWhiteSpace($remainingStatus)) {
+                $Steps += New-StepResult $StepNumber "completed-clean-gate" "git status --short" $true $false 1 "Completed clean verification failed: changes remain after the final auto-cycle .ai-dev meta commit.`n$remainingStatus"
+                Stop-Cycle $Steps "completed_worktree_dirty" $false 1
+            }
+
+            $message = ($commitOutput.Trim(), "Final auto-cycle .ai-dev meta commit created: yes", "Completed clean verification passed: git status --short returned no changes.") -join "`n"
+            $Steps += New-StepResult $StepNumber "completed-clean-gate" "git status --short; git add/commit final .ai-dev operational changes; git status --short" $true $false 0 $message
+            Stop-Cycle $Steps $StoppedReason $true 0
+        }
+
+        $Steps += New-StepResult $StepNumber "completed-clean-gate" "git status --short" $true $false 0 "Completed clean verification passed: git status --short returned no changes."
+        Stop-Cycle $Steps $StoppedReason $true 0
+    } catch {
+        $Steps += New-StepResult $StepNumber "completed-clean-gate" "git status --short" $false $false 1 $_.Exception.Message
+        Stop-Cycle $Steps "completed_clean_gate_failed" $false 1
+    }
+}
+
 function Invoke-CycleCommand {
     param(
         [int]$StepNumber,
@@ -271,13 +352,48 @@ function Convert-ToChangedPath {
     return @($pathText)
 }
 
+function ConvertTo-NormalizedChangedPath {
+    param(
+        [string]$RelativePath
+    )
+
+    if (-not (Test-HasValue $RelativePath)) {
+        return $null
+    }
+
+    return $RelativePath.Trim().Trim('"').Replace('\', '/')
+}
+
 function Test-IsAiDevOperationalPath {
     param(
         [string]$RelativePath
     )
 
-    $normalizedRelativePath = $RelativePath.Replace('\', '/')
+    $normalizedRelativePath = ConvertTo-NormalizedChangedPath $RelativePath
     return $normalizedRelativePath.StartsWith($aiDevOperationalRoot, [System.StringComparison]::OrdinalIgnoreCase)
+}
+
+function Get-ProtectedBaselineDirtyPaths {
+    if ($null -eq $ProtectedBaselineDirtyPaths -or $ProtectedBaselineDirtyPaths.Count -eq 0) {
+        return @()
+    }
+
+    return @(
+        $ProtectedBaselineDirtyPaths |
+            ForEach-Object { $_ -split "," } |
+            Where-Object { Test-HasValue $_ } |
+            ForEach-Object { ConvertTo-NormalizedChangedPath $_ } |
+            Select-Object -Unique
+    )
+}
+
+function Test-IsProtectedBaselineDirtyPath {
+    param(
+        [string]$RelativePath
+    )
+
+    $normalizedRelativePath = ConvertTo-NormalizedChangedPath $RelativePath
+    return @($script:protectedBaselineDirtyPaths) -contains $normalizedRelativePath
 }
 
 function Get-ChangedNonAiDevFiles {
@@ -287,7 +403,8 @@ function Get-ChangedNonAiDevFiles {
     return @(
         $changeLines |
             ForEach-Object { Convert-ToChangedPath $_ } |
-            Where-Object { (Test-HasValue $_) -and -not (Test-IsAiDevOperationalPath $_) } |
+            ForEach-Object { ConvertTo-NormalizedChangedPath $_ } |
+            Where-Object { (Test-HasValue $_) -and -not (Test-IsAiDevOperationalPath $_) -and -not (Test-IsProtectedBaselineDirtyPath $_) } |
             Select-Object -Unique
     )
 }
@@ -299,7 +416,8 @@ function Get-ChangedAiDevOperationalFiles {
     return @(
         $changeLines |
             ForEach-Object { Convert-ToChangedPath $_ } |
-            Where-Object { (Test-HasValue $_) -and (Test-IsAiDevOperationalPath $_) } |
+            ForEach-Object { ConvertTo-NormalizedChangedPath $_ } |
+            Where-Object { (Test-HasValue $_) -and (Test-IsAiDevOperationalPath $_) -and -not (Test-IsProtectedBaselineDirtyPath $_) } |
             Select-Object -Unique
     )
 }
@@ -367,7 +485,13 @@ function Get-CommitArguments {
     $arguments = @()
 
     if ($null -ne $CommitFiles -and $CommitFiles.Count -gt 0) {
-        $normalizedFiles = @($CommitFiles | ForEach-Object { $_ -split "," } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+        $normalizedFiles = @(
+            $CommitFiles |
+                ForEach-Object { $_ -split "," } |
+                Where-Object { Test-HasValue $_ } |
+                ForEach-Object { ConvertTo-NormalizedChangedPath $_ } |
+                Where-Object { -not (Test-IsProtectedBaselineDirtyPath $_) }
+        )
 
         if ($normalizedFiles.Count -gt 0) {
             $arguments += "-Files"
@@ -468,6 +592,11 @@ function Get-CommitGate {
 Set-Location $repoRoot
 
 $script:steps = @()
+$script:protectedBaselineDirtyPaths = @(Get-ProtectedBaselineDirtyPaths)
+
+if ($script:protectedBaselineDirtyPaths.Count -gt 0) {
+    $script:steps += New-StepResult 0 "baseline-dirty-protection" "ProtectedBaselineDirtyPaths" $false $false 0 "Auto-goal baseline dirty paths are protected from implementation and .ai-dev meta commit eligibility: $($script:protectedBaselineDirtyPaths -join ', ')"
+}
 
 if ($MaxTasks -lt 1) {
     Stop-Cycle $script:steps "max_tasks_must_be_at_least_1" $false 1
@@ -488,7 +617,7 @@ try {
     $state = Read-JsonFile $statePath $stateRelativePath
 
     if ($state.goalStatus -eq "completed") {
-        Stop-Cycle $script:steps "goal_completed" $true 0
+        Complete-Cycle $script:steps "goal_completed" 0
     }
 
     if (-not ($queue.PSObject.Properties.Name -contains "tasks") -or $null -eq $queue.tasks) {
@@ -502,7 +631,7 @@ try {
     }
 
     if ($currentTask.status -eq "done") {
-        Stop-Cycle $script:steps "current_task_done" $true 0
+        Complete-Cycle $script:steps "current_task_done" 0
     }
 
     $scriptPaths = @{
@@ -556,7 +685,7 @@ while ($completedTaskCount -lt $MaxTasks) {
     }
 
     if ($state.goalStatus -eq "completed") {
-        Stop-Cycle $script:steps "goal_completed" $true 0
+        Complete-Cycle $script:steps "goal_completed" $stepNumber
     }
 
     if ($null -eq $currentTask) {
@@ -564,7 +693,7 @@ while ($completedTaskCount -lt $MaxTasks) {
     }
 
     if ($currentTask.status -eq "done") {
-        Stop-Cycle $script:steps "current_task_done" $true 0
+        Complete-Cycle $script:steps "current_task_done" $stepNumber
     }
 
     $taskLabel = "$($currentTask.id) $($currentTask.title)"
@@ -781,8 +910,8 @@ while ($completedTaskCount -lt $MaxTasks) {
     $stateAfterComplete = Read-JsonFile $statePath $stateRelativePath
 
     if ($stateAfterComplete.goalStatus -eq "completed") {
-        Stop-Cycle $script:steps "goal_completed" $true 0
+        Complete-Cycle $script:steps "goal_completed" $stepNumber
     }
 }
 
-Stop-Cycle $script:steps "max_tasks_reached" $true 0
+Complete-Cycle $script:steps "max_tasks_reached" $stepNumber

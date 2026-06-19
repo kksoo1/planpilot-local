@@ -27,6 +27,9 @@ $stateRelativePath = ".ai-dev/state.json"
 $promptRelativePath = ".ai-dev/current-task-prompt.md"
 $planningPromptRelativePath = ".ai-dev/auto-goal-planning-prompt.md"
 $legacyAutoGoalResultRelativePath = ".ai-dev/auto-goal-codex-result.md"
+$aiDevOperationalRoot = ".ai-dev/"
+$script:autoGoalCanWriteResultFile = $true
+$script:autoGoalCanCleanTempArtifacts = $true
 
 function Resolve-RepoPath {
     param([string]$Path)
@@ -146,7 +149,46 @@ function Write-AutoGoalResult {
     Write-Host "Exit code: $($Result.exitCode)"
 }
 
+function Save-AutoGoalResultFile {
+    param(
+        [string]$StoppedReason,
+        [bool]$Completed,
+        [int]$ExitCode
+    )
+
+    $result = New-AutoGoalResult $script:steps $StoppedReason $Completed $ExitCode
+    $stepLines = @()
+
+    foreach ($step in @($result.steps)) {
+        $stepLines += "- Step $($step.step) $($step.name): exitCode=$($step.exitCode), executed=$($step.executed), skipped=$($step.skipped)"
+        if (Test-HasValue $step.message) {
+            $stepLines += "  - Message: $($step.message)"
+        }
+    }
+
+    $content = @"
+# Codex Auto Goal Final Result
+
+## Summary
+
+- Stopped reason: $($result.stoppedReason)
+- Completed: $($result.completed)
+- Exit code: $($result.exitCode)
+- Result path: $($result.resultPath)
+
+## Steps
+
+$($stepLines -join "`r`n")
+"@
+
+    [System.IO.File]::WriteAllText($resolvedResultPath, $content, $utf8WithBom)
+}
+
 function Clear-AutoGoalTempArtifacts {
+    if (-not $script:autoGoalCanCleanTempArtifacts) {
+        return
+    }
+
     $currentResultPath = [System.IO.Path]::GetFullPath((Resolve-RepoPath $ResultPath))
 
     foreach ($relativePath in @($planningPromptRelativePath, $legacyAutoGoalResultRelativePath)) {
@@ -179,6 +221,11 @@ function Stop-AutoGoal {
     )
 
     Clear-AutoGoalTempArtifacts
+    if (-not $Completed -or $ExitCode -ne 0) {
+        if ($script:autoGoalCanWriteResultFile) {
+            Save-AutoGoalResultFile $StoppedReason $false $ExitCode
+        }
+    }
     Write-AutoGoalResult (New-AutoGoalResult $Steps $StoppedReason $Completed $ExitCode)
     exit $ExitCode
 }
@@ -203,15 +250,380 @@ function Get-InputPreview {
     return $normalized.Substring(0, 500)
 }
 
-function Get-GitStatusLines {
-    $statusOutput = & git status --short 2>&1
+function Invoke-GitStatusLines {
+    param(
+        [string[]]$Arguments,
+        [string]$CommandText,
+        [int]$FailureStep = 2,
+        [string]$FailureName = "dirty-worktree-gate"
+    )
+
+    $statusOutput = & git @Arguments 2>&1
 
     if ($LASTEXITCODE -ne 0) {
-        $script:steps += New-StepResult 2 "dirty-worktree-gate" "git status --short" $false $false 1 "git status failed: $($statusOutput -join "`n")"
+        $script:steps += New-StepResult $FailureStep $FailureName $CommandText $false $false 1 "git status failed: $($statusOutput -join "`n")"
         Stop-AutoGoal $script:steps "git_status_failed" $false 1
     }
 
     return @($statusOutput | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+}
+
+function Get-GitStatusLines {
+    param(
+        [int]$FailureStep = 2,
+        [string]$FailureName = "dirty-worktree-gate"
+    )
+
+    return @(Invoke-GitStatusLines -Arguments @("status", "--short") -CommandText "git status --short" -FailureStep $FailureStep -FailureName $FailureName)
+}
+
+function Get-GitPorcelainStatusLines {
+    param(
+        [int]$FailureStep = 2,
+        [string]$FailureName = "dirty-worktree-gate"
+    )
+
+    return @(Invoke-GitStatusLines -Arguments @("status", "--porcelain") -CommandText "git status --porcelain" -FailureStep $FailureStep -FailureName $FailureName)
+}
+
+function Convert-ToChangedPath {
+    param([string]$ChangeLine)
+
+    if ([string]::IsNullOrWhiteSpace($ChangeLine)) {
+        return @()
+    }
+
+    $pathText = $ChangeLine
+
+    if ($ChangeLine.Length -ge 4 -and $ChangeLine.Substring(2, 1) -eq " ") {
+        $pathText = $ChangeLine.Substring(3)
+    }
+
+    if ($pathText.Contains(" -> ")) {
+        return @($pathText -split " -> " | Where-Object { Test-HasValue $_ })
+    }
+
+    return @($pathText)
+}
+
+function ConvertTo-NormalizedChangedPath {
+    param([string]$RelativePath)
+
+    if (-not (Test-HasValue $RelativePath)) {
+        return $null
+    }
+
+    return $RelativePath.Trim().Trim('"').Replace('\', '/')
+}
+
+function Test-IsAiDevOperationalPath {
+    param([string]$RelativePath)
+
+    $normalizedRelativePath = ConvertTo-NormalizedChangedPath $RelativePath
+    return $normalizedRelativePath.StartsWith($aiDevOperationalRoot, [System.StringComparison]::OrdinalIgnoreCase)
+}
+
+function Get-PlannedAutoGoalOutputPaths {
+    return @(
+        $ResultPath,
+        $goalRelativePath,
+        $queueRelativePath,
+        $stateRelativePath,
+        $promptRelativePath,
+        $planningPromptRelativePath,
+        ".ai-dev/codex-result.md",
+        $legacyAutoGoalResultRelativePath
+    ) |
+        Where-Object { Test-HasValue $_ } |
+        ForEach-Object { ConvertTo-NormalizedChangedPath (ConvertTo-RepoRelativePath $_) } |
+        Select-Object -Unique
+}
+
+function Invoke-BaselineOutputConflictGate {
+    param(
+        [string[]]$BaselineDirtyPaths,
+        [string[]]$PlannedOutputPaths
+    )
+
+    $conflictingPaths = @(
+        $BaselineDirtyPaths |
+            Where-Object { $PlannedOutputPaths -contains $_ } |
+            Select-Object -Unique
+    )
+
+    if ($conflictingPaths.Count -eq 0) {
+        return
+    }
+
+    $script:autoGoalCanWriteResultFile = $false
+    $script:autoGoalCanCleanTempArtifacts = $false
+    $message = "Baseline dirty paths conflict with planned auto-goal output paths. Auto-goal stopped before writing or deleting protected output files.`nConflicting paths:`n$($conflictingPaths -join "`n")"
+    $script:steps += New-StepResult 2 "baseline-output-conflict-gate" "compare baseline dirty paths with planned auto-goal outputs" $true $false 1 $message
+    Stop-AutoGoal $script:steps "baseline_output_conflict" $false 1
+}
+
+function Invoke-FinalAutoGoalChangeGate {
+    param(
+        [int]$StepNumber
+    )
+
+    Clear-AutoGoalTempArtifacts
+
+    $statusLines = @(Get-GitStatusLines $StepNumber "final-change-gate")
+    $command = "cleanup auto-goal temp artifacts, git status --short"
+    $baselineDirtyPaths = @($script:autoGoalBaselineDirtyPaths)
+    $baselineDirtyCount = $baselineDirtyPaths.Count
+    $finalDirtyCount = $statusLines.Count
+
+    if ($statusLines.Count -eq 0 -and $baselineDirtyCount -gt 0) {
+        $message = "Final clean verification failed: baseline dirty paths from auto-goal start are no longer visible in git status. They may have been committed or otherwise swallowed, so auto-goal will not report completed.`nBaseline dirty count: $baselineDirtyCount`nFinal dirty count: $finalDirtyCount`nFinal .ai-dev meta commit created: skipped (baseline dirty disappeared).`nBaseline dirty paths:`n$($baselineDirtyPaths -join "`n")"
+        $script:steps += New-StepResult $StepNumber "final-change-gate" $command $true $false 1 $message
+        Stop-AutoGoal $script:steps "final_baseline_dirty_disappeared" $false 1
+    }
+
+    if ($statusLines.Count -eq 0) {
+        $message = "Baseline dirty count: $baselineDirtyCount`nFinal dirty count: $finalDirtyCount`nFinal .ai-dev meta commit created: skipped (no final changes).`nFinal clean verification: git status --short returned no changes."
+        $script:steps += New-StepResult $StepNumber "final-change-gate" $command $true $false 0 $message
+        return
+    }
+
+    $changedPaths = @(
+        $statusLines |
+            ForEach-Object { Convert-ToChangedPath $_ } |
+            Where-Object { Test-HasValue $_ } |
+            ForEach-Object { ConvertTo-NormalizedChangedPath $_ } |
+            Select-Object -Unique
+    )
+    $baselineRemainingPaths = @($changedPaths | Where-Object { $baselineDirtyPaths -contains $_ })
+    $baselineMissingPaths = @($baselineDirtyPaths | Where-Object { $changedPaths -notcontains $_ })
+    $nonAiDevPaths = @($changedPaths | Where-Object { -not (Test-IsAiDevOperationalPath $_) })
+    $newAiDevPaths = @($changedPaths | Where-Object { (Test-IsAiDevOperationalPath $_) -and ($baselineDirtyPaths -notcontains $_) })
+
+    if ($baselineMissingPaths.Count -gt 0) {
+        $message = "Final clean verification failed: baseline dirty paths from auto-goal start disappeared before completion. They may have been committed or otherwise swallowed, so auto-goal will not report completed.`nBaseline dirty count: $baselineDirtyCount`nFinal dirty count: $finalDirtyCount`nFinal .ai-dev meta commit created: skipped (baseline dirty disappeared).`nMissing baseline dirty paths:`n$($baselineMissingPaths -join "`n")`n$($statusLines -join "`n")"
+        $script:steps += New-StepResult $StepNumber "final-change-gate" $command $true $false 1 $message
+        Stop-AutoGoal $script:steps "final_baseline_dirty_disappeared" $false 1
+    }
+
+    if ($baselineRemainingPaths.Count -gt 0) {
+        $message = "Final clean verification failed: baseline dirty files remain, so auto-goal will not report completed.`nBaseline dirty count: $baselineDirtyCount`nFinal dirty count: $finalDirtyCount`nFinal .ai-dev meta commit created: skipped (baseline dirty remains).`nRemaining baseline dirty paths:`n$($baselineRemainingPaths -join "`n")`n$($statusLines -join "`n")"
+        $script:steps += New-StepResult $StepNumber "final-change-gate" $command $true $false 1 $message
+        Stop-AutoGoal $script:steps "final_baseline_dirty_remains" $false 1
+    }
+
+    if ($nonAiDevPaths.Count -gt 0) {
+        $message = "Final clean verification failed: non-.ai-dev changes remain, so auto-goal will not report completed.`nBaseline dirty count: $baselineDirtyCount`nFinal dirty count: $finalDirtyCount`nFinal .ai-dev meta commit created: skipped (non-.ai-dev dirty remains).`n$($statusLines -join "`n")"
+        $script:steps += New-StepResult $StepNumber "final-change-gate" $command $true $false 1 $message
+        Stop-AutoGoal $script:steps "final_non_ai_dev_changes" $false 1
+    }
+
+    if ($newAiDevPaths.Count -eq 0) {
+        $message = "Final clean verification failed: dirty paths remain, but none are new .ai-dev operational changes that auto-goal may commit.`nBaseline dirty count: $baselineDirtyCount`nFinal dirty count: $finalDirtyCount`nFinal .ai-dev meta commit created: skipped (no eligible .ai-dev changes).`n$($statusLines -join "`n")"
+        $script:steps += New-StepResult $StepNumber "final-change-gate" $command $true $false 1 $message
+        Stop-AutoGoal $script:steps "final_no_eligible_meta_changes" $false 1
+    }
+
+    if (-not $AllowCommit) {
+        $message = "Final clean verification failed: only new .ai-dev operational changes remain, but -AllowCommit is required to create the final meta commit.`nBaseline dirty count: $baselineDirtyCount`nFinal dirty count: $finalDirtyCount`nFinal .ai-dev meta commit created: skipped (-AllowCommit missing).`n$($statusLines -join "`n")"
+        $script:steps += New-StepResult $StepNumber "final-change-gate" $command $true $false 1 $message
+        Stop-AutoGoal $script:steps "final_ai_dev_changes_require_commit" $false 1
+    }
+
+    $addArguments = @("add", "--") + $newAiDevPaths
+    $addOutput = & git @addArguments 2>&1 | Out-String
+    $addExitCode = $LASTEXITCODE
+
+    if ($addExitCode -ne 0) {
+        $message = "auto-goal 최종 .ai-dev 메타 변경 git add 실패. exit code: $addExitCode`n$addOutput"
+        $script:steps += New-StepResult $StepNumber "final-change-gate" "git add -- <final .ai-dev files>" $true $false 1 $message
+        Stop-AutoGoal $script:steps "final_meta_add_failed" $false 1
+    }
+
+    $metaCommitMessage = "chore(ai-dev): record final auto-goal state"
+    $commitArguments = @("commit", "-m", $metaCommitMessage, "--") + $newAiDevPaths
+    $commitOutput = & git @commitArguments 2>&1 | Out-String
+    $commitExitCode = $LASTEXITCODE
+
+    if ($commitExitCode -ne 0) {
+        $message = "auto-goal 최종 .ai-dev 메타 커밋 실패. exit code: $commitExitCode`n$commitOutput"
+        $script:steps += New-StepResult $StepNumber "final-change-gate" "git commit -m '$metaCommitMessage' -- <final .ai-dev files>" $true $false 1 $message
+        Stop-AutoGoal $script:steps "final_meta_commit_failed" $false 1
+    }
+
+    $remainingStatus = @(Get-GitStatusLines $StepNumber "final-change-gate")
+
+    if ($remainingStatus.Count -gt 0) {
+        $message = "Final clean verification failed: changes remain after the final .ai-dev meta commit, so auto-goal will not report completed.`nBaseline dirty count: $baselineDirtyCount`nFinal dirty count: $finalDirtyCount`nFinal .ai-dev meta commit created: yes`nFinal clean verification: failed; git status --short still reports $($remainingStatus.Count) change(s).`n$($remainingStatus -join "`n")"
+        $script:steps += New-StepResult $StepNumber "final-change-gate" "git status --short" $true $false 1 $message
+        Stop-AutoGoal $script:steps "final_worktree_dirty" $false 1
+    }
+
+    $message = ($commitOutput.Trim(), "Baseline dirty count: $baselineDirtyCount", "Final dirty count: $finalDirtyCount", "Final .ai-dev meta commit created: yes", "Final clean verification: git status --short returned no changes.") -join "`n"
+    $script:steps += New-StepResult $StepNumber "final-change-gate" "git add/commit final .ai-dev operational changes, git status --short" $true $false 0 $message
+}
+
+function Invoke-CompletedCleanVerification {
+    param([int]$StepNumber)
+
+    $remainingStatus = @(Get-GitStatusLines $StepNumber "completed-clean-gate")
+
+    if ($remainingStatus.Count -gt 0) {
+        $message = "Completed clean verification failed: git status --short still reports $($remainingStatus.Count) change(s) after all result/state files were written and the final gate ran.`n$($remainingStatus -join "`n")"
+        $script:steps += New-StepResult $StepNumber "completed-clean-gate" "git status --short" $true $false 1 $message
+        Stop-AutoGoal $script:steps "completed_worktree_dirty" $false 1
+    }
+
+    $script:steps += New-StepResult $StepNumber "completed-clean-gate" "git status --short" $true $false 0 "Completed clean verification passed: git status --short returned no changes after all result/state files were written."
+}
+
+function Invoke-FinalPreparedResultGate {
+    param(
+        [int]$StepNumber,
+        [int]$CleanGateStepNumber,
+        [string]$StoppedReason
+    )
+
+    Clear-AutoGoalTempArtifacts
+
+    $command = "write final result, git add/commit final .ai-dev operational changes, git status --short"
+    $baselineDirtyPaths = @($script:autoGoalBaselineDirtyPaths)
+    $baselineDirtyCount = $baselineDirtyPaths.Count
+    $preparedGateStepsWritten = $false
+
+    Save-AutoGoalResultFile $StoppedReason $true 0
+
+    $statusLines = @(Get-GitStatusLines $StepNumber "final-change-gate")
+    $finalDirtyCount = $statusLines.Count
+
+    if ($statusLines.Count -eq 0 -and $baselineDirtyCount -gt 0) {
+        $message = "Final clean verification failed: baseline dirty paths from auto-goal start are no longer visible in git status. They may have been committed or otherwise swallowed, so auto-goal will not report completed.`nBaseline dirty count: $baselineDirtyCount`nFinal dirty count: $finalDirtyCount`nFinal .ai-dev meta commit created: skipped (baseline dirty disappeared).`nBaseline dirty paths:`n$($baselineDirtyPaths -join "`n")"
+        $script:steps += New-StepResult $StepNumber "final-change-gate" $command $true $false 1 $message
+        Stop-AutoGoal $script:steps "final_baseline_dirty_disappeared" $false 1
+    }
+
+    if ($statusLines.Count -eq 0) {
+        $message = "Baseline dirty count: $baselineDirtyCount`nFinal dirty count: $finalDirtyCount before writing final gate entries.`nFinal .ai-dev meta commit created: pending if final gate entries dirty the result file.`nFinal clean verification: git status --short will be required after the final result file is written."
+        $script:steps += New-StepResult $StepNumber "final-change-gate" $command $true $false 0 $message
+        $script:steps += New-StepResult $CleanGateStepNumber "completed-clean-gate" "git status --short" $true $false 0 "Completed clean verification passed: git status --short returned no changes after the final result file was written."
+        Save-AutoGoalResultFile $StoppedReason $true 0
+        $preparedGateStepsWritten = $true
+        $statusLines = @(Get-GitStatusLines $StepNumber "final-change-gate")
+        $finalDirtyCount = $statusLines.Count
+
+        if ($statusLines.Count -eq 0) {
+            return
+        }
+    }
+
+    $changedPaths = @(
+        $statusLines |
+            ForEach-Object { Convert-ToChangedPath $_ } |
+            Where-Object { Test-HasValue $_ } |
+            ForEach-Object { ConvertTo-NormalizedChangedPath $_ } |
+            Select-Object -Unique
+    )
+    $baselineRemainingPaths = @($changedPaths | Where-Object { $baselineDirtyPaths -contains $_ })
+    $baselineMissingPaths = @($baselineDirtyPaths | Where-Object { $changedPaths -notcontains $_ })
+    $nonAiDevPaths = @($changedPaths | Where-Object { -not (Test-IsAiDevOperationalPath $_) })
+    $newAiDevPaths = @($changedPaths | Where-Object { (Test-IsAiDevOperationalPath $_) -and ($baselineDirtyPaths -notcontains $_) })
+
+    if ($baselineMissingPaths.Count -gt 0) {
+        $message = "Final clean verification failed: baseline dirty paths from auto-goal start disappeared before completion. They may have been committed or otherwise swallowed, so auto-goal will not report completed.`nBaseline dirty count: $baselineDirtyCount`nFinal dirty count: $finalDirtyCount`nFinal .ai-dev meta commit created: skipped (baseline dirty disappeared).`nMissing baseline dirty paths:`n$($baselineMissingPaths -join "`n")`n$($statusLines -join "`n")"
+        $script:steps += New-StepResult $StepNumber "final-change-gate" $command $true $false 1 $message
+        Stop-AutoGoal $script:steps "final_baseline_dirty_disappeared" $false 1
+    }
+
+    if ($baselineRemainingPaths.Count -gt 0) {
+        $message = "Final clean verification failed: baseline dirty files remain, so auto-goal will not report completed.`nBaseline dirty count: $baselineDirtyCount`nFinal dirty count: $finalDirtyCount`nFinal .ai-dev meta commit created: skipped (baseline dirty remains).`nRemaining baseline dirty paths:`n$($baselineRemainingPaths -join "`n")`n$($statusLines -join "`n")"
+        $script:steps += New-StepResult $StepNumber "final-change-gate" $command $true $false 1 $message
+        Stop-AutoGoal $script:steps "final_baseline_dirty_remains" $false 1
+    }
+
+    if ($nonAiDevPaths.Count -gt 0) {
+        $message = "Final clean verification failed: non-.ai-dev changes remain, so auto-goal will not report completed.`nBaseline dirty count: $baselineDirtyCount`nFinal dirty count: $finalDirtyCount`nFinal .ai-dev meta commit created: skipped (non-.ai-dev dirty remains).`n$($statusLines -join "`n")"
+        $script:steps += New-StepResult $StepNumber "final-change-gate" $command $true $false 1 $message
+        Stop-AutoGoal $script:steps "final_non_ai_dev_changes" $false 1
+    }
+
+    if ($newAiDevPaths.Count -eq 0) {
+        $message = "Final clean verification failed: dirty paths remain, but none are new .ai-dev operational changes that auto-goal may commit.`nBaseline dirty count: $baselineDirtyCount`nFinal dirty count: $finalDirtyCount`nFinal .ai-dev meta commit created: skipped (no eligible .ai-dev changes).`n$($statusLines -join "`n")"
+        $script:steps += New-StepResult $StepNumber "final-change-gate" $command $true $false 1 $message
+        Stop-AutoGoal $script:steps "final_no_eligible_meta_changes" $false 1
+    }
+
+    if (-not $AllowCommit) {
+        $message = "Final clean verification failed: only new .ai-dev operational changes remain, but -AllowCommit is required to create the final meta commit.`nBaseline dirty count: $baselineDirtyCount`nFinal dirty count: $finalDirtyCount`nFinal .ai-dev meta commit created: skipped (-AllowCommit missing).`n$($statusLines -join "`n")"
+        $script:steps += New-StepResult $StepNumber "final-change-gate" $command $true $false 1 $message
+        Stop-AutoGoal $script:steps "final_ai_dev_changes_require_commit" $false 1
+    }
+
+    if (-not $preparedGateStepsWritten) {
+        $message = "Baseline dirty count: $baselineDirtyCount`nFinal dirty count: $finalDirtyCount`nFinal .ai-dev meta commit created: pending; this final result file is written before that commit and included in it.`nFinal .ai-dev paths to commit:`n$($newAiDevPaths -join "`n")"
+        $script:steps += New-StepResult $StepNumber "final-change-gate" $command $true $false 0 $message
+        $script:steps += New-StepResult $CleanGateStepNumber "completed-clean-gate" "git status --short" $true $false 0 "Completed clean verification is enforced immediately after the final .ai-dev meta commit; completed=true is returned only if git status --short reports no changes."
+        Save-AutoGoalResultFile $StoppedReason $true 0
+    }
+
+    $statusLines = @(Get-GitStatusLines $StepNumber "final-change-gate")
+    $newAiDevPaths = @(
+        $statusLines |
+            ForEach-Object { Convert-ToChangedPath $_ } |
+            Where-Object { Test-HasValue $_ } |
+            ForEach-Object { ConvertTo-NormalizedChangedPath $_ } |
+            Where-Object { (Test-IsAiDevOperationalPath $_) -and ($baselineDirtyPaths -notcontains $_) } |
+            Select-Object -Unique
+    )
+
+    if ($newAiDevPaths.Count -eq 0) {
+        $message = "Final clean verification failed: no final .ai-dev operational paths were available to commit after the final result file was written.`n$($statusLines -join "`n")"
+        $script:steps += New-StepResult $StepNumber "final-change-gate" $command $true $false 1 $message
+        Stop-AutoGoal $script:steps "final_no_eligible_meta_changes" $false 1
+    }
+
+    $addArguments = @("add", "--") + $newAiDevPaths
+    $addOutput = & git @addArguments 2>&1 | Out-String
+    $addExitCode = $LASTEXITCODE
+
+    if ($addExitCode -ne 0) {
+        $message = "auto-goal 최종 .ai-dev 메타 변경 git add 실패. exit code: $addExitCode`n$addOutput"
+        $script:steps += New-StepResult $StepNumber "final-change-gate" "git add -- <final .ai-dev files>" $true $false 1 $message
+        Stop-AutoGoal $script:steps "final_meta_add_failed" $false 1
+    }
+
+    $metaCommitMessage = "chore(ai-dev): record final auto-goal state"
+    $commitArguments = @("commit", "-m", $metaCommitMessage, "--") + $newAiDevPaths
+    $commitOutput = & git @commitArguments 2>&1 | Out-String
+    $commitExitCode = $LASTEXITCODE
+
+    if ($commitExitCode -ne 0) {
+        $message = "auto-goal 최종 .ai-dev 메타 커밋 실패. exit code: $commitExitCode`n$commitOutput"
+        $script:steps += New-StepResult $StepNumber "final-change-gate" "git commit -m '$metaCommitMessage' -- <final .ai-dev files>" $true $false 1 $message
+        Stop-AutoGoal $script:steps "final_meta_commit_failed" $false 1
+    }
+
+    $remainingStatus = @(Get-GitStatusLines $CleanGateStepNumber "completed-clean-gate")
+
+    if ($remainingStatus.Count -gt 0) {
+        $message = "Completed clean verification failed: changes remain after the final .ai-dev meta commit, so auto-goal will not report completed.`n$($remainingStatus -join "`n")"
+        $script:steps += New-StepResult $CleanGateStepNumber "completed-clean-gate" "git status --short" $true $false 1 $message
+        Stop-AutoGoal $script:steps "completed_worktree_dirty" $false 1
+    }
+}
+
+function Complete-AutoGoal {
+    param(
+        [int]$PreFinalGateStepNumber,
+        [int]$ResultStepNumber,
+        [int]$PostFinalGateStepNumber,
+        [int]$CleanGateStepNumber,
+        [string]$StoppedReason
+    )
+
+    Invoke-FinalAutoGoalChangeGate $PreFinalGateStepNumber
+    $script:steps += New-StepResult $ResultStepNumber "write-final-result" (ConvertTo-RepoRelativePath $ResultPath) $true $false 0 "Final success result file is written after the pre-result final change gate and before the final .ai-dev meta commit."
+    Invoke-FinalPreparedResultGate $PostFinalGateStepNumber $CleanGateStepNumber $StoppedReason
+    $script:autoGoalCanCleanTempArtifacts = $false
+    Stop-AutoGoal $script:steps $StoppedReason $true 0
 }
 
 function Get-JsonObjectCandidates {
@@ -715,6 +1127,11 @@ function Get-FullCycleArguments {
     # The downstream full cycle must tolerate those intended artifacts.
     $arguments += "-AllowDirty"
 
+    if ($script:autoGoalBaselineDirtyPaths.Count -gt 0) {
+        $arguments += "-ProtectedBaselineDirtyPaths"
+        $arguments += ($script:autoGoalBaselineDirtyPaths -join ",")
+    }
+
     if ($null -ne $CommitFiles -and $CommitFiles.Count -gt 0) {
         $normalizedFiles = @($CommitFiles | ForEach-Object { $_ -split "," } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
 
@@ -747,6 +1164,8 @@ Set-Location $repoRoot
 
 $script:steps = @()
 $script:autoGoalPlanPreview = $null
+$script:autoGoalBaselineStatusLines = @()
+$script:autoGoalBaselineDirtyPaths = @()
 $resolvedGoalPath = [System.IO.Path]::GetFullPath((Resolve-RepoPath $goalRelativePath))
 $resolvedQueuePath = [System.IO.Path]::GetFullPath((Resolve-RepoPath $queueRelativePath))
 $resolvedStatePath = [System.IO.Path]::GetFullPath((Resolve-RepoPath $stateRelativePath))
@@ -798,7 +1217,8 @@ if ($DryRun) {
         Stop-AutoGoal $script:steps "dry_run_preview_invalid" $false 1
     }
 
-    $script:steps += New-StepResult 2 "dirty-worktree-gate" "git status --short" $false $true 0 "DryRun: dirty worktree gate was not executed."
+    $plannedAutoGoalOutputPaths = @(Get-PlannedAutoGoalOutputPaths)
+    $script:steps += New-StepResult 2 "dirty-worktree-gate" "git status --porcelain; compare baseline dirty paths with planned auto-goal outputs" $false $true 0 "DryRun: baseline dirty capture, dirty worktree gate, and baseline output conflict gate were not executed. Would check planned output paths: $($plannedAutoGoalOutputPaths -join ', ')"
     $script:steps += New-StepResult 3 "plan-goal" "codex exec <auto-goal planning prompt>" $false $true 0 "DryRun: Codex goal planning was not executed. Preview currentTaskId: T001, task: $GoalTitle"
     $script:steps += New-StepResult 4 "validate-generated-json" "goal/queue/state JSON validation" $false $true 0 "DryRun: preview goal/queue/state plan passed local schema validation."
     $script:steps += New-StepResult 5 "write-state-files" "$goalRelativePath, $queueRelativePath, $stateRelativePath" $false $true 0 "DryRun: state files were not written."
@@ -813,19 +1233,34 @@ if ($DryRun) {
     Stop-AutoGoal $script:steps "dry_run" $false 0
 }
 
-$statusLines = @(Get-GitStatusLines)
+$script:autoGoalBaselineStatusLines = @(Get-GitPorcelainStatusLines)
+$script:autoGoalBaselineDirtyPaths = @(
+    $script:autoGoalBaselineStatusLines |
+        ForEach-Object { Convert-ToChangedPath $_ } |
+        Where-Object { Test-HasValue $_ } |
+        ForEach-Object { ConvertTo-NormalizedChangedPath $_ } |
+        Select-Object -Unique
+)
+$plannedAutoGoalOutputPaths = @(Get-PlannedAutoGoalOutputPaths)
+Invoke-BaselineOutputConflictGate $script:autoGoalBaselineDirtyPaths $plannedAutoGoalOutputPaths
+
+$statusLines = @($script:autoGoalBaselineStatusLines)
+$baselineDirtyCount = $script:autoGoalBaselineDirtyPaths.Count
 
 if ($statusLines.Count -gt 0 -and -not $AllowDirty) {
     $dirtyText = ($statusLines -join "`n")
-    $script:steps += New-StepResult 2 "dirty-worktree-gate" "git status --short" $false $true 1 "Worktree is dirty. Use -AllowDirty only when this is intentional.`n$dirtyText"
+    $script:steps += New-StepResult 2 "dirty-worktree-gate" "git status --porcelain" $false $true 1 "Baseline dirty count: $baselineDirtyCount`nWorktree is dirty. Use -AllowDirty only when this is intentional.`n$dirtyText"
     Stop-AutoGoal $script:steps "dirty_worktree" $false 1
 }
 
 if ($statusLines.Count -gt 0) {
-    $script:steps += New-StepResult 2 "dirty-worktree-gate" "git status --short" $false $false 0 "AllowDirty is set. DirtyCount: $($statusLines.Count)"
+    $script:steps += New-StepResult 2 "dirty-worktree-gate" "git status --porcelain" $true $false 0 "AllowDirty is set. Baseline dirty count: $baselineDirtyCount"
 } else {
-    $script:steps += New-StepResult 2 "dirty-worktree-gate" "git status --short" $false $false 0 "Worktree is clean."
+    $script:steps += New-StepResult 2 "dirty-worktree-gate" "git status --porcelain" $true $false 0 "Baseline dirty count: 0. Worktree is clean."
 }
+
+$fullCycleArguments = @(Get-FullCycleArguments)
+$fullCycleCommandText = "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cycle-full.ps1 $($fullCycleArguments -join ' ')".Trim()
 
 $codexCommand = Get-Command codex -ErrorAction SilentlyContinue
 
@@ -896,7 +1331,7 @@ Invoke-CycleCommand 6 "make-prompt" "powershell -ExecutionPolicy Bypass -File sc
 
 if (-not $shouldRunFullCycle) {
     $script:steps += New-StepResult 7 "auto-cycle-full" $fullCycleCommandText $false $true 0 "Full cycle requires -AllowRun or explicit execution options. -AllowRun only invokes the full-cycle wrapper; implementation and review still require -AllowCodex and -AllowReviewCodex."
-    Stop-AutoGoal $script:steps "prepared_without_full_cycle" $true 0
+    Complete-AutoGoal 8 9 10 11 "prepared_without_full_cycle"
 }
 
 Invoke-CycleCommand 7 "auto-cycle-full" $fullCycleCommandText $autoCycleFullPath $fullCycleArguments
@@ -915,5 +1350,5 @@ if ($goalStatusAfterFullCycle -ne "completed") {
 
 $script:steps += New-StepResult 8 "verify-goal-status" "$stateRelativePath goalStatus 확인" $false $false 0 "auto-cycle-full 성공 후 goalStatus completed 확인."
 
-Stop-AutoGoal $script:steps "completed" $true 0
+Complete-AutoGoal 9 10 11 12 "completed"
 
