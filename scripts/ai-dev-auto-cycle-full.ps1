@@ -229,6 +229,11 @@ function Complete-Cycle {
                 Stop-Cycle $Steps "completed_ai_dev_changes_require_commit" $false 1
             }
 
+            if ($DryRun) {
+                $Steps += New-StepResult $StepNumber "completed-clean-gate" "git status --short; git add/commit final .ai-dev operational changes; git status --short" $false $true 0 "DryRun: only new .ai-dev operational changes remain, but the final auto-cycle meta commit was not created.`n$remainingStatus"
+                Stop-Cycle $Steps "dry_run" $false 0
+            }
+
             $addOutput = & git add -- $eligibleAiDevPaths 2>&1 | Out-String
             $addExitCode = $LASTEXITCODE
 
