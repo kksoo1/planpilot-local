@@ -7,6 +7,7 @@ import type { TaskSortOrder } from "../utils/taskFilters";
 type TasksViewProps = {
   projects: Project[];
   filteredTasks: Task[];
+  summaryTasks: Task[];
   sortedTasks: Task[];
   selectedProjectFilter: string;
   showCompletedTasks: boolean;
@@ -51,6 +52,7 @@ type TasksViewProps = {
 export function TasksView({
   projects,
   filteredTasks,
+  summaryTasks,
   sortedTasks,
   selectedProjectFilter,
   showCompletedTasks,
@@ -94,6 +96,21 @@ export function TasksView({
   const hasSearchQuery = taskSearchQuery.trim().length > 0;
   const hasProjectFilter = selectedProjectFilter !== "all";
   const hasVisibilityFilter = !showCompletedTasks;
+  const completedTaskCount = summaryTasks.filter(
+    (task) => task.status === "done",
+  ).length;
+  const inProgressTaskCount = summaryTasks.filter(
+    (task) => task.status === "in_progress",
+  ).length;
+  const remainingTaskCount = summaryTasks.filter(
+    (task) => task.status === "todo",
+  ).length;
+  const totalTaskSummary = showCompletedTasks
+    ? `총 ${summaryTasks.length}개`
+    : `표시 ${filteredTasks.length}개 / 조건 일치 ${summaryTasks.length}개`;
+  const completedTaskSummary = showCompletedTasks
+    ? `완료 ${completedTaskCount}개`
+    : `완료 ${completedTaskCount}개(숨김)`;
   const emptyMessage =
     hasSearchQuery
       ? "검색어와 일치하는 업무가 없어요."
@@ -104,7 +121,10 @@ export function TasksView({
   return (
     <section className="screen-card">
       <h2>전체 업무</h2>
-      <p className="summary">총 {filteredTasks.length}개</p>
+      <p className="summary">
+        {totalTaskSummary} · 진행 중 {inProgressTaskCount}개 ·{" "}
+        {completedTaskSummary} · 남은 업무 {remainingTaskCount}개
+      </p>
 
       <label>
         업무 검색

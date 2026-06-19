@@ -116,6 +116,13 @@ function App() {
     projects,
   });
 
+  const summaryTasks = filterTasks(tasks, {
+    selectedProjectFilter,
+    showCompletedTasks: true,
+    taskSearchQuery,
+    projects,
+  });
+
   const sortedTasks = sortTasks(filteredTasks, taskSortOrder);
 
   const aiProvider = useMemo(() => new RuleBasedAIProvider(), []);
@@ -152,6 +159,7 @@ function App() {
           <TasksView
             projects={projects}
             filteredTasks={filteredTasks}
+            summaryTasks={summaryTasks}
             sortedTasks={sortedTasks}
             selectedProjectFilter={selectedProjectFilter}
             showCompletedTasks={showCompletedTasks}

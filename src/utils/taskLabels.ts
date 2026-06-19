@@ -14,5 +14,14 @@ export function getPriorityLabel(priority: Task["priority"]) {
 }
 
 export function getStatusLabel(status: Task["status"]) {
-  return status === "done" ? "완료" : "미완료";
+  switch (status) {
+    case "in_progress":
+      return "진행 중";
+    case "done":
+      return "완료";
+    case "todo":
+      return "남은 업무";
+    default:
+      return status;
+  }
 }
