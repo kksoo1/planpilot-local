@@ -2,7 +2,7 @@
 
 ## Generated At
 
-2026-06-19 21:59:45
+2026-06-19 22:06:43
 
 ## Git Status
 
@@ -14,12 +14,11 @@
  M .ai-dev/state.json
  M .ai-dev/test-result.md
 ?? .ai-dev/auto-goal-planning-prompt.md
-?? docs/ai-dev-loop-operation.md
 ```
 
 ## App Change Files
 
-- docs/ai-dev-loop-operation.md
+- 없음
 
 ## AI Dev Operational Artifact Files
 

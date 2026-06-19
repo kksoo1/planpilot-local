@@ -231,3 +231,8 @@
 - Task: T001 AI Dev Loop 운영 순서 문서 보강
 - Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
 - Next task: 없음
+## 2026-06-19 22:08:47 - Task completed
+
+- Task: T001 업무 상태 안내 개선 범위 확인
+- Result: T001 완료: 업무 상태 안내 개선 범위를 확인하고, 앱 변경 없이 TaskList 중심으로 개선 위치를 정리했으며 build/lint 검증 및 리뷰 pass를 확인함
+- Next task: T002 업무 흐름 상태 표시 개선

@@ -1,30 +1,72 @@
 ﻿{
-    "goalTitle":  "AI Dev Loop 운영 문서 최종 점검",
+    "goalTitle":  "PlanPilot Local MVP 업무 흐름 개선",
     "goalSource":  ".ai-dev/goal.md",
-    "createdAt":  "2026-06-19T00:00:00+09:00",
-    "updatedAt":  "2026-06-19T13:00:36.8589181+00:00",
-    "currentTaskId":  null,
+    "createdAt":  "2026-06-19T09:00:00+09:00",
+    "updatedAt":  "2026-06-19T13:08:47.9411745+00:00",
+    "currentTaskId":  "T002",
     "tasks":  [
                   {
                       "id":  "T001",
-                      "title":  "AI Dev Loop 운영 순서 문서 보강",
-                      "description":  "`docs/ai-dev-loop-operation.md`에 Goal 입력 후 자동 계획부터 최종 git clean 확인까지의 완료 순서를 3~5줄로 짧게 추가하거나 보강한다.",
-                      "type":  "documentation",
+                      "title":  "업무 상태 안내 개선 범위 확인",
+                      "description":  "현재 업무 목록 또는 대시보드 영역의 구조를 확인하고, 기존 데이터 구조를 유지하면서 문구와 상태 표시만 작게 개선할 위치를 정한다.",
+                      "type":  "analysis",
                       "status":  "done",
                       "priority":  "P0",
                       "dependsOn":  [
 
                                     ],
                       "filesLikelyToChange":  [
-                                                  "docs/ai-dev-loop-operation.md"
+                                                  "src/App.tsx"
                                               ],
                       "verification":  [
-                                           "문서에 지정된 운영 순서가 모두 포함되었는지 확인한다.",
-                                           "변경 범위가 `docs/ai-dev-loop-operation.md`로 제한되었는지 확인한다."
+                                           "관련 화면 구조와 기존 상태 계산 방식을 확인한다.",
+                                           "수정 범위가 작은 UI 문구와 상태 표시 개선에 머무르는지 확인한다."
                                        ],
-                      "commitMessage":  "Document AI dev loop operation flow",
-                      "completedAt":  "2026-06-19T13:00:36.8589181+00:00",
-                      "resultSummary":  "자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료"
+                      "commitMessage":  null,
+                      "completedAt":  "2026-06-19T13:08:47.9411745+00:00",
+                      "resultSummary":  "T001 완료: 업무 상태 안내 개선 범위를 확인하고, 앱 변경 없이 TaskList 중심으로 개선 위치를 정리했으며 build/lint 검증 및 리뷰 pass를 확인함"
+                  },
+                  {
+                      "id":  "T002",
+                      "title":  "업무 흐름 상태 표시 개선",
+                      "description":  "진행 중인 업무, 완료된 업무, 남은 업무를 사용자가 한눈에 이해할 수 있도록 기존 화면의 안내 문구와 상태 라벨을 한국어로 다듬는다.",
+                      "type":  "implementation",
+                      "status":  "in_progress",
+                      "priority":  "P0",
+                      "dependsOn":  [
+                                        "T001"
+                                    ],
+                      "filesLikelyToChange":  [
+                                                  "src/App.tsx"
+                                              ],
+                      "verification":  [
+                                           "업무가 없을 때와 업무가 있을 때의 안내 문구가 모두 자연스러운지 확인한다.",
+                                           "기존 업무 생성과 완료 상태 전환 흐름이 유지되는지 확인한다."
+                                       ],
+                      "commitMessage":  "Improve task status guidance"
+                  },
+                  {
+                      "id":  "T003",
+                      "title":  "검증 및 작업 기록 완료",
+                      "description":  "허용된 build와 lint를 실행하고, 리뷰 통과 여부를 확인한 뒤 구현 변경과 AI Dev Loop 메타 변경을 각각 기록한다.",
+                      "type":  "verification",
+                      "status":  "pending",
+                      "priority":  "P1",
+                      "dependsOn":  [
+                                        "T002"
+                                    ],
+                      "filesLikelyToChange":  [
+                                                  ".ai-dev/goal.md",
+                                                  ".ai-dev/queue.json",
+                                                  ".ai-dev/state.json"
+                                              ],
+                      "verification":  [
+                                           "npm run build 통과를 확인한다.",
+                                           "npm run lint 통과를 확인한다.",
+                                           "리뷰 결과가 pass인지 확인한다.",
+                                           "예상하지 못한 수정 파일이 없는지 확인한다."
+                                       ],
+                      "commitMessage":  "Update ai dev loop state"
                   }
               ]
 }
