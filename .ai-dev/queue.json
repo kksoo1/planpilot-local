@@ -1,32 +1,30 @@
 ﻿{
-    "goalTitle":  "AI Dev Loop auto-goal 최종 clean 검증 보강",
+    "goalTitle":  "업무 카드 접근성 보조 문구 최종 점검",
     "goalSource":  ".ai-dev/goal.md",
-    "createdAt":  "2026-06-14T00:00:00+09:00",
-    "updatedAt":  "2026-06-19T12:37:23.2318311+00:00",
+    "createdAt":  "2026-06-19T00:00:00+09:00",
+    "updatedAt":  "2026-06-19T12:49:20.4933028+00:00",
     "currentTaskId":  null,
     "tasks":  [
                   {
                       "id":  "T001",
-                      "title":  "auto-goal 종료 전 최종 변경 상태 검증 보강",
-                      "description":  "auto-cycle-full의 메타 커밋 이후 또는 auto-goal 종료 직전에 남은 .ai-dev 운영 변경을 확인하고, 처리 가능한 변경은 메타 커밋 흐름에 포함하며 처리할 수 없는 변경은 완료가 아닌 실패로 종료하도록 보강한다.",
+                      "title":  "업무 카드 접근성 문구 점검 및 미세 수정",
+                      "description":  "업무 카드 관련 aria-label 또는 접근성 보조 문구를 확인하고 자연스러운 한국어로 최소 수정한다.",
                       "type":  "implementation",
                       "status":  "done",
-                      "priority":  "P0",
+                      "priority":  "P1",
                       "dependsOn":  [
 
                                     ],
                       "filesLikelyToChange":  [
-                                                  ".ai-dev/auto-goal 관련 PowerShell 스크립트",
-                                                  ".ai-dev/auto-cycle-full 관련 PowerShell 스크립트"
+                                                  "src/App.tsx"
                                               ],
                       "verification":  [
-                                           "완료 직전 남은 .ai-dev 운영 변경이 메타 커밋 흐름에 포함되는지 확인한다.",
-                                           "처리할 수 없는 남은 변경이 있을 때 completed로 종료하지 않는지 확인한다.",
-                                           "기존 사용자 변경 사항을 되돌리지 않는지 확인한다."
+                                           "변경된 문구가 업무 카드 문맥에 자연스럽게 맞는지 확인한다.",
+                                           "기능 로직, 상태 관리, 저장 구조 변경이 없는지 확인한다."
                                        ],
-                      "commitMessage":  "Ensure auto goal final clean state",
-                      "completedAt":  "2026-06-19T12:37:23.2318311+00:00",
-                      "resultSummary":  "T001 완료: auto-goal 종료 전 최종 변경 상태 검증을 보강하고, 완료 직전 .ai-dev 운영 변경의 최종 메타 커밋, baseline dirty 보호, non-.ai-dev dirty 실패, completed 상태의 git clean 보장을 반영함"
+                      "commitMessage":  "Polish task card accessibility labels",
+                      "completedAt":  "2026-06-19T12:49:20.4933028+00:00",
+                      "resultSummary":  "T001 완료: 업무 카드의 aria-label 문구를 자연스러운 한국어로 최소 수정하고 build/lint 검증 및 리뷰 pass를 확인함"
                   }
               ]
 }

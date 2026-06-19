@@ -206,3 +206,13 @@
 - Task: T001 auto-goal 종료 전 최종 변경 상태 검증 보강
 - Result: T001 완료: auto-goal 종료 전 최종 변경 상태 검증을 보강하고, 완료 직전 .ai-dev 운영 변경의 최종 메타 커밋, baseline dirty 보호, non-.ai-dev dirty 실패, completed 상태의 git clean 보장을 반영함
 - Next task: 없음
+## 2026-06-19 21:49:07 - Commit created
+
+- Task: T001 업무 카드 접근성 문구 점검 및 미세 수정
+- Commit: 3591ee2bb9a7be7a72d8c360fc294a643d06ab85
+- Message: Polish task card accessibility labels
+## 2026-06-19 21:49:21 - Task completed
+
+- Task: T001 업무 카드 접근성 문구 점검 및 미세 수정
+- Result: T001 완료: 업무 카드의 aria-label 문구를 자연스러운 한국어로 최소 수정하고 build/lint 검증 및 리뷰 pass를 확인함
+- Next task: 없음
