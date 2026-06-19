@@ -42,14 +42,14 @@ PlanPilot Local MVP에서 사용자가 현재 진행 중인 업무, 완료된 �
 
 ## Current Task
 
-- Task ID: T002
-- Title: 업무 흐름 상태 표시 개선
-- Description: 진행 중인 업무, 완료된 업무, 남은 업무를 사용자가 한눈에 이해할 수 있도록 기존 화면의 안내 문구와 상태 라벨을 한국어로 다듬는다.
-- Type: implementation
+- Task ID: T003
+- Title: 검증 및 작업 기록 완료
+- Description: 허용된 build와 lint를 실행하고, 리뷰 통과 여부를 확인한 뒤 구현 변경과 AI Dev Loop 메타 변경을 각각 기록한다.
+- Type: verification
 - Status: in_progress
-- Priority: P0
+- Priority: P1
 - Depends on:
-- T001
+- T002
 
 ## Task Scope
 
@@ -60,12 +60,16 @@ PlanPilot Local MVP에서 사용자가 현재 진행 중인 업무, 완료된 �
 
 ## Likely Files
 
-- src/App.tsx
+- .ai-dev/goal.md
+- .ai-dev/queue.json
+- .ai-dev/state.json
 
 ## Verification
 
-- 업무가 없을 때와 업무가 있을 때의 안내 문구가 모두 자연스러운지 확인한다.
-- 기존 업무 생성과 완료 상태 전환 흐름이 유지되는지 확인한다.
+- npm run build 통과를 확인한다.
+- npm run lint 통과를 확인한다.
+- 리뷰 결과가 pass인지 확인한다.
+- 예상하지 못한 수정 파일이 없는지 확인한다.
 
 - 필요한 경우 `npm run build`는 사람이 별도로 실행한다.
 - 이 프롬프트는 자동으로 build, test, lint를 실행하라고 지시하지 않는다.

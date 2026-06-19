@@ -1,16 +1,16 @@
 ﻿{
-    "goalStatus":  "in_progress",
-    "currentTaskId":  "T003",
+    "goalStatus":  "completed",
+    "currentTaskId":  null,
     "currentLoop":  0,
     "maxLoopsPerTask":  2,
     "repeatedFailureCount":  0,
-    "lastCommand":  "complete-task",
+    "lastCommand":  "save-diff",
     "lastCommandStatus":  "passed",
     "lastErrorSummary":  "",
     "lastReviewDecision":  "pass",
     "lastReviewSeverity":  "none",
     "lastCommitHash":  "86280c0fad1af38608410ac6817d2931e0f24314",
     "startedAt":  "2026-06-19T09:00:00+09:00",
-    "updatedAt":  "2026-06-19T13:19:42.7921784+00:00",
-    "stopReason":  null
+    "updatedAt":  "2026-06-19T13:23:16.7187733+00:00",
+    "stopReason":  "all_tasks_completed"
 }
