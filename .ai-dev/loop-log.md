@@ -221,3 +221,13 @@
 - Task: T001 완료 기준 안내 문구 보강
 - Result: T001 완료: AI Dev Loop 완료 기준을 .ai-dev/README.md 운영 원칙에 짧게 보강하고 build/lint 검증 및 리뷰 pass를 확인함
 - Next task: 없음
+## 2026-06-19 22:00:35 - Commit created
+
+- Task: T001 AI Dev Loop 운영 순서 문서 보강
+- Commit: 1f8952d265ae7d889e5a4033cba46876f9272972
+- Message: Document AI dev loop operation flow
+## 2026-06-19 22:00:37 - Task completed
+
+- Task: T001 AI Dev Loop 운영 순서 문서 보강
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
+- Next task: 없음

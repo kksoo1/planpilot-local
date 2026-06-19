@@ -2,12 +2,11 @@
 
 ## Generated At
 
-2026-06-19 21:53:02
+2026-06-19 21:59:45
 
 ## Git Status
 
 ```text
- M .ai-dev/README.md
  M .ai-dev/codex-result.md
  M .ai-dev/current-task-prompt.md
  M .ai-dev/goal.md
@@ -15,15 +14,15 @@
  M .ai-dev/state.json
  M .ai-dev/test-result.md
 ?? .ai-dev/auto-goal-planning-prompt.md
+?? docs/ai-dev-loop-operation.md
 ```
 
 ## App Change Files
 
-- 없음
+- docs/ai-dev-loop-operation.md
 
 ## AI Dev Operational Artifact Files
 
-- .ai-dev/README.md
 - .ai-dev/codex-result.md
 - .ai-dev/current-task-prompt.md
 - .ai-dev/goal.md

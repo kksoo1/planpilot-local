@@ -1,32 +1,30 @@
 ﻿{
-    "goalTitle":  "AI Dev Loop 완료 기준 문서 보강",
+    "goalTitle":  "AI Dev Loop 운영 문서 최종 점검",
     "goalSource":  ".ai-dev/goal.md",
     "createdAt":  "2026-06-19T00:00:00+09:00",
-    "updatedAt":  "2026-06-19T12:56:59.1605404+00:00",
+    "updatedAt":  "2026-06-19T13:00:36.8589181+00:00",
     "currentTaskId":  null,
     "tasks":  [
                   {
                       "id":  "T001",
-                      "title":  "완료 기준 안내 문구 보강",
-                      "description":  "AI Dev Loop 관련 문서 또는 기존 안내 문구에 완료 기준을 짧게 추가하고, 앱 기능 로직과 UI 동작은 변경하지 않는다.",
+                      "title":  "AI Dev Loop 운영 순서 문서 보강",
+                      "description":  "`docs/ai-dev-loop-operation.md`에 Goal 입력 후 자동 계획부터 최종 git clean 확인까지의 완료 순서를 3~5줄로 짧게 추가하거나 보강한다.",
                       "type":  "documentation",
                       "status":  "done",
-                      "priority":  "P1",
+                      "priority":  "P0",
                       "dependsOn":  [
 
                                     ],
                       "filesLikelyToChange":  [
-                                                  ".ai-dev/goal.md",
-                                                  ".ai-dev/queue.json",
-                                                  ".ai-dev/state.json"
+                                                  "docs/ai-dev-loop-operation.md"
                                               ],
                       "verification":  [
-                                           "완료 기준에 build/lint 통과, 리뷰 pass, 구현 커밋, complete-task, .ai-dev 메타 커밋, 최종 정리 상태가 포함되는지 확인한다.",
-                                           "앱 기능 로직과 UI 동작 파일이 변경되지 않았는지 확인한다."
+                                           "문서에 지정된 운영 순서가 모두 포함되었는지 확인한다.",
+                                           "변경 범위가 `docs/ai-dev-loop-operation.md`로 제한되었는지 확인한다."
                                        ],
-                      "commitMessage":  "Document AI dev loop completion criteria",
-                      "completedAt":  "2026-06-19T12:56:59.1605404+00:00",
-                      "resultSummary":  "T001 완료: AI Dev Loop 완료 기준을 .ai-dev/README.md 운영 원칙에 짧게 보강하고 build/lint 검증 및 리뷰 pass를 확인함"
+                      "commitMessage":  "Document AI dev loop operation flow",
+                      "completedAt":  "2026-06-19T13:00:36.8589181+00:00",
+                      "resultSummary":  "자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료"
                   }
               ]
 }
