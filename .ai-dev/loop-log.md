@@ -262,3 +262,14 @@
 - Verification: .ai-dev/test-result.md의 build/lint passed, .ai-dev/review.md의 Decision pass, state.json의 lastReviewDecision pass 확인
 - Remaining risk: 현재 세션에서는 규칙상 npm run build/lint와 git 상태 확인 명령을 새로 실행하지 않음
 - Next task: 없음
+
+## 2026-06-19 22:35:05 - Commit created
+
+- Task: T001 완료 종료 경로 최종 정리 보강
+- Commit: ba0d33f11f0f7d25186e2fec783c2bf46660c97e
+- Message: Finalize meta changes on completed auto cycle
+## 2026-06-19 22:35:22 - Task completed
+
+- Task: T001 완료 종료 경로 최종 정리 보강
+- Result: T001 완료: auto-cycle-full completed 종료 경로에서 .ai-dev 운영 변경만 남은 경우 final meta commit 후 git clean을 보장하고, DryRun/AllowCommit/non-.ai-dev dirty 실패 경로 검증을 반영함
+- Next task: 없음

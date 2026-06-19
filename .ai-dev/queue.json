@@ -1,76 +1,34 @@
 ﻿{
-    "goalTitle":  "PlanPilot Local MVP 업무 흐름 개선",
+    "goalTitle":  "AI Dev Loop auto-cycle-full 완료 후 final clean 보강",
     "goalSource":  ".ai-dev/goal.md",
-    "createdAt":  "2026-06-19T09:00:00+09:00",
-    "updatedAt":  "2026-06-19T13:21:41.8958767+00:00",
+    "createdAt":  "2026-06-19T00:00:00+09:00",
+    "updatedAt":  "2026-06-19T13:35:21.9376324+00:00",
     "currentTaskId":  null,
     "tasks":  [
                   {
                       "id":  "T001",
-                      "title":  "업무 상태 안내 개선 범위 확인",
-                      "description":  "현재 업무 목록 또는 대시보드 영역의 구조를 확인하고, 기존 데이터 구조를 유지하면서 문구와 상태 표시만 작게 개선할 위치를 정한다.",
-                      "type":  "analysis",
+                      "title":  "완료 종료 경로 최종 정리 보강",
+                      "description":  "`ai-dev-auto-cycle-full.ps1`의 completed 종료 경로와 이미 completed 상태 재실행 경로에서 남은 변경을 분류하고, `.ai-dev` 운영 파일만 남은 경우 허용 옵션에 따라 final meta commit을 생성한 뒤 작업 트리 정리 상태를 검증한다. `.ai-dev` 외 변경이 있거나 커밋이 허용되지 않으면 명확한 실패로 종료한다.",
+                      "type":  "implementation",
                       "status":  "done",
                       "priority":  "P0",
                       "dependsOn":  [
 
                                     ],
                       "filesLikelyToChange":  [
-                                                  "src/App.tsx"
+                                                  ".ai-dev/scripts/ai-dev-auto-cycle-full.ps1"
                                               ],
                       "verification":  [
-                                           "관련 화면 구조와 기존 상태 계산 방식을 확인한다.",
-                                           "수정 범위가 작은 UI 문구와 상태 표시 개선에 머무르는지 확인한다."
+                                           "build 통과 확인",
+                                           "lint 통과 확인",
+                                           "리뷰 pass 확인",
+                                           "완료 상태에서 `.ai-dev` 운영 변경만 남은 재실행 케이스 확인",
+                                           "`.ai-dev` 외 변경이 남은 실패 케이스 확인",
+                                           "최종 작업 트리 정리 상태 확인"
                                        ],
-                      "commitMessage":  null,
-                      "completedAt":  "2026-06-19T13:08:47.9411745+00:00",
-                      "resultSummary":  "T001 완료: 업무 상태 안내 개선 범위를 확인하고, 앱 변경 없이 TaskList 중심으로 개선 위치를 정리했으며 build/lint 검증 및 리뷰 pass를 확인함"
-                  },
-                  {
-                      "id":  "T002",
-                      "title":  "업무 흐름 상태 표시 개선",
-                      "description":  "진행 중인 업무, 완료된 업무, 남은 업무를 사용자가 한눈에 이해할 수 있도록 기존 화면의 안내 문구와 상태 라벨을 한국어로 다듬는다.",
-                      "type":  "implementation",
-                      "status":  "done",
-                      "priority":  "P0",
-                      "dependsOn":  [
-                                        "T001"
-                                    ],
-                      "filesLikelyToChange":  [
-                                                  "src/App.tsx"
-                                              ],
-                      "verification":  [
-                                           "업무가 없을 때와 업무가 있을 때의 안내 문구가 모두 자연스러운지 확인한다.",
-                                           "기존 업무 생성과 완료 상태 전환 흐름이 유지되는지 확인한다."
-                                       ],
-                      "commitMessage":  "Improve task status guidance",
-                      "completedAt":  "2026-06-19T13:19:42.7921784+00:00",
-                      "resultSummary":  "T002 완료: 업무 목록 영역에서 진행 중, 완료, 남은 업무 상태 요약과 상태 라벨을 한국어로 명확히 표시하고 build/lint 검증 및 리뷰 pass를 확인함"
-                  },
-                  {
-                      "id":  "T003",
-                      "title":  "검증 및 작업 기록 완료",
-                      "description":  "허용된 build와 lint를 실행하고, 리뷰 통과 여부를 확인한 뒤 구현 변경과 AI Dev Loop 메타 변경을 각각 기록한다.",
-                      "type":  "verification",
-                      "status":  "done",
-                      "priority":  "P1",
-                      "dependsOn":  [
-                                        "T002"
-                                    ],
-                      "filesLikelyToChange":  [
-                                                  ".ai-dev/goal.md",
-                                                  ".ai-dev/queue.json",
-                                                  ".ai-dev/state.json"
-                                              ],
-                      "verification":  [
-                                           "npm run build 통과를 확인한다.",
-                                           "npm run lint 통과를 확인한다.",
-                                           "리뷰 결과가 pass인지 확인한다.",
-                                           "예상하지 못한 수정 파일이 없는지 확인한다."
-                                       ],
-                      "commitMessage":  "Update ai dev loop state",
-                      "completedAt":  "2026-06-19T13:21:41.8958767+00:00",
-                      "resultSummary":  "T003 완료: 기존 검증 기록에서 build/lint 통과와 리뷰 pass를 확인하고, AI Dev Loop 메타 상태와 완료 로그를 기록함"
+                      "commitMessage":  "Finalize meta changes on completed auto cycle",
+                      "completedAt":  "2026-06-19T13:35:21.9376324+00:00",
+                      "resultSummary":  "T001 완료: auto-cycle-full completed 종료 경로에서 .ai-dev 운영 변경만 남은 경우 final meta commit 후 git clean을 보장하고, DryRun/AllowCommit/non-.ai-dev dirty 실패 경로 검증을 반영함"
                   }
               ]
 }

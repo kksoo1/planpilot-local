@@ -2,8 +2,8 @@
 
 ## Run
 
-- Started at: 2026-06-19 22:17:19
-- Ended at: 2026-06-19 22:18:18
+- Started at: 2026-06-19 22:32:25
+- Ended at: 2026-06-19 22:33:24
 - Exit code: 0
 - Review prompt: .ai-dev/review-prompt.md
 - Review response: .ai-dev/review-response.json
@@ -27,17 +27,17 @@ approval: never
 sandbox: workspace-write [workdir, /tmp, $TMPDIR]
 reasoning effort: medium
 reasoning summaries: none
-session id: 019ee007-5f9a-7040-bfa1-3039f36bcdc2
+session id: 019ee015-3328-7f41-98de-4aa9be7eab7c
 --------
 user
 Read and follow the full review prompt at this absolute file path: D:\ai-apps\planpilot-local\.a
 i-dev\review-prompt.md
 codex
-지정된 리뷰 프롬프트 파일만 먼저 읽고, 그 안의 지시 범위를 확인하겠습니다.
+요청하신 리뷰 프롬프트를 먼저 읽고, 그 안의 지시를 현재 프로젝트 규칙과 함께 적용하겠습니다. 파일 내용 확인만 수행합니다.
 exec
 "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralP
 ath 'D:\\ai-apps\\planpilot-local\\.ai-dev\\review-prompt.md'" in D:\ai-apps\planpilot-local
- succeeded in 1028ms:
+ succeeded in 1018ms:
 # AI Dev Review Prompt
 
 ## Role
@@ -55,63 +55,66 @@ ath 'D:\\ai-apps\\planpilot-local\\.ai-dev\\review-prompt.md'" in D:\ai-apps\pla
 ## Project Goal
 
 # 목표
-PlanPilot Local MVP에서 사용자가 현재 진행 중인 업무, 완료된 업무, 남은 업무를 더 빠르게 이해할 수 있도록 업무 목록 또는 대시보드 영역의 안내 문구와 
-상태 표시를 개선한다.
+AI Dev Loop의 `auto-cycle-full` 완료 종료 경로에서 운영 산출물 변경을 최종 정리하도록 보강한다.
 
 ## 배경
-현재 MVP는 기존 업무 데이터를 기반으로 로컬에서 동작한다. 1차 사용성을 높이기 위해 기능 로직을 크게 바꾸기보다, 기존 화면에서 업무 상태를 더 명확하게 읽을 수 있는
- 작은 개선이 필요하다.
+기존 `in_progress` 목표를 이어 실행했을 때 모든 task가 `done`이 되어 `goalStatus`가 `completed`가 되었지만 `.ai-dev` 운영 
+산출물이 작업 트리에 남는 문제가 있다. 완료 상태 재실행 시에도 운영 산출물만 남아 있으면 최종 메타 커밋으로 정리되어야 한다.
 
 ## 성공 기준
-- 진행 중인 업무, 완료된 업무, 남은 업무의 의미가 화면에서 더 명확하게 드러난다.
-- 기존 데이터 구조와 저장 방식은 유지한다.
-- 사용자-facing 문구는 한국어로 제공한다.
-- 변경 범위는 업무 목록 또는 대시보드 영역의 작은 UI 개선으로 제한한다.
-- 허용된 검증을 통과하고 리뷰 결과가 통과 상태가 된다.
-- 구현 변경과 AI Dev Loop 메타 변경이 각각 기록된다.
-- 최종 상태에서 예상하지 못한 변경 파일이 남아 있지 않음을 확인한다.
+- `ai-dev-auto-cycle-full.ps1`의 completed 종료 경로에서 남은 변경을 최종 분류한다.
+- 남은 변경이 `.ai-dev` 운영 파일뿐이고 커밋 허용 옵션이 켜져 있으면 final meta commit을 생성한다.
+- final meta commit 후 작업 트리 상태가 비어 있는지 검증한다.
+- `.ai-dev` 외 변경이 남아 있거나 커밋 허용 옵션이 꺼져 있으면 completed 성공으로 종료하지 않고 실패로 처리한다.
+- 이미 `goalStatus`가 `completed`인 상태에서 `.ai-dev` 운영 변경만 남아 있는 경우에도 재실행 시 최종 메타 커밋 후 정리된다.
+- 앱 `src` 파일은 변경하지 않는다.
+- build/lint 통과, 리뷰 pass, 구현 커밋, complete-task, `.ai-dev` 메타 커밋, 최종 작업 트리 정리 검증까지 완료한다.
 
 ## 제약사항
-- 서버 연동이나 외부 전송 없이 로컬 앱 방향을 유지한다.
-- 로그인, 동기화, 알림, 모바일 권한 요청은 추가하지 않는다.
-- IndexedDB와 Dexie.js 기반 저장 구조를 유지한다.
-- `src/App.css`, lock file, `node_modules`, `dist`, `.git`은 수정하지 않는다.
-- 한 번에 하나의 기능만 작게 구현한다.
+- 앱 `src` 파일은 변경하지 않는다.
+- 한 번에 하나의 작은 구현 변경으로 제한한다.
+- 기존 AI Dev Loop 상태 파일 형식과 스크립트 흐름을 유지한다.
+- 사용자가 만든 변경 사항을 되돌리지 않는다.
 
 ## 범위 제외
-- 새 화면 추가
-- 대규모 컴포넌트 재작성
-- 데이터 schema 변경
-- 새 상태 관리 구조 도입
-- 알림 또는 반복 업무 기능
+- 앱 기능 변경
+- IndexedDB 또는 데이터 모델 변경
+- 대규모 스크립트 재작성
+- 알림, 동기화, 인증 관련 기능
 
 ## 수동 검증
-- 앱 화면에서 진행 중, 완료, 남은 업무 상태 안내가 자연스럽게 보이는지 확인한다.
-- 빈 업무 목록 또는 완료 업무가 있는 상태에서 문구가 어색하지 않은지 확인한다.
-- 기존 업무 생성, 완료 전환, 필터 흐름이 깨지지 않는지 확인한다.
+- 완료 상태에서 `.ai-dev` 운영 산출물만 남은 상황을 만든 뒤 `-AllowCommit` 옵션으로 재실행해 final meta commit이 생성되는지 확인한다.
+- `.ai-dev` 외 변경이 남은 상황에서는 completed 성공으로 처리되지 않는지 확인한다.
+- 최종 작업 트리 상태가 비어 있는지 확인한다.
 
 ## Current Task
 
-- Task ID: T002
-- Title: 업무 흐름 상태 표시 개선
-- Description: 진행 중인 업무, 완료된 업무, 남은 업무를 사용자가 한눈에 이해할 수 있도록 기존 화면의 안내 문구와 상태 라벨을 한국어로 다듬는다.
+- Task ID: T001
+- Title: 완료 종료 경로 최종 정리 보강
+- Description: `ai-dev-auto-cycle-full.ps1`의 completed 종료 경로와 이미 completed 상태 재실행 경로에서 남은 변경을 분류
+하고, `.ai-dev` 운영 파일만 남은 경우 허용 옵션에 따라 final meta commit을 생성한 뒤 작업 트리 정리 상태를 검증한다. `.ai-dev` 외 변경이
+ 있거나 커밋이 허용되지 않으면 명확한 실패로 종료한다.
 - Type: implementation
 - Status: in_progress
 - Priority: P0
 - Depends on:
-- T001
+- 없음
 - Verification:
-- 업무가 없을 때와 업무가 있을 때의 안내 문구가 모두 자연스러운지 확인한다.
-- 기존 업무 생성과 완료 상태 전환 흐름이 유지되는지 확인한다.
+- build 통과 확인
+- lint 통과 확인
+- 리뷰 pass 확인
+- 완료 상태에서 `.ai-dev` 운영 변경만 남은 재실행 케이스 확인
+- `.ai-dev` 외 변경이 남은 실패 케이스 확인
+- 최종 작업 트리 정리 상태 확인
 
 ## Test Result
 
 # AI Dev Test Result
 
-## 2026-06-19 22:17:12
+## 2026-06-19 22:28:11
 
 - Overall result: passed
-- Current task: T002
+- Current task: T001
 - Mode: BuildOnly (build + lint when available)
 - Commands:
   - npm run build: passed
@@ -137,7 +140,7 @@ dist/index.html                   0.46 kB │ gzip:   0.29 kB
 dist/assets/index-DvjxWt30.css    5.69 kB │ gzip:   1.93 kB
 dist/assets/index-CVTFf3OT.js   317.03 kB │ gzip: 100.03 kB
 
-[32m✓ built in 185ms[39m
+[32m✓ built in 209ms[39m
 ```
 ### npm run test
 
@@ -157,6 +160,44 @@ package.json에 test script가 없습니다.
 > planpilot-local@0.0.0 lint
 > eslint .
 ```
+## Executable verification: auto-cycle-full final clean gate
+
+- Verification type: isolated temporary git repositories with real git status/add/commit/status 
+commands.
+- Temporary root: C:\Users\SECUI\AppData\Local\Temp\planpilot-auto-cycle-final-clean-verify-51d9
+d5afd75142b49c97dddb02912fde
+- Important note: this verification was appended after ai-dev-check because ai-dev-check rewrite
+s test-result.md.
+- Do not rerun ai-dev-check before review, or this evidence may be overwritten.
+
+### Actual executed results
+- Scenario 1 completed with only .ai-dev operational dirty => PASS_COMMITTED_AND_CLEAN / final g
+it status: ''
+- Scenario 2 completed with non-.ai-dev dirty => FAIL_NON_AI_DEV_DIRTY / final git status: ' M .
+ai-dev/state.json;  M src/App.tsx'
+- Scenario 3 .ai-dev dirty without AllowCommit => FAIL_ALLOW_COMMIT_REQUIRED / final git status:
+ ' M .ai-dev/state.json; ?? .ai-dev/loop-log.md'
+- Scenario 4 DryRun final gate preview => PASS_DRYRUN_NO_COMMIT / final git status: ' M .ai-dev/
+state.json' / log: '72a8dc8 initial'
+- Scenario 5 already clean => PASS_ALREADY_CLEAN / final git status: ''
+
+### Pass/fail interpretation
+- Scenario 1 proves completed auto-cycle-full can absorb leftover .ai-dev operational files into
+ a final meta commit and finish with clean git status.
+- Scenario 2 proves remaining non-.ai-dev dirty files are rejected instead of being reported as 
+a clean completed run.
+- Scenario 3 proves .ai-dev operational cleanup requiring a commit fails when AllowCommit is fal
+se.
+- Scenario 4 proves DryRun does not create a final meta commit and remains a preview path.
+- Scenario 5 proves already-clean completion remains clean.
+
+### Final conclusion
+- auto-cycle-full completed success requires final git status --short to be clean.
+- Only .ai-dev operational leftovers are eligible for final meta commit when AllowCommit is enab
+led.
+- non-.ai-dev dirty and missing AllowCommit paths fail instead of silently succeeding.
+- DryRun does not mutate the repository or create final commits.
+
 
 ## Diff To Review
 
@@ -164,7 +205,7 @@ package.json에 test script가 없습니다.
 
 ## Generated At
 
-2026-06-19 22:17:17
+2026-06-19 22:32:23
 
 ## Git Status
 
@@ -173,22 +214,19 @@ package.json에 test script가 없습니다.
  M .ai-dev/codex-review-result.md
  M .ai-dev/current-task-prompt.md
  M .ai-dev/diff.md
- M .ai-dev/loop-log.md
+ M .ai-dev/goal.md
+ M .ai-dev/queue.json
  M .ai-dev/review-prompt.md
  M .ai-dev/review-response.json
  M .ai-dev/review.md
  M .ai-dev/state.json
  M .ai-dev/test-result.md
- M src/App.tsx
- M src/utils/taskLabels.ts
- M src/views/TasksView.tsx
+ M scripts/ai-dev-auto-cycle-full.ps1
 ```
 
 ## App Change Files
 
-- src/App.tsx
-- src/utils/taskLabels.ts
-- src/views/TasksView.tsx
+- scripts/ai-dev-auto-cycle-full.ps1
 
 ## AI Dev Operational Artifact Files
 
@@ -196,7 +234,8 @@ package.json에 test script가 없습니다.
 - .ai-dev/codex-review-result.md
 - .ai-dev/current-task-prompt.md
 - .ai-dev/diff.md
-- .ai-dev/loop-log.md
+- .ai-dev/goal.md
+- .ai-dev/queue.json
 - .ai-dev/review-prompt.md
 - .ai-dev/review-response.json
 - .ai-dev/review.md
@@ -211,115 +250,31 @@ package.json에 test script가 없습니다.
 ## Unstaged Diff Stat
 
 ```text
- src/App.tsx             |  8 ++++++++
- src/utils/taskLabels.ts | 11 ++++++++++-
- src/views/TasksView.tsx | 22 +++++++++++++++++++++-
- 3 files changed, 39 insertions(+), 2 deletions(-)
+ scripts/ai-dev-auto-cycle-full.ps1 | 5 +++++
+ 1 file changed, 5 insertions(+)
 ```
 
 ## Unstaged Diff
 
 ```text
-diff --git a/src/App.tsx b/src/App.tsx
-index 95d64ec..5e76eb3 100644
---- a/src/App.tsx
-+++ b/src/App.tsx
-@@ -116,6 +116,13 @@ function App() {
-     projects,
-   });
+diff --git a/scripts/ai-dev-auto-cycle-full.ps1 b/scripts/ai-dev-auto-cycle-full.ps1
+index 419656a..476fb1e 100644
+--- a/scripts/ai-dev-auto-cycle-full.ps1
++++ b/scripts/ai-dev-auto-cycle-full.ps1
+@@ -229,6 +229,11 @@ function Complete-Cycle {
+                 Stop-Cycle $Steps "completed_ai_dev_changes_require_commit" $false 1
+             }
  
-+  const summaryTasks = filterTasks(tasks, {
-+    selectedProjectFilter,
-+    showCompletedTasks: true,
-+    taskSearchQuery,
-+    projects,
-+  });
++            if ($DryRun) {
++                $Steps += New-StepResult $StepNumber "completed-clean-gate" "git status --short
+; git add/commit final .ai-dev operational changes; git status --short" $false $true 0 "DryRun: 
+only new .ai-dev operational changes remain, but the final auto-cycle meta commit was not create
+d.`n$remainingStatus"
++                Stop-Cycle $Steps "dry_run" $false 0
++            }
 +
-   const sortedTasks = sortTasks(filteredTasks, taskSortOrder);
- 
-   const aiProvider = useMemo(() => new RuleBasedAIProvider(), []);
-@@ -152,6 +159,7 @@ function App() {
-           <TasksView
-             projects={projects}
-             filteredTasks={filteredTasks}
-+            summaryTasks={summaryTasks}
-             sortedTasks={sortedTasks}
-             selectedProjectFilter={selectedProjectFilter}
-             showCompletedTasks={showCompletedTasks}
-diff --git a/src/utils/taskLabels.ts b/src/utils/taskLabels.ts
-index 1beb326..4c11ca7 100644
---- a/src/utils/taskLabels.ts
-+++ b/src/utils/taskLabels.ts
-@@ -14,5 +14,14 @@ export function getPriorityLabel(priority: Task["priority"]) {
- }
- 
- export function getStatusLabel(status: Task["status"]) {
--  return status === "done" ? "완료" : "미완료";
-+  switch (status) {
-+    case "in_progress":
-+      return "진행 중";
-+    case "done":
-+      return "완료";
-+    case "todo":
-+      return "남은 업무";
-+    default:
-+      return status;
-+  }
- }
-diff --git a/src/views/TasksView.tsx b/src/views/TasksView.tsx
-index f23e7cd..b2129c1 100644
---- a/src/views/TasksView.tsx
-+++ b/src/views/TasksView.tsx
-@@ -7,6 +7,7 @@ import type { TaskSortOrder } from "../utils/taskFilters";
- type TasksViewProps = {
-   projects: Project[];
-   filteredTasks: Task[];
-+  summaryTasks: Task[];
-   sortedTasks: Task[];
-   selectedProjectFilter: string;
-   showCompletedTasks: boolean;
-@@ -51,6 +52,7 @@ type TasksViewProps = {
- export function TasksView({
-   projects,
-   filteredTasks,
-+  summaryTasks,
-   sortedTasks,
-   selectedProjectFilter,
-   showCompletedTasks,
-@@ -94,6 +96,21 @@ export function TasksView({
-   const hasSearchQuery = taskSearchQuery.trim().length > 0;
-   const hasProjectFilter = selectedProjectFilter !== "all";
-   const hasVisibilityFilter = !showCompletedTasks;
-+  const completedTaskCount = summaryTasks.filter(
-+    (task) => task.status === "done",
-+  ).length;
-+  const inProgressTaskCount = summaryTasks.filter(
-+    (task) => task.status === "in_progress",
-+  ).length;
-+  const remainingTaskCount = summaryTasks.filter(
-+    (task) => task.status === "todo",
-+  ).length;
-+  const totalTaskSummary = showCompletedTasks
-+    ? `총 ${summaryTasks.length}개`
-+    : `표시 ${filteredTasks.length}개 / 조건 일치 ${summaryTasks.length}개`;
-+  const completedTaskSummary = showCompletedTasks
-+    ? `완료 ${completedTaskCount}개`
-+    : `완료 ${completedTaskCount}개(숨김)`;
-   const emptyMessage =
-     hasSearchQuery
-       ? "검색어와 일치하는 업무가 없어요."
-@@ -104,7 +121,10 @@ export function TasksView({
-   return (
-     <section className="screen-card">
-       <h2>전체 업무</h2>
--      <p className="summary">총 {filteredTasks.length}개</p>
-+      <p className="summary">
-+        {totalTaskSummary} · 진행 중 {inProgressTaskCount}개 ·{" "}
-+        {completedTaskSummary} · 남은 업무 {remainingTaskCount}개
-+      </p>
- 
-       <label>
-         업무 검색
+             $addOutput = & git add -- $eligibleAiDevPaths 2>&1 | Out-String
+             $addExitCode = $LASTEXITCODE
 ```
 
 ## Staged Diff Stat
@@ -396,1067 +351,860 @@ index f23e7cd..b2129c1 100644
 - blocked: 요구사항 충돌, 데이터 위험, 패키지 추가, 대규모 리팩터링 등 사용자 판단 필요
 
 codex
-리뷰 프롬프트의 diff만으로도 큰 방향은 보이지만, 실제 타입과 기존 표시 흐름에 어긋나는지 확인하기 위해 변경 대상 앱 파일만 읽겠습니다. Git 명령은 실행하지 않습니
-다.
+프롬프트의 출력 형식이 JSON만 허용하므로 최종 답변은 JSON만 내겠습니다. 지금은 변경 지점 주변 스크립트 흐름을 확인해 diff의 5줄이 실제 종료 경로 요구사항과 
+맞는지 검토합니다.
 exec
-"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralP
-ath 'D:\\ai-apps\\planpilot-local\\src\\views\\TasksView.tsx'" in D:\ai-apps\planpilot-local
-exec
-"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralP
-ath 'D:\\ai-apps\\planpilot-local\\src\\utils\\taskLabels.ts'" in D:\ai-apps\planpilot-local
-exec
-"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralP
-ath 'D:\\ai-apps\\planpilot-local\\src\\App.tsx'" in D:\ai-apps\planpilot-local
- succeeded in 1682ms:
-import type { Task } from "../types";
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Select-String -Path '
+D:\\ai-apps\\planpilot-local\\scripts\\ai-dev-auto-cycle-full.ps1' -Pattern 'function Complete-C
+ycle|completed-clean-gate|eligibleAiDevPaths|DryRun|completed_ai_dev_changes_require_commit|git 
+status --short' -Context 4,8" in D:\ai-apps\planpilot-local
+ succeeded in 1188ms:
 
-export function getPriorityLabel(priority: Task["priority"]) {
-  switch (priority) {
-    case "high":
-      return "?믪쓬";
-    case "medium":
-      return "蹂댄넻";
-    case "low":
-      return "??쓬";
-    default:
-      return priority;
-  }
-}
+  scripts\ai-dev-auto-cycle-full.ps1:1:param(
+  scripts\ai-dev-auto-cycle-full.ps1:2:    [int]$MaxTasks = 1,
+  scripts\ai-dev-auto-cycle-full.ps1:3:    [int]$MaxSteps = 20,
+> scripts\ai-dev-auto-cycle-full.ps1:4:    [switch]$DryRun,
+  scripts\ai-dev-auto-cycle-full.ps1:5:    [switch]$Json,
+  scripts\ai-dev-auto-cycle-full.ps1:6:    [switch]$AllowCodex,
+  scripts\ai-dev-auto-cycle-full.ps1:7:    [switch]$AllowReviewCodex,
+  scripts\ai-dev-auto-cycle-full.ps1:8:    [switch]$AllowCommit,
+  scripts\ai-dev-auto-cycle-full.ps1:9:    [switch]$AllowDirty,
+  scripts\ai-dev-auto-cycle-full.ps1:10:    [string[]]$ProtectedBaselineDirtyPaths,
+  scripts\ai-dev-auto-cycle-full.ps1:11:    [string[]]$CommitFiles
+  scripts\ai-dev-auto-cycle-full.ps1:12:)
+  scripts\ai-dev-auto-cycle-full.ps1:185:    Write-CycleResult $result
+  scripts\ai-dev-auto-cycle-full.ps1:186:    exit $ExitCode
+  scripts\ai-dev-auto-cycle-full.ps1:187:}
+  scripts\ai-dev-auto-cycle-full.ps1:188:
+> scripts\ai-dev-auto-cycle-full.ps1:189:function Complete-Cycle {
+  scripts\ai-dev-auto-cycle-full.ps1:190:    param(
+  scripts\ai-dev-auto-cycle-full.ps1:191:        [object[]]$Steps,
+  scripts\ai-dev-auto-cycle-full.ps1:192:        [string]$StoppedReason,
+  scripts\ai-dev-auto-cycle-full.ps1:193:        [int]$StepNumber
+  scripts\ai-dev-auto-cycle-full.ps1:194:    )
+  scripts\ai-dev-auto-cycle-full.ps1:195:
+  scripts\ai-dev-auto-cycle-full.ps1:196:    try {
+> scripts\ai-dev-auto-cycle-full.ps1:197:        $remainingStatus = Invoke-GitCapture -Arguments
+ @("status", "--short")
+ -DisplayName "git status --short"
+  scripts\ai-dev-auto-cycle-full.ps1:198:
+  scripts\ai-dev-auto-cycle-full.ps1:199:        if (-not [string]::IsNullOrWhiteSpace($remainin
+gStatus)) {
+  scripts\ai-dev-auto-cycle-full.ps1:200:            $changeLines = @($remainingStatus -split "`
+r?`n" | Where-Object { 
+-not [string]::IsNullOrWhiteSpace($_) })
+  scripts\ai-dev-auto-cycle-full.ps1:201:            $changedPaths = @(
+  scripts\ai-dev-auto-cycle-full.ps1:202:                $changeLines |
+  scripts\ai-dev-auto-cycle-full.ps1:203:                    ForEach-Object { Convert-ToChangedP
+ath $_ } |
+  scripts\ai-dev-auto-cycle-full.ps1:204:                    ForEach-Object { ConvertTo-Normaliz
+edChangedPath $_ } |
+  scripts\ai-dev-auto-cycle-full.ps1:205:                    Where-Object { Test-HasValue $_ } |
+  scripts\ai-dev-auto-cycle-full.ps1:206:                    Select-Object -Unique
+  scripts\ai-dev-auto-cycle-full.ps1:207:            )
+  scripts\ai-dev-auto-cycle-full.ps1:208:            $protectedPaths = @($changedPaths | Where-O
+bject { Test-IsProtecte
+dBaselineDirtyPath $_ })
+  scripts\ai-dev-auto-cycle-full.ps1:209:            $nonAiDevPaths = @($changedPaths | Where-Ob
+ject { -not (Test-IsAiD
+evOperationalPath $_) })
+> scripts\ai-dev-auto-cycle-full.ps1:210:            $eligibleAiDevPaths = @($changedPaths | Whe
+re-Object { (Test-IsAiD
+evOperationalPath $_) -and -not (Test-IsProtectedBaselineDirtyPath $_) })
+  scripts\ai-dev-auto-cycle-full.ps1:211:
+  scripts\ai-dev-auto-cycle-full.ps1:212:            if ($nonAiDevPaths.Count -gt 0) {
+> scripts\ai-dev-auto-cycle-full.ps1:213:                $Steps += New-StepResult $StepNumber "c
+ompleted-clean-gate" "g
+it status --short" $true $false 1 "Completed clean verification failed: non-.ai-dev changes rema
+in after all full-cycle
+ result/state files were written.`n$remainingStatus"
+  scripts\ai-dev-auto-cycle-full.ps1:214:                Stop-Cycle $Steps "completed_non_ai_dev
+_changes" $false 1
+  scripts\ai-dev-auto-cycle-full.ps1:215:            }
+  scripts\ai-dev-auto-cycle-full.ps1:216:
+  scripts\ai-dev-auto-cycle-full.ps1:217:            if ($protectedPaths.Count -gt 0) {
+> scripts\ai-dev-auto-cycle-full.ps1:218:                $Steps += New-StepResult $StepNumber "c
+ompleted-clean-gate" "g
+it status --short" $true $false 1 "Completed clean verification failed: protected baseline dirty
+ .ai-dev paths remain a
+nd must not be absorbed into the final meta commit.`n$($protectedPaths -join "`n")`n$remainingSt
+atus"
+  scripts\ai-dev-auto-cycle-full.ps1:219:                Stop-Cycle $Steps "completed_protected_
+baseline_dirty" $false 
+1
+  scripts\ai-dev-auto-cycle-full.ps1:220:            }
+  scripts\ai-dev-auto-cycle-full.ps1:221:
+> scripts\ai-dev-auto-cycle-full.ps1:222:            if ($eligibleAiDevPaths.Count -eq 0) {
+> scripts\ai-dev-auto-cycle-full.ps1:223:                $Steps += New-StepResult $StepNumber "c
+ompleted-clean-gate" "g
+it status --short" $true $false 1 "Completed clean verification failed: worktree still has chang
+es, but none are eligib
+le new .ai-dev operational changes.`n$remainingStatus"
+  scripts\ai-dev-auto-cycle-full.ps1:224:                Stop-Cycle $Steps "completed_no_eligibl
+e_meta_changes" $false 
+1
+  scripts\ai-dev-auto-cycle-full.ps1:225:            }
+  scripts\ai-dev-auto-cycle-full.ps1:226:
+  scripts\ai-dev-auto-cycle-full.ps1:227:            if (-not $AllowCommit) {
+> scripts\ai-dev-auto-cycle-full.ps1:228:                $Steps += New-StepResult $StepNumber "c
+ompleted-clean-gate" "g
+it status --short" $true $false 1 "Completed clean verification failed: only new .ai-dev operati
+onal changes remain, bu
+t -AllowCommit is required for the final auto-cycle meta commit.`n$remainingStatus"
+> scripts\ai-dev-auto-cycle-full.ps1:229:                Stop-Cycle $Steps "completed_ai_dev_cha
+nges_require_commit" $f
+alse 1
+  scripts\ai-dev-auto-cycle-full.ps1:230:            }
+  scripts\ai-dev-auto-cycle-full.ps1:231:
+> scripts\ai-dev-auto-cycle-full.ps1:232:            if ($DryRun) {
+> scripts\ai-dev-auto-cycle-full.ps1:233:                $Steps += New-StepResult $StepNumber "c
+ompleted-clean-gate" "g
+it status --short; git add/commit final .ai-dev operational changes; git status --short" $false 
+$true 0 "DryRun: only n
+ew .ai-dev operational changes remain, but the final auto-cycle meta commit was not created.`n$r
+emainingStatus"
+  scripts\ai-dev-auto-cycle-full.ps1:234:                Stop-Cycle $Steps "dry_run" $false 0
+  scripts\ai-dev-auto-cycle-full.ps1:235:            }
+  scripts\ai-dev-auto-cycle-full.ps1:236:
+> scripts\ai-dev-auto-cycle-full.ps1:237:            $addOutput = & git add -- $eligibleAiDevPat
+hs 2>&1 | Out-String
+  scripts\ai-dev-auto-cycle-full.ps1:238:            $addExitCode = $LASTEXITCODE
+  scripts\ai-dev-auto-cycle-full.ps1:239:
+  scripts\ai-dev-auto-cycle-full.ps1:240:            if ($addExitCode -ne 0) {
+> scripts\ai-dev-auto-cycle-full.ps1:241:                $Steps += New-StepResult $StepNumber "c
+ompleted-clean-gate" "g
+it add -- <final .ai-dev files>" $true $false 1 "Final auto-cycle .ai-dev meta add failed. exit 
+code: $addExitCode`n$ad
+dOutput"
+  scripts\ai-dev-auto-cycle-full.ps1:242:                Stop-Cycle $Steps "completed_meta_add_f
+ailed" $false 1
+  scripts\ai-dev-auto-cycle-full.ps1:243:            }
+  scripts\ai-dev-auto-cycle-full.ps1:244:
+  scripts\ai-dev-auto-cycle-full.ps1:245:            $metaCommitMessage = "chore(ai-dev): record
+ final auto-cycle state
+"
+> scripts\ai-dev-auto-cycle-full.ps1:246:            $commitOutput = & git commit -m $metaCommit
+Message -- $eligibleAiD
+evPaths 2>&1 | Out-String
+  scripts\ai-dev-auto-cycle-full.ps1:247:            $commitExitCode = $LASTEXITCODE
+  scripts\ai-dev-auto-cycle-full.ps1:248:
+  scripts\ai-dev-auto-cycle-full.ps1:249:            if ($commitExitCode -ne 0) {
+> scripts\ai-dev-auto-cycle-full.ps1:250:                $Steps += New-StepResult $StepNumber "c
+ompleted-clean-gate" "g
+it commit -m '$metaCommitMessage' -- <final .ai-dev files>" $true $false 1 "Final auto-cycle .ai
+-dev meta commit failed
+. exit code: $commitExitCode`n$commitOutput"
+  scripts\ai-dev-auto-cycle-full.ps1:251:                Stop-Cycle $Steps "completed_meta_commi
+t_failed" $false 1
+  scripts\ai-dev-auto-cycle-full.ps1:252:            }
+  scripts\ai-dev-auto-cycle-full.ps1:253:
+> scripts\ai-dev-auto-cycle-full.ps1:254:            $remainingStatus = Invoke-GitCapture -Argum
+ents @("status", "--sho
+rt") -DisplayName "git status --short"
+  scripts\ai-dev-auto-cycle-full.ps1:255:
+  scripts\ai-dev-auto-cycle-full.ps1:256:            if (-not [string]::IsNullOrWhiteSpace($rema
+iningStatus)) {
+> scripts\ai-dev-auto-cycle-full.ps1:257:                $Steps += New-StepResult $StepNumber "c
+ompleted-clean-gate" "g
+it status --short" $true $false 1 "Completed clean verification failed: changes remain after the
+ final auto-cycle .ai-d
+ev meta commit.`n$remainingStatus"
+  scripts\ai-dev-auto-cycle-full.ps1:258:                Stop-Cycle $Steps "completed_worktree_d
+irty" $false 1
+  scripts\ai-dev-auto-cycle-full.ps1:259:            }
+  scripts\ai-dev-auto-cycle-full.ps1:260:
+> scripts\ai-dev-auto-cycle-full.ps1:261:            $message = ($commitOutput.Trim(), "Final au
+to-cycle .ai-dev meta c
+ommit created: yes", "Completed clean verification passed: git status --short returned no change
+s.") -join "`n"
+> scripts\ai-dev-auto-cycle-full.ps1:262:            $Steps += New-StepResult $StepNumber "compl
+eted-clean-gate" "git s
+tatus --short; git add/commit final .ai-dev operational changes; git status --short" $true $fals
+e 0 $message
+  scripts\ai-dev-auto-cycle-full.ps1:263:            Stop-Cycle $Steps $StoppedReason $true 0
+  scripts\ai-dev-auto-cycle-full.ps1:264:        }
+  scripts\ai-dev-auto-cycle-full.ps1:265:
+> scripts\ai-dev-auto-cycle-full.ps1:266:        $Steps += New-StepResult $StepNumber "completed
+-clean-gate" "git statu
+s --short" $true $false 0 "Completed clean verification passed: git status --short returned no c
+hanges."
+  scripts\ai-dev-auto-cycle-full.ps1:267:        Stop-Cycle $Steps $StoppedReason $true 0
+  scripts\ai-dev-auto-cycle-full.ps1:268:    } catch {
+> scripts\ai-dev-auto-cycle-full.ps1:269:        $Steps += New-StepResult $StepNumber "completed
+-clean-gate" "git statu
+s --short" $false $false 1 $_.Exception.Message
+  scripts\ai-dev-auto-cycle-full.ps1:270:        Stop-Cycle $Steps "completed_clean_gate_failed"
+ $false 1
+  scripts\ai-dev-auto-cycle-full.ps1:271:    }
+  scripts\ai-dev-auto-cycle-full.ps1:272:}
+  scripts\ai-dev-auto-cycle-full.ps1:273:
+  scripts\ai-dev-auto-cycle-full.ps1:274:function Invoke-CycleCommand {
+  scripts\ai-dev-auto-cycle-full.ps1:275:    param(
+  scripts\ai-dev-auto-cycle-full.ps1:276:        [int]$StepNumber,
+  scripts\ai-dev-auto-cycle-full.ps1:277:        [string]$Name,
+  scripts\ai-dev-auto-cycle-full.ps1:279:        [string]$ScriptPath,
+  scripts\ai-dev-auto-cycle-full.ps1:280:        [string[]]$Arguments
+  scripts\ai-dev-auto-cycle-full.ps1:281:    )
+  scripts\ai-dev-auto-cycle-full.ps1:282:
+> scripts\ai-dev-auto-cycle-full.ps1:283:    if ($DryRun) {
+> scripts\ai-dev-auto-cycle-full.ps1:284:        $script:steps += New-StepResult $StepNumber $Na
+me $Command $false $tru
+e 0 "DryRun: 하위 스크립트를 실행하지 않았습니다."
+  scripts\ai-dev-auto-cycle-full.ps1:285:        return
+  scripts\ai-dev-auto-cycle-full.ps1:286:    }
+  scripts\ai-dev-auto-cycle-full.ps1:287:
+  scripts\ai-dev-auto-cycle-full.ps1:288:    $output = & powershell -ExecutionPolicy Bypass -Fil
+e $ScriptPath @Argument
+s 2>&1 | Out-String
+  scripts\ai-dev-auto-cycle-full.ps1:289:    $exitCode = $LASTEXITCODE
+  scripts\ai-dev-auto-cycle-full.ps1:290:    $message = $output.Trim()
+  scripts\ai-dev-auto-cycle-full.ps1:291:
+  scripts\ai-dev-auto-cycle-full.ps1:292:    if ([string]::IsNullOrWhiteSpace($message)) {
+  scripts\ai-dev-auto-cycle-full.ps1:520:    param(
+  scripts\ai-dev-auto-cycle-full.ps1:521:        [int]$StepNumber
+  scripts\ai-dev-auto-cycle-full.ps1:522:    )
+  scripts\ai-dev-auto-cycle-full.ps1:523:
+> scripts\ai-dev-auto-cycle-full.ps1:524:    $command = "direct meta commit: git add scoped .ai-
+dev files, git commit -
+m 'chore(ai-dev): record task completion', git status --short"
+  scripts\ai-dev-auto-cycle-full.ps1:525:
+  scripts\ai-dev-auto-cycle-full.ps1:526:    try {
+  scripts\ai-dev-auto-cycle-full.ps1:527:        $changedAiDevFiles = Get-ChangedAiDevOperationa
+lFiles
+  scripts\ai-dev-auto-cycle-full.ps1:528:
+  scripts\ai-dev-auto-cycle-full.ps1:529:        if ($changedAiDevFiles.Count -eq 0) {
+> scripts\ai-dev-auto-cycle-full.ps1:530:            $remainingStatus = Invoke-GitCapture -Argum
+ents @("status", "--sho
+rt") -DisplayName "git status --short"
+  scripts\ai-dev-auto-cycle-full.ps1:531:
+  scripts\ai-dev-auto-cycle-full.ps1:532:            if (-not [string]::IsNullOrWhiteSpace($rema
+iningStatus)) {
+  scripts\ai-dev-auto-cycle-full.ps1:533:                throw ".ai-dev 메타 변경사항은 없지만 worktree에 변
+경 파일이 남아 있습니다.`n$remain
+ingStatus"
+  scripts\ai-dev-auto-cycle-full.ps1:534:            }
+  scripts\ai-dev-auto-cycle-full.ps1:535:
+  scripts\ai-dev-auto-cycle-full.ps1:536:            $script:steps += New-StepResult $StepNumber
+ "meta-commit" $command
+ $false $true 0 ".ai-dev 메타 상태 변경사항이 없어 meta commit을 건너뜁니다. worktree clean."
+  scripts\ai-dev-auto-cycle-full.ps1:537:            return
+  scripts\ai-dev-auto-cycle-full.ps1:538:        }
+  scripts\ai-dev-auto-cycle-full.ps1:550:        if ($commitExitCode -ne 0) {
+  scripts\ai-dev-auto-cycle-full.ps1:551:            throw "git commit 실행에 실패했습니다. exit code: $c
+ommitExitCode`n$commitO
+utput"
+  scripts\ai-dev-auto-cycle-full.ps1:552:        }
+  scripts\ai-dev-auto-cycle-full.ps1:553:
+> scripts\ai-dev-auto-cycle-full.ps1:554:        $remainingStatus = Invoke-GitCapture -Arguments
+ @("status", "--short")
+ -DisplayName "git status --short"
+  scripts\ai-dev-auto-cycle-full.ps1:555:
+  scripts\ai-dev-auto-cycle-full.ps1:556:        if (-not [string]::IsNullOrWhiteSpace($remainin
+gStatus)) {
+  scripts\ai-dev-auto-cycle-full.ps1:557:            throw "meta commit 이후 worktree에 변경 파일이 남아 있
+습니다.`n$remainingStatus"
+  scripts\ai-dev-auto-cycle-full.ps1:558:        }
+  scripts\ai-dev-auto-cycle-full.ps1:559:
+  scripts\ai-dev-auto-cycle-full.ps1:560:        $message = ($commitOutput.Trim(), "worktree cle
+an") -join "`n"
+  scripts\ai-dev-auto-cycle-full.ps1:561:        $script:steps += New-StepResult $StepNumber "me
+ta-commit" $command $tr
+ue $false 0 $message
+  scripts\ai-dev-auto-cycle-full.ps1:562:    } catch {
+  scripts\ai-dev-auto-cycle-full.ps1:706:    $stepNumber++
+  scripts\ai-dev-auto-cycle-full.ps1:707:
+  scripts\ai-dev-auto-cycle-full.ps1:708:    $resumeFromSavedReview = $false
+  scripts\ai-dev-auto-cycle-full.ps1:709:
+> scripts\ai-dev-auto-cycle-full.ps1:710:    if (-not $DryRun) {
+  scripts\ai-dev-auto-cycle-full.ps1:711:        try {
+  scripts\ai-dev-auto-cycle-full.ps1:712:            $resumeReviewGate = Get-ReviewGate
+  scripts\ai-dev-auto-cycle-full.ps1:713:        } catch {
+  scripts\ai-dev-auto-cycle-full.ps1:714:            $script:steps += New-StepResult $stepNumber
+ "resume-review-gate" "
+state/review-response 확인" $false $false 1 $_.Exception.Message
+  scripts\ai-dev-auto-cycle-full.ps1:715:            Stop-Cycle $script:steps "resume_review_gat
+e_failed" $false 1
+  scripts\ai-dev-auto-cycle-full.ps1:716:        }
+  scripts\ai-dev-auto-cycle-full.ps1:717:
+  scripts\ai-dev-auto-cycle-full.ps1:718:        if (Test-IsSavedReviewPassReady $resumeReviewGa
+te) {
+  scripts\ai-dev-auto-cycle-full.ps1:729:    if (-not $resumeFromSavedReview) {
+  scripts\ai-dev-auto-cycle-full.ps1:730:        Invoke-CycleCommand $stepNumber "make-prompt" "
+powershell -ExecutionPo
+licy Bypass -File scripts/ai-dev-make-prompt.ps1" $scriptPaths.makePrompt @()
+  scripts\ai-dev-auto-cycle-full.ps1:731:        $stepNumber++
+  scripts\ai-dev-auto-cycle-full.ps1:732:
+> scripts\ai-dev-auto-cycle-full.ps1:733:        if (-not $AllowCodex -and -not $DryRun) {
+  scripts\ai-dev-auto-cycle-full.ps1:734:            $command = "powershell -ExecutionPolicy Byp
+ass -File scripts/ai-de
+v-auto-cycle-full.ps1 -AllowCodex -AllowReviewCodex -MaxTasks $MaxTasks"
+  scripts\ai-dev-auto-cycle-full.ps1:735:            if ($AllowDirty) {
+  scripts\ai-dev-auto-cycle-full.ps1:736:                $command = "$command -AllowDirty"
+  scripts\ai-dev-auto-cycle-full.ps1:737:            }
+  scripts\ai-dev-auto-cycle-full.ps1:738:
+  scripts\ai-dev-auto-cycle-full.ps1:739:            if ($AllowCommit) {
+  scripts\ai-dev-auto-cycle-full.ps1:740:                $command = "$command -AllowCommit"
+  scripts\ai-dev-auto-cycle-full.ps1:741:            }
+  scripts\ai-dev-auto-cycle-full.ps1:764:
+  scripts\ai-dev-auto-cycle-full.ps1:765:        Invoke-CycleCommand $stepNumber "make-review-pr
+ompt" "powershell -Exec
+utionPolicy Bypass -File scripts/ai-dev-make-review-prompt.ps1 -Strict" $scriptPaths.makeReviewP
+rompt @("-Strict")
+  scripts\ai-dev-auto-cycle-full.ps1:766:        $stepNumber++
+  scripts\ai-dev-auto-cycle-full.ps1:767:
+> scripts\ai-dev-auto-cycle-full.ps1:768:        if (-not $AllowReviewCodex -and -not $DryRun) {
+  scripts\ai-dev-auto-cycle-full.ps1:769:            $command = "powershell -ExecutionPolicy Byp
+ass -File scripts/ai-de
+v-auto-cycle-full.ps1 -AllowCodex -AllowReviewCodex -MaxTasks $MaxTasks"
+  scripts\ai-dev-auto-cycle-full.ps1:770:            if ($AllowDirty) {
+  scripts\ai-dev-auto-cycle-full.ps1:771:                $command = "$command -AllowDirty"
+  scripts\ai-dev-auto-cycle-full.ps1:772:            }
+  scripts\ai-dev-auto-cycle-full.ps1:773:
+  scripts\ai-dev-auto-cycle-full.ps1:774:            if ($AllowCommit) {
+  scripts\ai-dev-auto-cycle-full.ps1:775:                $command = "$command -AllowCommit"
+  scripts\ai-dev-auto-cycle-full.ps1:776:            }
+  scripts\ai-dev-auto-cycle-full.ps1:786:        Invoke-CycleCommand $stepNumber "run-review-cod
+ex" "powershell -Execut
+ionPolicy Bypass -File scripts/ai-dev-run-review-codex.ps1 -AllowDirty -SaveReview" $scriptPaths
+.runReviewCodex @("-All
+owDirty", "-SaveReview")
+  scripts\ai-dev-auto-cycle-full.ps1:787:        $stepNumber++
+  scripts\ai-dev-auto-cycle-full.ps1:788:    }
+  scripts\ai-dev-auto-cycle-full.ps1:789:
+> scripts\ai-dev-auto-cycle-full.ps1:790:    if ($DryRun) {
+> scripts\ai-dev-auto-cycle-full.ps1:791:        $script:steps += New-StepResult $stepNumber "re
+view-gate" "state.lastR
+eviewDecision 확인" $false $true 0 "DryRun: 리뷰 pass 여부를 실제 상태에서 읽지 않았습니다."
+  scripts\ai-dev-auto-cycle-full.ps1:792:        $stepNumber++
+> scripts\ai-dev-auto-cycle-full.ps1:793:        $script:steps += New-StepResult $stepNumber "pa
+ckage-change-gate" "git
+ status --porcelain -- package.json package-lock.json" $false $true 0 "DryRun: package 파일 변경 여부를
+ 확인하지 않았습니다."
+  scripts\ai-dev-auto-cycle-full.ps1:794:        $stepNumber++
+> scripts\ai-dev-auto-cycle-full.ps1:795:        $script:steps += New-StepResult $stepNumber "co
+mmit" "powershell -Exec
+utionPolicy Bypass -File scripts/ai-dev-commit.ps1" $false $true 0 "DryRun: git add/commit을 실행하지
+ 않았습니다."
+  scripts\ai-dev-auto-cycle-full.ps1:796:        $stepNumber++
+> scripts\ai-dev-auto-cycle-full.ps1:797:        $script:steps += New-StepResult $stepNumber "co
+mmit-result-gate" "stat
+e.lastCommand/lastCommitHash 확인" $false $true 0 "DryRun: 실제 커밋 생성 여부를 확인하지 않았습니다."
+  scripts\ai-dev-auto-cycle-full.ps1:798:        $stepNumber++
+> scripts\ai-dev-auto-cycle-full.ps1:799:        $script:steps += New-StepResult $stepNumber "co
+mplete-task" "powershel
+l -ExecutionPolicy Bypass -File scripts/ai-dev-complete-task.ps1 -ResultSummary `"자동 완료: Codex 구
+현, build/check, Codex 리
+뷰 pass, 자동 커밋 완료`" -CommitHash <commit-hash>" $false $true 0 "DryRun: task 완료 처리를 실행하지 않았습니다."
+  scripts\ai-dev-auto-cycle-full.ps1:800:        $stepNumber++
+> scripts\ai-dev-auto-cycle-full.ps1:801:        $script:steps += New-StepResult $stepNumber "me
+ta-commit" "direct meta
+ commit: git add scoped .ai-dev files, git commit -m 'chore(ai-dev): record task completion', gi
+t status --short" $fals
+e $true 0 "DryRun: .ai-dev 메타 상태 직접 커밋을 실행하지 않았습니다."
+  scripts\ai-dev-auto-cycle-full.ps1:802:        $stepNumber++
+> scripts\ai-dev-auto-cycle-full.ps1:803:        $script:steps += New-StepResult $stepNumber "fi
+nal-status" "powershell
+ -ExecutionPolicy Bypass -File scripts/ai-dev-status.ps1" $false $true 0 "DryRun: 최종 작업 상태 확인을 실
+행하지 않았습니다."
+  scripts\ai-dev-auto-cycle-full.ps1:804:        Stop-Cycle $script:steps "dry_run" $false 0
+  scripts\ai-dev-auto-cycle-full.ps1:805:    }
+  scripts\ai-dev-auto-cycle-full.ps1:806:
+  scripts\ai-dev-auto-cycle-full.ps1:807:    try {
+  scripts\ai-dev-auto-cycle-full.ps1:808:        $reviewGate = Get-ReviewGate
+  scripts\ai-dev-auto-cycle-full.ps1:809:    } catch {
+  scripts\ai-dev-auto-cycle-full.ps1:810:        $script:steps += New-StepResult $stepNumber "re
+view-gate" "state/revie
+w-response 확인" $false $false 1 $_.Exception.Message
+  scripts\ai-dev-auto-cycle-full.ps1:811:        Stop-Cycle $script:steps "review_gate_failed" $
+false 1
 
-export function getStatusLabel(status: Task["status"]) {
-  switch (status) {
-    case "in_progress":
-      return "吏꾪뻾 以?;
-    case "done":
-      return "?꾨즺";
-    case "todo":
-      return "?⑥? ?낅Т";
-    default:
-      return status;
-  }
-}
 
- succeeded in 1726ms:
-import type { FormEvent } from "react";
-import { TaskCard } from "../components/TaskCard";
-import { TaskForm } from "../components/TaskForm";
-import type { Project, Task } from "../types";
-import type { TaskSortOrder } from "../utils/taskFilters";
-
-type TasksViewProps = {
-  projects: Project[];
-  filteredTasks: Task[];
-  summaryTasks: Task[];
-  sortedTasks: Task[];
-  selectedProjectFilter: string;
-  showCompletedTasks: boolean;
-  taskSortOrder: TaskSortOrder;
-  taskSearchQuery: string;
-  isTaskFormOpen: boolean;
-  newTaskTitle: string;
-  newTaskMemo: string;
-  newTaskDueDate: string;
-  newTaskPriority: Task["priority"];
-  newTaskProjectId: string;
-  editingTaskId: string | null;
-  editTaskTitle: string;
-  editTaskMemo: string;
-  editTaskDueDate: string;
-  editTaskPriority: Task["priority"];
-  editTaskProjectId: string;
-  getProjectName: (projectId: string) => string;
-  onTaskSearchQueryChange: (value: string) => void;
-  onShowCompletedTasksChange: (value: boolean) => void;
-  onTaskSortOrderChange: (value: TaskSortOrder) => void;
-  onSelectedProjectFilterChange: (value: string) => void;
-  onTaskFormOpenChange: (updater: (current: boolean) => boolean) => void;
-  onNewTaskTitleChange: (value: string) => void;
-  onNewTaskMemoChange: (value: string) => void;
-  onNewTaskDueDateChange: (value: string) => void;
-  onNewTaskPriorityChange: (value: Task["priority"]) => void;
-  onNewTaskProjectIdChange: (value: string) => void;
-  onEditTaskTitleChange: (value: string) => void;
-  onEditTaskMemoChange: (value: string) => void;
-  onEditTaskDueDateChange: (value: string) => void;
-  onEditTaskPriorityChange: (value: Task["priority"]) => void;
-  onEditTaskProjectIdChange: (value: string) => void;
-  onAddTask: (event: FormEvent<HTMLFormElement>) => void;
-  onSaveEditTask: (task: Task) => void;
-  onCancelEditTask: () => void;
-  onToggleTaskDone: (task: Task) => void;
-  onDeleteTask: (task: Task) => void;
-  onStartEditTask: (task: Task) => void;
-};
-
-export function TasksView({
-  projects,
-  filteredTasks,
-  summaryTasks,
-  sortedTasks,
-  selectedProjectFilter,
-  showCompletedTasks,
-  taskSortOrder,
-  taskSearchQuery,
-  isTaskFormOpen,
-  newTaskTitle,
-  newTaskMemo,
-  newTaskDueDate,
-  newTaskPriority,
-  newTaskProjectId,
-  editingTaskId,
-  editTaskTitle,
-  editTaskMemo,
-  editTaskDueDate,
-  editTaskPriority,
-  editTaskProjectId,
-  getProjectName,
-  onTaskSearchQueryChange,
-  onShowCompletedTasksChange,
-  onTaskSortOrderChange,
-  onSelectedProjectFilterChange,
-  onTaskFormOpenChange,
-  onNewTaskTitleChange,
-  onNewTaskMemoChange,
-  onNewTaskDueDateChange,
-  onNewTaskPriorityChange,
-  onNewTaskProjectIdChange,
-  onEditTaskTitleChange,
-  onEditTaskMemoChange,
-  onEditTaskDueDateChange,
-  onEditTaskPriorityChange,
-  onEditTaskProjectIdChange,
-  onAddTask,
-  onSaveEditTask,
-  onCancelEditTask,
-  onToggleTaskDone,
-  onDeleteTask,
-  onStartEditTask,
-}: TasksViewProps) {
-  const hasSearchQuery = taskSearchQuery.trim().length > 0;
-  const hasProjectFilter = selectedProjectFilter !== "all";
-  const hasVisibilityFilter = !showCompletedTasks;
-  const completedTaskCount = summaryTasks.filter(
-    (task) => task.status === "done",
-  ).length;
-  const inProgressTaskCount = summaryTasks.filter(
-    (task) => task.status === "in_progress",
-  ).length;
-  const remainingTaskCount = summaryTasks.filter(
-    (task) => task.status === "todo",
-  ).length;
-  const totalTaskSummary = showCompletedTasks
-    ? `珥?${summaryTasks.length}媛?
-    : `?쒖떆 ${filteredTasks.length}媛?/ 議곌굔 ?쇱튂 ${summaryTasks.length}媛?;
-  const completedTaskSummary = showCompletedTasks
-    ? `?꾨즺 ${completedTaskCount}媛?
-    : `?꾨즺 ${completedTaskCount}媛??④?)`;
-  const emptyMessage =
-    hasSearchQuery
-      ? "寃?됱뼱? ?쇱튂?섎뒗 ?낅Т媛 ?놁뼱??"
-      : hasProjectFilter || hasVisibilityFilter
-        ? "?꾩옱 議곌굔??留욌뒗 ?낅Т媛 ?놁뼱??"
-        : "?꾩쭅 ?깅줉???낅Т媛 ?놁뼱??";
-
-  return (
-    <section className="screen-card">
-      <h2>?꾩껜 ?낅Т</h2>
-      <p className="summary">
-        {totalTaskSummary} 쨌 吏꾪뻾 以?{inProgressTaskCount}媛?쨌{" "}
-        {completedTaskSummary} 쨌 ?⑥? ?낅Т {remainingTaskCount}媛?      </p>
-
-      <label>
-        ?낅Т 寃??        <input
-          type="text"
-          value={taskSearchQuery}
-          onChange={(event) => onTaskSearchQueryChange(event.target.value)}
-          placeholder="?낅Т ?쒕ぉ ?먮뒗 硫붾え ?댁슜??寃?됲븯?몄슂"
-        />
-      </label>
-
-      <label>
-        <input
-          type="checkbox"
-          checked={showCompletedTasks}
-          onChange={(event) => onShowCompletedTasksChange(event.target.checked)}
-        />
-        ?꾨즺 ?낅Т ?쒖떆
-      </label>
-
-      <label>
-        ?뺣젹
-        <select
-          value={taskSortOrder}
-          onChange={(event) =>
-            onTaskSortOrderChange(event.target.value as TaskSortOrder)
-          }
-        >
-          <option value="none">湲곕낯 ?쒖꽌</option>
-          <option value="dueDateAsc">留덇컧??鍮좊Ⅸ ??/option>
-        </select>
-      </label>
-
-      <label>
-        ?꾨줈?앺듃 ?꾪꽣
-        <select
-          value={selectedProjectFilter}
-          onChange={(event) => onSelectedProjectFilterChange(event.target.value)}
-        >
-          <option value="all">?꾩껜 ?꾨줈?앺듃</option>
-          {projects.map((project) => (
-            <option key={project.id} value={project.id}>
-              {project.name}
-            </option>
-          ))}
-        </select>
-      </label>
-
-      <button
-        type="button"
-        onClick={() => onTaskFormOpenChange((current) => !current)}
-      >
-        {isTaskFormOpen ? "???낅Т 異붽? ?リ린" : "???낅Т 異붽?"}
-      </button>
-
-      {isTaskFormOpen && (
-        <TaskForm
-          title="???낅Т 異붽?"
-          ariaLabel="?낅Т 異붽?"
-          taskTitle={newTaskTitle}
-          memo={newTaskMemo}
-          dueDate={newTaskDueDate}
-          priority={newTaskPriority}
-          projectId={newTaskProjectId}
-          projects={projects}
-          submitLabel="?낅Т 異붽?"
-          onTitleChange={onNewTaskTitleChange}
-          onMemoChange={onNewTaskMemoChange}
-          onDueDateChange={onNewTaskDueDateChange}
-          onPriorityChange={onNewTaskPriorityChange}
-          onProjectIdChange={onNewTaskProjectIdChange}
-          onSubmit={onAddTask}
-        />
-      )}
-
-      {filteredTasks.length === 0 ? (
-        <div className="empty">
-          <p>{emptyMessage}</p>
-          {hasSearchQuery && <p>?ㅻⅨ 寃?됱뼱瑜??낅젰?대낫?몄슂.</p>}
-        </div>
-      ) : (
-        <ul className="task-list">
-          {sortedTasks.map((task) => {
-            if (editingTaskId === task.id) {
-              return (
-                <li key={task.id} className="task-card">
-                  <TaskForm
-                    title="?낅Т ?섏젙"
-                    ariaLabel="?낅Т ?섏젙"
-                    taskTitle={editTaskTitle}
-                    memo={editTaskMemo}
-                    dueDate={editTaskDueDate}
-                    priority={editTaskPriority}
-                    projectId={editTaskProjectId}
-                    projects={projects}
-                    submitLabel="???
-                    onTitleChange={onEditTaskTitleChange}
-                    onMemoChange={onEditTaskMemoChange}
-                    onDueDateChange={onEditTaskDueDateChange}
-                    onPriorityChange={onEditTaskPriorityChange}
-                    onProjectIdChange={onEditTaskProjectIdChange}
-                    onSubmit={(event) => {
-                      event.preventDefault();
-                      onSaveEditTask(task);
-                    }}
-                    onCancel={onCancelEditTask}
-                    className=""
-                  />
-                </li>
-              );
-            }
-
-            return (
-              <TaskCard
-                key={task.id}
-                task={task}
-                projectName={getProjectName(task.projectId)}
-                onToggleDone={onToggleTaskDone}
-                onDelete={onDeleteTask}
-                onStartEdit={onStartEditTask}
-              />
-            );
-          })}
-        </ul>
-      )}
-    </section>
-  );
-}
-
- succeeded in 1742ms:
-import { useEffect, useMemo, useState } from "react";
-import { RuleBasedAIProvider } from "./ai/RuleBasedAIProvider";
-import { useProjectActions } from "./hooks/useProjectActions";
-import { useProjectFormState } from "./hooks/useProjectFormState";
-import { useTaskActions } from "./hooks/useTaskActions";
-import { useTaskFormState } from "./hooks/useTaskFormState";
-import { useStore } from "./store";
-import { startOfToday } from "./utils/dateUtils";
-import { getProjectName } from "./utils/projectLookup";
-import { getOverdueTasks, getUpcomingTasks } from "./utils/taskDates";
-import { filterTasks, sortTasks, type TaskSortOrder } from "./utils/taskFilters";
-import { getTaskSummary } from "./utils/taskSummary";
-import { SettingsView } from "./views/SettingsView";
-import { TasksView } from "./views/TasksView";
-import { ProjectsView } from "./views/ProjectsView";
-import { TodayView } from "./views/TodayView";
-import type { Task } from "./types";
-import "./App.css";
-
-type Tab = "today" | "tasks" | "projects" | "settings";
-
-function App() {
-  const [activeTab, setActiveTab] = useState<Tab>("today");
-  const [recommendedTasks, setRecommendedTasks] = useState<Task[]>([]);
-  const [selectedProjectFilter, setSelectedProjectFilter] = useState("all");
-  const [showCompletedTasks, setShowCompletedTasks] = useState(true);
-  const [taskSortOrder, setTaskSortOrder] = useState<TaskSortOrder>("none");
-  const [taskSearchQuery, setTaskSearchQuery] = useState("");
-
-  const { tasks, projects, appSettings, initializeApp, addTask, updateTask, deleteTask, deletePr
-oject, addProject, updateProject } = useStore();
-  const taskFormState = useTaskFormState();
-  const {
-    editingTaskId,
-    editTaskTitle,
-    editTaskDueDate,
-    editTaskPriority,
-    editTaskMemo,
-    editTaskProjectId,
-    newTaskTitle,
-    newTaskDueDate,
-    newTaskPriority,
-    newTaskProjectId,
-    newTaskMemo,
-    isTaskFormOpen,
-    setEditTaskTitle,
-    setEditTaskDueDate,
-    setEditTaskPriority,
-    setEditTaskMemo,
-    setEditTaskProjectId,
-    setNewTaskTitle,
-    setNewTaskDueDate,
-    setNewTaskPriority,
-    setNewTaskProjectId,
-    setNewTaskMemo,
-    setIsTaskFormOpen,
-    resetNewTaskForm,
-    resetEditTaskForm,
-    startEditTask,
-  } = taskFormState;
-  const { handleAddTask, handleSaveEditTask, handleToggleTaskDone, handleDeleteTask } = useTaskA
-ctions({
-    addTask,
-    updateTask,
-    deleteTask,
-    newTaskTitle,
-    newTaskDueDate,
-    newTaskPriority,
-    newTaskProjectId,
-    newTaskMemo,
-    editTaskTitle,
-    editTaskDueDate,
-    editTaskPriority,
-    editTaskMemo,
-    editTaskProjectId,
-    resetNewTaskForm,
-    resetEditTaskForm,
-  });
-  const projectFormState = useProjectFormState();
-  const {
-    editingProjectId,
-    editProjectName,
-    editProjectDescription,
-    newProjectName,
-    newProjectDescription,
-    setEditProjectName,
-    setEditProjectDescription,
-    setNewProjectName,
-    setNewProjectDescription,
-    resetNewProjectForm,
-    resetEditProjectForm,
-    startEditProject,
-  } = projectFormState;
-  const { handleAddProject, handleSaveEditProject, handleDeleteProject } = useProjectActions({
-    addProject,
-    updateProject,
-    deleteProject,
-    projects,
-    tasks,
-    newProjectName,
-    newProjectDescription,
-    editProjectName,
-    editProjectDescription,
-    resetNewProjectForm,
-    resetEditProjectForm,
-  });
-
-  const today = startOfToday();
-
-  const overdueTasks = getOverdueTasks(tasks, today);
-  const upcomingTasks = getUpcomingTasks(tasks, today, 7);
-  const taskSummary = getTaskSummary(tasks);
-
-  const filteredTasks = filterTasks(tasks, {
-    selectedProjectFilter,
-    showCompletedTasks,
-    taskSearchQuery,
-    projects,
-  });
-
-  const summaryTasks = filterTasks(tasks, {
-    selectedProjectFilter,
-    showCompletedTasks: true,
-    taskSearchQuery,
-    projects,
-  });
-
-  const sortedTasks = sortTasks(filteredTasks, taskSortOrder);
-
-  const aiProvider = useMemo(() => new RuleBasedAIProvider(), []);
-
-  useEffect(() => {
-    void initializeApp();
-  }, [initializeApp]);
-
-  useEffect(() => {
-    void aiProvider.suggestTodayTasks(tasks, 3).then(setRecommendedTasks);
-  }, [aiProvider, tasks]);
-
-  return (
-    <div className="app-shell">
-      <header className="app-header">
-        <p className="eyebrow">Privacy-first local planner</p>
-        <h1>PlanPilot Local</h1>
-        <p>?쒕쾭 ?놁씠 濡쒖뺄????λ릺??媛쒖씤 ?쇱젙쨌?낅Т 愿由???/p>
-      </header>
-
-      <main className="app-main">
-{activeTab === "today" && (
-  <TodayView
-    totalTasks={taskSummary.totalTasks}
-    completedTasks={taskSummary.completedTasks}
-    recommendedTasks={recommendedTasks}
-    overdueTasks={overdueTasks}
-    upcomingTasks={upcomingTasks}
-    getProjectName={(projectId) => getProjectName(projects, projectId)}
-  />
-)}
-
-        {activeTab === "tasks" && (
-          <TasksView
-            projects={projects}
-            filteredTasks={filteredTasks}
-            summaryTasks={summaryTasks}
-            sortedTasks={sortedTasks}
-            selectedProjectFilter={selectedProjectFilter}
-            showCompletedTasks={showCompletedTasks}
-            taskSortOrder={taskSortOrder}
-            taskSearchQuery={taskSearchQuery}
-            isTaskFormOpen={isTaskFormOpen}
-            newTaskTitle={newTaskTitle}
-            newTaskMemo={newTaskMemo}
-            newTaskDueDate={newTaskDueDate}
-            newTaskPriority={newTaskPriority}
-            newTaskProjectId={newTaskProjectId}
-            editingTaskId={editingTaskId}
-            editTaskTitle={editTaskTitle}
-            editTaskMemo={editTaskMemo}
-            editTaskDueDate={editTaskDueDate}
-            editTaskPriority={editTaskPriority}
-            editTaskProjectId={editTaskProjectId}
-            getProjectName={(projectId) => getProjectName(projects, projectId)}
-            onTaskSearchQueryChange={setTaskSearchQuery}
-            onShowCompletedTasksChange={setShowCompletedTasks}
-            onTaskSortOrderChange={setTaskSortOrder}
-            onSelectedProjectFilterChange={setSelectedProjectFilter}
-            onTaskFormOpenChange={setIsTaskFormOpen}
-            onNewTaskTitleChange={setNewTaskTitle}
-            onNewTaskMemoChange={setNewTaskMemo}
-            onNewTaskDueDateChange={setNewTaskDueDate}
-            onNewTaskPriorityChange={setNewTaskPriority}
-            onNewTaskProjectIdChange={setNewTaskProjectId}
-            onEditTaskTitleChange={setEditTaskTitle}
-            onEditTaskMemoChange={setEditTaskMemo}
-            onEditTaskDueDateChange={setEditTaskDueDate}
-            onEditTaskPriorityChange={setEditTaskPriority}
-            onEditTaskProjectIdChange={setEditTaskProjectId}
-            onAddTask={handleAddTask}
-            onSaveEditTask={handleSaveEditTask}
-            onCancelEditTask={resetEditTaskForm}
-            onToggleTaskDone={handleToggleTaskDone}
-            onDeleteTask={handleDeleteTask}
-            onStartEditTask={startEditTask}
-          />
-        )}
-
-        {activeTab === "projects" && (
-          <ProjectsView
-            projects={projects}
-            tasks={tasks}
-            editingProjectId={editingProjectId}
-            editProjectName={editProjectName}
-            editProjectDescription={editProjectDescription}
-            newProjectName={newProjectName}
-            newProjectDescription={newProjectDescription}
-            onNewProjectNameChange={setNewProjectName}
-            onNewProjectDescriptionChange={setNewProjectDescription}
-            onEditProjectNameChange={setEditProjectName}
-            onEditProjectDescriptionChange={setEditProjectDescription}
-            onAddProject={handleAddProject}
-            onSaveEditProject={handleSaveEditProject}
-            onCancelEditProject={resetEditProjectForm}
-            onDeleteProject={handleDeleteProject}
-            onStartEditProject={startEditProject}
-          />
-        )}
-
-        {activeTab === "settings" && (
-          <SettingsView
-            appSettings={appSettings}
-            tasks={tasks}
-            projects={projects}
-          />
-        )}
-      </main>
-
-      <nav className="bottom-nav" aria-label="?섎떒 硫붾돱">
-        <button
-          className={activeTab === "today" ? "active" : ""}
-          onClick={() => setActiveTab("today")}
-        >
-          ?ㅻ뒛
-        </button>
-        <button
-          className={activeTab === "tasks" ? "active" : ""}
-          onClick={() => setActiveTab("tasks")}
-        >
-          ?낅Т
-        </button>
-        <button
-          className={activeTab === "projects" ? "active" : ""}
-          onClick={() => setActiveTab("projects")}
-        >
-          ?꾨줈?앺듃
-        </button>
-        <button
-          className={activeTab === "settings" ? "active" : ""}
-          onClick={() => setActiveTab("settings")}
-        >
-          ?ㅼ젙
-        </button>
-      </nav>
-    </div>
-  );
-}
-
-export default App;
 
 codex
-PowerShell 5.1 기본 인코딩 표시 때문에 한글 문자열이 깨져 보였습니다. 파일 자체 문제인지 출력 인코딩 문제인지 분리하려고 동일 파일을 UTF-8로 다시 읽어 
+핵심 변경은 `Complete-Cycle`의 잔여 변경 처리 안에 있습니다. 이제 이 함수가 어떤 상태에서 호출되는지와 `DryRun` 의미가 기존 흐름과 충돌하지 않는지 
 확인합니다.
 exec
-"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -Encoding
- UTF8 -LiteralPath 'D:\\ai-apps\\planpilot-local\\src\\views\\TasksView.tsx'" in D:\ai-apps\plan
-pilot-local
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Select-String -Path '
+D:\\ai-apps\\planpilot-local\\scripts\\ai-dev-auto-cycle-full.ps1' -Pattern 'function Convert-To
+ChangedPath|function Test-IsAiDevOperationalPath|function Test-IsProtectedBaselineDirtyPath|func
+tion Invoke-GitCapture' -Context 0,25" in D:\ai-apps\planpilot-local
 exec
-"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -Encoding
- UTF8 -LiteralPath 'D:\\ai-apps\\planpilot-local\\src\\utils\\taskLabels.ts'" in D:\ai-apps\plan
-pilot-local
- succeeded in 1491ms:
-import type { FormEvent } from "react";
-import { TaskCard } from "../components/TaskCard";
-import { TaskForm } from "../components/TaskForm";
-import type { Project, Task } from "../types";
-import type { TaskSortOrder } from "../utils/taskFilters";
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Select-String -Path '
+D:\\ai-apps\\planpilot-local\\scripts\\ai-dev-auto-cycle-full.ps1' -Pattern 'Complete-Cycle|goal
+Status|completed' -Context 3,5" in D:\ai-apps\planpilot-local
+ succeeded in 1400ms:
 
-type TasksViewProps = {
-  projects: Project[];
-  filteredTasks: Task[];
-  summaryTasks: Task[];
-  sortedTasks: Task[];
-  selectedProjectFilter: string;
-  showCompletedTasks: boolean;
-  taskSortOrder: TaskSortOrder;
-  taskSearchQuery: string;
-  isTaskFormOpen: boolean;
-  newTaskTitle: string;
-  newTaskMemo: string;
-  newTaskDueDate: string;
-  newTaskPriority: Task["priority"];
-  newTaskProjectId: string;
-  editingTaskId: string | null;
-  editTaskTitle: string;
-  editTaskMemo: string;
-  editTaskDueDate: string;
-  editTaskPriority: Task["priority"];
-  editTaskProjectId: string;
-  getProjectName: (projectId: string) => string;
-  onTaskSearchQueryChange: (value: string) => void;
-  onShowCompletedTasksChange: (value: boolean) => void;
-  onTaskSortOrderChange: (value: TaskSortOrder) => void;
-  onSelectedProjectFilterChange: (value: string) => void;
-  onTaskFormOpenChange: (updater: (current: boolean) => boolean) => void;
-  onNewTaskTitleChange: (value: string) => void;
-  onNewTaskMemoChange: (value: string) => void;
-  onNewTaskDueDateChange: (value: string) => void;
-  onNewTaskPriorityChange: (value: Task["priority"]) => void;
-  onNewTaskProjectIdChange: (value: string) => void;
-  onEditTaskTitleChange: (value: string) => void;
-  onEditTaskMemoChange: (value: string) => void;
-  onEditTaskDueDateChange: (value: string) => void;
-  onEditTaskPriorityChange: (value: Task["priority"]) => void;
-  onEditTaskProjectIdChange: (value: string) => void;
-  onAddTask: (event: FormEvent<HTMLFormElement>) => void;
-  onSaveEditTask: (task: Task) => void;
-  onCancelEditTask: () => void;
-  onToggleTaskDone: (task: Task) => void;
-  onDeleteTask: (task: Task) => void;
-  onStartEditTask: (task: Task) => void;
-};
+> scripts\ai-dev-auto-cycle-full.ps1:317:function Invoke-GitCapture {
+  scripts\ai-dev-auto-cycle-full.ps1:318:    param(
+  scripts\ai-dev-auto-cycle-full.ps1:319:        [string[]]$Arguments,
+  scripts\ai-dev-auto-cycle-full.ps1:320:        [string]$DisplayName
+  scripts\ai-dev-auto-cycle-full.ps1:321:    )
+  scripts\ai-dev-auto-cycle-full.ps1:322:
+  scripts\ai-dev-auto-cycle-full.ps1:323:    $output = & git @Arguments 2>&1 | Out-String
+  scripts\ai-dev-auto-cycle-full.ps1:324:    $exitCode = $LASTEXITCODE
+  scripts\ai-dev-auto-cycle-full.ps1:325:
+  scripts\ai-dev-auto-cycle-full.ps1:326:    if ($exitCode -ne 0) {
+  scripts\ai-dev-auto-cycle-full.ps1:327:        throw "$DisplayName 실행에 실패했습니다. exit code: $exi
+tCode`n$output"
+  scripts\ai-dev-auto-cycle-full.ps1:328:    }
+  scripts\ai-dev-auto-cycle-full.ps1:329:
+  scripts\ai-dev-auto-cycle-full.ps1:330:    return $output.TrimEnd()
+  scripts\ai-dev-auto-cycle-full.ps1:331:}
+  scripts\ai-dev-auto-cycle-full.ps1:332:
+  scripts\ai-dev-auto-cycle-full.ps1:333:function Test-PackageFileChanged {
+  scripts\ai-dev-auto-cycle-full.ps1:334:    $status = Invoke-GitCapture @("status", "--porcelai
+n", "--", "package.json
+", "package-lock.json") "git status --porcelain -- package.json package-lock.json"
+  scripts\ai-dev-auto-cycle-full.ps1:335:    return -not [string]::IsNullOrWhiteSpace($status)
+  scripts\ai-dev-auto-cycle-full.ps1:336:}
+  scripts\ai-dev-auto-cycle-full.ps1:337:
+> scripts\ai-dev-auto-cycle-full.ps1:338:function Convert-ToChangedPath {
+  scripts\ai-dev-auto-cycle-full.ps1:339:    param(
+  scripts\ai-dev-auto-cycle-full.ps1:340:        [string]$ChangeLine
+  scripts\ai-dev-auto-cycle-full.ps1:341:    )
+  scripts\ai-dev-auto-cycle-full.ps1:342:
+  scripts\ai-dev-auto-cycle-full.ps1:343:    if ([string]::IsNullOrWhiteSpace($ChangeLine)) {
+  scripts\ai-dev-auto-cycle-full.ps1:344:        return @()
+  scripts\ai-dev-auto-cycle-full.ps1:345:    }
+  scripts\ai-dev-auto-cycle-full.ps1:346:
+  scripts\ai-dev-auto-cycle-full.ps1:347:    $pathText = $ChangeLine
+  scripts\ai-dev-auto-cycle-full.ps1:348:
+  scripts\ai-dev-auto-cycle-full.ps1:349:    if ($ChangeLine.Length -ge 4 -and $ChangeLine.Subst
+ring(2, 1) -eq " ") {
+  scripts\ai-dev-auto-cycle-full.ps1:350:        $pathText = $ChangeLine.Substring(3)
+  scripts\ai-dev-auto-cycle-full.ps1:351:    }
+  scripts\ai-dev-auto-cycle-full.ps1:352:
+  scripts\ai-dev-auto-cycle-full.ps1:353:    if ($pathText.Contains(" -> ")) {
+  scripts\ai-dev-auto-cycle-full.ps1:354:        return @($pathText -split " -> " | Where-Object
+ { Test-HasValue $_ })
+  scripts\ai-dev-auto-cycle-full.ps1:355:    }
+  scripts\ai-dev-auto-cycle-full.ps1:356:
+  scripts\ai-dev-auto-cycle-full.ps1:357:    return @($pathText)
+  scripts\ai-dev-auto-cycle-full.ps1:358:}
+  scripts\ai-dev-auto-cycle-full.ps1:359:
+  scripts\ai-dev-auto-cycle-full.ps1:360:function ConvertTo-NormalizedChangedPath {
+  scripts\ai-dev-auto-cycle-full.ps1:361:    param(
+  scripts\ai-dev-auto-cycle-full.ps1:362:        [string]$RelativePath
+  scripts\ai-dev-auto-cycle-full.ps1:363:    )
+> scripts\ai-dev-auto-cycle-full.ps1:372:function Test-IsAiDevOperationalPath {
+  scripts\ai-dev-auto-cycle-full.ps1:373:    param(
+  scripts\ai-dev-auto-cycle-full.ps1:374:        [string]$RelativePath
+  scripts\ai-dev-auto-cycle-full.ps1:375:    )
+  scripts\ai-dev-auto-cycle-full.ps1:376:
+  scripts\ai-dev-auto-cycle-full.ps1:377:    $normalizedRelativePath = ConvertTo-NormalizedChang
+edPath $RelativePath
+  scripts\ai-dev-auto-cycle-full.ps1:378:    return $normalizedRelativePath.StartsWith($aiDevOpe
+rationalRoot, [System.S
+tringComparison]::OrdinalIgnoreCase)
+  scripts\ai-dev-auto-cycle-full.ps1:379:}
+  scripts\ai-dev-auto-cycle-full.ps1:380:
+  scripts\ai-dev-auto-cycle-full.ps1:381:function Get-ProtectedBaselineDirtyPaths {
+  scripts\ai-dev-auto-cycle-full.ps1:382:    if ($null -eq $ProtectedBaselineDirtyPaths -or $Pro
+tectedBaselineDirtyPath
+s.Count -eq 0) {
+  scripts\ai-dev-auto-cycle-full.ps1:383:        return @()
+  scripts\ai-dev-auto-cycle-full.ps1:384:    }
+  scripts\ai-dev-auto-cycle-full.ps1:385:
+  scripts\ai-dev-auto-cycle-full.ps1:386:    return @(
+  scripts\ai-dev-auto-cycle-full.ps1:387:        $ProtectedBaselineDirtyPaths |
+  scripts\ai-dev-auto-cycle-full.ps1:388:            ForEach-Object { $_ -split "," } |
+  scripts\ai-dev-auto-cycle-full.ps1:389:            Where-Object { Test-HasValue $_ } |
+  scripts\ai-dev-auto-cycle-full.ps1:390:            ForEach-Object { ConvertTo-NormalizedChange
+dPath $_ } |
+  scripts\ai-dev-auto-cycle-full.ps1:391:            Select-Object -Unique
+  scripts\ai-dev-auto-cycle-full.ps1:392:    )
+  scripts\ai-dev-auto-cycle-full.ps1:393:}
+  scripts\ai-dev-auto-cycle-full.ps1:394:
+> scripts\ai-dev-auto-cycle-full.ps1:395:function Test-IsProtectedBaselineDirtyPath {
+  scripts\ai-dev-auto-cycle-full.ps1:396:    param(
+  scripts\ai-dev-auto-cycle-full.ps1:397:        [string]$RelativePath
+  scripts\ai-dev-auto-cycle-full.ps1:398:    )
+  scripts\ai-dev-auto-cycle-full.ps1:399:
+  scripts\ai-dev-auto-cycle-full.ps1:400:    $normalizedRelativePath = ConvertTo-NormalizedChang
+edPath $RelativePath
+  scripts\ai-dev-auto-cycle-full.ps1:401:    return @($script:protectedBaselineDirtyPaths) -cont
+ains $normalizedRelativ
+ePath
+  scripts\ai-dev-auto-cycle-full.ps1:402:}
+  scripts\ai-dev-auto-cycle-full.ps1:403:
+  scripts\ai-dev-auto-cycle-full.ps1:404:function Get-ChangedNonAiDevFiles {
+  scripts\ai-dev-auto-cycle-full.ps1:405:    $status = Invoke-GitCapture @("status", "--porcelai
+n") "git status --porce
+lain"
+  scripts\ai-dev-auto-cycle-full.ps1:406:    $changeLines = @($status -split "`r?`n" | Where-Obj
+ect { -not [string]::Is
+NullOrWhiteSpace($_) })
+  scripts\ai-dev-auto-cycle-full.ps1:407:
+  scripts\ai-dev-auto-cycle-full.ps1:408:    return @(
+  scripts\ai-dev-auto-cycle-full.ps1:409:        $changeLines |
+  scripts\ai-dev-auto-cycle-full.ps1:410:            ForEach-Object { Convert-ToChangedPath $_ }
+ |
+  scripts\ai-dev-auto-cycle-full.ps1:411:            ForEach-Object { ConvertTo-NormalizedChange
+dPath $_ } |
+  scripts\ai-dev-auto-cycle-full.ps1:412:            Where-Object { (Test-HasValue $_) -and -not
+ (Test-IsAiDevOperation
+alPath $_) -and -not (Test-IsProtectedBaselineDirtyPath $_) } |
+  scripts\ai-dev-auto-cycle-full.ps1:413:            Select-Object -Unique
+  scripts\ai-dev-auto-cycle-full.ps1:414:    )
+  scripts\ai-dev-auto-cycle-full.ps1:415:}
+  scripts\ai-dev-auto-cycle-full.ps1:416:
+  scripts\ai-dev-auto-cycle-full.ps1:417:function Get-ChangedAiDevOperationalFiles {
+  scripts\ai-dev-auto-cycle-full.ps1:418:    $status = Invoke-GitCapture @("status", "--porcelai
+n") "git status --porce
+lain"
+  scripts\ai-dev-auto-cycle-full.ps1:419:    $changeLines = @($status -split "`r?`n" | Where-Obj
+ect { -not [string]::Is
+NullOrWhiteSpace($_) })
+  scripts\ai-dev-auto-cycle-full.ps1:420:
 
-export function TasksView({
-  projects,
-  filteredTasks,
-  summaryTasks,
-  sortedTasks,
-  selectedProjectFilter,
-  showCompletedTasks,
-  taskSortOrder,
-  taskSearchQuery,
-  isTaskFormOpen,
-  newTaskTitle,
-  newTaskMemo,
-  newTaskDueDate,
-  newTaskPriority,
-  newTaskProjectId,
-  editingTaskId,
-  editTaskTitle,
-  editTaskMemo,
-  editTaskDueDate,
-  editTaskPriority,
-  editTaskProjectId,
-  getProjectName,
-  onTaskSearchQueryChange,
-  onShowCompletedTasksChange,
-  onTaskSortOrderChange,
-  onSelectedProjectFilterChange,
-  onTaskFormOpenChange,
-  onNewTaskTitleChange,
-  onNewTaskMemoChange,
-  onNewTaskDueDateChange,
-  onNewTaskPriorityChange,
-  onNewTaskProjectIdChange,
-  onEditTaskTitleChange,
-  onEditTaskMemoChange,
-  onEditTaskDueDateChange,
-  onEditTaskPriorityChange,
-  onEditTaskProjectIdChange,
-  onAddTask,
-  onSaveEditTask,
-  onCancelEditTask,
-  onToggleTaskDone,
-  onDeleteTask,
-  onStartEditTask,
-}: TasksViewProps) {
-  const hasSearchQuery = taskSearchQuery.trim().length > 0;
-  const hasProjectFilter = selectedProjectFilter !== "all";
-  const hasVisibilityFilter = !showCompletedTasks;
-  const completedTaskCount = summaryTasks.filter(
-    (task) => task.status === "done",
-  ).length;
-  const inProgressTaskCount = summaryTasks.filter(
-    (task) => task.status === "in_progress",
-  ).length;
-  const remainingTaskCount = summaryTasks.filter(
-    (task) => task.status === "todo",
-  ).length;
-  const totalTaskSummary = showCompletedTasks
-    ? `총 ${summaryTasks.length}개`
-    : `표시 ${filteredTasks.length}개 / 조건 일치 ${summaryTasks.length}개`;
-  const completedTaskSummary = showCompletedTasks
-    ? `완료 ${completedTaskCount}개`
-    : `완료 ${completedTaskCount}개(숨김)`;
-  const emptyMessage =
-    hasSearchQuery
-      ? "검색어와 일치하는 업무가 없어요."
-      : hasProjectFilter || hasVisibilityFilter
-        ? "현재 조건에 맞는 업무가 없어요."
-        : "아직 등록된 업무가 없어요.";
 
-  return (
-    <section className="screen-card">
-      <h2>전체 업무</h2>
-      <p className="summary">
-        {totalTaskSummary} · 진행 중 {inProgressTaskCount}개 ·{" "}
-        {completedTaskSummary} · 남은 업무 {remainingTaskCount}개
-      </p>
 
-      <label>
-        업무 검색
-        <input
-          type="text"
-          value={taskSearchQuery}
-          onChange={(event) => onTaskSearchQueryChange(event.target.value)}
-          placeholder="업무 제목 또는 메모 내용을 검색하세요"
-        />
-      </label>
+ succeeded in 1500ms:
 
-      <label>
-        <input
-          type="checkbox"
-          checked={showCompletedTasks}
-          onChange={(event) => onShowCompletedTasksChange(event.target.checked)}
-        />
-        완료 업무 표시
-      </label>
+  scripts\ai-dev-auto-cycle-full.ps1:136:    param(
+  scripts\ai-dev-auto-cycle-full.ps1:137:        [object[]]$Steps,
+  scripts\ai-dev-auto-cycle-full.ps1:138:        [string]$StoppedReason,
+> scripts\ai-dev-auto-cycle-full.ps1:139:        [bool]$Completed,
+  scripts\ai-dev-auto-cycle-full.ps1:140:        [int]$ExitCode
+  scripts\ai-dev-auto-cycle-full.ps1:141:    )
+  scripts\ai-dev-auto-cycle-full.ps1:142:
+  scripts\ai-dev-auto-cycle-full.ps1:143:    return [PSCustomObject][ordered]@{
+  scripts\ai-dev-auto-cycle-full.ps1:144:        steps = @($Steps)
+  scripts\ai-dev-auto-cycle-full.ps1:145:        stoppedReason = $StoppedReason
+> scripts\ai-dev-auto-cycle-full.ps1:146:        completed = $Completed
+  scripts\ai-dev-auto-cycle-full.ps1:147:        exitCode = $ExitCode
+  scripts\ai-dev-auto-cycle-full.ps1:148:    }
+  scripts\ai-dev-auto-cycle-full.ps1:149:}
+  scripts\ai-dev-auto-cycle-full.ps1:150:
+  scripts\ai-dev-auto-cycle-full.ps1:151:function Write-CycleResult {
+  scripts\ai-dev-auto-cycle-full.ps1:168:    }
+  scripts\ai-dev-auto-cycle-full.ps1:169:
+  scripts\ai-dev-auto-cycle-full.ps1:170:    Write-Host "Stopped reason: $($Result.stoppedReason
+)"
+> scripts\ai-dev-auto-cycle-full.ps1:171:    Write-Host "Completed: $($Result.completed)"
+  scripts\ai-dev-auto-cycle-full.ps1:172:    Write-Host "Exit code: $($Result.exitCode)"
+  scripts\ai-dev-auto-cycle-full.ps1:173:
+  scripts\ai-dev-auto-cycle-full.ps1:174:}
+  scripts\ai-dev-auto-cycle-full.ps1:175:
+  scripts\ai-dev-auto-cycle-full.ps1:176:function Stop-Cycle {
+  scripts\ai-dev-auto-cycle-full.ps1:177:    param(
+  scripts\ai-dev-auto-cycle-full.ps1:178:        [object[]]$Steps,
+  scripts\ai-dev-auto-cycle-full.ps1:179:        [string]$StoppedReason,
+> scripts\ai-dev-auto-cycle-full.ps1:180:        [bool]$Completed,
+  scripts\ai-dev-auto-cycle-full.ps1:181:        [int]$ExitCode
+  scripts\ai-dev-auto-cycle-full.ps1:182:    )
+  scripts\ai-dev-auto-cycle-full.ps1:183:
+> scripts\ai-dev-auto-cycle-full.ps1:184:    $result = New-CycleResult $Steps $StoppedReason $Co
+mpleted $ExitCode
+  scripts\ai-dev-auto-cycle-full.ps1:185:    Write-CycleResult $result
+  scripts\ai-dev-auto-cycle-full.ps1:186:    exit $ExitCode
+  scripts\ai-dev-auto-cycle-full.ps1:187:}
+  scripts\ai-dev-auto-cycle-full.ps1:188:
+> scripts\ai-dev-auto-cycle-full.ps1:189:function Complete-Cycle {
+  scripts\ai-dev-auto-cycle-full.ps1:190:    param(
+  scripts\ai-dev-auto-cycle-full.ps1:191:        [object[]]$Steps,
+  scripts\ai-dev-auto-cycle-full.ps1:192:        [string]$StoppedReason,
+  scripts\ai-dev-auto-cycle-full.ps1:193:        [int]$StepNumber
+  scripts\ai-dev-auto-cycle-full.ps1:194:    )
+  scripts\ai-dev-auto-cycle-full.ps1:210:            $eligibleAiDevPaths = @($changedPaths | Whe
+re-Object { (Test-IsAiD
+evOperationalPath $_) -and -not (Test-IsProtectedBaselineDirtyPath $_) })
+  scripts\ai-dev-auto-cycle-full.ps1:211:
+  scripts\ai-dev-auto-cycle-full.ps1:212:            if ($nonAiDevPaths.Count -gt 0) {
+> scripts\ai-dev-auto-cycle-full.ps1:213:                $Steps += New-StepResult $StepNumber "c
+ompleted-clean-gate" "g
+it status --short" $true $false 1 "Completed clean verification failed: non-.ai-dev changes rema
+in after all full-cycle
+ result/state files were written.`n$remainingStatus"
+> scripts\ai-dev-auto-cycle-full.ps1:214:                Stop-Cycle $Steps "completed_non_ai_dev
+_changes" $false 1
+  scripts\ai-dev-auto-cycle-full.ps1:215:            }
+  scripts\ai-dev-auto-cycle-full.ps1:216:
+  scripts\ai-dev-auto-cycle-full.ps1:217:            if ($protectedPaths.Count -gt 0) {
+> scripts\ai-dev-auto-cycle-full.ps1:218:                $Steps += New-StepResult $StepNumber "c
+ompleted-clean-gate" "g
+it status --short" $true $false 1 "Completed clean verification failed: protected baseline dirty
+ .ai-dev paths remain a
+nd must not be absorbed into the final meta commit.`n$($protectedPaths -join "`n")`n$remainingSt
+atus"
+> scripts\ai-dev-auto-cycle-full.ps1:219:                Stop-Cycle $Steps "completed_protected_
+baseline_dirty" $false 
+1
+  scripts\ai-dev-auto-cycle-full.ps1:220:            }
+  scripts\ai-dev-auto-cycle-full.ps1:221:
+  scripts\ai-dev-auto-cycle-full.ps1:222:            if ($eligibleAiDevPaths.Count -eq 0) {
+> scripts\ai-dev-auto-cycle-full.ps1:223:                $Steps += New-StepResult $StepNumber "c
+ompleted-clean-gate" "g
+it status --short" $true $false 1 "Completed clean verification failed: worktree still has chang
+es, but none are eligib
+le new .ai-dev operational changes.`n$remainingStatus"
+> scripts\ai-dev-auto-cycle-full.ps1:224:                Stop-Cycle $Steps "completed_no_eligibl
+e_meta_changes" $false 
+1
+  scripts\ai-dev-auto-cycle-full.ps1:225:            }
+  scripts\ai-dev-auto-cycle-full.ps1:226:
+  scripts\ai-dev-auto-cycle-full.ps1:227:            if (-not $AllowCommit) {
+> scripts\ai-dev-auto-cycle-full.ps1:228:                $Steps += New-StepResult $StepNumber "c
+ompleted-clean-gate" "g
+it status --short" $true $false 1 "Completed clean verification failed: only new .ai-dev operati
+onal changes remain, bu
+t -AllowCommit is required for the final auto-cycle meta commit.`n$remainingStatus"
+> scripts\ai-dev-auto-cycle-full.ps1:229:                Stop-Cycle $Steps "completed_ai_dev_cha
+nges_require_commit" $f
+alse 1
+  scripts\ai-dev-auto-cycle-full.ps1:230:            }
+  scripts\ai-dev-auto-cycle-full.ps1:231:
+  scripts\ai-dev-auto-cycle-full.ps1:232:            if ($DryRun) {
+> scripts\ai-dev-auto-cycle-full.ps1:233:                $Steps += New-StepResult $StepNumber "c
+ompleted-clean-gate" "g
+it status --short; git add/commit final .ai-dev operational changes; git status --short" $false 
+$true 0 "DryRun: only n
+ew .ai-dev operational changes remain, but the final auto-cycle meta commit was not created.`n$r
+emainingStatus"
+  scripts\ai-dev-auto-cycle-full.ps1:234:                Stop-Cycle $Steps "dry_run" $false 0
+  scripts\ai-dev-auto-cycle-full.ps1:235:            }
+  scripts\ai-dev-auto-cycle-full.ps1:236:
+  scripts\ai-dev-auto-cycle-full.ps1:237:            $addOutput = & git add -- $eligibleAiDevPat
+hs 2>&1 | Out-String
+  scripts\ai-dev-auto-cycle-full.ps1:238:            $addExitCode = $LASTEXITCODE
+  scripts\ai-dev-auto-cycle-full.ps1:239:
+  scripts\ai-dev-auto-cycle-full.ps1:240:            if ($addExitCode -ne 0) {
+> scripts\ai-dev-auto-cycle-full.ps1:241:                $Steps += New-StepResult $StepNumber "c
+ompleted-clean-gate" "g
+it add -- <final .ai-dev files>" $true $false 1 "Final auto-cycle .ai-dev meta add failed. exit 
+code: $addExitCode`n$ad
+dOutput"
+> scripts\ai-dev-auto-cycle-full.ps1:242:                Stop-Cycle $Steps "completed_meta_add_f
+ailed" $false 1
+  scripts\ai-dev-auto-cycle-full.ps1:243:            }
+  scripts\ai-dev-auto-cycle-full.ps1:244:
+  scripts\ai-dev-auto-cycle-full.ps1:245:            $metaCommitMessage = "chore(ai-dev): record
+ final auto-cycle state
+"
+  scripts\ai-dev-auto-cycle-full.ps1:246:            $commitOutput = & git commit -m $metaCommit
+Message -- $eligibleAiD
+evPaths 2>&1 | Out-String
+  scripts\ai-dev-auto-cycle-full.ps1:247:            $commitExitCode = $LASTEXITCODE
+  scripts\ai-dev-auto-cycle-full.ps1:248:
+  scripts\ai-dev-auto-cycle-full.ps1:249:            if ($commitExitCode -ne 0) {
+> scripts\ai-dev-auto-cycle-full.ps1:250:                $Steps += New-StepResult $StepNumber "c
+ompleted-clean-gate" "g
+it commit -m '$metaCommitMessage' -- <final .ai-dev files>" $true $false 1 "Final auto-cycle .ai
+-dev meta commit failed
+. exit code: $commitExitCode`n$commitOutput"
+> scripts\ai-dev-auto-cycle-full.ps1:251:                Stop-Cycle $Steps "completed_meta_commi
+t_failed" $false 1
+  scripts\ai-dev-auto-cycle-full.ps1:252:            }
+  scripts\ai-dev-auto-cycle-full.ps1:253:
+  scripts\ai-dev-auto-cycle-full.ps1:254:            $remainingStatus = Invoke-GitCapture -Argum
+ents @("status", "--sho
+rt") -DisplayName "git status --short"
+  scripts\ai-dev-auto-cycle-full.ps1:255:
+  scripts\ai-dev-auto-cycle-full.ps1:256:            if (-not [string]::IsNullOrWhiteSpace($rema
+iningStatus)) {
+> scripts\ai-dev-auto-cycle-full.ps1:257:                $Steps += New-StepResult $StepNumber "c
+ompleted-clean-gate" "g
+it status --short" $true $false 1 "Completed clean verification failed: changes remain after the
+ final auto-cycle .ai-d
+ev meta commit.`n$remainingStatus"
+> scripts\ai-dev-auto-cycle-full.ps1:258:                Stop-Cycle $Steps "completed_worktree_d
+irty" $false 1
+  scripts\ai-dev-auto-cycle-full.ps1:259:            }
+  scripts\ai-dev-auto-cycle-full.ps1:260:
+> scripts\ai-dev-auto-cycle-full.ps1:261:            $message = ($commitOutput.Trim(), "Final au
+to-cycle .ai-dev meta c
+ommit created: yes", "Completed clean verification passed: git status --short returned no change
+s.") -join "`n"
+> scripts\ai-dev-auto-cycle-full.ps1:262:            $Steps += New-StepResult $StepNumber "compl
+eted-clean-gate" "git s
+tatus --short; git add/commit final .ai-dev operational changes; git status --short" $true $fals
+e 0 $message
+  scripts\ai-dev-auto-cycle-full.ps1:263:            Stop-Cycle $Steps $StoppedReason $true 0
+  scripts\ai-dev-auto-cycle-full.ps1:264:        }
+  scripts\ai-dev-auto-cycle-full.ps1:265:
+> scripts\ai-dev-auto-cycle-full.ps1:266:        $Steps += New-StepResult $StepNumber "completed
+-clean-gate" "git statu
+s --short" $true $false 0 "Completed clean verification passed: git status --short returned no c
+hanges."
+  scripts\ai-dev-auto-cycle-full.ps1:267:        Stop-Cycle $Steps $StoppedReason $true 0
+  scripts\ai-dev-auto-cycle-full.ps1:268:    } catch {
+> scripts\ai-dev-auto-cycle-full.ps1:269:        $Steps += New-StepResult $StepNumber "completed
+-clean-gate" "git statu
+s --short" $false $false 1 $_.Exception.Message
+> scripts\ai-dev-auto-cycle-full.ps1:270:        Stop-Cycle $Steps "completed_clean_gate_failed"
+ $false 1
+  scripts\ai-dev-auto-cycle-full.ps1:271:    }
+  scripts\ai-dev-auto-cycle-full.ps1:272:}
+  scripts\ai-dev-auto-cycle-full.ps1:273:
+  scripts\ai-dev-auto-cycle-full.ps1:274:function Invoke-CycleCommand {
+  scripts\ai-dev-auto-cycle-full.ps1:275:    param(
+  scripts\ai-dev-auto-cycle-full.ps1:621:    $queue = Read-JsonFile $queuePath $queueRelativePat
+h
+  scripts\ai-dev-auto-cycle-full.ps1:622:    $state = Read-JsonFile $statePath $stateRelativePat
+h
+  scripts\ai-dev-auto-cycle-full.ps1:623:
+> scripts\ai-dev-auto-cycle-full.ps1:624:    if ($state.goalStatus -eq "completed") {
+> scripts\ai-dev-auto-cycle-full.ps1:625:        Complete-Cycle $script:steps "goal_completed" 0
+  scripts\ai-dev-auto-cycle-full.ps1:626:    }
+  scripts\ai-dev-auto-cycle-full.ps1:627:
+  scripts\ai-dev-auto-cycle-full.ps1:628:    if (-not ($queue.PSObject.Properties.Name -contains
+ "tasks") -or $null -eq
+ $queue.tasks) {
+  scripts\ai-dev-auto-cycle-full.ps1:629:        Stop-Cycle $script:steps "no_task" $false 0
+  scripts\ai-dev-auto-cycle-full.ps1:630:    }
+  scripts\ai-dev-auto-cycle-full.ps1:636:    }
+  scripts\ai-dev-auto-cycle-full.ps1:637:
+  scripts\ai-dev-auto-cycle-full.ps1:638:    if ($currentTask.status -eq "done") {
+> scripts\ai-dev-auto-cycle-full.ps1:639:        Complete-Cycle $script:steps "current_task_done
+" 0
+  scripts\ai-dev-auto-cycle-full.ps1:640:    }
+  scripts\ai-dev-auto-cycle-full.ps1:641:
+  scripts\ai-dev-auto-cycle-full.ps1:642:    $scriptPaths = @{
+  scripts\ai-dev-auto-cycle-full.ps1:643:        makePrompt = Get-ScriptPath "ai-dev-make-prompt
+.ps1"
+  scripts\ai-dev-auto-cycle-full.ps1:644:        runCodex = Get-ScriptPath "ai-dev-run-codex.ps1
+"
+  scripts\ai-dev-auto-cycle-full.ps1:677:}
+  scripts\ai-dev-auto-cycle-full.ps1:678:
+  scripts\ai-dev-auto-cycle-full.ps1:679:$stepNumber = 1
+> scripts\ai-dev-auto-cycle-full.ps1:680:$completedTaskCount = 0
+  scripts\ai-dev-auto-cycle-full.ps1:681:
+> scripts\ai-dev-auto-cycle-full.ps1:682:while ($completedTaskCount -lt $MaxTasks) {
+  scripts\ai-dev-auto-cycle-full.ps1:683:    try {
+  scripts\ai-dev-auto-cycle-full.ps1:684:        $queue = Read-JsonFile $queuePath $queueRelativ
+ePath
+  scripts\ai-dev-auto-cycle-full.ps1:685:        $state = Read-JsonFile $statePath $stateRelativ
+ePath
+  scripts\ai-dev-auto-cycle-full.ps1:686:        $currentTask = Get-CurrentTask $queue $state
+  scripts\ai-dev-auto-cycle-full.ps1:687:    } catch {
+  scripts\ai-dev-auto-cycle-full.ps1:689:        Stop-Cycle $script:steps "load_task_failed" $fa
+lse 1
+  scripts\ai-dev-auto-cycle-full.ps1:690:    }
+  scripts\ai-dev-auto-cycle-full.ps1:691:
+> scripts\ai-dev-auto-cycle-full.ps1:692:    if ($state.goalStatus -eq "completed") {
+> scripts\ai-dev-auto-cycle-full.ps1:693:        Complete-Cycle $script:steps "goal_completed" $
+stepNumber
+  scripts\ai-dev-auto-cycle-full.ps1:694:    }
+  scripts\ai-dev-auto-cycle-full.ps1:695:
+  scripts\ai-dev-auto-cycle-full.ps1:696:    if ($null -eq $currentTask) {
+  scripts\ai-dev-auto-cycle-full.ps1:697:        Stop-Cycle $script:steps "no_task" $false 0
+  scripts\ai-dev-auto-cycle-full.ps1:698:    }
+  scripts\ai-dev-auto-cycle-full.ps1:699:
+  scripts\ai-dev-auto-cycle-full.ps1:700:    if ($currentTask.status -eq "done") {
+> scripts\ai-dev-auto-cycle-full.ps1:701:        Complete-Cycle $script:steps "current_task_done
+" $stepNumber
+  scripts\ai-dev-auto-cycle-full.ps1:702:    }
+  scripts\ai-dev-auto-cycle-full.ps1:703:
+  scripts\ai-dev-auto-cycle-full.ps1:704:    $taskLabel = "$($currentTask.id) $($currentTask.tit
+le)"
+  scripts\ai-dev-auto-cycle-full.ps1:705:    $script:steps += New-StepResult $stepNumber "task-s
+tart" "MaxTasks=$MaxTas
+ks" $false $false 0 "현재 task 실행 시작: $taskLabel"
+  scripts\ai-dev-auto-cycle-full.ps1:706:    $stepNumber++
+  scripts\ai-dev-auto-cycle-full.ps1:910:    Invoke-CycleCommand $stepNumber "final-status" "pow
+ershell -ExecutionPolic
+y Bypass -File scripts/ai-dev-status.ps1" $scriptPaths.status @()
+  scripts\ai-dev-auto-cycle-full.ps1:911:    $stepNumber++
+  scripts\ai-dev-auto-cycle-full.ps1:912:
+> scripts\ai-dev-auto-cycle-full.ps1:913:    $completedTaskCount++
+  scripts\ai-dev-auto-cycle-full.ps1:914:
+  scripts\ai-dev-auto-cycle-full.ps1:915:    $stateAfterComplete = Read-JsonFile $statePath $sta
+teRelativePath
+  scripts\ai-dev-auto-cycle-full.ps1:916:
+> scripts\ai-dev-auto-cycle-full.ps1:917:    if ($stateAfterComplete.goalStatus -eq "completed")
+ {
+> scripts\ai-dev-auto-cycle-full.ps1:918:        Complete-Cycle $script:steps "goal_completed" $
+stepNumber
+  scripts\ai-dev-auto-cycle-full.ps1:919:    }
+  scripts\ai-dev-auto-cycle-full.ps1:920:}
+  scripts\ai-dev-auto-cycle-full.ps1:921:
+> scripts\ai-dev-auto-cycle-full.ps1:922:Complete-Cycle $script:steps "max_tasks_reached" $stepN
+umber
 
-      <label>
-        정렬
-        <select
-          value={taskSortOrder}
-          onChange={(event) =>
-            onTaskSortOrderChange(event.target.value as TaskSortOrder)
-          }
-        >
-          <option value="none">기본 순서</option>
-          <option value="dueDateAsc">마감일 빠른 순</option>
-        </select>
-      </label>
 
-      <label>
-        프로젝트 필터
-        <select
-          value={selectedProjectFilter}
-          onChange={(event) => onSelectedProjectFilterChange(event.target.value)}
-        >
-          <option value="all">전체 프로젝트</option>
-          {projects.map((project) => (
-            <option key={project.id} value={project.id}>
-              {project.name}
-            </option>
-          ))}
-        </select>
-      </label>
-
-      <button
-        type="button"
-        onClick={() => onTaskFormOpenChange((current) => !current)}
-      >
-        {isTaskFormOpen ? "새 업무 추가 닫기" : "새 업무 추가"}
-      </button>
-
-      {isTaskFormOpen && (
-        <TaskForm
-          title="새 업무 추가"
-          ariaLabel="업무 추가"
-          taskTitle={newTaskTitle}
-          memo={newTaskMemo}
-          dueDate={newTaskDueDate}
-          priority={newTaskPriority}
-          projectId={newTaskProjectId}
-          projects={projects}
-          submitLabel="업무 추가"
-          onTitleChange={onNewTaskTitleChange}
-          onMemoChange={onNewTaskMemoChange}
-          onDueDateChange={onNewTaskDueDateChange}
-          onPriorityChange={onNewTaskPriorityChange}
-          onProjectIdChange={onNewTaskProjectIdChange}
-          onSubmit={onAddTask}
-        />
-      )}
-
-      {filteredTasks.length === 0 ? (
-        <div className="empty">
-          <p>{emptyMessage}</p>
-          {hasSearchQuery && <p>다른 검색어를 입력해보세요.</p>}
-        </div>
-      ) : (
-        <ul className="task-list">
-          {sortedTasks.map((task) => {
-            if (editingTaskId === task.id) {
-              return (
-                <li key={task.id} className="task-card">
-                  <TaskForm
-                    title="업무 수정"
-                    ariaLabel="업무 수정"
-                    taskTitle={editTaskTitle}
-                    memo={editTaskMemo}
-                    dueDate={editTaskDueDate}
-                    priority={editTaskPriority}
-                    projectId={editTaskProjectId}
-                    projects={projects}
-                    submitLabel="저장"
-                    onTitleChange={onEditTaskTitleChange}
-                    onMemoChange={onEditTaskMemoChange}
-                    onDueDateChange={onEditTaskDueDateChange}
-                    onPriorityChange={onEditTaskPriorityChange}
-                    onProjectIdChange={onEditTaskProjectIdChange}
-                    onSubmit={(event) => {
-                      event.preventDefault();
-                      onSaveEditTask(task);
-                    }}
-                    onCancel={onCancelEditTask}
-                    className=""
-                  />
-                </li>
-              );
-            }
-
-            return (
-              <TaskCard
-                key={task.id}
-                task={task}
-                projectName={getProjectName(task.projectId)}
-                onToggleDone={onToggleTaskDone}
-                onDelete={onDeleteTask}
-                onStartEdit={onStartEditTask}
-              />
-            );
-          })}
-        </ul>
-      )}
-    </section>
-  );
-}
-
- succeeded in 1514ms:
-import type { Task } from "../types";
-
-export function getPriorityLabel(priority: Task["priority"]) {
-  switch (priority) {
-    case "high":
-      return "높음";
-    case "medium":
-      return "보통";
-    case "low":
-      return "낮음";
-    default:
-      return priority;
-  }
-}
-
-export function getStatusLabel(status: Task["status"]) {
-  switch (status) {
-    case "in_progress":
-      return "진행 중";
-    case "done":
-      return "완료";
-    case "todo":
-      return "남은 업무";
-    default:
-      return status;
-  }
-}
 
 codex
-상태 집계가 기존 필터 의미와 맞는지 확인하려고 필터 유틸과 타입 정의만 추가로 읽습니다. 이 확인은 리뷰 판단에 필요한 범위입니다.
+호출 경로상 이미 `goalStatus=completed`인 재실행과 task done 이후 경로 모두 같은 `Complete-Cycle`을 탑니다. 남은 쟁점은 새 `Dr
+yRun` 분기가 기존 step 결과 의미와 완료/실패 판정 규칙을 흐리지 않는지입니다.
 exec
-"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -Encoding
- UTF8 -LiteralPath 'D:\\ai-apps\\planpilot-local\\src\\utils\\taskFilters.ts'" in D:\ai-apps\pla
-npilot-local
-exec
-"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -Encoding
- UTF8 -LiteralPath 'D:\\ai-apps\\planpilot-local\\src\\types.ts'" in D:\ai-apps\planpilot-local
-exec
-"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -Encoding
- UTF8 -LiteralPath 'D:\\ai-apps\\planpilot-local\\src\\components\\TaskCard.tsx'" in D:\ai-apps\
-planpilot-local
- succeeded in 1717ms:
-// src/types.ts
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Select-String -Path '
+D:\\ai-apps\\planpilot-local\\scripts\\ai-dev-auto-cycle-full.ps1' -Pattern 'function New-StepRe
+sult' -Context 0,25" in D:\ai-apps\planpilot-local
+ succeeded in 1088ms:
 
-export type Task = {
-  id: string;
-  title: string;
-  memo?: string;
-  dueDate?: string;
-  priority: "low" | "medium" | "high";
-  status: "todo" | "in_progress" | "done";
-  projectId: string;
-  tags: string[];
-  estimatedMinutes?: number;
-  createdAt: string;
-  updatedAt: string;
-  completedAt?: string;
-  sortOrder?: number;
-};
+> scripts\ai-dev-auto-cycle-full.ps1:113:function New-StepResult {
+  scripts\ai-dev-auto-cycle-full.ps1:114:    param(
+  scripts\ai-dev-auto-cycle-full.ps1:115:        [int]$Step,
+  scripts\ai-dev-auto-cycle-full.ps1:116:        [string]$Name,
+  scripts\ai-dev-auto-cycle-full.ps1:117:        [string]$Command,
+  scripts\ai-dev-auto-cycle-full.ps1:118:        [bool]$Executed,
+  scripts\ai-dev-auto-cycle-full.ps1:119:        [bool]$Skipped,
+  scripts\ai-dev-auto-cycle-full.ps1:120:        [int]$ExitCode,
+  scripts\ai-dev-auto-cycle-full.ps1:121:        [string]$Message
+  scripts\ai-dev-auto-cycle-full.ps1:122:    )
+  scripts\ai-dev-auto-cycle-full.ps1:123:
+  scripts\ai-dev-auto-cycle-full.ps1:124:    return [PSCustomObject][ordered]@{
+  scripts\ai-dev-auto-cycle-full.ps1:125:        step = $Step
+  scripts\ai-dev-auto-cycle-full.ps1:126:        name = $Name
+  scripts\ai-dev-auto-cycle-full.ps1:127:        command = $Command
+  scripts\ai-dev-auto-cycle-full.ps1:128:        executed = $Executed
+  scripts\ai-dev-auto-cycle-full.ps1:129:        skipped = $Skipped
+  scripts\ai-dev-auto-cycle-full.ps1:130:        exitCode = $ExitCode
+  scripts\ai-dev-auto-cycle-full.ps1:131:        message = $Message
+  scripts\ai-dev-auto-cycle-full.ps1:132:    }
+  scripts\ai-dev-auto-cycle-full.ps1:133:}
+  scripts\ai-dev-auto-cycle-full.ps1:134:
+  scripts\ai-dev-auto-cycle-full.ps1:135:function New-CycleResult {
+  scripts\ai-dev-auto-cycle-full.ps1:136:    param(
+  scripts\ai-dev-auto-cycle-full.ps1:137:        [object[]]$Steps,
+  scripts\ai-dev-auto-cycle-full.ps1:138:        [string]$StoppedReason,
 
-export type Project = {
-  id: string;
-  name: string;
-  description?: string;
-  color?: string;
-  createdAt: string;
-  updatedAt: string;
-  archivedAt?: string;
-};
 
-export type AppSettings = {
-  theme: "light";
-  language: "ko";
-  aiProvider: "rule_based";
-  enableNotifications: false;
-  firstLaunchCompleted: boolean;
-  createdAt: string;
-  updatedAt: string;
-};
-
-export type StoredAppSettings = AppSettings & {
-  id: string;
-};
-
- succeeded in 1774ms:
-import type { Project, Task } from "../types";
-
-export type TaskSortOrder = "none" | "dueDateAsc";
-
-type FilterTasksOptions = {
-  selectedProjectFilter: string;
-  showCompletedTasks: boolean;
-  taskSearchQuery: string;
-  projects?: Project[];
-};
-
-export function filterTasks(
-  tasks: Task[],
-  {
-    selectedProjectFilter,
-    showCompletedTasks,
-    taskSearchQuery,
-    projects = [],
-  }: FilterTasksOptions,
-) {
-  const projectNameById = new Map(
-    projects.map((project) => [project.id, project.name.toLowerCase()]),
-  );
-
-  return tasks.filter((task) => {
-    const matchesProject =
-      selectedProjectFilter === "all" || task.projectId === selectedProjectFilter;
-
-    const searchText = taskSearchQuery.trim().toLowerCase();
-    const searchableText = [
-      task.title,
-      task.memo ?? "",
-      projectNameById.get(task.projectId) ?? "",
-    ].join(" ");
-    const matchesSearch =
-      !searchText || searchableText.toLowerCase().includes(searchText);
-
-    const matchesStatus = showCompletedTasks || task.status !== "done";
-
-    return matchesProject && matchesSearch && matchesStatus;
-  });
-}
-
-export function sortTasks(tasks: Task[], taskSortOrder: TaskSortOrder) {
-  return [...tasks].sort((a, b) => {
-    if (taskSortOrder === "none") return 0;
-
-    if (taskSortOrder === "dueDateAsc") {
-      if (!a.dueDate && !b.dueDate) return 0;
-      if (!a.dueDate) return 1;
-      if (!b.dueDate) return -1;
-      return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
-    }
-
-    return 0;
-  });
-}
-
- succeeded in 1750ms:
-import { getPriorityLabel, getStatusLabel } from "../utils/taskLabels";
-import { isUpcomingTask } from "../utils/dateUtils";
-import type { Task } from "../types";
-
-type TaskCardProps = {
-  task: Task;
-  projectName: string;
-  onToggleDone: (task: Task) => void;
-  onDelete: (task: Task) => void;
-  onStartEdit: (task: Task) => void;
-};
-
-export function TaskCard({
-  task,
-  projectName,
-  onToggleDone,
-  onDelete,
-  onStartEdit,
-}: TaskCardProps) {
-  const showDueSoonBadge = isUpcomingTask(task);
-
-  return (
-    <li className="task-card">
-      <strong>{task.title}</strong>
-      {showDueSoonBadge && (
-        <span
-          aria-label="마감일이 곧 다가오는 업무입니다"
-          style={{
-            alignSelf: "flex-start",
-            border: "1px solid #d97706",
-            borderRadius: "999px",
-            color: "#92400e",
-            fontSize: "0.78rem",
-            fontWeight: 700,
-            padding: "0.15rem 0.5rem",
-          }}
-        >
-          마감 임박
-        </span>
-      )}
-      {task.memo && <span>메모: {task.memo}</span>}
-      <span>
-        중요도: {getPriorityLabel(task.priority)} · 상태: {getStatusLabel(task.status)} · 프로젝트: {proj
-ectName}
-      </span>
-      <span>{task.dueDate ? `마감일: ${task.dueDate}` : "마감일 없음"}</span>
-      <button
-        type="button"
-        aria-label={
-          task.status === "done"
-            ? `'${task.title}' 업무를 미완료로 되돌리기`
-            : `'${task.title}' 업무를 완료로 표시하기`
-        }
-        onClick={() => onToggleDone(task)}
-      >
-        {task.status === "done" ? "미완료로 되돌리기" : "완료로 표시"}
-      </button>
-      <button
-        type="button"
-        aria-label={`'${task.title}' 업무 삭제하기`}
-        onClick={() => onDelete(task)}
-      >
-        삭제
-      </button>
-      <button
-        type="button"
-        aria-label={`'${task.title}' 업무 수정하기`}
-        onClick={() => onStartEdit(task)}
-      >
-        수정
-      </button>
-    </li>
-  );
-}
 
 codex
-{"decision":"pass","severity":"none","summary":"업무 목록 영역에서 진행 중, 완료, 남은 업무 상태 요약과 상태 라벨을 한국어로 명확
-히 표시하며 현재 T002 범위 안에 있다.","required_changes":[],"optional_suggestions":[{"file":"src/views/Tasks
-View.tsx","suggestion":"업무 수가 많아질 경우 상태별 count를 여러 번 filter하지 않고 한 번의 reduce로 계산하면 더 단순해질 수 있다."
-}],"scope_check":{"within_current_task":true,"scope_issues":[]},"test_check":{"build_passed":tru
-e,"test_passed":true,"lint_passed":true,"issues":["npm run test는 package.json에 test script가 없어 s
-kipped 처리되었으나, 현재 제공된 검증 결과에서 build와 lint는 통과했다."]},"next_step":"complete_task"}
+{
+  "decision": "pass",
+  "severity": "none",
+  "summary": "completed 종료 경로의 DryRun 분기가 실제 final meta commit을 만들지 않도록 막고, 기존 최종 정리 게이트와 충돌하지 않
+는다.",
+  "required_changes": [],
+  "optional_suggestions": [],
+  "scope_check": {
+    "within_current_task": true,
+    "scope_issues": []
+  },
+  "test_check": {
+    "build_passed": true,
+    "test_passed": false,
+    "lint_passed": true,
+    "issues": [
+      "npm run test는 package.json에 test script가 없어 skipped였지만, 관련 종료 경로는 격리 임시 git 저장소 기반 수동 검증 
+5개 시나리오로 확인됨"
+    ]
+  },
+  "next_step": "complete_task"
+}
 tokens used
-48,184
-{"decision":"pass","severity":"none","summary":"업무 목록 영역에서 진행 중, 완료, 남은 업무 상태 요약과 상태 라벨을 한국어로 명확히 표시하며 현재 T002 범위 안에 있다.","required_changes":[],"optional_suggestions":[{"file":"src/views/TasksView.tsx","suggestion":"업무 수가 많아질 경우 상태별 count를 여러 번 filter하지 않고 한 번의 reduce로 계산하면 더 단순해질 수 있다."}],"scope_check":{"within_current_task":true,"scope_issues":[]},"test_check":{"build_passed":true,"test_passed":true,"lint_passed":true,"issues":["npm run test는 package.json에 test script가 없어 skipped 처리되었으나, 현재 제공된 검증 결과에서 build와 lint는 통과했다."]},"next_step":"complete_task"}
+31,695
+{
+  "decision": "pass",
+  "severity": "none",
+  "summary": "completed 종료 경로의 DryRun 분기가 실제 final meta commit을 만들지 않도록 막고, 기존 최종 정리 게이트와 충돌하지 않는다.",
+  "required_changes": [],
+  "optional_suggestions": [],
+  "scope_check": {
+    "within_current_task": true,
+    "scope_issues": []
+  },
+  "test_check": {
+    "build_passed": true,
+    "test_passed": false,
+    "lint_passed": true,
+    "issues": [
+      "npm run test는 package.json에 test script가 없어 skipped였지만, 관련 종료 경로는 격리 임시 git 저장소 기반 수동 검증 5개 시나리오로 확인됨"
+    ]
+  },
+  "next_step": "complete_task"
+}
 
 ```

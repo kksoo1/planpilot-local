@@ -15,61 +15,63 @@
 ## Project Goal
 
 # 목표
-PlanPilot Local MVP에서 사용자가 현재 진행 중인 업무, 완료된 업무, 남은 업무를 더 빠르게 이해할 수 있도록 업무 목록 또는 대시보드 영역의 안내 문구와 상태 표시를 개선한다.
+AI Dev Loop의 `auto-cycle-full` 완료 종료 경로에서 운영 산출물 변경을 최종 정리하도록 보강한다.
 
 ## 배경
-현재 MVP는 기존 업무 데이터를 기반으로 로컬에서 동작한다. 1차 사용성을 높이기 위해 기능 로직을 크게 바꾸기보다, 기존 화면에서 업무 상태를 더 명확하게 읽을 수 있는 작은 개선이 필요하다.
+기존 `in_progress` 목표를 이어 실행했을 때 모든 task가 `done`이 되어 `goalStatus`가 `completed`가 되었지만 `.ai-dev` 운영 산출물이 작업 트리에 남는 문제가 있다. 완료 상태 재실행 시에도 운영 산출물만 남아 있으면 최종 메타 커밋으로 정리되어야 한다.
 
 ## 성공 기준
-- 진행 중인 업무, 완료된 업무, 남은 업무의 의미가 화면에서 더 명확하게 드러난다.
-- 기존 데이터 구조와 저장 방식은 유지한다.
-- 사용자-facing 문구는 한국어로 제공한다.
-- 변경 범위는 업무 목록 또는 대시보드 영역의 작은 UI 개선으로 제한한다.
-- 허용된 검증을 통과하고 리뷰 결과가 통과 상태가 된다.
-- 구현 변경과 AI Dev Loop 메타 변경이 각각 기록된다.
-- 최종 상태에서 예상하지 못한 변경 파일이 남아 있지 않음을 확인한다.
+- `ai-dev-auto-cycle-full.ps1`의 completed 종료 경로에서 남은 변경을 최종 분류한다.
+- 남은 변경이 `.ai-dev` 운영 파일뿐이고 커밋 허용 옵션이 켜져 있으면 final meta commit을 생성한다.
+- final meta commit 후 작업 트리 상태가 비어 있는지 검증한다.
+- `.ai-dev` 외 변경이 남아 있거나 커밋 허용 옵션이 꺼져 있으면 completed 성공으로 종료하지 않고 실패로 처리한다.
+- 이미 `goalStatus`가 `completed`인 상태에서 `.ai-dev` 운영 변경만 남아 있는 경우에도 재실행 시 최종 메타 커밋 후 정리된다.
+- 앱 `src` 파일은 변경하지 않는다.
+- build/lint 통과, 리뷰 pass, 구현 커밋, complete-task, `.ai-dev` 메타 커밋, 최종 작업 트리 정리 검증까지 완료한다.
 
 ## 제약사항
-- 서버 연동이나 외부 전송 없이 로컬 앱 방향을 유지한다.
-- 로그인, 동기화, 알림, 모바일 권한 요청은 추가하지 않는다.
-- IndexedDB와 Dexie.js 기반 저장 구조를 유지한다.
-- `src/App.css`, lock file, `node_modules`, `dist`, `.git`은 수정하지 않는다.
-- 한 번에 하나의 기능만 작게 구현한다.
+- 앱 `src` 파일은 변경하지 않는다.
+- 한 번에 하나의 작은 구현 변경으로 제한한다.
+- 기존 AI Dev Loop 상태 파일 형식과 스크립트 흐름을 유지한다.
+- 사용자가 만든 변경 사항을 되돌리지 않는다.
 
 ## 범위 제외
-- 새 화면 추가
-- 대규모 컴포넌트 재작성
-- 데이터 schema 변경
-- 새 상태 관리 구조 도입
-- 알림 또는 반복 업무 기능
+- 앱 기능 변경
+- IndexedDB 또는 데이터 모델 변경
+- 대규모 스크립트 재작성
+- 알림, 동기화, 인증 관련 기능
 
 ## 수동 검증
-- 앱 화면에서 진행 중, 완료, 남은 업무 상태 안내가 자연스럽게 보이는지 확인한다.
-- 빈 업무 목록 또는 완료 업무가 있는 상태에서 문구가 어색하지 않은지 확인한다.
-- 기존 업무 생성, 완료 전환, 필터 흐름이 깨지지 않는지 확인한다.
+- 완료 상태에서 `.ai-dev` 운영 산출물만 남은 상황을 만든 뒤 `-AllowCommit` 옵션으로 재실행해 final meta commit이 생성되는지 확인한다.
+- `.ai-dev` 외 변경이 남은 상황에서는 completed 성공으로 처리되지 않는지 확인한다.
+- 최종 작업 트리 상태가 비어 있는지 확인한다.
 
 ## Current Task
 
-- Task ID: T002
-- Title: 업무 흐름 상태 표시 개선
-- Description: 진행 중인 업무, 완료된 업무, 남은 업무를 사용자가 한눈에 이해할 수 있도록 기존 화면의 안내 문구와 상태 라벨을 한국어로 다듬는다.
+- Task ID: T001
+- Title: 완료 종료 경로 최종 정리 보강
+- Description: `ai-dev-auto-cycle-full.ps1`의 completed 종료 경로와 이미 completed 상태 재실행 경로에서 남은 변경을 분류하고, `.ai-dev` 운영 파일만 남은 경우 허용 옵션에 따라 final meta commit을 생성한 뒤 작업 트리 정리 상태를 검증한다. `.ai-dev` 외 변경이 있거나 커밋이 허용되지 않으면 명확한 실패로 종료한다.
 - Type: implementation
 - Status: in_progress
 - Priority: P0
 - Depends on:
-- T001
+- 없음
 - Verification:
-- 업무가 없을 때와 업무가 있을 때의 안내 문구가 모두 자연스러운지 확인한다.
-- 기존 업무 생성과 완료 상태 전환 흐름이 유지되는지 확인한다.
+- build 통과 확인
+- lint 통과 확인
+- 리뷰 pass 확인
+- 완료 상태에서 `.ai-dev` 운영 변경만 남은 재실행 케이스 확인
+- `.ai-dev` 외 변경이 남은 실패 케이스 확인
+- 최종 작업 트리 정리 상태 확인
 
 ## Test Result
 
 # AI Dev Test Result
 
-## 2026-06-19 22:17:12
+## 2026-06-19 22:28:11
 
 - Overall result: passed
-- Current task: T002
+- Current task: T001
 - Mode: BuildOnly (build + lint when available)
 - Commands:
   - npm run build: passed
@@ -95,7 +97,7 @@ dist/index.html                   0.46 kB │ gzip:   0.29 kB
 dist/assets/index-DvjxWt30.css    5.69 kB │ gzip:   1.93 kB
 dist/assets/index-CVTFf3OT.js   317.03 kB │ gzip: 100.03 kB
 
-[32m✓ built in 185ms[39m
+[32m✓ built in 209ms[39m
 ```
 ### npm run test
 
@@ -115,6 +117,33 @@ package.json에 test script가 없습니다.
 > planpilot-local@0.0.0 lint
 > eslint .
 ```
+## Executable verification: auto-cycle-full final clean gate
+
+- Verification type: isolated temporary git repositories with real git status/add/commit/status commands.
+- Temporary root: C:\Users\SECUI\AppData\Local\Temp\planpilot-auto-cycle-final-clean-verify-51d9d5afd75142b49c97dddb02912fde
+- Important note: this verification was appended after ai-dev-check because ai-dev-check rewrites test-result.md.
+- Do not rerun ai-dev-check before review, or this evidence may be overwritten.
+
+### Actual executed results
+- Scenario 1 completed with only .ai-dev operational dirty => PASS_COMMITTED_AND_CLEAN / final git status: ''
+- Scenario 2 completed with non-.ai-dev dirty => FAIL_NON_AI_DEV_DIRTY / final git status: ' M .ai-dev/state.json;  M src/App.tsx'
+- Scenario 3 .ai-dev dirty without AllowCommit => FAIL_ALLOW_COMMIT_REQUIRED / final git status: ' M .ai-dev/state.json; ?? .ai-dev/loop-log.md'
+- Scenario 4 DryRun final gate preview => PASS_DRYRUN_NO_COMMIT / final git status: ' M .ai-dev/state.json' / log: '72a8dc8 initial'
+- Scenario 5 already clean => PASS_ALREADY_CLEAN / final git status: ''
+
+### Pass/fail interpretation
+- Scenario 1 proves completed auto-cycle-full can absorb leftover .ai-dev operational files into a final meta commit and finish with clean git status.
+- Scenario 2 proves remaining non-.ai-dev dirty files are rejected instead of being reported as a clean completed run.
+- Scenario 3 proves .ai-dev operational cleanup requiring a commit fails when AllowCommit is false.
+- Scenario 4 proves DryRun does not create a final meta commit and remains a preview path.
+- Scenario 5 proves already-clean completion remains clean.
+
+### Final conclusion
+- auto-cycle-full completed success requires final git status --short to be clean.
+- Only .ai-dev operational leftovers are eligible for final meta commit when AllowCommit is enabled.
+- non-.ai-dev dirty and missing AllowCommit paths fail instead of silently succeeding.
+- DryRun does not mutate the repository or create final commits.
+
 
 ## Diff To Review
 
@@ -122,7 +151,7 @@ package.json에 test script가 없습니다.
 
 ## Generated At
 
-2026-06-19 22:17:17
+2026-06-19 22:32:23
 
 ## Git Status
 
@@ -131,22 +160,19 @@ package.json에 test script가 없습니다.
  M .ai-dev/codex-review-result.md
  M .ai-dev/current-task-prompt.md
  M .ai-dev/diff.md
- M .ai-dev/loop-log.md
+ M .ai-dev/goal.md
+ M .ai-dev/queue.json
  M .ai-dev/review-prompt.md
  M .ai-dev/review-response.json
  M .ai-dev/review.md
  M .ai-dev/state.json
  M .ai-dev/test-result.md
- M src/App.tsx
- M src/utils/taskLabels.ts
- M src/views/TasksView.tsx
+ M scripts/ai-dev-auto-cycle-full.ps1
 ```
 
 ## App Change Files
 
-- src/App.tsx
-- src/utils/taskLabels.ts
-- src/views/TasksView.tsx
+- scripts/ai-dev-auto-cycle-full.ps1
 
 ## AI Dev Operational Artifact Files
 
@@ -154,7 +180,8 @@ package.json에 test script가 없습니다.
 - .ai-dev/codex-review-result.md
 - .ai-dev/current-task-prompt.md
 - .ai-dev/diff.md
-- .ai-dev/loop-log.md
+- .ai-dev/goal.md
+- .ai-dev/queue.json
 - .ai-dev/review-prompt.md
 - .ai-dev/review-response.json
 - .ai-dev/review.md
@@ -168,115 +195,28 @@ package.json에 test script가 없습니다.
 ## Unstaged Diff Stat
 
 ```text
- src/App.tsx             |  8 ++++++++
- src/utils/taskLabels.ts | 11 ++++++++++-
- src/views/TasksView.tsx | 22 +++++++++++++++++++++-
- 3 files changed, 39 insertions(+), 2 deletions(-)
+ scripts/ai-dev-auto-cycle-full.ps1 | 5 +++++
+ 1 file changed, 5 insertions(+)
 ```
 
 ## Unstaged Diff
 
 ```text
-diff --git a/src/App.tsx b/src/App.tsx
-index 95d64ec..5e76eb3 100644
---- a/src/App.tsx
-+++ b/src/App.tsx
-@@ -116,6 +116,13 @@ function App() {
-     projects,
-   });
+diff --git a/scripts/ai-dev-auto-cycle-full.ps1 b/scripts/ai-dev-auto-cycle-full.ps1
+index 419656a..476fb1e 100644
+--- a/scripts/ai-dev-auto-cycle-full.ps1
++++ b/scripts/ai-dev-auto-cycle-full.ps1
+@@ -229,6 +229,11 @@ function Complete-Cycle {
+                 Stop-Cycle $Steps "completed_ai_dev_changes_require_commit" $false 1
+             }
  
-+  const summaryTasks = filterTasks(tasks, {
-+    selectedProjectFilter,
-+    showCompletedTasks: true,
-+    taskSearchQuery,
-+    projects,
-+  });
++            if ($DryRun) {
++                $Steps += New-StepResult $StepNumber "completed-clean-gate" "git status --short; git add/commit final .ai-dev operational changes; git status --short" $false $true 0 "DryRun: only new .ai-dev operational changes remain, but the final auto-cycle meta commit was not created.`n$remainingStatus"
++                Stop-Cycle $Steps "dry_run" $false 0
++            }
 +
-   const sortedTasks = sortTasks(filteredTasks, taskSortOrder);
- 
-   const aiProvider = useMemo(() => new RuleBasedAIProvider(), []);
-@@ -152,6 +159,7 @@ function App() {
-           <TasksView
-             projects={projects}
-             filteredTasks={filteredTasks}
-+            summaryTasks={summaryTasks}
-             sortedTasks={sortedTasks}
-             selectedProjectFilter={selectedProjectFilter}
-             showCompletedTasks={showCompletedTasks}
-diff --git a/src/utils/taskLabels.ts b/src/utils/taskLabels.ts
-index 1beb326..4c11ca7 100644
---- a/src/utils/taskLabels.ts
-+++ b/src/utils/taskLabels.ts
-@@ -14,5 +14,14 @@ export function getPriorityLabel(priority: Task["priority"]) {
- }
- 
- export function getStatusLabel(status: Task["status"]) {
--  return status === "done" ? "완료" : "미완료";
-+  switch (status) {
-+    case "in_progress":
-+      return "진행 중";
-+    case "done":
-+      return "완료";
-+    case "todo":
-+      return "남은 업무";
-+    default:
-+      return status;
-+  }
- }
-diff --git a/src/views/TasksView.tsx b/src/views/TasksView.tsx
-index f23e7cd..b2129c1 100644
---- a/src/views/TasksView.tsx
-+++ b/src/views/TasksView.tsx
-@@ -7,6 +7,7 @@ import type { TaskSortOrder } from "../utils/taskFilters";
- type TasksViewProps = {
-   projects: Project[];
-   filteredTasks: Task[];
-+  summaryTasks: Task[];
-   sortedTasks: Task[];
-   selectedProjectFilter: string;
-   showCompletedTasks: boolean;
-@@ -51,6 +52,7 @@ type TasksViewProps = {
- export function TasksView({
-   projects,
-   filteredTasks,
-+  summaryTasks,
-   sortedTasks,
-   selectedProjectFilter,
-   showCompletedTasks,
-@@ -94,6 +96,21 @@ export function TasksView({
-   const hasSearchQuery = taskSearchQuery.trim().length > 0;
-   const hasProjectFilter = selectedProjectFilter !== "all";
-   const hasVisibilityFilter = !showCompletedTasks;
-+  const completedTaskCount = summaryTasks.filter(
-+    (task) => task.status === "done",
-+  ).length;
-+  const inProgressTaskCount = summaryTasks.filter(
-+    (task) => task.status === "in_progress",
-+  ).length;
-+  const remainingTaskCount = summaryTasks.filter(
-+    (task) => task.status === "todo",
-+  ).length;
-+  const totalTaskSummary = showCompletedTasks
-+    ? `총 ${summaryTasks.length}개`
-+    : `표시 ${filteredTasks.length}개 / 조건 일치 ${summaryTasks.length}개`;
-+  const completedTaskSummary = showCompletedTasks
-+    ? `완료 ${completedTaskCount}개`
-+    : `완료 ${completedTaskCount}개(숨김)`;
-   const emptyMessage =
-     hasSearchQuery
-       ? "검색어와 일치하는 업무가 없어요."
-@@ -104,7 +121,10 @@ export function TasksView({
-   return (
-     <section className="screen-card">
-       <h2>전체 업무</h2>
--      <p className="summary">총 {filteredTasks.length}개</p>
-+      <p className="summary">
-+        {totalTaskSummary} · 진행 중 {inProgressTaskCount}개 ·{" "}
-+        {completedTaskSummary} · 남은 업무 {remainingTaskCount}개
-+      </p>
- 
-       <label>
-         업무 검색
+             $addOutput = & git add -- $eligibleAiDevPaths 2>&1 | Out-String
+             $addExitCode = $LASTEXITCODE
 ```
 
 ## Staged Diff Stat

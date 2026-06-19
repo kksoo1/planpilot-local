@@ -7,49 +7,47 @@
 ## Goal
 
 # 목표
-PlanPilot Local MVP에서 사용자가 현재 진행 중인 업무, 완료된 업무, 남은 업무를 더 빠르게 이해할 수 있도록 업무 목록 또는 대시보드 영역의 안내 문구와 상태 표시를 개선한다.
+AI Dev Loop의 `auto-cycle-full` 완료 종료 경로에서 운영 산출물 변경을 최종 정리하도록 보강한다.
 
 ## 배경
-현재 MVP는 기존 업무 데이터를 기반으로 로컬에서 동작한다. 1차 사용성을 높이기 위해 기능 로직을 크게 바꾸기보다, 기존 화면에서 업무 상태를 더 명확하게 읽을 수 있는 작은 개선이 필요하다.
+기존 `in_progress` 목표를 이어 실행했을 때 모든 task가 `done`이 되어 `goalStatus`가 `completed`가 되었지만 `.ai-dev` 운영 산출물이 작업 트리에 남는 문제가 있다. 완료 상태 재실행 시에도 운영 산출물만 남아 있으면 최종 메타 커밋으로 정리되어야 한다.
 
 ## 성공 기준
-- 진행 중인 업무, 완료된 업무, 남은 업무의 의미가 화면에서 더 명확하게 드러난다.
-- 기존 데이터 구조와 저장 방식은 유지한다.
-- 사용자-facing 문구는 한국어로 제공한다.
-- 변경 범위는 업무 목록 또는 대시보드 영역의 작은 UI 개선으로 제한한다.
-- 허용된 검증을 통과하고 리뷰 결과가 통과 상태가 된다.
-- 구현 변경과 AI Dev Loop 메타 변경이 각각 기록된다.
-- 최종 상태에서 예상하지 못한 변경 파일이 남아 있지 않음을 확인한다.
+- `ai-dev-auto-cycle-full.ps1`의 completed 종료 경로에서 남은 변경을 최종 분류한다.
+- 남은 변경이 `.ai-dev` 운영 파일뿐이고 커밋 허용 옵션이 켜져 있으면 final meta commit을 생성한다.
+- final meta commit 후 작업 트리 상태가 비어 있는지 검증한다.
+- `.ai-dev` 외 변경이 남아 있거나 커밋 허용 옵션이 꺼져 있으면 completed 성공으로 종료하지 않고 실패로 처리한다.
+- 이미 `goalStatus`가 `completed`인 상태에서 `.ai-dev` 운영 변경만 남아 있는 경우에도 재실행 시 최종 메타 커밋 후 정리된다.
+- 앱 `src` 파일은 변경하지 않는다.
+- build/lint 통과, 리뷰 pass, 구현 커밋, complete-task, `.ai-dev` 메타 커밋, 최종 작업 트리 정리 검증까지 완료한다.
 
 ## 제약사항
-- 서버 연동이나 외부 전송 없이 로컬 앱 방향을 유지한다.
-- 로그인, 동기화, 알림, 모바일 권한 요청은 추가하지 않는다.
-- IndexedDB와 Dexie.js 기반 저장 구조를 유지한다.
-- `src/App.css`, lock file, `node_modules`, `dist`, `.git`은 수정하지 않는다.
-- 한 번에 하나의 기능만 작게 구현한다.
+- 앱 `src` 파일은 변경하지 않는다.
+- 한 번에 하나의 작은 구현 변경으로 제한한다.
+- 기존 AI Dev Loop 상태 파일 형식과 스크립트 흐름을 유지한다.
+- 사용자가 만든 변경 사항을 되돌리지 않는다.
 
 ## 범위 제외
-- 새 화면 추가
-- 대규모 컴포넌트 재작성
-- 데이터 schema 변경
-- 새 상태 관리 구조 도입
-- 알림 또는 반복 업무 기능
+- 앱 기능 변경
+- IndexedDB 또는 데이터 모델 변경
+- 대규모 스크립트 재작성
+- 알림, 동기화, 인증 관련 기능
 
 ## 수동 검증
-- 앱 화면에서 진행 중, 완료, 남은 업무 상태 안내가 자연스럽게 보이는지 확인한다.
-- 빈 업무 목록 또는 완료 업무가 있는 상태에서 문구가 어색하지 않은지 확인한다.
-- 기존 업무 생성, 완료 전환, 필터 흐름이 깨지지 않는지 확인한다.
+- 완료 상태에서 `.ai-dev` 운영 산출물만 남은 상황을 만든 뒤 `-AllowCommit` 옵션으로 재실행해 final meta commit이 생성되는지 확인한다.
+- `.ai-dev` 외 변경이 남은 상황에서는 completed 성공으로 처리되지 않는지 확인한다.
+- 최종 작업 트리 상태가 비어 있는지 확인한다.
 
 ## Current Task
 
-- Task ID: T003
-- Title: 검증 및 작업 기록 완료
-- Description: 허용된 build와 lint를 실행하고, 리뷰 통과 여부를 확인한 뒤 구현 변경과 AI Dev Loop 메타 변경을 각각 기록한다.
-- Type: verification
+- Task ID: T001
+- Title: 완료 종료 경로 최종 정리 보강
+- Description: `ai-dev-auto-cycle-full.ps1`의 completed 종료 경로와 이미 completed 상태 재실행 경로에서 남은 변경을 분류하고, `.ai-dev` 운영 파일만 남은 경우 허용 옵션에 따라 final meta commit을 생성한 뒤 작업 트리 정리 상태를 검증한다. `.ai-dev` 외 변경이 있거나 커밋이 허용되지 않으면 명확한 실패로 종료한다.
+- Type: implementation
 - Status: in_progress
-- Priority: P1
+- Priority: P0
 - Depends on:
-- T002
+- 없음
 
 ## Task Scope
 
@@ -60,16 +58,16 @@ PlanPilot Local MVP에서 사용자가 현재 진행 중인 업무, 완료된 �
 
 ## Likely Files
 
-- .ai-dev/goal.md
-- .ai-dev/queue.json
-- .ai-dev/state.json
+- .ai-dev/scripts/ai-dev-auto-cycle-full.ps1
 
 ## Verification
 
-- npm run build 통과를 확인한다.
-- npm run lint 통과를 확인한다.
-- 리뷰 결과가 pass인지 확인한다.
-- 예상하지 못한 수정 파일이 없는지 확인한다.
+- build 통과 확인
+- lint 통과 확인
+- 리뷰 pass 확인
+- 완료 상태에서 `.ai-dev` 운영 변경만 남은 재실행 케이스 확인
+- `.ai-dev` 외 변경이 남은 실패 케이스 확인
+- 최종 작업 트리 정리 상태 확인
 
 - 필요한 경우 `npm run build`는 사람이 별도로 실행한다.
 - 이 프롬프트는 자동으로 build, test, lint를 실행하라고 지시하지 않는다.
