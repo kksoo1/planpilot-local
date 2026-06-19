@@ -803,6 +803,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\ai-dev-auto-goal.ps1 -GoalTit
 - 저장소의 `AGENTS.md`, 사용자 지시, 보안 정책이 자동 개발 루프보다 우선한다.
 - 한 번에 하나의 task만 수행한다.
 - task 단위로 구현, 검증, 리뷰, 커밋한다.
+- task 완료 기준은 build/lint 통과, 리뷰 pass, 구현 커밋, complete-task 수행, `.ai-dev` 메타 커밋, 최종 git clean 상태까지 확인된 경우로 한다.
 - 현재 task 범위 밖 파일을 임의로 수정하지 않는다.
 - 검증하지 않은 결과를 통과로 기록하지 않는다.
 - 실제 DB 삭제, 초기화, 복원, 대규모 리팩터링은 초기 실험 범위에서 제외한다.
