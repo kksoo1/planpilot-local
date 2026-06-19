@@ -7,42 +7,40 @@
 ## Goal
 
 # 목표
-AI Dev Loop의 `auto-cycle-full` 완료 종료 경로에서 운영 산출물 변경을 최종 정리하도록 보강한다.
+AI Dev Loop의 전체 자동 사이클 스크립트가 리뷰 결과 `decision=revise`, `next_step=revise_with_codex` 상태에서 멈추지 않고 제한된 범위의 자동 수정 루프를 수행하도록 보강한다.
 
 ## 배경
-기존 `in_progress` 목표를 이어 실행했을 때 모든 task가 `done`이 되어 `goalStatus`가 `completed`가 되었지만 `.ai-dev` 운영 산출물이 작업 트리에 남는 문제가 있다. 완료 상태 재실행 시에도 운영 산출물만 남아 있으면 최종 메타 커밋으로 정리되어야 한다.
+현재 `ai-dev-auto-cycle-full.ps1`는 리뷰가 수정 요청 상태로 끝나는 경우 후속 revise 흐름을 자동으로 이어가지 못한다. 저장된 리뷰 결과를 기반으로 revise prompt 생성, Codex 수정, 검증, diff 기록, 리뷰 재실행까지 한 번의 사이클 안에서 처리해야 한다.
 
 ## 성공 기준
-- `ai-dev-auto-cycle-full.ps1`의 completed 종료 경로에서 남은 변경을 최종 분류한다.
-- 남은 변경이 `.ai-dev` 운영 파일뿐이고 커밋 허용 옵션이 켜져 있으면 final meta commit을 생성한다.
-- final meta commit 후 작업 트리 상태가 비어 있는지 검증한다.
-- `.ai-dev` 외 변경이 남아 있거나 커밋 허용 옵션이 꺼져 있으면 completed 성공으로 종료하지 않고 실패로 처리한다.
-- 이미 `goalStatus`가 `completed`인 상태에서 `.ai-dev` 운영 변경만 남아 있는 경우에도 재실행 시 최종 메타 커밋 후 정리된다.
-- 앱 `src` 파일은 변경하지 않는다.
-- build/lint 통과, 리뷰 pass, 구현 커밋, complete-task, `.ai-dev` 메타 커밋, 최종 작업 트리 정리 검증까지 완료한다.
+- 리뷰 결과가 `revise` 및 `revise_with_codex`인 경우 자동 revise 흐름이 실행된다.
+- revise 후 build/lint 검증 결과가 `.ai-dev/test-result.md`에 기록된다.
+- 검증 후 diff가 저장되고 리뷰가 재실행된다.
+- 리뷰가 `pass`로 바뀌면 기존 pass 처리 흐름이 유지된다.
+- 리뷰가 계속 `revise`이면 최신 사유를 남기고 명확히 중단한다.
+- 기존 pass 처리, completed final clean, DryRun 동작은 깨지지 않는다.
 
 ## 제약사항
 - 앱 `src` 파일은 변경하지 않는다.
-- 한 번에 하나의 작은 구현 변경으로 제한한다.
-- 기존 AI Dev Loop 상태 파일 형식과 스크립트 흐름을 유지한다.
-- 사용자가 만든 변경 사항을 되돌리지 않는다.
+- 변경 범위는 AI Dev Loop 관련 스크립트와 `.ai-dev` 메타 파일로 제한한다.
+- 기존 동작을 대체하기보다 현재 흐름에 revise 분기만 작게 추가한다.
+- 검증 명령 실행 여부와 결과는 명확히 기록한다.
 
 ## 범위 제외
-- 앱 기능 변경
-- IndexedDB 또는 데이터 모델 변경
-- 대규모 스크립트 재작성
-- 알림, 동기화, 인증 관련 기능
+- 앱 기능 변경 및 UI 변경은 포함하지 않는다.
+- 저장소 구조의 대규모 재작성은 포함하지 않는다.
+- 새로운 외부 의존성 추가는 포함하지 않는다.
 
 ## 수동 검증
-- 완료 상태에서 `.ai-dev` 운영 산출물만 남은 상황을 만든 뒤 `-AllowCommit` 옵션으로 재실행해 final meta commit이 생성되는지 확인한다.
-- `.ai-dev` 외 변경이 남은 상황에서는 completed 성공으로 처리되지 않는지 확인한다.
-- 최종 작업 트리 상태가 비어 있는지 확인한다.
+- DryRun 모드에서 revise 분기가 실제 수정 실행 없이 의도한 단계만 출력되는지 확인한다.
+- 저장된 리뷰 결과가 revise인 샘플 상태에서 revise prompt 생성, 검증 기록, diff 저장, 리뷰 재실행 흐름을 확인한다.
+- pass 리뷰 결과에서는 기존 완료 흐름이 유지되는지 확인한다.
 
 ## Current Task
 
 - Task ID: T001
-- Title: 완료 종료 경로 최종 정리 보강
-- Description: `ai-dev-auto-cycle-full.ps1`의 completed 종료 경로와 이미 completed 상태 재실행 경로에서 남은 변경을 분류하고, `.ai-dev` 운영 파일만 남은 경우 허용 옵션에 따라 final meta commit을 생성한 뒤 작업 트리 정리 상태를 검증한다. `.ai-dev` 외 변경이 있거나 커밋이 허용되지 않으면 명확한 실패로 종료한다.
+- Title: review revise 자동 재시도 흐름 보강
+- Description: `ai-dev-auto-cycle-full.ps1`의 저장된 리뷰 결과 처리 흐름에 revise 분기를 추가해 prompt 생성, Codex 수정, 검증 기록, diff 저장, 리뷰 재실행까지 제한된 자동 루프를 수행하도록 구현한다.
 - Type: implementation
 - Status: in_progress
 - Priority: P0
@@ -58,16 +56,17 @@ AI Dev Loop의 `auto-cycle-full` 완료 종료 경로에서 운영 산출물 변
 
 ## Likely Files
 
-- .ai-dev/scripts/ai-dev-auto-cycle-full.ps1
+- .ai-dev/goal.md
+- .ai-dev/queue.json
+- .ai-dev/state.json
+- ai-dev-auto-cycle-full.ps1
+- .ai-dev/test-result.md
 
 ## Verification
 
-- build 통과 확인
-- lint 통과 확인
-- 리뷰 pass 확인
-- 완료 상태에서 `.ai-dev` 운영 변경만 남은 재실행 케이스 확인
-- `.ai-dev` 외 변경이 남은 실패 케이스 확인
-- 최종 작업 트리 정리 상태 확인
+- DryRun 모드에서 revise 분기 단계가 안전하게 표시되는지 확인
+- revise 결과 상태에서 `.ai-dev/test-result.md`에 검증 기록이 남는지 확인
+- pass 결과 상태에서 기존 완료 흐름이 유지되는지 확인
 
 - 필요한 경우 `npm run build`는 사람이 별도로 실행한다.
 - 이 프롬프트는 자동으로 build, test, lint를 실행하라고 지시하지 않는다.

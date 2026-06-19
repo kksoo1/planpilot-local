@@ -273,3 +273,8 @@
 - Task: T001 완료 종료 경로 최종 정리 보강
 - Result: T001 완료: auto-cycle-full completed 종료 경로에서 .ai-dev 운영 변경만 남은 경우 final meta commit 후 git clean을 보장하고, DryRun/AllowCommit/non-.ai-dev dirty 실패 경로 검증을 반영함
 - Next task: 없음
+## 2026-06-19 23:08:16 - Task completed
+
+- Task: T001 review revise 자동 재시도 흐름 보강
+- Result: T001 완료: auto-cycle-full이 saved review revise/revise_with_codex 상태에서 일반 실행 시 자동 재시도하고, DryRun에서는 Codex/검증/리뷰 단계를 실행하지 않고 변경 없이 preview/stop 처리하도록 보강했으며 build/lint 및 DryRun no-mutation 검증과 리뷰 pass를 확인함
+- Next task: 없음

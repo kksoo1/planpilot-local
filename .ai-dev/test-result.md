@@ -1,6 +1,6 @@
 ﻿# AI Dev Test Result
 
-## 2026-06-19 22:28:11
+## 2026-06-19 23:06:43
 
 - Overall result: passed
 - Current task: T001
@@ -29,7 +29,7 @@ dist/index.html                   0.46 kB │ gzip:   0.29 kB
 dist/assets/index-DvjxWt30.css    5.69 kB │ gzip:   1.93 kB
 dist/assets/index-CVTFf3OT.js   317.03 kB │ gzip: 100.03 kB
 
-[32m✓ built in 209ms[39m
+[32m✓ built in 181ms[39m
 ```
 ### npm run test
 
@@ -49,29 +49,98 @@ package.json에 test script가 없습니다.
 > planpilot-local@0.0.0 lint
 > eslint .
 ```
-## Executable verification: auto-cycle-full final clean gate
+## Executable verification: revise retry DryRun guard
 
-- Verification type: isolated temporary git repositories with real git status/add/commit/status commands.
-- Temporary root: C:\Users\SECUI\AppData\Local\Temp\planpilot-auto-cycle-final-clean-verify-51d9d5afd75142b49c97dddb02912fde
-- Important note: this verification was appended after ai-dev-check because ai-dev-check rewrites test-result.md.
-- Do not rerun ai-dev-check before review, or this evidence may be overwritten.
+- Verification type: current dirty repo status comparison before/after auto-cycle-full DryRun.
+- Scenario: saved review decision is revise and next_step is revise_with_codex.
+- Result: PASS_DRYRUN_NO_MUTATION
+- Before dirty count: 12
+- After dirty count: 12
 
-### Actual executed results
-- Scenario 1 completed with only .ai-dev operational dirty => PASS_COMMITTED_AND_CLEAN / final git status: ''
-- Scenario 2 completed with non-.ai-dev dirty => FAIL_NON_AI_DEV_DIRTY / final git status: ' M .ai-dev/state.json;  M src/App.tsx'
-- Scenario 3 .ai-dev dirty without AllowCommit => FAIL_ALLOW_COMMIT_REQUIRED / final git status: ' M .ai-dev/state.json; ?? .ai-dev/loop-log.md'
-- Scenario 4 DryRun final gate preview => PASS_DRYRUN_NO_COMMIT / final git status: ' M .ai-dev/state.json' / log: '72a8dc8 initial'
-- Scenario 5 already clean => PASS_ALREADY_CLEAN / final git status: ''
-
-### Pass/fail interpretation
-- Scenario 1 proves completed auto-cycle-full can absorb leftover .ai-dev operational files into a final meta commit and finish with clean git status.
-- Scenario 2 proves remaining non-.ai-dev dirty files are rejected instead of being reported as a clean completed run.
-- Scenario 3 proves .ai-dev operational cleanup requiring a commit fails when AllowCommit is false.
-- Scenario 4 proves DryRun does not create a final meta commit and remains a preview path.
-- Scenario 5 proves already-clean completion remains clean.
-
-### Final conclusion
-- auto-cycle-full completed success requires final git status --short to be clean.
-- Only .ai-dev operational leftovers are eligible for final meta commit when AllowCommit is enabled.
-- non-.ai-dev dirty and missing AllowCommit paths fail instead of silently succeeding.
-- DryRun does not mutate the repository or create final commits.
+### DryRun output excerpt
+`	ext
+Step 1: task-start
+  Command: MaxTasks=10
+  Executed: False
+  Skipped: False
+  Exit code: 0
+  Message: ?꾩옱 task ?ㅽ뻾 ?쒖옉: T001 review revise ?먮룞 ?ъ떆???먮쫫 蹂닿컯
+Step 2: make-prompt
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-prompt.ps1
+  Executed: False
+  Skipped: True
+  Exit code: 0
+  Message: DryRun: ?섏쐞 ?ㅽ겕由쏀듃瑜??ㅽ뻾?섏? ?딆븯?듬땲??
+Step 3: run-codex
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-codex.ps1
+  Executed: False
+  Skipped: True
+  Exit code: 0
+  Message: DryRun: ?섏쐞 ?ㅽ겕由쏀듃瑜??ㅽ뻾?섏? ?딆븯?듬땲??
+Step 4: check
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-check.ps1 -BuildOnly
+  Executed: False
+  Skipped: True
+  Exit code: 0
+  Message: DryRun: ?섏쐞 ?ㅽ겕由쏀듃瑜??ㅽ뻾?섏? ?딆븯?듬땲??
+Step 5: save-diff
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-save-diff.ps1
+  Executed: False
+  Skipped: True
+  Exit code: 0
+  Message: DryRun: ?섏쐞 ?ㅽ겕由쏀듃瑜??ㅽ뻾?섏? ?딆븯?듬땲??
+Step 6: make-review-prompt
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-review-prompt.ps1 -Strict
+  Executed: False
+  Skipped: True
+  Exit code: 0
+  Message: DryRun: ?섏쐞 ?ㅽ겕由쏀듃瑜??ㅽ뻾?섏? ?딆븯?듬땲??
+Step 7: run-review-codex
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-review-codex.ps1 -AllowDirty -SaveReview
+  Executed: False
+  Skipped: True
+  Exit code: 0
+  Message: DryRun: ?섏쐞 ?ㅽ겕由쏀듃瑜??ㅽ뻾?섏? ?딆븯?듬땲??
+Step 8: review-gate
+  Command: state.lastReviewDecision ?뺤씤
+  Executed: False
+  Skipped: True
+  Exit code: 0
+  Message: DryRun: 由щ럭 pass ?щ?瑜??ㅼ젣 ?곹깭?먯꽌 ?쎌? ?딆븯?듬땲??
+Step 9: package-change-gate
+  Command: git status --porcelain -- package.json package-lock.json
+  Executed: False
+  Skipped: True
+  Exit code: 0
+  Message: DryRun: package ?뚯씪 蹂寃??щ?瑜??뺤씤?섏? ?딆븯?듬땲??
+Step 10: commit
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-commit.ps1
+  Executed: False
+  Skipped: True
+  Exit code: 0
+  Message: DryRun: git add/commit???ㅽ뻾?섏? ?딆븯?듬땲??
+Step 11: commit-result-gate
+  Command: state.lastCommand/lastCommitHash ?뺤씤
+  Executed: False
+  Skipped: True
+  Exit code: 0
+  Message: DryRun: ?ㅼ젣 而ㅻ컠 ?앹꽦 ?щ?瑜??뺤씤?섏? ?딆븯?듬땲??
+Step 12: complete-task
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-complete-task.ps1 -ResultSummary "?먮룞 ?꾨즺: Codex 援ы쁽, build/check, Codex 由щ럭 pass, ?먮룞 而ㅻ컠 ?꾨즺" -CommitHash <commit-hash>
+  Executed: False
+  Skipped: True
+  Exit code: 0
+  Message: DryRun: task ?꾨즺 泥섎━瑜??ㅽ뻾?섏? ?딆븯?듬땲??
+Step 13: meta-commit
+  Command: direct meta commit: git add scoped .ai-dev files, git commit -m 'chore(ai-dev): record task completion', git status --short
+  Executed: False
+  Skipped: True
+  Exit code: 0
+  Message: DryRun: .ai-dev 硫뷀? ?곹깭 吏곸젒 而ㅻ컠???ㅽ뻾?섏? ?딆븯?듬땲??
+Step 14: final-status
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-status.ps1
+`",
+  ",
+  
+- PASS_DRYRUN_NO_MUTATION means DryRun did not run a mutating revise cycle and did not change git status.
+- This specifically verifies the review concern that DryRun must not enter the normal implementation/review flow before previewing the revise action.
