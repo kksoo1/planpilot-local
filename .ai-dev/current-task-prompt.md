@@ -7,39 +7,39 @@
 ## Goal
 
 # 목표
-AI Dev Loop의 review revise 자동 재시도 흐름에서 재시도 중단 사유가 일반화되지 않도록 보강한다.
+AI Dev Loop에서 구현 없는 revise 반복을 실패로 중단하도록 자동화 검증을 보강한다.
 
 ## 배경
-현재 재수정 후 재리뷰 결과가 계속 decision=revise인 경우, next_step 값에 따라 최신 리뷰 사유가 충분히 보존되지 않을 수 있다. 특히 revise_with_codex 반복 제한 상황에서도 사용자가 최신 review summary, severity, next_step, lastReviewDecision을 확인할 수 있어야 한다.
+현재 자동 실행 중 현재 task가 implementation이 아니거나 실제 구현 대상 파일 변경이 없는데도 review decision=revise가 반복될 수 있다. 또한 review-response.json이 특정 구현 파일 수정을 요구했지만 diff에 해당 파일 변경이 없으면 이전 리뷰 결과를 다시 소비하거나 구현 누락을 놓칠 위험이 있다.
 
 ## 성공 기준
-- 재수정 후 재리뷰 결과가 계속 decision=revise이면 next_step 값과 관계없이 최신 review summary, severity, next_step, lastReviewDecision을 포함한 명확한 중단 메시지와 상태를 남긴다.
-- next_step=revise_with_codex가 반복된 경우 기존 1회 재시도 제한 메시지를 유지하면서 최신 리뷰 사유를 함께 포함한다.
-- DryRun은 Codex, check, review, commit, complete-task를 실행하지 않고 상태 변경 없이 preview만 출력한다.
-- 기존 pass 처리, completed final clean, AllowCommit 처리, non-.ai-dev dirty 실패 동작은 유지한다.
-- 앱 src 파일은 변경하지 않는다.
-- build/lint 검증, DryRun no-mutation 검증 기록, 리뷰 pass, 구현 커밋, complete-task, .ai-dev 메타 커밋, 최종 clean 상태 확인까지 완료한다.
+- auto-goal 또는 auto-cycle 흐름에서 implementation task가 아닌 상태의 revise 반복을 성공 처리하지 않는다.
+- review-response.json이 요구한 구현 파일 변경이 현재 diff에 없으면 stale review 또는 missing implementation으로 판정한다.
+- 위 판정 시 후속 완료 처리와 목표 완료 처리를 막고 명확한 실패 사유를 남긴다.
+- 자동화 스크립트 변경만으로 동작을 보강한다.
+- 빌드와 린트가 통과하고 리뷰가 pass 상태가 된다.
 
 ## 제약사항
-- 변경 범위는 AI Dev Loop 스크립트와 관련 메타 파일로 제한한다.
-- 기존 동작을 보존하면서 revise 중단 상태 기록만 좁게 보강한다.
-- 사용자 변경 사항은 되돌리지 않는다.
+- 이 목표는 implementation task 1개로만 처리한다.
+- 앱 src 파일은 변경하지 않는다.
+- 필요한 자동화 스크립트만 최소 범위로 수정한다.
+- 기존 상태 파일 형식과 자동화 흐름을 최대한 유지한다.
 
 ## 범위 제외
-- 앱 src 파일 변경은 제외한다.
-- AI Dev Loop 전체 구조 재작성은 제외한다.
-- 신규 기능 추가나 UI 변경은 제외한다.
+- 앱 기능, 화면, 저장소 구조 변경은 제외한다.
+- 분석 전용 task나 문서 전용 task를 별도로 만들지 않는다.
+- 자동화 흐름 전체 재작성은 제외한다.
 
 ## 수동 검증
-- DryRun 실행 시 실행 예정 작업만 preview되고 실제 상태 변경이 없는지 확인한다.
-- 재리뷰 revise 반복 시 최신 리뷰 사유가 상태와 메시지에 남는지 확인한다.
-- 기존 pass 및 commit 허용 흐름이 유지되는지 확인한다.
+- review-response.json이 구현 파일 변경을 요구하지만 diff에 해당 파일이 없는 상황을 확인한다.
+- implementation이 아닌 task에서 revise가 반복되는 상황을 확인한다.
+- 두 상황 모두 성공이나 완료로 진행되지 않고 실패 사유가 기록되는지 확인한다.
 
 ## Current Task
 
 - Task ID: T001
-- Title: revise 재시도 중단 사유 보존 보강
-- Description: ai-dev-auto-cycle-full.ps1의 review revise 자동 재시도 흐름을 좁게 수정해, 재리뷰가 계속 revise일 때 최신 리뷰 summary, severity, next_step, lastReviewDecision이 중단 메시지와 상태에 보존되도록 한다. DryRun preview-only 동작과 기존 pass, AllowCommit, final clean, dirty 실패 흐름은 유지한다.
+- Title: 구현 없는 revise 반복 실패 처리 보강
+- Description: auto-goal 또는 auto-cycle 실행 중 implementation task가 아니거나 리뷰가 요구한 구현 파일 변경이 diff에 없을 때 stale review 또는 missing implementation으로 판단하고 완료 흐름을 차단한다.
 - Type: implementation
 - Status: in_progress
 - Priority: P0
@@ -55,19 +55,16 @@ AI Dev Loop의 review revise 자동 재시도 흐름에서 재시도 중단 사�
 
 ## Likely Files
 
-- .ai-dev/ai-dev-auto-cycle-full.ps1
-- .ai-dev/goal.md
-- .ai-dev/queue.json
-- .ai-dev/state.json
+- scripts/ai-dev-auto-goal.ps1
+- scripts/ai-dev-auto-cycle.ps1
+- scripts/ai-dev-auto-cycle-full.ps1
+- scripts/ai-dev-auto-step.ps1
 
 ## Verification
 
-- build 통과 확인
-- lint 통과 확인
-- DryRun 실행 전후 상태 변경 없음 확인
-- revise 반복 시 최신 리뷰 사유가 중단 상태에 기록되는지 확인
-- 리뷰 pass 확인
-- 최종 clean 상태 확인
+- implementation task가 아닌 상태에서 revise 반복 시 실패 처리되는지 확인한다.
+- review-response.json이 요구한 구현 파일 변경이 diff에 없을 때 완료 흐름이 차단되는지 확인한다.
+- 허용된 검증 범위에서 빌드와 린트 결과를 확인한다.
 
 - 필요한 경우 `npm run build`는 사람이 별도로 실행한다.
 - 이 프롬프트는 자동으로 build, test, lint를 실행하라고 지시하지 않는다.

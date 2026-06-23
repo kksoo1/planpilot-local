@@ -15,57 +15,54 @@
 ## Project Goal
 
 # 목표
-AI Dev Loop의 review revise 자동 재시도 흐름에서 재시도 중단 사유가 일반화되지 않도록 보강한다.
+AI Dev Loop에서 구현 없는 revise 반복을 실패로 중단하도록 자동화 검증을 보강한다.
 
 ## 배경
-현재 재수정 후 재리뷰 결과가 계속 decision=revise인 경우, next_step 값에 따라 최신 리뷰 사유가 충분히 보존되지 않을 수 있다. 특히 revise_with_codex 반복 제한 상황에서도 사용자가 최신 review summary, severity, next_step, lastReviewDecision을 확인할 수 있어야 한다.
+현재 자동 실행 중 현재 task가 implementation이 아니거나 실제 구현 대상 파일 변경이 없는데도 review decision=revise가 반복될 수 있다. 또한 review-response.json이 특정 구현 파일 수정을 요구했지만 diff에 해당 파일 변경이 없으면 이전 리뷰 결과를 다시 소비하거나 구현 누락을 놓칠 위험이 있다.
 
 ## 성공 기준
-- 재수정 후 재리뷰 결과가 계속 decision=revise이면 next_step 값과 관계없이 최신 review summary, severity, next_step, lastReviewDecision을 포함한 명확한 중단 메시지와 상태를 남긴다.
-- next_step=revise_with_codex가 반복된 경우 기존 1회 재시도 제한 메시지를 유지하면서 최신 리뷰 사유를 함께 포함한다.
-- DryRun은 Codex, check, review, commit, complete-task를 실행하지 않고 상태 변경 없이 preview만 출력한다.
-- 기존 pass 처리, completed final clean, AllowCommit 처리, non-.ai-dev dirty 실패 동작은 유지한다.
-- 앱 src 파일은 변경하지 않는다.
-- build/lint 검증, DryRun no-mutation 검증 기록, 리뷰 pass, 구현 커밋, complete-task, .ai-dev 메타 커밋, 최종 clean 상태 확인까지 완료한다.
+- auto-goal 또는 auto-cycle 흐름에서 implementation task가 아닌 상태의 revise 반복을 성공 처리하지 않는다.
+- review-response.json이 요구한 구현 파일 변경이 현재 diff에 없으면 stale review 또는 missing implementation으로 판정한다.
+- 위 판정 시 후속 완료 처리와 목표 완료 처리를 막고 명확한 실패 사유를 남긴다.
+- 자동화 스크립트 변경만으로 동작을 보강한다.
+- 빌드와 린트가 통과하고 리뷰가 pass 상태가 된다.
 
 ## 제약사항
-- 변경 범위는 AI Dev Loop 스크립트와 관련 메타 파일로 제한한다.
-- 기존 동작을 보존하면서 revise 중단 상태 기록만 좁게 보강한다.
-- 사용자 변경 사항은 되돌리지 않는다.
+- 이 목표는 implementation task 1개로만 처리한다.
+- 앱 src 파일은 변경하지 않는다.
+- 필요한 자동화 스크립트만 최소 범위로 수정한다.
+- 기존 상태 파일 형식과 자동화 흐름을 최대한 유지한다.
 
 ## 범위 제외
-- 앱 src 파일 변경은 제외한다.
-- AI Dev Loop 전체 구조 재작성은 제외한다.
-- 신규 기능 추가나 UI 변경은 제외한다.
+- 앱 기능, 화면, 저장소 구조 변경은 제외한다.
+- 분석 전용 task나 문서 전용 task를 별도로 만들지 않는다.
+- 자동화 흐름 전체 재작성은 제외한다.
 
 ## 수동 검증
-- DryRun 실행 시 실행 예정 작업만 preview되고 실제 상태 변경이 없는지 확인한다.
-- 재리뷰 revise 반복 시 최신 리뷰 사유가 상태와 메시지에 남는지 확인한다.
-- 기존 pass 및 commit 허용 흐름이 유지되는지 확인한다.
+- review-response.json이 구현 파일 변경을 요구하지만 diff에 해당 파일이 없는 상황을 확인한다.
+- implementation이 아닌 task에서 revise가 반복되는 상황을 확인한다.
+- 두 상황 모두 성공이나 완료로 진행되지 않고 실패 사유가 기록되는지 확인한다.
 
 ## Current Task
 
 - Task ID: T001
-- Title: revise 재시도 중단 사유 보존 보강
-- Description: ai-dev-auto-cycle-full.ps1의 review revise 자동 재시도 흐름을 좁게 수정해, 재리뷰가 계속 revise일 때 최신 리뷰 summary, severity, next_step, lastReviewDecision이 중단 메시지와 상태에 보존되도록 한다. DryRun preview-only 동작과 기존 pass, AllowCommit, final clean, dirty 실패 흐름은 유지한다.
+- Title: 구현 없는 revise 반복 실패 처리 보강
+- Description: auto-goal 또는 auto-cycle 실행 중 implementation task가 아니거나 리뷰가 요구한 구현 파일 변경이 diff에 없을 때 stale review 또는 missing implementation으로 판단하고 완료 흐름을 차단한다.
 - Type: implementation
 - Status: in_progress
 - Priority: P0
 - Depends on:
 - 없음
 - Verification:
-- build 통과 확인
-- lint 통과 확인
-- DryRun 실행 전후 상태 변경 없음 확인
-- revise 반복 시 최신 리뷰 사유가 중단 상태에 기록되는지 확인
-- 리뷰 pass 확인
-- 최종 clean 상태 확인
+- implementation task가 아닌 상태에서 revise 반복 시 실패 처리되는지 확인한다.
+- review-response.json이 요구한 구현 파일 변경이 diff에 없을 때 완료 흐름이 차단되는지 확인한다.
+- 허용된 검증 범위에서 빌드와 린트 결과를 확인한다.
 
 ## Test Result
 
 # AI Dev Test Result
 
-## 2026-06-19 23:33:09
+## 2026-06-23 15:26:31
 
 - Overall result: passed
 - Current task: T001
@@ -94,7 +91,7 @@ dist/index.html                   0.46 kB │ gzip:   0.29 kB
 dist/assets/index-DvjxWt30.css    5.69 kB │ gzip:   1.93 kB
 dist/assets/index-CVTFf3OT.js   317.03 kB │ gzip: 100.03 kB
 
-[32m✓ built in 227ms[39m
+[32m✓ built in 233ms[39m
 ```
 ### npm run test
 
@@ -114,111 +111,6 @@ package.json에 test script가 없습니다.
 > planpilot-local@0.0.0 lint
 > eslint .
 ```
-## Executable verification: revise retry stop reason preservation
-
-- Verification target: scripts/ai-dev-auto-cycle-full.ps1
-- Goal: AI Dev Loop revise 재시도 중단 사유 보존 보강
-
-### Scenario 1: DryRun no-mutation
-- Result: PASS_DRYRUN_NO_MUTATION
-- Before dirty count: 13
-- After dirty count: 13
-- Interpretation: DryRun must not run Codex/check/review/commit/complete-task as mutating steps and must not change git status.
-
-### Scenario 2: revise repeat stop reason preservation
-- Result: PASS_REVISE_STOP_REASON_PRESERVED
-- Checks:
-  - PASS: decision revise branch exists
-  - PASS: lastReviewDecision is recorded
-  - PASS: severity is included
-  - PASS: next_step is included
-  - PASS: review summary is included
-- Interpretation: when re-review remains decision revise, the script must preserve latest summary, severity, next_step, and lastReviewDecision.
-
-### DryRun output excerpt
-DRYRUN OUTPUT BEGIN
-Step 1: task-start
-  Command: MaxTasks=10
-  Executed: False
-  Skipped: False
-  Exit code: 0
-  Message: ?꾩옱 task ?ㅽ뻾 ?쒖옉: T001 revise ?ъ떆??以묐떒 ?ъ쑀 蹂댁〈 蹂닿컯
-Step 2: make-prompt
-  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-prompt.ps1
-  Executed: False
-  Skipped: True
-  Exit code: 0
-  Message: DryRun: ?섏쐞 ?ㅽ겕由쏀듃瑜??ㅽ뻾?섏? ?딆븯?듬땲??
-Step 3: run-codex
-  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-codex.ps1
-  Executed: False
-  Skipped: True
-  Exit code: 0
-  Message: DryRun: ?섏쐞 ?ㅽ겕由쏀듃瑜??ㅽ뻾?섏? ?딆븯?듬땲??
-Step 4: check
-  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-check.ps1 -BuildOnly
-  Executed: False
-  Skipped: True
-  Exit code: 0
-  Message: DryRun: ?섏쐞 ?ㅽ겕由쏀듃瑜??ㅽ뻾?섏? ?딆븯?듬땲??
-Step 5: save-diff
-  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-save-diff.ps1
-  Executed: False
-  Skipped: True
-  Exit code: 0
-  Message: DryRun: ?섏쐞 ?ㅽ겕由쏀듃瑜??ㅽ뻾?섏? ?딆븯?듬땲??
-Step 6: make-review-prompt
-  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-review-prompt.ps1 -Strict
-  Executed: False
-  Skipped: True
-  Exit code: 0
-  Message: DryRun: ?섏쐞 ?ㅽ겕由쏀듃瑜??ㅽ뻾?섏? ?딆븯?듬땲??
-Step 7: run-review-codex
-  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-review-codex.ps1 -AllowDirty -SaveReview
-  Executed: False
-  Skipped: True
-  Exit code: 0
-  Message: DryRun: ?섏쐞 ?ㅽ겕由쏀듃瑜??ㅽ뻾?섏? ?딆븯?듬땲??
-Step 8: review-gate
-  Command: state.lastReviewDecision ?뺤씤
-  Executed: False
-  Skipped: True
-  Exit code: 0
-  Message: DryRun: 由щ럭 pass ?щ?瑜??ㅼ젣 ?곹깭?먯꽌 ?쎌? ?딆븯?듬땲??
-Step 9: package-change-gate
-  Command: git status --porcelain -- package.json package-lock.json
-  Executed: False
-  Skipped: True
-  Exit code: 0
-  Message: DryRun: package ?뚯씪 蹂寃??щ?瑜??뺤씤?섏? ?딆븯?듬땲??
-Step 10: commit
-  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-commit.ps1
-  Executed: False
-  Skipped: True
-  Exit code: 0
-  Message: DryRun: git add/commit???ㅽ뻾?섏? ?딆븯?듬땲??
-Step 11: commit-result-gate
-  Command: state.lastCommand/lastCommitHash ?뺤씤
-  Executed: False
-  Skipped: True
-  Exit code: 0
-  Message: DryRun: ?ㅼ젣 而ㅻ컠 ?앹꽦 ?щ?瑜??뺤씤?섏? ?딆븯?듬땲??
-Step 12: complete-task
-  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-complete-task.ps1 -ResultSummary "?먮룞 ?꾨즺: Codex 援ы쁽, build/check, Codex 由щ럭 pass, ?먮룞 而ㅻ컠 ?꾨즺" -CommitHash <commit-hash>
-  Executed: False
-  Skipped: True
-  Exit code: 0
-  Message: DryRun: task ?꾨즺 泥섎━瑜??ㅽ뻾?섏? ?딆븯?듬땲??
-Step 13: meta-commit
-  Command: direct meta commit: git add scoped .ai-dev files, git commit -m 'chore(ai-dev): record task completion', git status --short
-  Executed: False
-  Skipped: True
-  Exit code: 0
-  Message: DryRun: .ai-dev 硫뷀? ?곹깭 吏곸젒 而ㅻ컠???ㅽ뻾?섏? ?딆븯?듬땲??
-Step 14: final-status
-  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-status.ps1
-DRYRUN OUTPUT END
-
 
 ## Diff To Review
 
@@ -226,7 +118,7 @@ DRYRUN OUTPUT END
 
 ## Generated At
 
-2026-06-19 23:33:16
+2026-06-23 15:26:37
 
 ## Git Status
 
@@ -236,7 +128,6 @@ DRYRUN OUTPUT END
  M .ai-dev/current-task-prompt.md
  M .ai-dev/diff.md
  M .ai-dev/goal.md
- M .ai-dev/loop-log.md
  M .ai-dev/queue.json
  M .ai-dev/review-prompt.md
  M .ai-dev/review-response.json
@@ -244,11 +135,13 @@ DRYRUN OUTPUT END
  M .ai-dev/state.json
  M .ai-dev/test-result.md
  M scripts/ai-dev-auto-cycle-full.ps1
+ M scripts/ai-dev-auto-cycle.ps1
 ```
 
 ## App Change Files
 
 - scripts/ai-dev-auto-cycle-full.ps1
+- scripts/ai-dev-auto-cycle.ps1
 
 ## AI Dev Operational Artifact Files
 
@@ -257,7 +150,6 @@ DRYRUN OUTPUT END
 - .ai-dev/current-task-prompt.md
 - .ai-dev/diff.md
 - .ai-dev/goal.md
-- .ai-dev/loop-log.md
 - .ai-dev/queue.json
 - .ai-dev/review-prompt.md
 - .ai-dev/review-response.json
@@ -272,137 +164,641 @@ DRYRUN OUTPUT END
 ## Unstaged Diff Stat
 
 ```text
- scripts/ai-dev-auto-cycle-full.ps1 | 72 ++++++++++++++++++++++++++++++++++----
- 1 file changed, 66 insertions(+), 6 deletions(-)
+ scripts/ai-dev-auto-cycle-full.ps1 | 137 +++++++++++-
+ scripts/ai-dev-auto-cycle.ps1      | 426 +++++++++++++++++++++++++++++++++++++
+ 2 files changed, 562 insertions(+), 1 deletion(-)
 ```
 
 ## Unstaged Diff
 
 ```text
 diff --git a/scripts/ai-dev-auto-cycle-full.ps1 b/scripts/ai-dev-auto-cycle-full.ps1
-index 476fb1e..2a69285 100644
+index 476fb1e..5031713 100644
 --- a/scripts/ai-dev-auto-cycle-full.ps1
 +++ b/scripts/ai-dev-auto-cycle-full.ps1
-@@ -432,6 +432,7 @@ function Get-ReviewGate {
-     $reviewResponse = $null
-     $decision = $null
-     $severity = $null
-+    $summary = $null
-     $nextStep = $null
-     $normalizedNextStep = $null
-     $hasNextStep = $false
-@@ -447,6 +448,10 @@ function Get-ReviewGate {
-             $severity = [string]$reviewResponse.severity
-         }
+@@ -76,6 +76,34 @@ function Write-JsonFile {
+     [System.IO.File]::WriteAllText($Path, $json, $utf8WithBom)
+ }
  
-+        if (Test-HasValue $reviewResponse.summary) {
-+            $summary = [string]$reviewResponse.summary
++function Save-CycleFailureState {
++    param(
++        [string]$Command,
++        [string]$ErrorSummary,
++        [object]$ReviewGate = $null
++    )
++
++    try {
++        $state = Read-JsonFile $statePath $stateRelativePath
++
++        if ($null -ne $ReviewGate -and (Test-HasValue $ReviewGate.decision)) {
++            Set-ObjectProperty $state "lastReviewDecision" ([string]$ReviewGate.decision)
 +        }
 +
-         if ($reviewResponse.PSObject.Properties.Name -contains "next_step") {
-             $hasNextStep = $true
-             $nextStep = [string]$reviewResponse.next_step
-@@ -460,12 +465,45 @@ function Get-ReviewGate {
-         stateDecision = [string]$state.lastReviewDecision
-         decision = $decision
-         severity = $severity
-+        summary = $summary
++        if ($null -ne $ReviewGate -and (Test-HasValue $ReviewGate.severity)) {
++            Set-ObjectProperty $state "lastReviewSeverity" ([string]$ReviewGate.severity)
++        }
++
++        Set-ObjectProperty $state "lastCommand" $Command
++        Set-ObjectProperty $state "lastCommandStatus" "failed"
++        Set-ObjectProperty $state "lastErrorSummary" $ErrorSummary
++        Set-ObjectProperty $state "updatedAt" ([DateTimeOffset]::UtcNow.ToString("o"))
++        Write-JsonFile $statePath $state
++    } catch {
++        Write-Warning "상태 파일에 실패 사유를 기록하지 못했습니다: $($_.Exception.Message)"
++    }
++}
++
+ function Get-CurrentTask {
+     param(
+         [object]$Queue,
+@@ -414,6 +442,84 @@ function Get-ChangedNonAiDevFiles {
+     )
+ }
+ 
++function Get-RequiredReviewChangeFiles {
++    param(
++        [object]$ReviewResponse
++    )
++
++    if ($null -eq $ReviewResponse -or -not ($ReviewResponse.PSObject.Properties.Name -contains "required_changes")) {
++        return @()
++    }
++
++    return @(
++        @($ReviewResponse.required_changes) |
++            Where-Object { $null -ne $_ -and ($_.PSObject.Properties.Name -contains "file") -and (Test-HasValue $_.file) } |
++            ForEach-Object { ConvertTo-NormalizedChangedPath ([string]$_.file) } |
++            Where-Object { (Test-HasValue $_) -and $_ -ne "unknown" -and -not (Test-IsAiDevOperationalPath $_) -and -not (Test-IsProtectedBaselineDirtyPath $_) } |
++            Select-Object -Unique
++    )
++}
++
++function Test-ReviewRequiredFileIsChanged {
++    param(
++        [string]$RequiredFile,
++        [string[]]$ChangedFiles
++    )
++
++    foreach ($changedFile in @($ChangedFiles)) {
++        if ($changedFile.Equals($RequiredFile, [System.StringComparison]::OrdinalIgnoreCase)) {
++            return $true
++        }
++    }
++
++    return $false
++}
++
++function Get-ReviewImplementationGate {
++    param(
++        [object]$CurrentTask,
++        [object]$ReviewGate
++    )
++
++    $taskType = if ($null -ne $CurrentTask -and (Test-HasValue $CurrentTask.type)) { [string]$CurrentTask.type } else { "" }
++    $requiredFiles = @($ReviewGate.requiredChangeFiles)
++    $changedFiles = @(Get-ChangedNonAiDevFiles)
++    $missingRequiredFiles = @(
++        $requiredFiles |
++            Where-Object { -not (Test-ReviewRequiredFileIsChanged $_ $changedFiles) }
++    )
++
++    if ($ReviewGate.decision -eq "revise" -and $taskType -ne "implementation") {
++        return [PSCustomObject][ordered]@{
++            passed = $false
++            reason = "non_implementation_revise"
++            message = "현재 task type이 implementation이 아닌데 review decision=revise입니다. 구현 없는 revise 반복을 성공 처리하지 않도록 중단합니다. taskType='$taskType', requiredFiles=$($requiredFiles -join ', '), changedFiles=$($changedFiles -join ', ')"
++        }
++    }
++
++    if ($requiredFiles.Count -gt 0 -and $changedFiles.Count -eq 0) {
++        return [PSCustomObject][ordered]@{
++            passed = $false
++            reason = "missing_implementation"
++            message = "review-response.json이 구현 파일 변경을 요구했지만 현재 diff에 구현 변경 파일이 없습니다. requiredFiles=$($requiredFiles -join ', ')"
++        }
++    }
++
++    if ($missingRequiredFiles.Count -gt 0) {
++        return [PSCustomObject][ordered]@{
++            passed = $false
++            reason = "stale_review_required_file_missing"
++            message = "review-response.json이 요구한 구현 파일 변경이 현재 diff에 없습니다. stale review 또는 missing implementation으로 보고 완료 흐름을 차단합니다. missingRequiredFiles=$($missingRequiredFiles -join ', '), changedFiles=$($changedFiles -join ', ')"
++        }
++    }
++
++    return [PSCustomObject][ordered]@{
++        passed = $true
++        reason = "ok"
++        message = "review-response.json required_changes와 현재 diff 파일 목록이 일치합니다."
++    }
++}
++
+ function Get-ChangedAiDevOperationalFiles {
+     $status = Invoke-GitCapture @("status", "--porcelain") "git status --porcelain"
+     $changeLines = @($status -split "`r?`n" | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+@@ -463,6 +569,7 @@ function Get-ReviewGate {
          hasNextStep = $hasNextStep
          nextStep = $nextStep
          normalizedNextStep = $normalizedNextStep
++        requiredChangeFiles = @(Get-RequiredReviewChangeFiles $reviewResponse)
      }
  }
  
-+function Format-ReviewGateStopMessage {
-+    param(
-+        [object]$ReviewGate,
-+        [string]$Prefix
-+    )
+@@ -716,11 +823,29 @@ while ($completedTaskCount -lt $MaxTasks) {
+         }
+ 
+         if (Test-IsSavedReviewPassReady $resumeReviewGate) {
++            $resumeImplementationGate = Get-ReviewImplementationGate $currentTask $resumeReviewGate
 +
-+    $decision = if (Test-HasValue $ReviewGate.decision) { $ReviewGate.decision } else { "<none>" }
-+    $stateDecision = if (Test-HasValue $ReviewGate.stateDecision) { $ReviewGate.stateDecision } else { "<none>" }
-+    $severity = if (Test-HasValue $ReviewGate.severity) { $ReviewGate.severity } else { "<none>" }
-+    $nextStep = if ($ReviewGate.hasNextStep) { $ReviewGate.nextStep } else { "<none>" }
-+    $normalizedNextStep = if (Test-HasValue $ReviewGate.normalizedNextStep) { $ReviewGate.normalizedNextStep } else { "<none>" }
-+    $summary = if (Test-HasValue $ReviewGate.summary) { $ReviewGate.summary } else { "<none>" }
++            if (-not $resumeImplementationGate.passed) {
++                Save-CycleFailureState "resume-review-gate" $resumeImplementationGate.message $resumeReviewGate
++                $script:steps += New-StepResult $stepNumber "resume-review-gate" "state/review-response required_changes 및 현재 diff 확인" $false $true 1 $resumeImplementationGate.message
++                Stop-Cycle $script:steps $resumeImplementationGate.reason $false 1
++            }
 +
-+    return "$Prefix decision=$decision, state.lastReviewDecision=$stateDecision, severity=$severity, next_step=$nextStep, normalized_next_step=$normalizedNextStep, summary=$summary"
-+}
-+
-+function Save-ReviewStopState {
-+    param(
-+        [object]$ReviewGate,
-+        [string]$StoppedReason,
-+        [string]$Message
-+    )
-+
-+    $state = Read-JsonFile $statePath $stateRelativePath
-+    Set-ObjectProperty $state "lastReviewDecision" $ReviewGate.stateDecision
-+    Set-ObjectProperty $state "lastReviewSeverity" $ReviewGate.severity
-+    Set-ObjectProperty $state "lastErrorSummary" $Message
-+    Set-ObjectProperty $state "stopReason" $StoppedReason
-+    Set-ObjectProperty $state "updatedAt" ([DateTimeOffset]::UtcNow.ToString("o"))
-+    Write-JsonFile $statePath $state
-+}
-+
- function Test-IsAcceptableReviewNextStep {
-     param(
-         [object]$ReviewGate
-@@ -720,7 +758,8 @@ while ($completedTaskCount -lt $MaxTasks) {
+             $resumeFromSavedReview = $true
              $script:steps += New-StepResult $stepNumber "resume-review-gate" "state/review-response 재확인" $false $false 0 "이미 저장된 리뷰 pass와 허용 가능한 next_step 상태를 확인했습니다. 구현/리뷰 재실행 없이 commit/complete/meta-commit으로 계속 진행합니다."
              $stepNumber++
          } elseif ($resumeReviewGate.lastCommand -eq "save-review" -and $resumeReviewGate.lastCommandStatus -eq "passed") {
--            $message = "save-review 이후 계속 진행할 수 없습니다. review.decision=$($resumeReviewGate.decision), state.lastReviewDecision=$($resumeReviewGate.stateDecision), next_step=$($resumeReviewGate.nextStep)"
-+            $message = Format-ReviewGateStopMessage $resumeReviewGate "save-review 이후 계속 진행할 수 없습니다."
-+            Save-ReviewStopState $resumeReviewGate "saved_review_not_ready_to_complete" $message
++            $resumeImplementationGate = Get-ReviewImplementationGate $currentTask $resumeReviewGate
+             $message = "save-review 이후 계속 진행할 수 없습니다. review.decision=$($resumeReviewGate.decision), state.lastReviewDecision=$($resumeReviewGate.stateDecision), next_step=$($resumeReviewGate.nextStep)"
++
++            if (-not $resumeImplementationGate.passed) {
++                $message = $resumeImplementationGate.message
++                Save-CycleFailureState "resume-review-gate" $message $resumeReviewGate
++                $script:steps += New-StepResult $stepNumber "resume-review-gate" "state/review-response required_changes 및 현재 diff 확인" $false $true 1 $message
++                Stop-Cycle $script:steps $resumeImplementationGate.reason $false 1
++            }
++
++            Save-CycleFailureState "resume-review-gate" $message $resumeReviewGate
              $script:steps += New-StepResult $stepNumber "resume-review-gate" "state/review-response 재확인" $false $true 1 $message
              Stop-Cycle $script:steps "saved_review_not_ready_to_complete" $false 1
          }
-@@ -818,18 +857,39 @@ while ($completedTaskCount -lt $MaxTasks) {
+@@ -817,8 +942,18 @@ while ($completedTaskCount -lt $MaxTasks) {
+         Stop-Cycle $script:steps "review_save_not_passed" $false 1
      }
  
++    $implementationGate = Get-ReviewImplementationGate $currentTask $reviewGate
++
++    if (-not $implementationGate.passed) {
++        Save-CycleFailureState "review-gate" $implementationGate.message $reviewGate
++        $script:steps += New-StepResult $stepNumber "review-gate" "task type, $reviewResponseRelativePath required_changes, 현재 diff 확인" $false $true 1 $implementationGate.message
++        Stop-Cycle $script:steps $implementationGate.reason $false 1
++    }
++
      if ($reviewGate.decision -ne "pass") {
 -        $script:steps += New-StepResult $stepNumber "review-gate" "$reviewResponseRelativePath decision 확인" $false $true 1 "리뷰 response decision이 pass가 아니므로 자동 커밋과 complete-task를 실행하지 않습니다: $($reviewGate.decision)"
--        Stop-Cycle $script:steps "review_not_pass" $false 1
-+        $stoppedReason = "review_not_pass"
-+        $prefix = "리뷰 response decision이 pass가 아니므로 자동 커밋과 complete-task를 실행하지 않습니다."
++        $message = "리뷰 response decision이 pass가 아니므로 자동 커밋과 complete-task를 실행하지 않습니다: $($reviewGate.decision)"
++        Save-CycleFailureState "review-gate" $message $reviewGate
++        $script:steps += New-StepResult $stepNumber "review-gate" "$reviewResponseRelativePath decision 확인" $false $true 1 $message
+         Stop-Cycle $script:steps "review_not_pass" $false 1
+     }
+ 
+diff --git a/scripts/ai-dev-auto-cycle.ps1 b/scripts/ai-dev-auto-cycle.ps1
+index c20ee3e..2d131c2 100644
+--- a/scripts/ai-dev-auto-cycle.ps1
++++ b/scripts/ai-dev-auto-cycle.ps1
+@@ -65,6 +65,347 @@ function New-CycleResult {
+     }
+ }
+ 
++function Test-HasValue {
++    param([object]$Value)
 +
-+        if ($reviewGate.decision -eq "revise") {
-+            $stoppedReason = "review_revise_stopped"
-+            $prefix = "재리뷰 결과가 계속 decision=revise이므로 자동 진행을 중단합니다."
++    if ($null -eq $Value) {
++        return $false
++    }
 +
-+            if ($reviewGate.normalizedNextStep -eq "revise_with_codex") {
-+                $stoppedReason = "review_revise_with_codex_retry_limit"
-+                $prefix = "next_step=revise_with_codex 재시도 제한으로 자동 진행을 중단합니다."
-+            }
++    if ($Value -is [string]) {
++        return -not [string]::IsNullOrWhiteSpace($Value)
++    }
++
++    return $true
++}
++
++function Read-JsonFile {
++    param(
++        [string]$Path,
++        [string]$RelativePath
++    )
++
++    try {
++        return Get-Content -Raw -Encoding UTF8 -LiteralPath $Path | ConvertFrom-Json
++    } catch {
++        throw "$RelativePath JSON 파싱에 실패했습니다: $($_.Exception.Message)"
++    }
++}
++
++function Set-ObjectProperty {
++    param(
++        [object]$InputObject,
++        [string]$Name,
++        [object]$Value
++    )
++
++    if ($InputObject.PSObject.Properties.Name -contains $Name) {
++        $InputObject.$Name = $Value
++    } else {
++        $InputObject | Add-Member -NotePropertyName $Name -NotePropertyValue $Value
++    }
++}
++
++function Write-JsonFile {
++    param(
++        [string]$Path,
++        [object]$Value
++    )
++
++    $utf8WithBom = New-Object System.Text.UTF8Encoding($true)
++    $json = $Value | ConvertTo-Json -Depth 20
++    [System.IO.File]::WriteAllText($Path, $json, $utf8WithBom)
++}
++
++function Save-CycleFailureState {
++    param(
++        [string]$Command,
++        [string]$StoppedReason,
++        [string]$Message,
++        [string[]]$MissingRequiredFiles = @()
++    )
++
++    if ($DryRun) {
++        return
++    }
++
++    try {
++        $stateRelativePath = ".ai-dev/state.json"
++        $statePath = Join-Path (Get-Location).Path $stateRelativePath
++        $state = Read-JsonFile $statePath $stateRelativePath
++        $errorParts = @("stoppedReason=$StoppedReason")
++
++        if ($MissingRequiredFiles.Count -gt 0) {
++            $errorParts += "missingRequiredFiles=$($MissingRequiredFiles -join ', ')"
 +        }
 +
-+        $message = Format-ReviewGateStopMessage $reviewGate $prefix
-+        Save-ReviewStopState $reviewGate $stoppedReason $message
-+        $script:steps += New-StepResult $stepNumber "review-gate" "$reviewResponseRelativePath decision 확인" $false $true 1 $message
-+        Stop-Cycle $script:steps $stoppedReason $false 1
++        if (Test-HasValue $Message) {
++            $errorParts += $Message
++        }
++
++        Set-ObjectProperty $state "lastCommand" $Command
++        Set-ObjectProperty $state "lastCommandStatus" "failed"
++        Set-ObjectProperty $state "lastErrorSummary" ($errorParts -join "; ")
++        Set-ObjectProperty $state "updatedAt" ([DateTimeOffset]::UtcNow.ToString("o"))
++        Write-JsonFile $statePath $state
++    } catch {
++        Write-Warning "상태 파일에 실패 사유를 기록하지 못했습니다: $($_.Exception.Message)"
++    }
++}
++
++function Invoke-GitCapture {
++    param(
++        [string[]]$Arguments,
++        [string]$DisplayName
++    )
++
++    $output = & git @Arguments 2>&1 | Out-String
++    $exitCode = $LASTEXITCODE
++
++    if ($exitCode -ne 0) {
++        throw "$DisplayName 실행에 실패했습니다. exit code: $exitCode`n$output"
++    }
++
++    return $output.TrimEnd()
++}
++
++function Get-CurrentTask {
++    param(
++        [object]$Queue,
++        [object]$State
++    )
++
++    $tasks = @($Queue.tasks)
++    $currentTaskId = $null
++
++    if (Test-HasValue $State.currentTaskId) {
++        $currentTaskId = [string]$State.currentTaskId
++    } elseif (Test-HasValue $Queue.currentTaskId) {
++        $currentTaskId = [string]$Queue.currentTaskId
++    } else {
++        $inProgressTask = $tasks | Where-Object { $_.status -eq "in_progress" } | Select-Object -First 1
++
++        if ($null -ne $inProgressTask) {
++            $currentTaskId = [string]$inProgressTask.id
++        } else {
++            $pendingTask = $tasks | Where-Object { $_.status -eq "pending" } | Select-Object -First 1
++
++            if ($null -ne $pendingTask) {
++                $currentTaskId = [string]$pendingTask.id
++            }
++        }
++    }
++
++    if (-not (Test-HasValue $currentTaskId)) {
++        return $null
++    }
++
++    return $tasks | Where-Object { $_.id -eq $currentTaskId } | Select-Object -First 1
++}
++
++function Convert-ToChangedPath {
++    param(
++        [string]$ChangeLine
++    )
++
++    if ([string]::IsNullOrWhiteSpace($ChangeLine)) {
++        return @()
++    }
++
++    $pathText = $ChangeLine
++
++    if ($ChangeLine.Length -ge 4 -and $ChangeLine.Substring(2, 1) -eq " ") {
++        $pathText = $ChangeLine.Substring(3)
++    }
++
++    if ($pathText.Contains(" -> ")) {
++        return @($pathText -split " -> " | Where-Object { Test-HasValue $_ })
++    }
++
++    return @($pathText)
++}
++
++function ConvertTo-NormalizedChangedPath {
++    param(
++        [string]$RelativePath
++    )
++
++    if (-not (Test-HasValue $RelativePath)) {
++        return $null
++    }
++
++    return $RelativePath.Trim().Trim('"').Replace('\', '/')
++}
++
++function Test-IsAiDevOperationalPath {
++    param(
++        [string]$RelativePath
++    )
++
++    $normalizedRelativePath = ConvertTo-NormalizedChangedPath $RelativePath
++    return $normalizedRelativePath.StartsWith(".ai-dev/", [System.StringComparison]::OrdinalIgnoreCase)
++}
++
++function Get-ChangedNonAiDevFiles {
++    $status = Invoke-GitCapture @("status", "--porcelain") "git status --porcelain"
++    $changeLines = @($status -split "`r?`n" | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
++
++    return @(
++        $changeLines |
++            ForEach-Object { Convert-ToChangedPath $_ } |
++            ForEach-Object { ConvertTo-NormalizedChangedPath $_ } |
++            Where-Object { (Test-HasValue $_) -and -not (Test-IsAiDevOperationalPath $_) } |
++            Select-Object -Unique
++    )
++}
++
++function Get-RequiredReviewChangeFiles {
++    param(
++        [object]$ReviewResponse
++    )
++
++    if ($null -eq $ReviewResponse -or -not ($ReviewResponse.PSObject.Properties.Name -contains "required_changes")) {
++        return @()
++    }
++
++    return @(
++        @($ReviewResponse.required_changes) |
++            Where-Object { $null -ne $_ -and ($_.PSObject.Properties.Name -contains "file") -and (Test-HasValue $_.file) } |
++            ForEach-Object { ConvertTo-NormalizedChangedPath ([string]$_.file) } |
++            Where-Object { (Test-HasValue $_) -and $_ -ne "unknown" -and -not (Test-IsAiDevOperationalPath $_) } |
++            Select-Object -Unique
++    )
++}
++
++function Test-ReviewRequiredFileIsChanged {
++    param(
++        [string]$RequiredFile,
++        [string[]]$ChangedFiles
++    )
++
++    foreach ($changedFile in @($ChangedFiles)) {
++        if ($changedFile.Equals($RequiredFile, [System.StringComparison]::OrdinalIgnoreCase)) {
++            return $true
++        }
++    }
++
++    return $false
++}
++
++function Test-IsNonImplementationReviseAction {
++    param([string]$Action)
++
++    if ($Action -ne "make_revise_prompt") {
++        return $false
++    }
++
++    $queueRelativePath = ".ai-dev/queue.json"
++    $stateRelativePath = ".ai-dev/state.json"
++    $queue = Read-JsonFile (Join-Path (Get-Location).Path $queueRelativePath) $queueRelativePath
++    $state = Read-JsonFile (Join-Path (Get-Location).Path $stateRelativePath) $stateRelativePath
++    $currentTask = Get-CurrentTask $queue $state
++
++    if ($null -eq $currentTask) {
++        return $false
++    }
++
++    return [string]$currentTask.type -ne "implementation"
++}
++
++function Get-ReviewRequiredChangesGate {
++    param(
++        [switch]$OnlyWhenCurrentTaskIsImplementation
++    )
++
++    $queueRelativePath = ".ai-dev/queue.json"
++    $stateRelativePath = ".ai-dev/state.json"
++    $reviewResponseRelativePath = ".ai-dev/review-response.json"
++
++    if ($OnlyWhenCurrentTaskIsImplementation) {
++        $queue = Read-JsonFile (Join-Path (Get-Location).Path $queueRelativePath) $queueRelativePath
++        $state = Read-JsonFile (Join-Path (Get-Location).Path $stateRelativePath) $stateRelativePath
++        $currentTask = Get-CurrentTask $queue $state
++
++        if ($null -eq $currentTask -or [string]$currentTask.type -ne "implementation") {
++            return [PSCustomObject][ordered]@{
++                passed = $true
++                reason = "ok"
++                message = ""
++            }
++        }
++    }
++
++    $reviewResponsePath = Join-Path (Get-Location).Path $reviewResponseRelativePath
++
++    if (-not (Test-Path -LiteralPath $reviewResponsePath -PathType Leaf)) {
++        return [PSCustomObject][ordered]@{
++            passed = $true
++            reason = "ok"
++            message = ""
++        }
++    }
++
++    $reviewResponse = Read-JsonFile $reviewResponsePath $reviewResponseRelativePath
++    $requiredFiles = @(Get-RequiredReviewChangeFiles $reviewResponse)
++
++    if ($requiredFiles.Count -eq 0) {
++        return [PSCustomObject][ordered]@{
++            passed = $true
++            reason = "ok"
++            message = ""
++        }
++    }
++
++    $changedFiles = @(Get-ChangedNonAiDevFiles)
++    $missingRequiredFiles = @(
++        $requiredFiles |
++            Where-Object { -not (Test-ReviewRequiredFileIsChanged $_ $changedFiles) }
++    )
++
++    if ($requiredFiles.Count -gt 0 -and $changedFiles.Count -eq 0) {
++        return [PSCustomObject][ordered]@{
++            passed = $false
++            reason = "missing_implementation"
++            message = "review-response.json이 구현 파일 변경을 요구했지만 현재 non-.ai-dev diff에 구현 변경 파일이 없습니다. missingRequiredFiles=$($requiredFiles -join ', ')"
++            missingRequiredFiles = @($requiredFiles)
++        }
++    }
++
++    if ($missingRequiredFiles.Count -gt 0) {
++        return [PSCustomObject][ordered]@{
++            passed = $false
++            reason = "stale_review_required_file_missing"
++            message = "review-response.json이 요구한 구현 파일 변경이 현재 non-.ai-dev diff에 없습니다. missingRequiredFiles=$($missingRequiredFiles -join ', '), changedFiles=$($changedFiles -join ', ')"
++            missingRequiredFiles = @($missingRequiredFiles)
++        }
++    }
++
++    return [PSCustomObject][ordered]@{
++        passed = $true
++        reason = "ok"
++        message = ""
++    }
++}
++
++function Test-IsAlreadyCompletedGoalState {
++    $stateRelativePath = ".ai-dev/state.json"
++    $statePath = Join-Path (Get-Location).Path $stateRelativePath
++
++    if (-not (Test-Path -LiteralPath $statePath -PathType Leaf)) {
++        return $false
++    }
++
++    $state = Read-JsonFile $statePath $stateRelativePath
++
++    return (
++        [string]$state.goalStatus -eq "completed" -and
++        -not (Test-HasValue $state.currentTaskId) -and
++        [string]$state.lastCommand -eq "complete-task" -and
++        [string]$state.lastCommandStatus -eq "passed" -and
++        (Test-HasValue $state.lastCommitHash)
++    )
++}
++
+ if ($MaxSteps -lt 1) {
+     $result = New-CycleResult @() "max_steps_must_be_at_least_1" $false 1
+     Write-CycleResult $result
+@@ -168,7 +509,92 @@ for ($index = 1; $index -le $MaxSteps; $index++) {
      }
+     $steps += [PSCustomObject]$stepResult
  
-     if ($reviewGate.stateDecision -ne "pass") {
--        $script:steps += New-StepResult $stepNumber "review-gate" "state.lastReviewDecision 확인" $false $true 1 "state.lastReviewDecision이 pass가 아니므로 자동 커밋과 complete-task를 실행하지 않습니다: $($reviewGate.stateDecision)"
-+        $stoppedReason = "state_review_not_pass"
-+        $message = Format-ReviewGateStopMessage $reviewGate "state.lastReviewDecision이 pass가 아니므로 자동 커밋과 complete-task를 실행하지 않습니다."
-+        Save-ReviewStopState $reviewGate $stoppedReason $message
-+        $script:steps += New-StepResult $stepNumber "review-gate" "state.lastReviewDecision 확인" $false $true 1 $message
-         Stop-Cycle $script:steps "state_review_not_pass" $false 1
-     }
- 
-     if (-not (Test-IsAcceptableReviewNextStep $reviewGate)) {
--        $script:steps += New-StepResult $stepNumber "review-gate" "$reviewResponseRelativePath next_step 확인" $false $true 1 "리뷰 next_step이 존재하지만 complete_task가 아니므로 자동 커밋과 complete-task를 실행하지 않습니다: 원본='$($reviewGate.nextStep)', 정규화='$($reviewGate.normalizedNextStep)'"
--        Stop-Cycle $script:steps "review_next_step_not_complete_task" $false 1
-+        $stoppedReason = "review_next_step_not_complete_task"
-+        $message = Format-ReviewGateStopMessage $reviewGate "리뷰 next_step이 존재하지만 complete_task가 아니므로 자동 커밋과 complete-task를 실행하지 않습니다."
-+        Save-ReviewStopState $reviewGate $stoppedReason $message
-+        $script:steps += New-StepResult $stepNumber "review-gate" "$reviewResponseRelativePath next_step 확인" $false $true 1 $message
-+        Stop-Cycle $script:steps $stoppedReason $false 1
-     }
- 
-     $script:steps += New-StepResult $stepNumber "review-gate" "최신 state 및 $reviewResponseRelativePath 재확인" $false $false 0 "리뷰 pass 및 허용 가능한 next_step 상태 수락: 존재=$($reviewGate.hasNextStep), 원본='$($reviewGate.nextStep)', 정규화='$($reviewGate.normalizedNextStep)'. commit/commit-result-gate/complete-task/meta-commit으로 계속 진행합니다."
++    try {
++        if (Test-IsNonImplementationReviseAction $action) {
++            Save-CycleFailureState "non_implementation_revise" "non_implementation_revise" ([string]$autoStep.message)
++            $result = New-CycleResult $steps "non_implementation_revise" $false 1
++            Write-CycleResult $result
++            exit 1
++        }
++
++        $reviewRequiredChangesGate = $null
++
++        if ($action -eq "make_revise_prompt") {
++            $reviewRequiredChangesGate = Get-ReviewRequiredChangesGate -OnlyWhenCurrentTaskIsImplementation
++        } elseif (@("commit", "complete_task", "complete-task") -contains $action) {
++            $reviewRequiredChangesGate = Get-ReviewRequiredChangesGate
++        }
++
++        if ($null -ne $reviewRequiredChangesGate -and -not $reviewRequiredChangesGate.passed) {
++            $step = [ordered]@{
++                step = $index
++                action = "review_required_changes_gate"
++                executed = $false
++                exitCode = 1
++                message = $reviewRequiredChangesGate.message
++                recommendedCommands = @()
++            }
++            $steps += [PSCustomObject]$step
++            Save-CycleFailureState "review_required_changes_gate" ([string]$reviewRequiredChangesGate.reason) ([string]$reviewRequiredChangesGate.message) @($reviewRequiredChangesGate.missingRequiredFiles)
++            $result = New-CycleResult $steps $reviewRequiredChangesGate.reason $false 1
++            Write-CycleResult $result
++            exit 1
++        }
++    } catch {
++        $step = [ordered]@{
++            step = $index
++            action = "revise_gate_failed"
++            executed = $false
++            exitCode = 1
++            message = $_.Exception.Message
++        }
++        $steps += [PSCustomObject]$step
++        Save-CycleFailureState "review_required_changes_gate" "revise_gate_failed" $_.Exception.Message
++        $result = New-CycleResult $steps "revise_gate_failed" $false 1
++        Write-CycleResult $result
++        exit 1
++    }
++
+     if ($terminalActions -contains $action) {
++        try {
++            $shouldRunTerminalReviewRequiredChangesGate = -not (
++                $action -eq "goal_completed" -and (Test-IsAlreadyCompletedGoalState)
++            )
++
++            if ($shouldRunTerminalReviewRequiredChangesGate) {
++                $terminalReviewRequiredChangesGate = Get-ReviewRequiredChangesGate
++
++                if (-not $terminalReviewRequiredChangesGate.passed) {
++                    $step = [ordered]@{
++                        step = $index
++                        action = "terminal_review_required_changes_gate"
++                        executed = $false
++                        exitCode = 1
++                        message = $terminalReviewRequiredChangesGate.message
++                        recommendedCommands = @()
++                    }
++                    $steps += [PSCustomObject]$step
++                    Save-CycleFailureState "terminal_review_required_changes_gate" ([string]$terminalReviewRequiredChangesGate.reason) ([string]$terminalReviewRequiredChangesGate.message) @($terminalReviewRequiredChangesGate.missingRequiredFiles)
++                    $result = New-CycleResult $steps $terminalReviewRequiredChangesGate.reason $false 1
++                    Write-CycleResult $result
++                    exit 1
++                }
++            }
++        } catch {
++            $step = [ordered]@{
++                step = $index
++                action = "terminal_review_required_changes_gate_failed"
++                executed = $false
++                exitCode = 1
++                message = $_.Exception.Message
++            }
++            $steps += [PSCustomObject]$step
++            Save-CycleFailureState "terminal_review_required_changes_gate" "terminal_review_required_changes_gate_failed" $_.Exception.Message
++            $result = New-CycleResult $steps "terminal_review_required_changes_gate_failed" $false 1
++            Write-CycleResult $result
++            exit 1
++        }
++
+         $completed = $action -eq "goal_completed"
+         $result = New-CycleResult $steps $action $completed 0
+         Write-CycleResult $result
 ```
 
 ## Staged Diff Stat

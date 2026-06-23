@@ -1,14 +1,14 @@
 ﻿{
-    "goalTitle":  "AI Dev Loop revise 재시도 중단 사유 보존 보강",
+    "goalTitle":  "AI Dev Loop 구현 없는 revise 반복 차단",
     "goalSource":  ".ai-dev/goal.md",
-    "createdAt":  "2026-06-19T00:00:00+09:00",
-    "updatedAt":  "2026-06-19T14:34:07.6350843+00:00",
+    "createdAt":  "2026-06-23T10:02:56.8156964+09:00",
+    "updatedAt":  "2026-06-23T06:45:55.0184073+00:00",
     "currentTaskId":  null,
     "tasks":  [
                   {
                       "id":  "T001",
-                      "title":  "revise 재시도 중단 사유 보존 보강",
-                      "description":  "ai-dev-auto-cycle-full.ps1의 review revise 자동 재시도 흐름을 좁게 수정해, 재리뷰가 계속 revise일 때 최신 리뷰 summary, severity, next_step, lastReviewDecision이 중단 메시지와 상태에 보존되도록 한다. DryRun preview-only 동작과 기존 pass, AllowCommit, final clean, dirty 실패 흐름은 유지한다.",
+                      "title":  "구현 없는 revise 반복 실패 처리 보강",
+                      "description":  "auto-goal 또는 auto-cycle 실행 중 implementation task가 아니거나 리뷰가 요구한 구현 파일 변경이 diff에 없을 때 stale review 또는 missing implementation으로 판단하고 완료 흐름을 차단한다.",
                       "type":  "implementation",
                       "status":  "done",
                       "priority":  "P0",
@@ -16,22 +16,19 @@
 
                                     ],
                       "filesLikelyToChange":  [
-                                                  ".ai-dev/ai-dev-auto-cycle-full.ps1",
-                                                  ".ai-dev/goal.md",
-                                                  ".ai-dev/queue.json",
-                                                  ".ai-dev/state.json"
+                                                  "scripts/ai-dev-auto-goal.ps1",
+                                                  "scripts/ai-dev-auto-cycle.ps1",
+                                                  "scripts/ai-dev-auto-cycle-full.ps1",
+                                                  "scripts/ai-dev-auto-step.ps1"
                                               ],
                       "verification":  [
-                                           "build 통과 확인",
-                                           "lint 통과 확인",
-                                           "DryRun 실행 전후 상태 변경 없음 확인",
-                                           "revise 반복 시 최신 리뷰 사유가 중단 상태에 기록되는지 확인",
-                                           "리뷰 pass 확인",
-                                           "최종 clean 상태 확인"
+                                           "implementation task가 아닌 상태에서 revise 반복 시 실패 처리되는지 확인한다.",
+                                           "review-response.json이 요구한 구현 파일 변경이 diff에 없을 때 완료 흐름이 차단되는지 확인한다.",
+                                           "허용된 검증 범위에서 빌드와 린트 결과를 확인한다."
                                        ],
-                      "commitMessage":  "Preserve revise stop reason",
-                      "completedAt":  "2026-06-19T14:34:07.6350843+00:00",
-                      "resultSummary":  "T001 완료: revise 재시도 후 재리뷰가 계속 revise인 경우 최신 summary, severity, next_step, lastReviewDecision을 보존해 명확히 중단하도록 보강하고, DryRun no-mutation 및 revise 중단 사유 보존 검증과 리뷰 pass를 확인함"
+                      "commitMessage":  "Guard stale revise loops",
+                      "completedAt":  "2026-06-23T06:45:55.0184073+00:00",
+                      "resultSummary":  "자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료"
                   }
               ]
 }

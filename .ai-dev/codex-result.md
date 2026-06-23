@@ -10,7 +10,7 @@
 ## Steps
 
 - Step 1 validate-input: exitCode=0, executed=False, skipped=False
-  - Message: Input validation completed: AI Dev Loop revise 재시도 중단 사유 보존 보강
+  - Message: Input validation completed: AI Dev Loop 구현 없는 revise 반복 차단
 - Step 2 dirty-worktree-gate: exitCode=0, executed=True, skipped=False
   - Message: Baseline dirty count: 0. Worktree is clean.
 - Step 3 plan-goal: exitCode=0, executed=True, skipped=False
@@ -22,14 +22,14 @@
 - Step 6 make-prompt: exitCode=0, executed=True, skipped=False
   - Message: 생성된 프롬프트 파일: .ai-dev/current-task-prompt.md
 Current task id: T001
-Current task title: revise 재시도 중단 사유 보존 보강
+Current task title: 구현 없는 revise 반복 실패 처리 보강
 - Step 7 auto-cycle-full: exitCode=1, executed=True, skipped=False
   - Message: Step 1: task-start
   Command: MaxTasks=1
   Executed: False
   Skipped: False
   Exit code: 0
-  Message: 현재 task 실행 시작: T001 revise 재시도 중단 사유 보존 보강
+  Message: 현재 task 실행 시작: T001 구현 없는 revise 반복 실패 처리 보강
 Step 2: make-prompt
   Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-prompt.ps1
   Executed: True
@@ -37,7 +37,7 @@ Step 2: make-prompt
   Exit code: 0
   Message: 생성된 프롬프트 파일: .ai-dev/current-task-prompt.md
 Current task id: T001
-Current task title: revise 재시도 중단 사유 보존 보강
+Current task title: 구현 없는 revise 반복 실패 처리 보강
 Step 3: run-codex
   Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-codex.ps1
   Executed: True
@@ -63,9 +63,15 @@ Step 5: save-diff
   Skipped: False
   Exit code: 0
   Message: WARNING: git diff --stat 경고: warning: in the working copy of 
-'scripts/ai-dev-auto-cycle-full.ps1', LF will be replaced by CRLF the next time Git touches it
-WARNING: git diff 경고: warning: in the working copy of 'scripts/ai-dev-auto-cycle-full.ps1', LF 
-will be replaced by CRLF the next time Git touches it
+'scripts/ai-dev-auto-cycle-full.ps1', LF will be replaced by CRLF the next time Git 
+touches it
+warning: in the working copy of 'scripts/ai-dev-auto-cycle.ps1', LF will be replaced by 
+CRLF the next time Git touches it
+WARNING: git diff 경고: warning: in the working copy of 
+'scripts/ai-dev-auto-cycle-full.ps1', LF will be replaced by CRLF the next time Git 
+touches it
+warning: in the working copy of 'scripts/ai-dev-auto-cycle.ps1', LF will be replaced by 
+CRLF the next time Git touches it
 git diff 저장 완료: .ai-dev/diff.md
 상태 저장 완료: .ai-dev/state.json
 untracked 파일 내용이 필요하면 -IncludeUntrackedContent 옵션을 사용하세요.
@@ -76,7 +82,7 @@ Step 6: make-review-prompt
   Exit code: 0
   Message: 생성된 리뷰 프롬프트 파일: .ai-dev/review-prompt.md
 Current task id: T001
-Current task title: revise 재시도 중단 사유 보존 보강
+Current task title: 구현 없는 revise 반복 실패 처리 보강
 Strict 사용 여부: True
 Step 7: run-review-codex
   Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-review-codex.ps1 -AllowDirty -SaveReview
