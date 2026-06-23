@@ -76,6 +76,34 @@ function Write-JsonFile {
     [System.IO.File]::WriteAllText($Path, $json, $utf8WithBom)
 }
 
+function Save-CycleFailureState {
+    param(
+        [string]$Command,
+        [string]$ErrorSummary,
+        [object]$ReviewGate = $null
+    )
+
+    try {
+        $state = Read-JsonFile $statePath $stateRelativePath
+
+        if ($null -ne $ReviewGate -and (Test-HasValue $ReviewGate.decision)) {
+            Set-ObjectProperty $state "lastReviewDecision" ([string]$ReviewGate.decision)
+        }
+
+        if ($null -ne $ReviewGate -and (Test-HasValue $ReviewGate.severity)) {
+            Set-ObjectProperty $state "lastReviewSeverity" ([string]$ReviewGate.severity)
+        }
+
+        Set-ObjectProperty $state "lastCommand" $Command
+        Set-ObjectProperty $state "lastCommandStatus" "failed"
+        Set-ObjectProperty $state "lastErrorSummary" $ErrorSummary
+        Set-ObjectProperty $state "updatedAt" ([DateTimeOffset]::UtcNow.ToString("o"))
+        Write-JsonFile $statePath $state
+    } catch {
+        Write-Warning "상태 파일에 실패 사유를 기록하지 못했습니다: $($_.Exception.Message)"
+    }
+}
+
 function Get-CurrentTask {
     param(
         [object]$Queue,
@@ -414,6 +442,84 @@ function Get-ChangedNonAiDevFiles {
     )
 }
 
+function Get-RequiredReviewChangeFiles {
+    param(
+        [object]$ReviewResponse
+    )
+
+    if ($null -eq $ReviewResponse -or -not ($ReviewResponse.PSObject.Properties.Name -contains "required_changes")) {
+        return @()
+    }
+
+    return @(
+        @($ReviewResponse.required_changes) |
+            Where-Object { $null -ne $_ -and ($_.PSObject.Properties.Name -contains "file") -and (Test-HasValue $_.file) } |
+            ForEach-Object { ConvertTo-NormalizedChangedPath ([string]$_.file) } |
+            Where-Object { (Test-HasValue $_) -and $_ -ne "unknown" -and -not (Test-IsAiDevOperationalPath $_) -and -not (Test-IsProtectedBaselineDirtyPath $_) } |
+            Select-Object -Unique
+    )
+}
+
+function Test-ReviewRequiredFileIsChanged {
+    param(
+        [string]$RequiredFile,
+        [string[]]$ChangedFiles
+    )
+
+    foreach ($changedFile in @($ChangedFiles)) {
+        if ($changedFile.Equals($RequiredFile, [System.StringComparison]::OrdinalIgnoreCase)) {
+            return $true
+        }
+    }
+
+    return $false
+}
+
+function Get-ReviewImplementationGate {
+    param(
+        [object]$CurrentTask,
+        [object]$ReviewGate
+    )
+
+    $taskType = if ($null -ne $CurrentTask -and (Test-HasValue $CurrentTask.type)) { [string]$CurrentTask.type } else { "" }
+    $requiredFiles = @($ReviewGate.requiredChangeFiles)
+    $changedFiles = @(Get-ChangedNonAiDevFiles)
+    $missingRequiredFiles = @(
+        $requiredFiles |
+            Where-Object { -not (Test-ReviewRequiredFileIsChanged $_ $changedFiles) }
+    )
+
+    if ($ReviewGate.decision -eq "revise" -and $taskType -ne "implementation") {
+        return [PSCustomObject][ordered]@{
+            passed = $false
+            reason = "non_implementation_revise"
+            message = "현재 task type이 implementation이 아닌데 review decision=revise입니다. 구현 없는 revise 반복을 성공 처리하지 않도록 중단합니다. taskType='$taskType', requiredFiles=$($requiredFiles -join ', '), changedFiles=$($changedFiles -join ', ')"
+        }
+    }
+
+    if ($requiredFiles.Count -gt 0 -and $changedFiles.Count -eq 0) {
+        return [PSCustomObject][ordered]@{
+            passed = $false
+            reason = "missing_implementation"
+            message = "review-response.json이 구현 파일 변경을 요구했지만 현재 diff에 구현 변경 파일이 없습니다. requiredFiles=$($requiredFiles -join ', ')"
+        }
+    }
+
+    if ($missingRequiredFiles.Count -gt 0) {
+        return [PSCustomObject][ordered]@{
+            passed = $false
+            reason = "stale_review_required_file_missing"
+            message = "review-response.json이 요구한 구현 파일 변경이 현재 diff에 없습니다. stale review 또는 missing implementation으로 보고 완료 흐름을 차단합니다. missingRequiredFiles=$($missingRequiredFiles -join ', '), changedFiles=$($changedFiles -join ', ')"
+        }
+    }
+
+    return [PSCustomObject][ordered]@{
+        passed = $true
+        reason = "ok"
+        message = "review-response.json required_changes와 현재 diff 파일 목록이 일치합니다."
+    }
+}
+
 function Get-ChangedAiDevOperationalFiles {
     $status = Invoke-GitCapture @("status", "--porcelain") "git status --porcelain"
     $changeLines = @($status -split "`r?`n" | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
@@ -463,6 +569,7 @@ function Get-ReviewGate {
         hasNextStep = $hasNextStep
         nextStep = $nextStep
         normalizedNextStep = $normalizedNextStep
+        requiredChangeFiles = @(Get-RequiredReviewChangeFiles $reviewResponse)
     }
 }
 
@@ -716,11 +823,29 @@ while ($completedTaskCount -lt $MaxTasks) {
         }
 
         if (Test-IsSavedReviewPassReady $resumeReviewGate) {
+            $resumeImplementationGate = Get-ReviewImplementationGate $currentTask $resumeReviewGate
+
+            if (-not $resumeImplementationGate.passed) {
+                Save-CycleFailureState "resume-review-gate" $resumeImplementationGate.message $resumeReviewGate
+                $script:steps += New-StepResult $stepNumber "resume-review-gate" "state/review-response required_changes 및 현재 diff 확인" $false $true 1 $resumeImplementationGate.message
+                Stop-Cycle $script:steps $resumeImplementationGate.reason $false 1
+            }
+
             $resumeFromSavedReview = $true
             $script:steps += New-StepResult $stepNumber "resume-review-gate" "state/review-response 재확인" $false $false 0 "이미 저장된 리뷰 pass와 허용 가능한 next_step 상태를 확인했습니다. 구현/리뷰 재실행 없이 commit/complete/meta-commit으로 계속 진행합니다."
             $stepNumber++
         } elseif ($resumeReviewGate.lastCommand -eq "save-review" -and $resumeReviewGate.lastCommandStatus -eq "passed") {
+            $resumeImplementationGate = Get-ReviewImplementationGate $currentTask $resumeReviewGate
             $message = "save-review 이후 계속 진행할 수 없습니다. review.decision=$($resumeReviewGate.decision), state.lastReviewDecision=$($resumeReviewGate.stateDecision), next_step=$($resumeReviewGate.nextStep)"
+
+            if (-not $resumeImplementationGate.passed) {
+                $message = $resumeImplementationGate.message
+                Save-CycleFailureState "resume-review-gate" $message $resumeReviewGate
+                $script:steps += New-StepResult $stepNumber "resume-review-gate" "state/review-response required_changes 및 현재 diff 확인" $false $true 1 $message
+                Stop-Cycle $script:steps $resumeImplementationGate.reason $false 1
+            }
+
+            Save-CycleFailureState "resume-review-gate" $message $resumeReviewGate
             $script:steps += New-StepResult $stepNumber "resume-review-gate" "state/review-response 재확인" $false $true 1 $message
             Stop-Cycle $script:steps "saved_review_not_ready_to_complete" $false 1
         }
@@ -817,8 +942,18 @@ while ($completedTaskCount -lt $MaxTasks) {
         Stop-Cycle $script:steps "review_save_not_passed" $false 1
     }
 
+    $implementationGate = Get-ReviewImplementationGate $currentTask $reviewGate
+
+    if (-not $implementationGate.passed) {
+        Save-CycleFailureState "review-gate" $implementationGate.message $reviewGate
+        $script:steps += New-StepResult $stepNumber "review-gate" "task type, $reviewResponseRelativePath required_changes, 현재 diff 확인" $false $true 1 $implementationGate.message
+        Stop-Cycle $script:steps $implementationGate.reason $false 1
+    }
+
     if ($reviewGate.decision -ne "pass") {
-        $script:steps += New-StepResult $stepNumber "review-gate" "$reviewResponseRelativePath decision 확인" $false $true 1 "리뷰 response decision이 pass가 아니므로 자동 커밋과 complete-task를 실행하지 않습니다: $($reviewGate.decision)"
+        $message = "리뷰 response decision이 pass가 아니므로 자동 커밋과 complete-task를 실행하지 않습니다: $($reviewGate.decision)"
+        Save-CycleFailureState "review-gate" $message $reviewGate
+        $script:steps += New-StepResult $stepNumber "review-gate" "$reviewResponseRelativePath decision 확인" $false $true 1 $message
         Stop-Cycle $script:steps "review_not_pass" $false 1
     }
 
