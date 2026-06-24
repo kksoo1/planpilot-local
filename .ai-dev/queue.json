@@ -1,14 +1,14 @@
 ﻿{
-    "goalTitle":  "AI Dev Loop 구현 없는 revise 반복 차단",
+    "goalTitle":  "AI Dev Loop review-gate revise 자동 재시도 연결",
     "goalSource":  ".ai-dev/goal.md",
-    "createdAt":  "2026-06-23T10:02:56.8156964+09:00",
-    "updatedAt":  "2026-06-23T06:45:55.0184073+00:00",
+    "createdAt":  "2026-06-23T00:00:00+09:00",
+    "updatedAt":  "2026-06-24T01:48:02.9168993+00:00",
     "currentTaskId":  null,
     "tasks":  [
                   {
                       "id":  "T001",
-                      "title":  "구현 없는 revise 반복 실패 처리 보강",
-                      "description":  "auto-goal 또는 auto-cycle 실행 중 implementation task가 아니거나 리뷰가 요구한 구현 파일 변경이 diff에 없을 때 stale review 또는 missing implementation으로 판단하고 완료 흐름을 차단한다.",
+                      "title":  "review-gate revise 자동 재시도 흐름 연결",
+                      "description":  "ai-dev-auto-cycle-full.ps1을 중심으로 review-gate의 revise_with_codex 결과를 자동 revise 재시도 흐름으로 연결하고, pass 전 완료 차단과 DryRun preview 동작을 유지한다.",
                       "type":  "implementation",
                       "status":  "done",
                       "priority":  "P0",
@@ -16,18 +16,20 @@
 
                                     ],
                       "filesLikelyToChange":  [
-                                                  "scripts/ai-dev-auto-goal.ps1",
-                                                  "scripts/ai-dev-auto-cycle.ps1",
-                                                  "scripts/ai-dev-auto-cycle-full.ps1",
-                                                  "scripts/ai-dev-auto-step.ps1"
+                                                  ".ai-dev/scripts/ai-dev-auto-cycle-full.ps1",
+                                                  ".ai-dev/scripts/make-revise-prompt.ps1",
+                                                  ".ai-dev/state.json",
+                                                  ".ai-dev/queue.json",
+                                                  ".ai-dev/goal.md"
                                               ],
                       "verification":  [
-                                           "implementation task가 아닌 상태에서 revise 반복 시 실패 처리되는지 확인한다.",
-                                           "review-response.json이 요구한 구현 파일 변경이 diff에 없을 때 완료 흐름이 차단되는지 확인한다.",
-                                           "허용된 검증 범위에서 빌드와 린트 결과를 확인한다."
+                                           "revise_with_codex 결과에서 revise 프롬프트 생성부터 재리뷰 저장까지 자동으로 이어지는지 확인한다.",
+                                           "재리뷰 pass 전에는 commit과 complete-task가 실행되지 않는지 확인한다.",
+                                           "재리뷰 revise 반복 시 summary, severity, next_step, required_changes가 state와 로그에 남는지 확인한다.",
+                                           "DryRun에서 변경 작업 없이 preview만 출력되는지 확인한다."
                                        ],
-                      "commitMessage":  "Guard stale revise loops",
-                      "completedAt":  "2026-06-23T06:45:55.0184073+00:00",
+                      "commitMessage":  "Connect review revise retry flow",
+                      "completedAt":  "2026-06-24T01:48:02.9168993+00:00",
                       "resultSummary":  "자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료"
                   }
               ]

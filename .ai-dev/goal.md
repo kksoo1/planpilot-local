@@ -1,28 +1,30 @@
 ﻿# 목표
-AI Dev Loop에서 구현 없는 revise 반복을 실패로 중단하도록 자동화 검증을 보강한다.
+AI Dev Loop의 review-gate에서 `decision=revise`, `next_step=revise_with_codex`가 반환될 때 실패로 즉시 중단하지 않고, 자동 revise 재시도 흐름으로 연결되도록 자동화 스크립트를 보강한다.
 
 ## 배경
-현재 자동 실행 중 현재 task가 implementation이 아니거나 실제 구현 대상 파일 변경이 없는데도 review decision=revise가 반복될 수 있다. 또한 review-response.json이 특정 구현 파일 수정을 요구했지만 diff에 해당 파일 변경이 없으면 이전 리뷰 결과를 다시 소비하거나 구현 누락을 놓칠 위험이 있다.
+현재 auto-cycle-full 실행 중 리뷰 결과가 revise_with_codex인 경우 review-gate failed로 멈추며, 수정 프롬프트 생성부터 재검증, 재리뷰까지의 자동 흐름이 이어지지 않는다. 이번 작업은 앱 기능 개발이 아니라 자동 개발 루프의 검증 자동화 안정성 개선이 목적이다.
 
 ## 성공 기준
-- auto-goal 또는 auto-cycle 흐름에서 implementation task가 아닌 상태의 revise 반복을 성공 처리하지 않는다.
-- review-response.json이 요구한 구현 파일 변경이 현재 diff에 없으면 stale review 또는 missing implementation으로 판정한다.
-- 위 판정 시 후속 완료 처리와 목표 완료 처리를 막고 명확한 실패 사유를 남긴다.
-- 자동화 스크립트 변경만으로 동작을 보강한다.
-- 빌드와 린트가 통과하고 리뷰가 pass 상태가 된다.
+- review-gate가 revise_with_codex를 만나면 실패 종료하지 않고 revise 프롬프트 생성, Codex revise 실행, 검증, diff 저장, review prompt 생성, review Codex 재실행, review 저장까지 자동 수행한다.
+- 재리뷰가 pass이면 구현 커밋, task 완료 처리, 메타 정보 커밋, 다음 task 진행 흐름이 이어진다.
+- 재리뷰가 계속 revise이면 최신 summary, severity, next_step, required_changes를 state와 로그에 남기고 명확히 실패 종료한다.
+- pass 전 완료 차단, stale/missing implementation 차단, completed final 정리 상태 확인, DryRun no-mutation 동작은 유지된다.
+- DryRun에서는 변경 작업을 실행하지 않고 preview만 출력한다.
+- 앱 src 파일은 변경하지 않는다.
 
 ## 제약사항
-- 이 목표는 implementation task 1개로만 처리한다.
-- 앱 src 파일은 변경하지 않는다.
-- 필요한 자동화 스크립트만 최소 범위로 수정한다.
-- 기존 상태 파일 형식과 자동화 흐름을 최대한 유지한다.
+- 작업 중심 파일은 ai-dev 자동화 스크립트로 제한한다.
+- 기존 자동화 흐름과 상태 파일 형식을 최대한 유지한다.
+- 앱 소스 파일은 수정하지 않는다.
+- DryRun 동작은 실제 변경 없이 확인 가능한 출력만 제공해야 한다.
 
 ## 범위 제외
-- 앱 기능, 화면, 저장소 구조 변경은 제외한다.
-- 분석 전용 task나 문서 전용 task를 별도로 만들지 않는다.
-- 자동화 흐름 전체 재작성은 제외한다.
+- 앱 UI 또는 기능 변경은 제외한다.
+- 데이터 저장 구조 변경은 제외한다.
+- 대규모 자동화 구조 재작성은 제외한다.
 
 ## 수동 검증
-- review-response.json이 구현 파일 변경을 요구하지만 diff에 해당 파일이 없는 상황을 확인한다.
-- implementation이 아닌 task에서 revise가 반복되는 상황을 확인한다.
-- 두 상황 모두 성공이나 완료로 진행되지 않고 실패 사유가 기록되는지 확인한다.
+- revise_with_codex 리뷰 결과를 재현해 자동 revise 재시도 흐름이 이어지는지 확인한다.
+- 재리뷰 pass 시 구현 커밋, task 완료 처리, 메타 커밋 단계가 순서대로 수행되는지 확인한다.
+- 재리뷰 revise 반복 시 상태와 로그에 필요한 실패 정보가 남고 완료 처리가 차단되는지 확인한다.
+- DryRun에서 Codex 실행, 검증, review, commit, complete-task 같은 변경 작업이 실행되지 않는지 확인한다.

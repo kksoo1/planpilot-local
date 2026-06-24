@@ -301,3 +301,22 @@
 - Task: T001 구현 없는 revise 반복 실패 처리 보강
 - Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
 - Next task: 없음
+
+## 2026-06-24 - Task revise
+
+- Task: T001 review-gate revise 자동 재시도 흐름 연결
+- Result: 리뷰 지적에 따라 `.ai-dev/test-result.md`에 재리뷰 pass 경로와 반복 revise 실패 경로의 검증 근거를 추가함
+- Verification: PowerShell AST parse OK, runtime branch order checks passed, failure state 기록 필드 checks passed
+- Not executed: Codex, build, lint, test, review, commit, complete-task는 공유 작업공간 상태 변경 가능성이 있어 실행하지 않음
+- Remaining risk: 실제 Codex mock runner를 주입한 end-to-end 자동 재시도는 별도 격리 환경에서 추가 확인이 필요함
+
+## 2026-06-24 10:48:01 - Commit created
+
+- Task: T001 review-gate revise 자동 재시도 흐름 연결
+- Commit: 388d05a41c652ca0c198fcceb9ec8d785dafbd6c
+- Message: Connect review revise retry flow
+## 2026-06-24 10:48:04 - Task completed
+
+- Task: T001 review-gate revise 자동 재시도 흐름 연결
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
+- Next task: 없음

@@ -1,8 +1,86 @@
-﻿# AI Dev Diff
+﻿# AI Dev Revise Prompt
+
+## Role
+
+너는 이 저장소의 자동 개발 에이전트다.
+이전 리뷰에서 지적된 사항만 수정한다.
+
+## Goal
+
+# 목표
+AI Dev Loop의 review-gate에서 `decision=revise`, `next_step=revise_with_codex`가 반환될 때 실패로 즉시 중단하지 않고, 자동 revise 재시도 흐름으로 연결되도록 자동화 스크립트를 보강한다.
+
+## 배경
+현재 auto-cycle-full 실행 중 리뷰 결과가 revise_with_codex인 경우 review-gate failed로 멈추며, 수정 프롬프트 생성부터 재검증, 재리뷰까지의 자동 흐름이 이어지지 않는다. 이번 작업은 앱 기능 개발이 아니라 자동 개발 루프의 검증 자동화 안정성 개선이 목적이다.
+
+## 성공 기준
+- review-gate가 revise_with_codex를 만나면 실패 종료하지 않고 revise 프롬프트 생성, Codex revise 실행, 검증, diff 저장, review prompt 생성, review Codex 재실행, review 저장까지 자동 수행한다.
+- 재리뷰가 pass이면 구현 커밋, task 완료 처리, 메타 정보 커밋, 다음 task 진행 흐름이 이어진다.
+- 재리뷰가 계속 revise이면 최신 summary, severity, next_step, required_changes를 state와 로그에 남기고 명확히 실패 종료한다.
+- pass 전 완료 차단, stale/missing implementation 차단, completed final 정리 상태 확인, DryRun no-mutation 동작은 유지된다.
+- DryRun에서는 변경 작업을 실행하지 않고 preview만 출력한다.
+- 앱 src 파일은 변경하지 않는다.
+
+## 제약사항
+- 작업 중심 파일은 ai-dev 자동화 스크립트로 제한한다.
+- 기존 자동화 흐름과 상태 파일 형식을 최대한 유지한다.
+- 앱 소스 파일은 수정하지 않는다.
+- DryRun 동작은 실제 변경 없이 확인 가능한 출력만 제공해야 한다.
+
+## 범위 제외
+- 앱 UI 또는 기능 변경은 제외한다.
+- 데이터 저장 구조 변경은 제외한다.
+- 대규모 자동화 구조 재작성은 제외한다.
+
+## 수동 검증
+- revise_with_codex 리뷰 결과를 재현해 자동 revise 재시도 흐름이 이어지는지 확인한다.
+- 재리뷰 pass 시 구현 커밋, task 완료 처리, 메타 커밋 단계가 순서대로 수행되는지 확인한다.
+- 재리뷰 revise 반복 시 상태와 로그에 필요한 실패 정보가 남고 완료 처리가 차단되는지 확인한다.
+- DryRun에서 Codex 실행, 검증, review, commit, complete-task 같은 변경 작업이 실행되지 않는지 확인한다.
+
+## Current Task
+
+- Task ID: T001
+- Title: review-gate revise 자동 재시도 흐름 연결
+- Description: ai-dev-auto-cycle-full.ps1을 중심으로 review-gate의 revise_with_codex 결과를 자동 revise 재시도 흐름으로 연결하고, pass 전 완료 차단과 DryRun preview 동작을 유지한다.
+- Type: implementation
+- Status: in_progress
+- Priority: P0
+- Verification:
+- revise_with_codex 결과에서 revise 프롬프트 생성부터 재리뷰 저장까지 자동으로 이어지는지 확인한다.
+- 재리뷰 pass 전에는 commit과 complete-task가 실행되지 않는지 확인한다.
+- 재리뷰 revise 반복 시 summary, severity, next_step, required_changes가 state와 로그에 남는지 확인한다.
+- DryRun에서 변경 작업 없이 preview만 출력되는지 확인한다.
+
+## Review Result
+
+- Decision: revise
+- Severity: medium
+- Next step: revise_with_codex
+- Summary: 핵심 스크립트 변경 범위는 task와 일치하지만, 성공 기준의 핵심 분기인 재리뷰 pass 및 재리뷰 revise 반복 경로가 실제로 검
+증되지 않았고 npm test도 skipped라서 pass로 보기 어렵습니다.
+
+## Required Changes
+
+- File: .ai-dev/test-result.md
+  - Reason: 현재 검증 기록은 build/lint와 DryRun no-mutation 시나리오만 포함하며, 성공 기준에 명시된 재리뷰 pass 
+시 commit/complete/meta 흐름과 재리뷰 revise 반복 시 state/log 기록 및 실패 종료를 검증하지 않았다고 명시되어 있습니다.
+  - Suggestion: 가능한 범위에서 mock 또는 저장된 review-response/state를 이용해 re-review pass 경로와 re
+peated revise 경로를 재현하고, commit/complete 차단 또는 진행 여부와 lastReviewSummary/Severity/NextStep/R
+equiredChanges 기록 결과를 test-result에 추가하십시오.
+
+## Optional Suggestions
+
+- optional_suggestions는 참고만 하며 구현하지 않는다.
+- 없음
+
+## Diff Context
+
+# AI Dev Diff
 
 ## Generated At
 
-2026-06-24 10:38:15
+2026-06-24 09:42:56
 
 ## Git Status
 
@@ -12,7 +90,6 @@
  M .ai-dev/current-task-prompt.md
  M .ai-dev/diff.md
  M .ai-dev/goal.md
- M .ai-dev/loop-log.md
  M .ai-dev/queue.json
  M .ai-dev/review-prompt.md
  M .ai-dev/review-response.json
@@ -20,7 +97,6 @@
  M .ai-dev/state.json
  M .ai-dev/test-result.md
  M scripts/ai-dev-auto-cycle-full.ps1
-?? .ai-dev/revise-prompt.md
 ```
 
 ## App Change Files
@@ -34,14 +110,12 @@
 - .ai-dev/current-task-prompt.md
 - .ai-dev/diff.md
 - .ai-dev/goal.md
-- .ai-dev/loop-log.md
 - .ai-dev/queue.json
 - .ai-dev/review-prompt.md
 - .ai-dev/review-response.json
 - .ai-dev/review.md
 - .ai-dev/state.json
 - .ai-dev/test-result.md
-- .ai-dev/revise-prompt.md
 
 ## Review Diff Scope
 
@@ -362,3 +436,223 @@ index 5031713..6710fb0 100644
 ```text
 변경 없음
 ```
+
+## Test Result
+
+# AI Dev Test Result
+
+## 2026-06-24 09:42:32
+
+- Overall result: passed
+- Current task: T001
+- Mode: BuildOnly (build + lint when available)
+- Commands:
+  - npm run build: passed
+  - npm run test: skipped
+  - npm run lint: passed
+
+### npm run build
+
+- Status: passed
+- Exit code: 0
+
+```text
+
+> planpilot-local@0.0.0 build
+> tsc -b && vite build
+
+[36mvite v8.0.10 [32mbuilding client environment for production...[36m[39m
+[2K
+transforming...✓ 48 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.46 kB │ gzip:   0.29 kB
+dist/assets/index-DvjxWt30.css    5.69 kB │ gzip:   1.93 kB
+dist/assets/index-CVTFf3OT.js   317.03 kB │ gzip: 100.03 kB
+
+[32m✓ built in 537ms[39m
+```
+### npm run test
+
+- Status: skipped
+- Exit code: 없음
+
+```text
+package.json에 test script가 없습니다.
+```
+### npm run lint
+
+- Status: passed
+- Exit code: 0
+
+```text
+
+> planpilot-local@0.0.0 lint
+> eslint .
+```
+## Verification: review-gate revise_with_codex DryRun scenario
+
+- Target: scripts/ai-dev-auto-cycle-full.ps1
+- Scenario: saved review decision=revise and next_step=revise_with_codex.
+- Before git status count: 12
+- After git status count: 12
+- Expected: DryRun previews revise path without committing, completing task, or mutating git status.
+
+### DryRun output excerpt
+DRYRUN OUTPUT BEGIN
+Step 1: task-start
+  Command: MaxTasks=5
+  Executed: False
+  Skipped: False
+  Exit code: 0
+  Message: ?꾩옱 task ?ㅽ뻾 ?쒖옉: T001 review-gate revise ?먮룞 ?ъ떆???먮쫫 ?곌껐
+Step 2: make-prompt
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-prompt.ps1
+  Executed: False
+  Skipped: True
+  Exit code: 0
+  Message: DryRun: ?섏쐞 ?ㅽ겕由쏀듃瑜??ㅽ뻾?섏? ?딆븯?듬땲??
+Step 3: run-codex
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-codex.ps1
+  Executed: False
+  Skipped: True
+  Exit code: 0
+  Message: DryRun: ?섏쐞 ?ㅽ겕由쏀듃瑜??ㅽ뻾?섏? ?딆븯?듬땲??
+Step 4: check
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-check.ps1 -BuildOnly
+  Executed: False
+  Skipped: True
+  Exit code: 0
+  Message: DryRun: ?섏쐞 ?ㅽ겕由쏀듃瑜??ㅽ뻾?섏? ?딆븯?듬땲??
+Step 5: save-diff
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-save-diff.ps1
+  Executed: False
+  Skipped: True
+  Exit code: 0
+  Message: DryRun: ?섏쐞 ?ㅽ겕由쏀듃瑜??ㅽ뻾?섏? ?딆븯?듬땲??
+Step 6: make-review-prompt
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-review-prompt.ps1 -Strict
+  Executed: False
+  Skipped: True
+  Exit code: 0
+  Message: DryRun: ?섏쐞 ?ㅽ겕由쏀듃瑜??ㅽ뻾?섏? ?딆븯?듬땲??
+Step 7: run-review-codex
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-review-codex.ps1 -AllowDirty -SaveReview
+  Executed: False
+  Skipped: True
+  Exit code: 0
+  Message: DryRun: ?섏쐞 ?ㅽ겕由쏀듃瑜??ㅽ뻾?섏? ?딆븯?듬땲??
+Step 8: review-gate
+  Command: state.lastReviewDecision ?뺤씤
+  Executed: False
+  Skipped: True
+  Exit code: 0
+  Message: DryRun: 由щ럭 pass ?щ?瑜??ㅼ젣 ?곹깭?먯꽌 ?쎌? ?딆븯?듬땲??
+Step 9: make-revise-prompt
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-revise-prompt.ps1
+  Executed: False
+  Skipped: True
+  Exit code: 0
+  Message: DryRun: review-gate媛 revise + revise_with_codex??寃쎌슦 ?앹꽦??revise ?꾨＼?꾪듃瑜??ㅼ젣濡?留뚮뱾吏 ?딆븯?듬땲??
+Step 10: run-codex-revise
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-codex.ps1 -AllowDirty -PromptPath .ai-dev/revise-prompt.md
+  Executed: False
+  Skipped: True
+  Exit code: 0
+  Message: DryRun: Codex ?ъ닔???ㅽ뻾???ㅽ뻾?섏? ?딆븯?듬땲??
+Step 11: check-revise
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-check.ps1 -BuildOnly
+  Executed: False
+  Skipped: True
+  Exit code: 0
+  Message: DryRun: ?ъ닔??寃利앹쓣 ?ㅽ뻾?섏? ?딆븯?듬땲??
+Step 12: save-diff-revise
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-save-diff.ps1
+  Executed: False
+  Skipped: True
+  Exit code: 0
+  Message: DryRun: ?ъ닔??diff ??μ쓣 ?ㅽ뻾?섏? ?딆븯?듬땲??
+Step 13: make-review-prompt-revise
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-review-prompt.ps1 -Strict
+  Executed: False
+  Skipped: True
+  Exit code: 0
+  Message: DryRun: ?щ━酉??꾨＼?꾪듃 ?앹꽦???ㅽ뻾?섏? ?딆븯?듬땲??
+Step 14: run-review-codex-revise
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-review-codex.ps1 -AllowDirty -SaveReview
+  Executed: False
+  Skipped: True
+  Exit code: 0
+  Message: DryRun: Codex ?щ━酉곗? save-review瑜??ㅽ뻾?섏? ?딆븯?듬땲??
+Step 15: package-change-gate
+  Command: git status --porcelain -- package.json package-lock.json
+  Executed: False
+  Skipped: True
+  Exit code: 0
+  Message: DryRun: package ?뚯씪 蹂寃??щ?瑜??뺤씤?섏? ?딆븯?듬땲??
+Step 16: commit
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-commit.ps1
+  Executed: False
+  Skipped: True
+  Exit code: 0
+  Message: DryRun: git add/commit???ㅽ뻾?섏? ?딆븯?듬땲??
+Step 17: commit-result-gate
+  Command: state.lastCommand/lastCommitHash ?뺤씤
+  Executed: False
+  Skipped: True
+  Exit code: 0
+  Message: DryRun: ?ㅼ젣 而ㅻ컠 ?앹꽦 ?щ?瑜??뺤씤?섏? ?딆븯?듬땲??
+Step 18: complete-task
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-complete-task.ps1 -ResultSummary "?먮룞 ?꾨즺: Codex 援ы쁽, build/check, Codex 由щ럭 pass, ?먮룞 而ㅻ컠 ?꾨즺" -CommitHash <commit-hash>
+  Executed: False
+  Skipped: True
+  Exit code: 0
+  Message: DryRun: task ?꾨즺 泥섎━瑜??ㅽ뻾?섏? ?딆븯?듬땲??
+Step 19: meta-commit
+  Command: direct meta commit: git add scoped .ai-dev files, git commit -m 'chore(ai-dev): record task completion', git status --short
+  Executed: False
+  Skipped: True
+  Exit code: 0
+  Message: DryRun: .ai-dev 硫뷀? ?곹깭 吏곸젒 而ㅻ컠???ㅽ뻾?섏? ?딆븯?듬땲??
+Step 20: final-status
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-status.ps1
+  Executed: False
+  Skipped: True
+  Exit code: 0
+  Message: DryRun: 理쒖쥌 ?묒뾽 ?곹깭 ?뺤씤???ㅽ뻾?섏? ?딆븯?듬땲??
+Stopped reason: dry_run
+Completed: False
+Exit code: 0
+DRYRUN OUTPUT END
+
+### Notes
+- Re-review pass and repeated revise will be validated by the next non-DryRun auto-cycle-full run after review pass.
+- This review stage validates script structure, build/lint, and DryRun preview/no-mutation evidence before allowing commit/complete-task.
+
+
+## Allowed Scope
+
+- required_changes에 필요한 최소 수정만 허용한다.
+- 현재 task 범위를 벗어나지 않는다.
+- 다음 task를 미리 구현하지 않는다.
+- 새 기능 추가보다 리뷰 지적사항 해결을 우선한다.
+
+## Hard Rules
+
+- `package.json`과 `package-lock.json`은 수정하지 않는다. 꼭 필요하면 중단하고 이유만 기록한다.
+- 실제 DB 삭제 또는 초기화를 하지 않는다.
+- 사용자 데이터 복원 또는 덮어쓰기를 하지 않는다.
+- 대규모 리팩터링을 하지 않는다.
+- git commit을 실행하지 않는다.
+- git reset, git checkout, git clean을 실행하지 않는다.
+- npm install을 실행하지 않는다.
+- optional_suggestions는 기본적으로 구현하지 않는다.
+
+## Required Output
+
+- 반영한 required_changes 목록
+- 수정한 파일 목록
+- 검증 방법
+- 반영하지 못한 항목과 이유
+- 남은 위험
+- `.ai-dev/loop-log.md`에 기록할 재수정 요약
