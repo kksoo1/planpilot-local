@@ -1,6 +1,6 @@
 ﻿param(
     [int]$MaxTasks = 1,
-    [int]$MaxSteps = 20,
+    [int]$MaxSteps = 22,
     [switch]$DryRun,
     [switch]$Json,
     [switch]$AllowCodex,
@@ -92,6 +92,18 @@ function Save-CycleFailureState {
 
         if ($null -ne $ReviewGate -and (Test-HasValue $ReviewGate.severity)) {
             Set-ObjectProperty $state "lastReviewSeverity" ([string]$ReviewGate.severity)
+        }
+
+        if ($null -ne $ReviewGate -and (Test-HasValue $ReviewGate.nextStep)) {
+            Set-ObjectProperty $state "lastReviewNextStep" ([string]$ReviewGate.nextStep)
+        }
+
+        if ($null -ne $ReviewGate -and (Test-HasValue $ReviewGate.summary)) {
+            Set-ObjectProperty $state "lastReviewSummary" ([string]$ReviewGate.summary)
+        }
+
+        if ($null -ne $ReviewGate -and ($ReviewGate.PSObject.Properties.Name -contains "requiredChanges")) {
+            Set-ObjectProperty $state "lastReviewRequiredChanges" @($ReviewGate.requiredChanges)
         }
 
         Set-ObjectProperty $state "lastCommand" $Command
@@ -540,6 +552,8 @@ function Get-ReviewGate {
     $severity = $null
     $nextStep = $null
     $normalizedNextStep = $null
+    $summary = $null
+    $requiredChanges = @()
     $hasNextStep = $false
 
     if (Test-Path -LiteralPath $reviewResponsePath -PathType Leaf) {
@@ -553,10 +567,18 @@ function Get-ReviewGate {
             $severity = [string]$reviewResponse.severity
         }
 
+        if (Test-HasValue $reviewResponse.summary) {
+            $summary = [string]$reviewResponse.summary
+        }
+
         if ($reviewResponse.PSObject.Properties.Name -contains "next_step") {
             $hasNextStep = $true
             $nextStep = [string]$reviewResponse.next_step
             $normalizedNextStep = $nextStep.Trim().ToLowerInvariant().Replace("-", "_")
+        }
+
+        if ($reviewResponse.PSObject.Properties.Name -contains "required_changes") {
+            $requiredChanges = @($reviewResponse.required_changes)
         }
     }
 
@@ -566,9 +588,11 @@ function Get-ReviewGate {
         stateDecision = [string]$state.lastReviewDecision
         decision = $decision
         severity = $severity
+        summary = $summary
         hasNextStep = $hasNextStep
         nextStep = $nextStep
         normalizedNextStep = $normalizedNextStep
+        requiredChanges = @($requiredChanges)
         requiredChangeFiles = @(Get-RequiredReviewChangeFiles $reviewResponse)
     }
 }
@@ -579,6 +603,24 @@ function Test-IsAcceptableReviewNextStep {
     )
 
     return (-not $ReviewGate.hasNextStep) -or $ReviewGate.normalizedNextStep -eq "complete_task"
+}
+
+function Test-IsReviewReviseWithCodex {
+    param(
+        [object]$ReviewGate
+    )
+
+    return $ReviewGate.decision -eq "revise" -and $ReviewGate.normalizedNextStep -eq "revise_with_codex"
+}
+
+function New-ReviewReviseFailureMessage {
+    param(
+        [object]$ReviewGate,
+        [string]$Prefix
+    )
+
+    $requiredChangesJson = @($ReviewGate.requiredChanges) | ConvertTo-Json -Depth 20
+    return "$Prefix summary=$($ReviewGate.summary), severity=$($ReviewGate.severity), next_step=$($ReviewGate.nextStep), required_changes=$requiredChangesJson"
 }
 
 function Test-IsSavedReviewPassReady {
@@ -748,6 +790,7 @@ try {
 
     $scriptPaths = @{
         makePrompt = Get-ScriptPath "ai-dev-make-prompt.ps1"
+        makeRevisePrompt = Get-ScriptPath "ai-dev-make-revise-prompt.ps1"
         runCodex = Get-ScriptPath "ai-dev-run-codex.ps1"
         check = Get-ScriptPath "ai-dev-check.ps1"
         saveDiff = Get-ScriptPath "ai-dev-save-diff.ps1"
@@ -771,12 +814,20 @@ $plannedSteps = @(
     "make-review-prompt",
     "run-review-codex",
     "review-gate",
+    "make-revise-prompt",
+    "run-codex-revise",
+    "check-revise",
+    "save-diff-revise",
+    "make-review-prompt-revise",
+    "run-review-codex-revise",
+    "review-gate",
     "package-change-gate",
     "commit",
     "commit-result-gate",
     "complete-task",
     "meta-commit",
-    "final-status"
+    "final-status",
+    "completed-clean-gate"
 )
 
 if ($plannedSteps.Count -gt $MaxSteps) {
@@ -835,19 +886,16 @@ while ($completedTaskCount -lt $MaxTasks) {
             $script:steps += New-StepResult $stepNumber "resume-review-gate" "state/review-response 재확인" $false $false 0 "이미 저장된 리뷰 pass와 허용 가능한 next_step 상태를 확인했습니다. 구현/리뷰 재실행 없이 commit/complete/meta-commit으로 계속 진행합니다."
             $stepNumber++
         } elseif ($resumeReviewGate.lastCommand -eq "save-review" -and $resumeReviewGate.lastCommandStatus -eq "passed") {
-            $resumeImplementationGate = Get-ReviewImplementationGate $currentTask $resumeReviewGate
-            $message = "save-review 이후 계속 진행할 수 없습니다. review.decision=$($resumeReviewGate.decision), state.lastReviewDecision=$($resumeReviewGate.stateDecision), next_step=$($resumeReviewGate.nextStep)"
-
-            if (-not $resumeImplementationGate.passed) {
-                $message = $resumeImplementationGate.message
+            if (Test-IsReviewReviseWithCodex $resumeReviewGate) {
+                $resumeFromSavedReview = $true
+                $script:steps += New-StepResult $stepNumber "resume-review-gate" "state/review-response 재확인" $false $false 0 "저장된 리뷰가 revise + revise_with_codex이므로 구현/초기 리뷰 재실행 없이 revise 자동 재시도 단계로 계속 진행합니다."
+                $stepNumber++
+            } else {
+                $message = "save-review 이후 계속 진행할 수 없습니다. review.decision=$($resumeReviewGate.decision), state.lastReviewDecision=$($resumeReviewGate.stateDecision), next_step=$($resumeReviewGate.nextStep)"
                 Save-CycleFailureState "resume-review-gate" $message $resumeReviewGate
-                $script:steps += New-StepResult $stepNumber "resume-review-gate" "state/review-response required_changes 및 현재 diff 확인" $false $true 1 $message
-                Stop-Cycle $script:steps $resumeImplementationGate.reason $false 1
+                $script:steps += New-StepResult $stepNumber "resume-review-gate" "state/review-response 재확인" $false $true 1 $message
+                Stop-Cycle $script:steps "saved_review_not_ready_to_complete" $false 1
             }
-
-            Save-CycleFailureState "resume-review-gate" $message $resumeReviewGate
-            $script:steps += New-StepResult $stepNumber "resume-review-gate" "state/review-response 재확인" $false $true 1 $message
-            Stop-Cycle $script:steps "saved_review_not_ready_to_complete" $false 1
         }
     }
 
@@ -915,6 +963,18 @@ while ($completedTaskCount -lt $MaxTasks) {
     if ($DryRun) {
         $script:steps += New-StepResult $stepNumber "review-gate" "state.lastReviewDecision 확인" $false $true 0 "DryRun: 리뷰 pass 여부를 실제 상태에서 읽지 않았습니다."
         $stepNumber++
+        $script:steps += New-StepResult $stepNumber "make-revise-prompt" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-revise-prompt.ps1" $false $true 0 "DryRun: review-gate가 revise + revise_with_codex인 경우 생성할 revise 프롬프트를 실제로 만들지 않았습니다."
+        $stepNumber++
+        $script:steps += New-StepResult $stepNumber "run-codex-revise" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-codex.ps1 -AllowDirty -PromptPath .ai-dev/revise-prompt.md" $false $true 0 "DryRun: Codex 재수정 실행을 실행하지 않았습니다."
+        $stepNumber++
+        $script:steps += New-StepResult $stepNumber "check-revise" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-check.ps1 -BuildOnly" $false $true 0 "DryRun: 재수정 검증을 실행하지 않았습니다."
+        $stepNumber++
+        $script:steps += New-StepResult $stepNumber "save-diff-revise" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-save-diff.ps1" $false $true 0 "DryRun: 재수정 diff 저장을 실행하지 않았습니다."
+        $stepNumber++
+        $script:steps += New-StepResult $stepNumber "make-review-prompt-revise" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-review-prompt.ps1 -Strict" $false $true 0 "DryRun: 재리뷰 프롬프트 생성을 실행하지 않았습니다."
+        $stepNumber++
+        $script:steps += New-StepResult $stepNumber "run-review-codex-revise" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-review-codex.ps1 -AllowDirty -SaveReview" $false $true 0 "DryRun: Codex 재리뷰와 save-review를 실행하지 않았습니다."
+        $stepNumber++
         $script:steps += New-StepResult $stepNumber "package-change-gate" "git status --porcelain -- package.json package-lock.json" $false $true 0 "DryRun: package 파일 변경 여부를 확인하지 않았습니다."
         $stepNumber++
         $script:steps += New-StepResult $stepNumber "commit" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-commit.ps1" $false $true 0 "DryRun: git add/commit을 실행하지 않았습니다."
@@ -942,12 +1002,98 @@ while ($completedTaskCount -lt $MaxTasks) {
         Stop-Cycle $script:steps "review_save_not_passed" $false 1
     }
 
-    $implementationGate = Get-ReviewImplementationGate $currentTask $reviewGate
+    if (Test-IsReviewReviseWithCodex $reviewGate) {
+        $implementationGate = Get-ReviewImplementationGate $currentTask $reviewGate
 
-    if (-not $implementationGate.passed) {
-        Save-CycleFailureState "review-gate" $implementationGate.message $reviewGate
-        $script:steps += New-StepResult $stepNumber "review-gate" "task type, $reviewResponseRelativePath required_changes, 현재 diff 확인" $false $true 1 $implementationGate.message
-        Stop-Cycle $script:steps $implementationGate.reason $false 1
+        if (-not $implementationGate.passed) {
+            Save-CycleFailureState "review-gate" $implementationGate.message $reviewGate
+            $script:steps += New-StepResult $stepNumber "review-gate" "task type, $reviewResponseRelativePath required_changes, 현재 diff 확인" $false $true 1 $implementationGate.message
+            Stop-Cycle $script:steps $implementationGate.reason $false 1
+        }
+
+        $script:steps += New-StepResult $stepNumber "review-gate" "$reviewResponseRelativePath decision/next_step 확인" $false $false 0 "리뷰 결과가 revise + revise_with_codex입니다. 자동 revise 재시도를 시작합니다. severity=$($reviewGate.severity), summary=$($reviewGate.summary)"
+        $stepNumber++
+
+        Invoke-CycleCommand $stepNumber "make-revise-prompt" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-revise-prompt.ps1" $scriptPaths.makeRevisePrompt @()
+        $stepNumber++
+
+        if (-not $AllowCodex) {
+            $command = "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cycle-full.ps1 -AllowCodex -AllowReviewCodex -MaxTasks $MaxTasks"
+            if ($AllowDirty) {
+                $command = "$command -AllowDirty"
+            }
+
+            if ($AllowCommit) {
+                $command = "$command -AllowCommit"
+            }
+
+            if ($null -ne $CommitFiles -and $CommitFiles.Count -gt 0) {
+                $command = "$command -CommitFiles $($CommitFiles -join ',')"
+            }
+
+            $script:steps += New-StepResult $stepNumber "run-codex-revise" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-codex.ps1 -AllowDirty -PromptPath .ai-dev/revise-prompt.md" $false $true 1 "Codex 재수정 실행에는 -AllowCodex가 필요합니다. 추천 명령: $command"
+            Stop-Cycle $script:steps "allow_codex_required" $false 1
+        }
+
+        Invoke-CycleCommand $stepNumber "run-codex-revise" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-codex.ps1 -AllowDirty -PromptPath .ai-dev/revise-prompt.md" $scriptPaths.runCodex @("-AllowDirty", "-PromptPath", ".ai-dev/revise-prompt.md")
+        $stepNumber++
+
+        Invoke-CycleCommand $stepNumber "check-revise" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-check.ps1 -BuildOnly" $scriptPaths.check @("-BuildOnly")
+        $stepNumber++
+
+        Invoke-CycleCommand $stepNumber "save-diff-revise" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-save-diff.ps1" $scriptPaths.saveDiff @()
+        $stepNumber++
+
+        Invoke-CycleCommand $stepNumber "make-review-prompt-revise" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-review-prompt.ps1 -Strict" $scriptPaths.makeReviewPrompt @("-Strict")
+        $stepNumber++
+
+        if (-not $AllowReviewCodex) {
+            $command = "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cycle-full.ps1 -AllowCodex -AllowReviewCodex -MaxTasks $MaxTasks"
+            if ($AllowDirty) {
+                $command = "$command -AllowDirty"
+            }
+
+            if ($AllowCommit) {
+                $command = "$command -AllowCommit"
+            }
+
+            if ($null -ne $CommitFiles -and $CommitFiles.Count -gt 0) {
+                $command = "$command -CommitFiles $($CommitFiles -join ',')"
+            }
+
+            $script:steps += New-StepResult $stepNumber "run-review-codex-revise" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-review-codex.ps1 -AllowDirty -SaveReview" $false $true 1 "Codex 재리뷰 실행에는 -AllowReviewCodex가 필요합니다. 추천 명령: $command"
+            Stop-Cycle $script:steps "allow_review_codex_required" $false 1
+        }
+
+        Invoke-CycleCommand $stepNumber "run-review-codex-revise" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-review-codex.ps1 -AllowDirty -SaveReview" $scriptPaths.runReviewCodex @("-AllowDirty", "-SaveReview")
+        $stepNumber++
+
+        try {
+            $reviewGate = Get-ReviewGate
+        } catch {
+            $script:steps += New-StepResult $stepNumber "review-gate" "재리뷰 state/review-response 확인" $false $false 1 $_.Exception.Message
+            Stop-Cycle $script:steps "review_gate_failed" $false 1
+        }
+
+        if ($reviewGate.lastCommand -ne "save-review" -or $reviewGate.lastCommandStatus -ne "passed") {
+            $message = "재리뷰 이후 최신 state가 save-review passed가 아니므로 자동 커밋하지 않습니다: lastCommand=$($reviewGate.lastCommand), lastCommandStatus=$($reviewGate.lastCommandStatus)"
+            $script:steps += New-StepResult $stepNumber "review-gate" "재리뷰 state.lastCommand/state.lastCommandStatus 확인" $false $true 1 $message
+            Stop-Cycle $script:steps "review_save_not_passed" $false 1
+        }
+
+        if ($reviewGate.decision -eq "revise") {
+            if (Test-IsReviewReviseWithCodex $reviewGate) {
+                $message = New-ReviewReviseFailureMessage $reviewGate "재리뷰도 revise + revise_with_codex를 반환해 자동 revise 재시도를 중단합니다."
+                Save-CycleFailureState "review-gate" $message $reviewGate
+                $script:steps += New-StepResult $stepNumber "review-gate" "재리뷰 decision/next_step/required_changes 확인" $false $true 1 $message
+                Stop-Cycle $script:steps "review_revise_repeated" $false 1
+            }
+
+            $message = New-ReviewReviseFailureMessage $reviewGate "재리뷰가 revise를 반환해 자동 커밋과 complete-task를 실행하지 않습니다."
+            Save-CycleFailureState "review-gate" $message $reviewGate
+            $script:steps += New-StepResult $stepNumber "review-gate" "재리뷰 decision/next_step/required_changes 확인" $false $true 1 $message
+            Stop-Cycle $script:steps "revise_review_not_pass" $false 1
+        }
     }
 
     if ($reviewGate.decision -ne "pass") {
@@ -965,6 +1111,14 @@ while ($completedTaskCount -lt $MaxTasks) {
     if (-not (Test-IsAcceptableReviewNextStep $reviewGate)) {
         $script:steps += New-StepResult $stepNumber "review-gate" "$reviewResponseRelativePath next_step 확인" $false $true 1 "리뷰 next_step이 존재하지만 complete_task가 아니므로 자동 커밋과 complete-task를 실행하지 않습니다: 원본='$($reviewGate.nextStep)', 정규화='$($reviewGate.normalizedNextStep)'"
         Stop-Cycle $script:steps "review_next_step_not_complete_task" $false 1
+    }
+
+    $implementationGate = Get-ReviewImplementationGate $currentTask $reviewGate
+
+    if (-not $implementationGate.passed) {
+        Save-CycleFailureState "review-gate" $implementationGate.message $reviewGate
+        $script:steps += New-StepResult $stepNumber "review-gate" "task type, $reviewResponseRelativePath required_changes, 현재 diff 확인" $false $true 1 $implementationGate.message
+        Stop-Cycle $script:steps $implementationGate.reason $false 1
     }
 
     $script:steps += New-StepResult $stepNumber "review-gate" "최신 state 및 $reviewResponseRelativePath 재확인" $false $false 0 "리뷰 pass 및 허용 가능한 next_step 상태 수락: 존재=$($reviewGate.hasNextStep), 원본='$($reviewGate.nextStep)', 정규화='$($reviewGate.normalizedNextStep)'. commit/commit-result-gate/complete-task/meta-commit으로 계속 진행합니다."
