@@ -340,3 +340,23 @@
 - Task: T001 빈 상태와 필터 결과 없음 안내 개선
 - Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
 - Next task: T002 업무 카드 상태와 다음 행동 안내 정리
+
+## 2026-06-25 15:54:29 - Task completed
+
+- Task: T002 업무 카드 상태와 다음 행동 안내 정리
+- Result: 업무 카드에서 상태 라벨과 다음 행동 안내를 같은 문구 규칙으로 정리하고, 토글 버튼 문구와 aria-label이 같은 다음 행동 문구를 사용하도록 조정함
+- Verification: `src/components/TaskCard.tsx` 수동 검토로 완료/미완료 상태별 다음 행동 문구가 모순되지 않는지 확인함
+- Not executed: 프롬프트가 자동 build/test/lint 실행을 지시하지 않아 `npm run build`, `npm run test`, `npm run lint`는 실행하지 않음
+- Remaining risk: 실제 브라우저 화면 확인과 빌드 검증은 사람이 별도로 수행해야 함
+- Next task: T003 로컬 저장 안내 문구 보강
+
+## 2026-06-25 15:59:09 - Commit created
+
+- Task: T003 로컬 저장 안내 문구 보강
+- Commit: 1bda5d3d991141379a6bf60e85c87a69f288f9c8
+- Message: Add local storage guidance
+## 2026-06-25 15:59:13 - Task completed
+
+- Task: T003 로컬 저장 안내 문구 보강
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
+- Next task: 없음

@@ -41,14 +41,14 @@ PlanPilot Local의 자동 개발 루프가 여러 개의 작은 task를 연속�
 
 ## Current Task
 
-- Task ID: T001
-- Title: 빈 상태와 필터 결과 없음 안내 개선
-- Description: 빈 상태와 필터 결과 없음 화면의 안내 문구를 더 명확하고 다음 행동이 드러나도록 다듬는다.
+- Task ID: T002
+- Title: 업무 카드 상태와 다음 행동 안내 정리
+- Description: 업무 카드에서 보이는 상태 안내와 다음 행동 안내가 같은 표현 규칙을 따르도록 작은 문구를 정리한다.
 - Type: implementation
 - Status: in_progress
-- Priority: P0
+- Priority: P1
 - Depends on:
-- 없음
+- T001
 
 ## Task Scope
 
@@ -63,8 +63,8 @@ PlanPilot Local의 자동 개발 루프가 여러 개의 작은 task를 연속�
 
 ## Verification
 
-- 빈 상태 안내 문구가 한국어로 자연스러운지 확인한다.
-- 필터 결과 없음 안내가 다음 행동을 제안하는지 확인한다.
+- 업무 카드의 상태 라벨이 일관된지 확인한다.
+- 다음 행동 안내가 상태와 모순되지 않는지 확인한다.
 - 허용된 검증 명령이 있으면 실행 결과를 기록한다.
 
 - 필요한 경우 `npm run build`는 사람이 별도로 실행한다.

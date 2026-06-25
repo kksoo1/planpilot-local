@@ -2,8 +2,8 @@
     "goalTitle":  "PlanPilot Local 다중 task 자동 개발 루프 검증",
     "goalSource":  ".ai-dev/goal.md",
     "createdAt":  "2026-06-25T00:00:00+09:00",
-    "updatedAt":  "2026-06-25T06:52:20.2341719+00:00",
-    "currentTaskId":  "T002",
+    "updatedAt":  "2026-06-25T06:59:11.4658514+00:00",
+    "currentTaskId":  null,
     "tasks":  [
                   {
                       "id":  "T001",
@@ -32,7 +32,7 @@
                       "title":  "업무 카드 상태와 다음 행동 안내 정리",
                       "description":  "업무 카드에서 보이는 상태 안내와 다음 행동 안내가 같은 표현 규칙을 따르도록 작은 문구를 정리한다.",
                       "type":  "implementation",
-                      "status":  "in_progress",
+                      "status":  "done",
                       "priority":  "P1",
                       "dependsOn":  [
                                         "T001"
@@ -45,14 +45,16 @@
                                            "다음 행동 안내가 상태와 모순되지 않는지 확인한다.",
                                            "허용된 검증 명령이 있으면 실행 결과를 기록한다."
                                        ],
-                      "commitMessage":  "Refine task card guidance"
+                      "commitMessage":  "Refine task card guidance",
+                      "completedAt":  "2026-06-25T06:54:29.9050727+00:00",
+                      "resultSummary":  "업무 카드에서 상태 라벨과 다음 행동 안내를 같은 문구 규칙으로 정리함"
                   },
                   {
                       "id":  "T003",
                       "title":  "로컬 저장 안내 문구 보강",
                       "description":  "앱이 이 기기 안에 데이터를 저장한다는 점을 사용자가 부담 없이 이해할 수 있도록 작은 안내 문구를 보강한다.",
                       "type":  "implementation",
-                      "status":  "pending",
+                      "status":  "done",
                       "priority":  "P1",
                       "dependsOn":  [
                                         "T002"
@@ -65,7 +67,9 @@
                                            "기존 privacy-first 방향과 충돌하지 않는지 확인한다.",
                                            "허용된 검증 명령이 있으면 실행 결과를 기록한다."
                                        ],
-                      "commitMessage":  "Add local storage guidance"
+                      "commitMessage":  "Add local storage guidance",
+                      "completedAt":  "2026-06-25T06:59:11.4658514+00:00",
+                      "resultSummary":  "자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료"
                   }
               ]
 }

@@ -8,69 +8,70 @@
 ## Goal
 
 # 목표
-PlanPilot Local 자동 개발 루프 검증을 위해 작은 MVP 개선을 수행한다.
+PlanPilot Local의 자동 개발 루프가 여러 개의 작은 task를 연속으로 처리할 수 있는지 검증한다.
 
 ## 배경
-이번 목표는 앱 자체의 대규모 완성이 아니라 자동 개발 루프가 구현, 검증, 리뷰, 수정, 커밋 흐름을 안정적으로 처리하는지 확인하기 위한 것이다. 업무 추가, 수정, 완료, 삭제 흐름에서 사용자가 다음 행동을 더 쉽게 이해하도록 안내 문구를 보강한다.
+이번 목표는 앱 자체를 크게 완성하는 것이 아니라, 작은 UI 문구 개선 작업을 순차적으로 처리하면서 구현, 검증, 리뷰, 수정, 완료 기록 흐름이 안정적으로 이어지는지 확인하는 데 있다.
 
 ## 성공 기준
-- 업무가 없는 상태에서 사용자가 다음에 할 일을 알 수 있다.
-- 필터 결과가 없는 상태에서 필터 해제 또는 새 업무 추가 같은 다음 행동을 알 수 있다.
-- 업무 추가, 수정, 완료, 삭제 흐름의 안내 문구가 더 명확하다.
-- 로컬 저장 기반 앱이라는 점과 목표를 작은 업무로 나누는 방향성이 UI 또는 문서에 작게 반영된다.
-- 기존 데이터 구조와 주요 동작을 변경하지 않는다.
+- 빈 상태와 필터 결과 없음 안내가 더 명확해진다.
+- 업무 카드의 상태 안내와 다음 행동 안내가 더 일관되게 정리된다.
+- 로컬 저장 기반 앱이라는 점을 과하지 않은 작은 안내 문구로 보강한다.
+- 각 task가 순서대로 완료 상태로 전환된다.
+- 모든 task 완료 후 목표 상태가 completed로 기록된다.
 
 ## 제약사항
-- 한 번에 하나의 작은 개선만 수행한다.
-- 기존 React, Vite, TypeScript, Zustand, Dexie 구조를 따른다.
-- 사용자-facing 문구는 한국어로 작성한다.
-- 기존 저장 방식과 데이터 일관성을 유지한다.
-- 불필요한 대규모 구조 변경을 하지 않는다.
+- 한 번에 하나의 작은 변경만 진행한다.
+- 기존 React, Vite, TypeScript, Zustand, Dexie 구조를 유지한다.
+- 사용자-facing UI 문자열은 한국어를 기본으로 한다.
+- 화면 문구 개선 중심으로 작업하고 저장 구조 변경은 하지 않는다.
+- 사용자가 관리하는 스타일 파일은 수정하지 않는다.
 
 ## 범위 제외
-- 계정 기반 기능
-- 외부 연동 기능
-- 결제 기능
-- 대규모 화면 재구성
-- 저장소 구조 변경
+- 계정 기반 기능 추가
+- 원격 연동 기능 추가
+- 결제 기능 추가
+- 외부 서비스 연결
+- 대규모 화면 재작성
 
 ## 수동 검증
-- 업무가 하나도 없을 때 빈 상태 안내가 자연스러운지 확인한다.
-- 필터 적용 후 결과가 없을 때 다음 행동 안내가 보이는지 확인한다.
-- 업무 추가, 수정, 완료, 삭제 흐름의 문구가 실제 동작과 맞는지 확인한다.
-- 작은 업무로 목표를 나누는 제품 방향성이 과하지 않게 드러나는지 확인한다.
+- 빈 데이터 상태에서 안내 문구가 자연스럽게 보이는지 확인한다.
+- 필터 결과가 없을 때 사용자가 다음 행동을 이해할 수 있는지 확인한다.
+- 업무 카드의 상태 및 다음 행동 안내가 서로 어색하지 않은지 확인한다.
+- 로컬 저장 안내 문구가 과도하게 강조되지 않는지 확인한다.
 
 ## Current Task
 
-- Task ID: T001
-- Title: 업무 흐름 안내 문구 개선
-- Description: 빈 상태, 필터 결과 없음, 업무 추가·수정·완료·삭제 흐름에서 사용자가 다음 행동을 이해할 수 있도록 한국어 안내 문구를 작게 보강한다. 로컬 저장 기반 앱이라는 점과 목표를 작은 업무로 나누는 방향성을 과하지 않게 반영한다.
+- Task ID: T003
+- Title: 로컬 저장 안내 문구 보강
+- Description: 앱이 이 기기 안에 데이터를 저장한다는 점을 사용자가 부담 없이 이해할 수 있도록 작은 안내 문구를 보강한다.
 - Type: implementation
-- Status: in_progress
+- Status: pending
 - Priority: P1
 - Verification:
-- 변경 파일을 확인해 기존 JSX 구조가 중복되지 않았는지 검토한다.
-- 업무 없음 상태와 필터 결과 없음 상태의 안내 문구가 서로 구분되는지 확인한다.
-- 업무 추가, 수정, 완료, 삭제 관련 문구가 실제 동작과 일치하는지 확인한다.
+- 로컬 저장 안내가 과하게 강조되지 않는지 확인한다.
+- 기존 privacy-first 방향과 충돌하지 않는지 확인한다.
+- 허용된 검증 명령이 있으면 실행 결과를 기록한다.
 
 ## Review Result
 
 - Decision: revise
-- Severity: low
+- Severity: high
 - Next step: revise_with_codex
-- Summary: 대체로 task 범위 안의 작은 문구 개선이지만, 필터 결과 없음 안내가 현재 필터 상태와 맞지 않는 경우가 있어 수정이 필요합니다.
+- Summary: 현재 앱 변경은 T003의 로컬 저장 안내 문구 보강이 아니라 업무 카드 상태/다음 행동 문구 변경에 해당한다.
 
 ## Required Changes
 
-- File: src/views/TasksView.tsx
-  - Reason: `hasProjectFilter || hasVisibilityFilter`를 하나의 안내 문구로 처리해, 프로젝트 필터만 적용된 상태에서도 이미 켜져 있을 수 있는 '완료 업무 표시를 켜서'라는 행동을 제안하고, 완료 숨김만 적용된 상태에서도 '프로젝트 필터를 전체로 바꾸거나'라는 불필요한 행동을 제안합니다.
-  - Suggestion: 프로젝트 필터와 완료 업무 숨김 상태를 구분해 안내 문구를 분기하세요. 예: 둘 다 적용된 경우에는 둘 다 언급하고, 프로젝트 필터만 적용된 경우에는 전체 프로젝트로 변경만 안내하며, 완료 숨김만 적용된 경우에는 완료 업무 표시 켜기만 안내합니다.
+- File: src/components/TaskCard.tsx
+  - Reason: Current Task T003은 앱이 이 기기 안에 데이터를 저장한다는 작은 안내 문구를 보강하는 작업인데, 실제 diff는 업무
+ 카드의 상태/다음 행동 라벨을 변경하고 있어 task 범위를 벗어난다.
+  - Suggestion: 업무 카드 상태/다음 행동 문구 변경은 되돌리거나 T003 범위에서 제외하고, 로컬 저장 안내가 표시되는 적절한 기존 UI 
+위치에 과하지 않은 한국어 안내 문구를 추가한다.
 
 ## Optional Suggestions
 
 - optional_suggestions는 참고만 하며 구현하지 않는다.
-- File: src/views/TasksView.tsx
-  - Suggestion: `emptyActionMessage` 분기가 늘어나면 작은 helper 변수나 조건 순서 정리로 읽기 쉽게 유지할 수 있습니다.
+- 없음
 
 ## Diff Context
 
@@ -78,44 +79,30 @@ PlanPilot Local 자동 개발 루프 검증을 위해 작은 MVP 개선을 수�
 
 ## Generated At
 
-2026-06-24 16:19:18
+2026-06-25 15:55:32
 
 ## Git Status
 
 ```text
  M .ai-dev/codex-result.md
- M .ai-dev/codex-review-result.md
  M .ai-dev/current-task-prompt.md
- M .ai-dev/diff.md
- M .ai-dev/goal.md
+ M .ai-dev/loop-log.md
  M .ai-dev/queue.json
- M .ai-dev/review-prompt.md
- M .ai-dev/review-response.json
- M .ai-dev/review.md
- M .ai-dev/revise-prompt.md
  M .ai-dev/state.json
  M .ai-dev/test-result.md
  M src/components/TaskCard.tsx
- M src/views/TasksView.tsx
 ```
 
 ## App Change Files
 
 - src/components/TaskCard.tsx
-- src/views/TasksView.tsx
 
 ## AI Dev Operational Artifact Files
 
 - .ai-dev/codex-result.md
-- .ai-dev/codex-review-result.md
 - .ai-dev/current-task-prompt.md
-- .ai-dev/diff.md
-- .ai-dev/goal.md
+- .ai-dev/loop-log.md
 - .ai-dev/queue.json
-- .ai-dev/review-prompt.md
-- .ai-dev/review-response.json
-- .ai-dev/review.md
-- .ai-dev/revise-prompt.md
 - .ai-dev/state.json
 - .ai-dev/test-result.md
 
@@ -126,103 +113,50 @@ PlanPilot Local 자동 개발 루프 검증을 위해 작은 MVP 개선을 수�
 ## Unstaged Diff Stat
 
 ```text
- src/components/TaskCard.tsx |  6 +++---
- src/views/TasksView.tsx     | 18 ++++++++++++------
- 2 files changed, 15 insertions(+), 9 deletions(-)
+ src/components/TaskCard.tsx | 13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 ```
 
 ## Unstaged Diff
 
 ```text
 diff --git a/src/components/TaskCard.tsx b/src/components/TaskCard.tsx
-index 7218a1c..1ef5a96 100644
+index 1ef5a96..4f713c1 100644
 --- a/src/components/TaskCard.tsx
 +++ b/src/components/TaskCard.tsx
-@@ -52,21 +52,21 @@ export function TaskCard({
-         }
-         onClick={() => onToggleDone(task)}
-       >
--        {task.status === "done" ? "미완료로 되돌리기" : "완료로 표시"}
-+        {task.status === "done" ? "미완료로 되돌리기" : "업무 완료로 표시"}
-       </button>
-       <button
-         type="button"
-         aria-label={`'${task.title}' 업무 삭제하기`}
-         onClick={() => onDelete(task)}
-       >
--        삭제
-+        업무 삭제
-       </button>
-       <button
-         type="button"
-         aria-label={`'${task.title}' 업무 수정하기`}
-         onClick={() => onStartEdit(task)}
-       >
--        수정
-+        업무 수정
-       </button>
-     </li>
-   );
-diff --git a/src/views/TasksView.tsx b/src/views/TasksView.tsx
-index b2129c1..2ba811e 100644
---- a/src/views/TasksView.tsx
-+++ b/src/views/TasksView.tsx
-@@ -117,6 +117,12 @@ export function TasksView({
-       : hasProjectFilter || hasVisibilityFilter
-         ? "현재 조건에 맞는 업무가 없어요."
-         : "아직 등록된 업무가 없어요.";
-+  const emptyActionMessage =
-+    hasSearchQuery
-+      ? "검색어를 바꾸거나 비운 뒤 다시 확인해보세요."
-+      : hasProjectFilter || hasVisibilityFilter
-+        ? "프로젝트 필터를 전체로 바꾸거나 완료 업무 표시를 켜서 숨은 업무를 확인해보세요."
-+        : "목표를 바로 실행할 수 있는 작은 업무로 나누어 로컬에 먼저 기록해보세요.";
+@@ -18,6 +18,9 @@ export function TaskCard({
+   onStartEdit,
+ }: TaskCardProps) {
+   const showDueSoonBadge = isUpcomingTask(task);
++  const statusLabel = getStatusLabel(task.status);
++  const nextActionLabel =
++    task.status === "done" ? "미완료로 되돌리기" : "완료로 표시";
  
    return (
-     <section className="screen-card">
-@@ -177,20 +183,20 @@ export function TasksView({
+     <li className="task-card">
+@@ -40,19 +43,15 @@ export function TaskCard({
+       )}
+       {task.memo && <span>메모: {task.memo}</span>}
+       <span>
+-        중요도: {getPriorityLabel(task.priority)} · 상태: {getStatusLabel(task.status)} · 프로젝트: {projectName}
++        중요도: {getPriorityLabel(task.priority)} · 상태: {statusLabel} · 다음 행동: {nextActionLabel} · 프로젝트: {projectName}
+       </span>
+       <span>{task.dueDate ? `마감일: ${task.dueDate}` : "마감일 없음"}</span>
+       <button
          type="button"
-         onClick={() => onTaskFormOpenChange((current) => !current)}
+-        aria-label={
+-          task.status === "done"
+-            ? `'${task.title}' 업무를 미완료로 되돌리기`
+-            : `'${task.title}' 업무를 완료로 표시하기`
+-        }
++        aria-label={`'${task.title}' 업무를 ${nextActionLabel}`}
+         onClick={() => onToggleDone(task)}
        >
--        {isTaskFormOpen ? "새 업무 추가 닫기" : "새 업무 추가"}
-+        {isTaskFormOpen ? "작은 업무 추가 닫기" : "작은 업무 추가"}
+-        {task.status === "done" ? "미완료로 되돌리기" : "업무 완료로 표시"}
++        {nextActionLabel}
        </button>
- 
-       {isTaskFormOpen && (
-         <TaskForm
--          title="새 업무 추가"
--          ariaLabel="업무 추가"
-+          title="새 작은 업무 추가"
-+          ariaLabel="새 작은 업무 추가"
-           taskTitle={newTaskTitle}
-           memo={newTaskMemo}
-           dueDate={newTaskDueDate}
-           priority={newTaskPriority}
-           projectId={newTaskProjectId}
-           projects={projects}
--          submitLabel="업무 추가"
-+          submitLabel="로컬에 업무 추가"
-           onTitleChange={onNewTaskTitleChange}
-           onMemoChange={onNewTaskMemoChange}
-           onDueDateChange={onNewTaskDueDateChange}
-@@ -203,7 +209,7 @@ export function TasksView({
-       {filteredTasks.length === 0 ? (
-         <div className="empty">
-           <p>{emptyMessage}</p>
--          {hasSearchQuery && <p>다른 검색어를 입력해보세요.</p>}
-+          <p>{emptyActionMessage}</p>
-         </div>
-       ) : (
-         <ul className="task-list">
-@@ -220,7 +226,7 @@ export function TasksView({
-                     priority={editTaskPriority}
-                     projectId={editTaskProjectId}
-                     projects={projects}
--                    submitLabel="저장"
-+                    submitLabel="수정 저장"
-                     onTitleChange={onEditTaskTitleChange}
-                     onMemoChange={onEditTaskMemoChange}
-                     onDueDateChange={onEditTaskDueDateChange}
+       <button
+         type="button"
 ```
 
 ## Staged Diff Stat
@@ -241,10 +175,10 @@ index b2129c1..2ba811e 100644
 
 # AI Dev Test Result
 
-## 2026-06-24 16:04:37
+## 2026-06-25 15:55:26
 
 - Overall result: passed
-- Current task: T001
+- Current task: T003
 - Mode: BuildOnly (build + lint when available)
 - Commands:
   - npm run build: passed
@@ -266,11 +200,11 @@ index b2129c1..2ba811e 100644
 transforming...✓ 48 modules transformed.
 rendering chunks...
 computing gzip size...
-dist/index.html                   0.46 kB │ gzip:   0.29 kB
+dist/index.html                   0.46 kB │ gzip:   0.30 kB
 dist/assets/index-DvjxWt30.css    5.69 kB │ gzip:   1.93 kB
-dist/assets/index-DQGTtTZ0.js   317.35 kB │ gzip: 100.13 kB
+dist/assets/index-C_1JY54w.js   317.43 kB │ gzip: 100.19 kB
 
-[32m✓ built in 251ms[39m
+[32m✓ built in 243ms[39m
 ```
 ### npm run test
 
