@@ -1,6 +1,6 @@
 ﻿{
-    "goalStatus":  "completed",
-    "currentTaskId":  null,
+    "goalStatus":  "in_progress",
+    "currentTaskId":  "T002",
     "currentLoop":  0,
     "maxLoopsPerTask":  2,
     "repeatedFailureCount":  0,
@@ -9,17 +9,8 @@
     "lastErrorSummary":  "",
     "lastReviewDecision":  "pass",
     "lastReviewSeverity":  "none",
-    "lastCommitHash":  "7814005d29f5449d9c687f1b90e115806825280f",
-    "startedAt":  "2026-06-24T00:00:00+09:00",
-    "updatedAt":  "2026-06-25T06:14:55.0434124+00:00",
-    "stopReason":  "all_tasks_completed",
-    "lastReviewNextStep":  "revise_with_codex",
-    "lastReviewSummary":  "업무 안내 문구 변경 자체는 T001 범위와 대체로 일치하지만, scripts/ai-dev-auto-cycle-full.ps1 변경이 현\r\n재 업무 범위를 벗어난 것으로 표시되어 수정이 필요합니다.",
-    "lastReviewRequiredChanges":  [
-                                      {
-                                          "file":  "scripts/ai-dev-auto-cycle-full.ps1",
-                                          "reason":  "현재 task는 UI 안내 문구 개선인데 자동화 스크립트가 App Change Files 및 Git Status에 변경 파일로 포함\r\n되어 있어 범위 초과입니다.",
-                                          "suggestion":  "이번 task와 직접 관련 없는 스크립트 변경은 제외하거나, 실제로 필요한 변경이라면 별도 task로 분리하세요."
-                                      }
-                                  ]
+    "lastCommitHash":  "8d8cc3b5a90dbfface49ee1db932589c08e34ca8",
+    "startedAt":  "2026-06-25T00:00:00+09:00",
+    "updatedAt":  "2026-06-25T06:52:20.2341719+00:00",
+    "stopReason":  null
 }

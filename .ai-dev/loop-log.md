@@ -330,3 +330,13 @@
 - Task: T001 업무 흐름 안내 문구 개선
 - Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
 - Next task: 없음
+## 2026-06-25 15:52:16 - Commit created
+
+- Task: T001 빈 상태와 필터 결과 없음 안내 개선
+- Commit: 8d8cc3b5a90dbfface49ee1db932589c08e34ca8
+- Message: Improve empty state copy
+## 2026-06-25 15:52:22 - Task completed
+
+- Task: T001 빈 상태와 필터 결과 없음 안내 개선
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
+- Next task: T002 업무 카드 상태와 다음 행동 안내 정리

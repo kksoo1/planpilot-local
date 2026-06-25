@@ -2,11 +2,11 @@
 
 ## Run
 
-- Started at: 2026-06-25 15:12:26
-- Ended at: 2026-06-25 15:13:33
+- Started at: 2026-06-25 15:49:04
+- Ended at: 2026-06-25 15:50:48
 - Exit code: 0
-- Prompt: .ai-dev/revise-prompt.md
-- Command: codex exec <short wrapper pointing to .ai-dev/revise-prompt.md>
+- Prompt: .ai-dev/current-task-prompt.md
+- Command: codex exec <short wrapper pointing to .ai-dev/current-task-prompt.md>
 
 ## Output
 
@@ -27,352 +27,464 @@ approval: never
 sandbox: workspace-write [workdir, /tmp, $TMPDIR]
 reasoning effort: medium
 reasoning summaries: none
-session id: 019efd68-89d2-7220-a167-1c60fdc1e771
+session id: 019efd8a-1542-7fc2-a3be-ecd65786682d
 --------
 user
 Read and follow the full task prompt at this absolute file path: D:\ai-apps\planpilot-loca
-l\.ai-dev\revise-prompt.md
+l\.ai-dev\current-task-prompt.md
 codex
-지정된 프롬프트 파일만 읽어서 작업 범위와 요구사항을 먼저 확인하겠습니다.
+지정된 작업 프롬프트를 먼저 읽고, 그 안의 범위와 제약을 확인하겠습니다.
 exec
 "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -Li
-teralPath 'D:\\ai-apps\\planpilot-local\\.ai-dev\\revise-prompt.md'" in D:\ai-apps\planpil
-ot-local
- succeeded in 2186ms:
-# AI Dev Revise Prompt
+teralPath 'D:\\ai-apps\\planpilot-local\\.ai-dev\\current-task-prompt.md'" in D:\ai-apps\p
+lanpilot-local
+ succeeded in 1373ms:
+# Current Task Prompt
 
 ## Role
 
 너는 이 저장소의 자동 개발 에이전트다.
-이전 리뷰에서 지적된 사항만 수정한다.
 
 ## Goal
 
 # 목표
-PlanPilot Local 자동 개발 루프 검증을 위해 작은 MVP 개선을 수행한다.
+PlanPilot Local의 자동 개발 루프가 여러 개의 작은 task를 연속으로 처리할 수 있는지 검증한다.
 
 ## 배경
-이번 목표는 앱 자체의 대규모 완성이 아니라 자동 개발 루프가 구현, 검증, 리뷰, 수정, 커밋 흐름을 안정적으로 처리하는지 확인하기 위한 것이다. 업무 추가, 
-수정, 완료, 삭제 흐름에서 사용자가 다음 행동을 더 쉽게 이해하도록 안내 문구를 보강한다.
+이번 목표는 앱 자체를 크게 완성하는 것이 아니라, 작은 UI 문구 개선 작업을 순차적으로 처리하면서 구현, 검증, 리뷰, 수정, 완료 기록 흐름이 안정적으로 이
+어지는지 확인하는 데 있다.
 
 ## 성공 기준
-- 업무가 없는 상태에서 사용자가 다음에 할 일을 알 수 있다.
-- 필터 결과가 없는 상태에서 필터 해제 또는 새 업무 추가 같은 다음 행동을 알 수 있다.
-- 업무 추가, 수정, 완료, 삭제 흐름의 안내 문구가 더 명확하다.
-- 로컬 저장 기반 앱이라는 점과 목표를 작은 업무로 나누는 방향성이 UI 또는 문서에 작게 반영된다.
-- 기존 데이터 구조와 주요 동작을 변경하지 않는다.
+- 빈 상태와 필터 결과 없음 안내가 더 명확해진다.
+- 업무 카드의 상태 안내와 다음 행동 안내가 더 일관되게 정리된다.
+- 로컬 저장 기반 앱이라는 점을 과하지 않은 작은 안내 문구로 보강한다.
+- 각 task가 순서대로 완료 상태로 전환된다.
+- 모든 task 완료 후 목표 상태가 completed로 기록된다.
 
 ## 제약사항
-- 한 번에 하나의 작은 개선만 수행한다.
-- 기존 React, Vite, TypeScript, Zustand, Dexie 구조를 따른다.
-- 사용자-facing 문구는 한국어로 작성한다.
-- 기존 저장 방식과 데이터 일관성을 유지한다.
-- 불필요한 대규모 구조 변경을 하지 않는다.
+- 한 번에 하나의 작은 변경만 진행한다.
+- 기존 React, Vite, TypeScript, Zustand, Dexie 구조를 유지한다.
+- 사용자-facing UI 문자열은 한국어를 기본으로 한다.
+- 화면 문구 개선 중심으로 작업하고 저장 구조 변경은 하지 않는다.
+- 사용자가 관리하는 스타일 파일은 수정하지 않는다.
 
 ## 범위 제외
-- 계정 기반 기능
-- 외부 연동 기능
-- 결제 기능
-- 대규모 화면 재구성
-- 저장소 구조 변경
+- 계정 기반 기능 추가
+- 원격 연동 기능 추가
+- 결제 기능 추가
+- 외부 서비스 연결
+- 대규모 화면 재작성
 
 ## 수동 검증
-- 업무가 하나도 없을 때 빈 상태 안내가 자연스러운지 확인한다.
-- 필터 적용 후 결과가 없을 때 다음 행동 안내가 보이는지 확인한다.
-- 업무 추가, 수정, 완료, 삭제 흐름의 문구가 실제 동작과 맞는지 확인한다.
-- 작은 업무로 목표를 나누는 제품 방향성이 과하지 않게 드러나는지 확인한다.
+- 빈 데이터 상태에서 안내 문구가 자연스럽게 보이는지 확인한다.
+- 필터 결과가 없을 때 사용자가 다음 행동을 이해할 수 있는지 확인한다.
+- 업무 카드의 상태 및 다음 행동 안내가 서로 어색하지 않은지 확인한다.
+- 로컬 저장 안내 문구가 과도하게 강조되지 않는지 확인한다.
 
 ## Current Task
 
 - Task ID: T001
-- Title: 업무 흐름 안내 문구 개선
-- Description: 빈 상태, 필터 결과 없음, 업무 추가·수정·완료·삭제 흐름에서 사용자가 다음 행동을 이해할 수 있도록 한국어 안내 문구를 작게 보강한
-다. 로컬 저장 기반 앱이라는 점과 목표를 작은 업무로 나누는 방향성을 과하지 않게 반영한다.
+- Title: 빈 상태와 필터 결과 없음 안내 개선
+- Description: 빈 상태와 필터 결과 없음 화면의 안내 문구를 더 명확하고 다음 행동이 드러나도록 다듬는다.
 - Type: implementation
 - Status: in_progress
-- Priority: P1
-- Verification:
-- 변경 파일을 확인해 기존 JSX 구조가 중복되지 않았는지 검토한다.
-- 업무 없음 상태와 필터 결과 없음 상태의 안내 문구가 서로 구분되는지 확인한다.
-- 업무 추가, 수정, 완료, 삭제 관련 문구가 실제 동작과 일치하는지 확인한다.
+- Priority: P0
+- Depends on:
+- 없음
 
-## Review Result
+## Task Scope
 
-- Decision: revise
-- Severity: low
-- Next step: revise_with_codex
-- Summary: 대체로 task 범위 안의 작은 문구 개선이지만, 필터 결과 없음 안내가 현재 필터 상태와 맞지 않는 경우가 있어 수정이 필요합니다.
-
-## Required Changes
-
-- File: src/views/TasksView.tsx
-  - Reason: `hasProjectFilter || hasVisibilityFilter`를 하나의 안내 문구로 처리해, 프로젝트 필터만 적용된 상태에서도 
-이미 켜져 있을 수 있는 '완료 업무 표시를 켜서'라는 행동을 제안하고, 완료 숨김만 적용된 상태에서도 '프로젝트 필터를 전체로 바꾸거나'라는 불필요한 행동을 제
-안합니다.
-  - Suggestion: 프로젝트 필터와 완료 업무 숨김 상태를 구분해 안내 문구를 분기하세요. 예: 둘 다 적용된 경우에는 둘 다 언급하고, 프로젝트 필터만
- 적용된 경우에는 전체 프로젝트로 변경만 안내하며, 완료 숨김만 적용된 경우에는 완료 업무 표시 켜기만 안내합니다.
-
-## Optional Suggestions
-
-- optional_suggestions는 참고만 하며 구현하지 않는다.
-- File: src/views/TasksView.tsx
-  - Suggestion: `emptyActionMessage` 분기가 늘어나면 작은 helper 변수나 조건 순서 정리로 읽기 쉽게 유지할 수 있습니다.
-
-## Diff Context
-
-# AI Dev Diff
-
-## Generated At
-
-2026-06-24 16:19:18
-
-## Git Status
-
-```text
- M .ai-dev/codex-result.md
- M .ai-dev/codex-review-result.md
- M .ai-dev/current-task-prompt.md
- M .ai-dev/diff.md
- M .ai-dev/goal.md
- M .ai-dev/queue.json
- M .ai-dev/review-prompt.md
- M .ai-dev/review-response.json
- M .ai-dev/review.md
- M .ai-dev/revise-prompt.md
- M .ai-dev/state.json
- M .ai-dev/test-result.md
- M src/components/TaskCard.tsx
- M src/views/TasksView.tsx
-```
-
-## App Change Files
-
-- src/components/TaskCard.tsx
-- src/views/TasksView.tsx
-
-## AI Dev Operational Artifact Files
-
-- .ai-dev/codex-result.md
-- .ai-dev/codex-review-result.md
-- .ai-dev/current-task-prompt.md
-- .ai-dev/diff.md
-- .ai-dev/goal.md
-- .ai-dev/queue.json
-- .ai-dev/review-prompt.md
-- .ai-dev/review-response.json
-- .ai-dev/review.md
-- .ai-dev/revise-prompt.md
-- .ai-dev/state.json
-- .ai-dev/test-result.md
-
-## Review Diff Scope
-
-아래 diff 본문은 실제 앱 변경 파일 중심으로 검토하도록 .ai-dev 운영 산출물 diff를 제외합니다. .ai-dev 변경은 위 운영 산출물 목록에서 별도
-로 확인합니다.
-
-## Unstaged Diff Stat
-
-```text
- src/components/TaskCard.tsx |  6 +++---
- src/views/TasksView.tsx     | 18 ++++++++++++------
- 2 files changed, 15 insertions(+), 9 deletions(-)
-```
-
-## Unstaged Diff
-
-```text
-diff --git a/src/components/TaskCard.tsx b/src/components/TaskCard.tsx
-index 7218a1c..1ef5a96 100644
---- a/src/components/TaskCard.tsx
-+++ b/src/components/TaskCard.tsx
-@@ -52,21 +52,21 @@ export function TaskCard({
-         }
-         onClick={() => onToggleDone(task)}
-       >
--        {task.status === "done" ? "미완료로 되돌리기" : "완료로 표시"}
-+        {task.status === "done" ? "미완료로 되돌리기" : "업무 완료로 표시"}
-       </button>
-       <button
-         type="button"
-         aria-label={`'${task.title}' 업무 삭제하기`}
-         onClick={() => onDelete(task)}
-       >
--        삭제
-+        업무 삭제
-       </button>
-       <button
-         type="button"
-         aria-label={`'${task.title}' 업무 수정하기`}
-         onClick={() => onStartEdit(task)}
-       >
--        수정
-+        업무 수정
-       </button>
-     </li>
-   );
-diff --git a/src/views/TasksView.tsx b/src/views/TasksView.tsx
-index b2129c1..2ba811e 100644
---- a/src/views/TasksView.tsx
-+++ b/src/views/TasksView.tsx
-@@ -117,6 +117,12 @@ export function TasksView({
-       : hasProjectFilter || hasVisibilityFilter
-         ? "현재 조건에 맞는 업무가 없어요."
-         : "아직 등록된 업무가 없어요.";
-+  const emptyActionMessage =
-+    hasSearchQuery
-+      ? "검색어를 바꾸거나 비운 뒤 다시 확인해보세요."
-+      : hasProjectFilter || hasVisibilityFilter
-+        ? "프로젝트 필터를 전체로 바꾸거나 완료 업무 표시를 켜서 숨은 업무를 확인해보세요."
-+        : "목표를 바로 실행할 수 있는 작은 업무로 나누어 로컬에 먼저 기록해보세요.";
- 
-   return (
-     <section className="screen-card">
-@@ -177,20 +183,20 @@ export function TasksView({
-         type="button"
-         onClick={() => onTaskFormOpenChange((current) => !current)}
-       >
--        {isTaskFormOpen ? "새 업무 추가 닫기" : "새 업무 추가"}
-+        {isTaskFormOpen ? "작은 업무 추가 닫기" : "작은 업무 추가"}
-       </button>
- 
-       {isTaskFormOpen && (
-         <TaskForm
--          title="새 업무 추가"
--          ariaLabel="업무 추가"
-+          title="새 작은 업무 추가"
-+          ariaLabel="새 작은 업무 추가"
-           taskTitle={newTaskTitle}
-           memo={newTaskMemo}
-           dueDate={newTaskDueDate}
-           priority={newTaskPriority}
-           projectId={newTaskProjectId}
-           projects={projects}
--          submitLabel="업무 추가"
-+          submitLabel="로컬에 업무 추가"
-           onTitleChange={onNewTaskTitleChange}
-           onMemoChange={onNewTaskMemoChange}
-           onDueDateChange={onNewTaskDueDateChange}
-@@ -203,7 +209,7 @@ export function TasksView({
-       {filteredTasks.length === 0 ? (
-         <div className="empty">
-           <p>{emptyMessage}</p>
--          {hasSearchQuery && <p>다른 검색어를 입력해보세요.</p>}
-+          <p>{emptyActionMessage}</p>
-         </div>
-       ) : (
-         <ul className="task-list">
-@@ -220,7 +226,7 @@ export function TasksView({
-                     priority={editTaskPriority}
-                     projectId={editTaskProjectId}
-                     projects={projects}
--                    submitLabel="저장"
-+                    submitLabel="수정 저장"
-                     onTitleChange={onEditTaskTitleChange}
-                     onMemoChange={onEditTaskMemoChange}
-                     onDueDateChange={onEditTaskDueDateChange}
-```
-
-## Staged Diff Stat
-
-```text
-변경 없음
-```
-
-## Staged Diff
-
-```text
-변경 없음
-```
-
-## Test Result
-
-# AI Dev Test Result
-
-## 2026-06-24 16:04:37
-
-- Overall result: passed
-- Current task: T001
-- Mode: BuildOnly (build + lint when available)
-- Commands:
-  - npm run build: passed
-  - npm run test: skipped
-  - npm run lint: passed
-
-### npm run build
-
-- Status: passed
-- Exit code: 0
-
-```text
-
-> planpilot-local@0.0.0 build
-> tsc -b && vite build
-
-[36mvite v8.0.10 [32mbuilding client environment for production...[36m[39m
-[2K
-transforming...✓ 48 modules transformed.
-rendering chunks...
-computing gzip size...
-dist/index.html                   0.46 kB │ gzip:   0.29 kB
-dist/assets/index-DvjxWt30.css    5.69 kB │ gzip:   1.93 kB
-dist/assets/index-DQGTtTZ0.js   317.35 kB │ gzip: 100.13 kB
-
-[32m✓ built in 251ms[39m
-```
-### npm run test
-
-- Status: skipped
-- Exit code: 없음
-
-```text
-package.json에 test script가 없습니다.
-```
-### npm run lint
-
-- Status: passed
-- Exit code: 0
-
-```text
-
-> planpilot-local@0.0.0 lint
-> eslint .
-```
-
-## Allowed Scope
-
-- required_changes에 필요한 최소 수정만 허용한다.
-- 현재 task 범위를 벗어나지 않는다.
+- 현재 task만 수행한다.
+- 현재 task 범위를 벗어나는 리팩터링을 하지 않는다.
 - 다음 task를 미리 구현하지 않는다.
-- 새 기능 추가보다 리뷰 지적사항 해결을 우선한다.
+- 현재 task의 완료 기준과 검증 방법을 먼저 확인한다.
+
+## Likely Files
+
+- src/App.tsx
+
+## Verification
+
+- 빈 상태 안내 문구가 한국어로 자연스러운지 확인한다.
+- 필터 결과 없음 안내가 다음 행동을 제안하는지 확인한다.
+- 허용된 검증 명령이 있으면 실행 결과를 기록한다.
+
+- 필요한 경우 `npm run build`는 사람이 별도로 실행한다.
+- 이 프롬프트는 자동으로 build, test, lint를 실행하라고 지시하지 않는다.
+
+## Required Output
+
+- 변경한 파일 목록
+- 구현 또는 분석 내용 요약
+- 검증 방법
+- 남은 위험
+- 다음 task로 넘어가도 되는지 여부
+- `.ai-dev/loop-log.md`에 기록할 작업 요약
 
 ## Hard Rules
 
+- `src` 외 파일을 수정해야 하는 경우 이유를 기록한다.
 - `package.json`과 `package-lock.json`은 수정하지 않는다. 꼭 필요하면 중단하고 이유만 기록한다.
 - 실제 DB 삭제 또는 초기화를 하지 않는다.
 - 사용자 데이터 복원 또는 덮어쓰기를 하지 않는다.
+- 현재 task와 무관한 UI 전면 개편을 하지 않는다.
 - 대규모 리팩터링을 하지 않는다.
 - git commit을 실행하지 않는다.
 - git reset, git checkout, git clean을 실행하지 않는다.
 - npm install을 실행하지 않는다.
-- optional_suggestions는 기본적으로 구현하지 않는다.
 
-## Required Output
+## Stop Conditions
 
-- 반영한 required_changes 목록
-- 수정한 파일 목록
-- 검증 방법
-- 반영하지 못한 항목과 이유
-- 남은 위험
-- `.ai-dev/loop-log.md`에 기록할 재수정 요약
+- 요구사항이 충돌하는 경우
+- 현재 task 범위 밖 수정이 필요한 경우
+- 패키지 추가가 필요한 경우
+- 데이터 삭제 또는 마이그레이션이 필요한 경우
+- 같은 오류가 반복되는 경우
 
 codex
-리뷰 지적은 `src/views/TasksView.tsx`의 빈 상태 안내 분기 하나에 한정됩니다. 해당 파일의 현재 조건 변수와 JSX 위치만 확인한 뒤 최소 
-패치로 수정하겠습니다.
+현재 task는 문구 개선만 포함하므로 `src/App.tsx`에서 빈 상태와 필터 결과 없음 렌더링 위치만 확인하겠습니다. 빌드/린트는 프롬프트상 자동 실행 지
+시가 없고 AGENTS 규칙상 허용이 필요하므로 실행하지 않습니다.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "rg -n \"빈|없|필터|
+empty|No|완료된|업무\" src\\App.tsx" in D:\ai-apps\planpilot-local
+ succeeded in 2057ms:
+143:        <p>서버 없이 로컬에 저장되는 개인 일정·업무 관리 앱</p>
+246:          업무
+
+codex
+검색 결과로는 관련 문구가 많지 않아 보입니다. 실제 조건부 렌더링 구조를 확인하기 위해 `App.tsx`의 해당 구간을 읽겠습니다.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -Li
+teralPath 'D:\\ai-apps\\planpilot-local\\src\\App.tsx'" in D:\ai-apps\planpilot-local
+ succeeded in 1354ms:
+import { useEffect, useMemo, useState } from "react";
+import { RuleBasedAIProvider } from "./ai/RuleBasedAIProvider";
+import { useProjectActions } from "./hooks/useProjectActions";
+import { useProjectFormState } from "./hooks/useProjectFormState";
+import { useTaskActions } from "./hooks/useTaskActions";
+import { useTaskFormState } from "./hooks/useTaskFormState";
+import { useStore } from "./store";
+import { startOfToday } from "./utils/dateUtils";
+import { getProjectName } from "./utils/projectLookup";
+import { getOverdueTasks, getUpcomingTasks } from "./utils/taskDates";
+import { filterTasks, sortTasks, type TaskSortOrder } from "./utils/taskFilters";
+import { getTaskSummary } from "./utils/taskSummary";
+import { SettingsView } from "./views/SettingsView";
+import { TasksView } from "./views/TasksView";
+import { ProjectsView } from "./views/ProjectsView";
+import { TodayView } from "./views/TodayView";
+import type { Task } from "./types";
+import "./App.css";
+
+type Tab = "today" | "tasks" | "projects" | "settings";
+
+function App() {
+  const [activeTab, setActiveTab] = useState<Tab>("today");
+  const [recommendedTasks, setRecommendedTasks] = useState<Task[]>([]);
+  const [selectedProjectFilter, setSelectedProjectFilter] = useState("all");
+  const [showCompletedTasks, setShowCompletedTasks] = useState(true);
+  const [taskSortOrder, setTaskSortOrder] = useState<TaskSortOrder>("none");
+  const [taskSearchQuery, setTaskSearchQuery] = useState("");
+
+  const { tasks, projects, appSettings, initializeApp, addTask, updateTask, deleteTask, de
+leteProject, addProject, updateProject } = useStore();
+  const taskFormState = useTaskFormState();
+  const {
+    editingTaskId,
+    editTaskTitle,
+    editTaskDueDate,
+    editTaskPriority,
+    editTaskMemo,
+    editTaskProjectId,
+    newTaskTitle,
+    newTaskDueDate,
+    newTaskPriority,
+    newTaskProjectId,
+    newTaskMemo,
+    isTaskFormOpen,
+    setEditTaskTitle,
+    setEditTaskDueDate,
+    setEditTaskPriority,
+    setEditTaskMemo,
+    setEditTaskProjectId,
+    setNewTaskTitle,
+    setNewTaskDueDate,
+    setNewTaskPriority,
+    setNewTaskProjectId,
+    setNewTaskMemo,
+    setIsTaskFormOpen,
+    resetNewTaskForm,
+    resetEditTaskForm,
+    startEditTask,
+  } = taskFormState;
+  const { handleAddTask, handleSaveEditTask, handleToggleTaskDone, handleDeleteTask } = us
+eTaskActions({
+    addTask,
+    updateTask,
+    deleteTask,
+    newTaskTitle,
+    newTaskDueDate,
+    newTaskPriority,
+    newTaskProjectId,
+    newTaskMemo,
+    editTaskTitle,
+    editTaskDueDate,
+    editTaskPriority,
+    editTaskMemo,
+    editTaskProjectId,
+    resetNewTaskForm,
+    resetEditTaskForm,
+  });
+  const projectFormState = useProjectFormState();
+  const {
+    editingProjectId,
+    editProjectName,
+    editProjectDescription,
+    newProjectName,
+    newProjectDescription,
+    setEditProjectName,
+    setEditProjectDescription,
+    setNewProjectName,
+    setNewProjectDescription,
+    resetNewProjectForm,
+    resetEditProjectForm,
+    startEditProject,
+  } = projectFormState;
+  const { handleAddProject, handleSaveEditProject, handleDeleteProject } = useProjectActio
+ns({
+    addProject,
+    updateProject,
+    deleteProject,
+    projects,
+    tasks,
+    newProjectName,
+    newProjectDescription,
+    editProjectName,
+    editProjectDescription,
+    resetNewProjectForm,
+    resetEditProjectForm,
+  });
+
+  const today = startOfToday();
+
+  const overdueTasks = getOverdueTasks(tasks, today);
+  const upcomingTasks = getUpcomingTasks(tasks, today, 7);
+  const taskSummary = getTaskSummary(tasks);
+
+  const filteredTasks = filterTasks(tasks, {
+    selectedProjectFilter,
+    showCompletedTasks,
+    taskSearchQuery,
+    projects,
+  });
+
+  const summaryTasks = filterTasks(tasks, {
+    selectedProjectFilter,
+    showCompletedTasks: true,
+    taskSearchQuery,
+    projects,
+  });
+
+  const sortedTasks = sortTasks(filteredTasks, taskSortOrder);
+
+  const aiProvider = useMemo(() => new RuleBasedAIProvider(), []);
+
+  useEffect(() => {
+    void initializeApp();
+  }, [initializeApp]);
+
+  useEffect(() => {
+    void aiProvider.suggestTodayTasks(tasks, 3).then(setRecommendedTasks);
+  }, [aiProvider, tasks]);
+
+  return (
+    <div className="app-shell">
+      <header className="app-header">
+        <p className="eyebrow">Privacy-first local planner</p>
+        <h1>PlanPilot Local</h1>
+        <p>?쒕쾭 ?놁씠 濡쒖뺄????λ릺??媛쒖씤 ?쇱젙쨌?낅Т 愿由???/p>
+      </header>
+
+      <main className="app-main">
+{activeTab === "today" && (
+  <TodayView
+    totalTasks={taskSummary.totalTasks}
+    completedTasks={taskSummary.completedTasks}
+    recommendedTasks={recommendedTasks}
+    overdueTasks={overdueTasks}
+    upcomingTasks={upcomingTasks}
+    getProjectName={(projectId) => getProjectName(projects, projectId)}
+  />
+)}
+
+        {activeTab === "tasks" && (
+          <TasksView
+            projects={projects}
+            filteredTasks={filteredTasks}
+            summaryTasks={summaryTasks}
+            sortedTasks={sortedTasks}
+            selectedProjectFilter={selectedProjectFilter}
+            showCompletedTasks={showCompletedTasks}
+            taskSortOrder={taskSortOrder}
+            taskSearchQuery={taskSearchQuery}
+            isTaskFormOpen={isTaskFormOpen}
+            newTaskTitle={newTaskTitle}
+            newTaskMemo={newTaskMemo}
+            newTaskDueDate={newTaskDueDate}
+            newTaskPriority={newTaskPriority}
+            newTaskProjectId={newTaskProjectId}
+            editingTaskId={editingTaskId}
+            editTaskTitle={editTaskTitle}
+            editTaskMemo={editTaskMemo}
+            editTaskDueDate={editTaskDueDate}
+            editTaskPriority={editTaskPriority}
+            editTaskProjectId={editTaskProjectId}
+            getProjectName={(projectId) => getProjectName(projects, projectId)}
+            onTaskSearchQueryChange={setTaskSearchQuery}
+            onShowCompletedTasksChange={setShowCompletedTasks}
+            onTaskSortOrderChange={setTaskSortOrder}
+            onSelectedProjectFilterChange={setSelectedProjectFilter}
+            onTaskFormOpenChange={setIsTaskFormOpen}
+            onNewTaskTitleChange={setNewTaskTitle}
+            onNewTaskMemoChange={setNewTaskMemo}
+            onNewTaskDueDateChange={setNewTaskDueDate}
+            onNewTaskPriorityChange={setNewTaskPriority}
+            onNewTaskProjectIdChange={setNewTaskProjectId}
+            onEditTaskTitleChange={setEditTaskTitle}
+            onEditTaskMemoChange={setEditTaskMemo}
+            onEditTaskDueDateChange={setEditTaskDueDate}
+            onEditTaskPriorityChange={setEditTaskPriority}
+            onEditTaskProjectIdChange={setEditTaskProjectId}
+            onAddTask={handleAddTask}
+            onSaveEditTask={handleSaveEditTask}
+            onCancelEditTask={resetEditTaskForm}
+            onToggleTaskDone={handleToggleTaskDone}
+            onDeleteTask={handleDeleteTask}
+            onStartEditTask={startEditTask}
+          />
+        )}
+
+        {activeTab === "projects" && (
+          <ProjectsView
+            projects={projects}
+            tasks={tasks}
+            editingProjectId={editingProjectId}
+            editProjectName={editProjectName}
+            editProjectDescription={editProjectDescription}
+            newProjectName={newProjectName}
+            newProjectDescription={newProjectDescription}
+            onNewProjectNameChange={setNewProjectName}
+            onNewProjectDescriptionChange={setNewProjectDescription}
+            onEditProjectNameChange={setEditProjectName}
+            onEditProjectDescriptionChange={setEditProjectDescription}
+            onAddProject={handleAddProject}
+            onSaveEditProject={handleSaveEditProject}
+            onCancelEditProject={resetEditProjectForm}
+            onDeleteProject={handleDeleteProject}
+            onStartEditProject={startEditProject}
+          />
+        )}
+
+        {activeTab === "settings" && (
+          <SettingsView
+            appSettings={appSettings}
+            tasks={tasks}
+            projects={projects}
+          />
+        )}
+      </main>
+
+      <nav className="bottom-nav" aria-label="?섎떒 硫붾돱">
+        <button
+          className={activeTab === "today" ? "active" : ""}
+          onClick={() => setActiveTab("today")}
+        >
+          ?ㅻ뒛
+        </button>
+        <button
+          className={activeTab === "tasks" ? "active" : ""}
+          onClick={() => setActiveTab("tasks")}
+        >
+          ?낅Т
+        </button>
+        <button
+          className={activeTab === "projects" ? "active" : ""}
+          onClick={() => setActiveTab("projects")}
+        >
+          ?꾨줈?앺듃
+        </button>
+        <button
+          className={activeTab === "settings" ? "active" : ""}
+          onClick={() => setActiveTab("settings")}
+        >
+          ?ㅼ젙
+        </button>
+      </nav>
+    </div>
+  );
+}
+
+export default App;
+
+codex
+빈 상태 문구는 `App.tsx`가 아니라 분리된 view 컴포넌트에 있을 가능성이 큽니다. task 범위에 직접 관련된 `src/views`의 문구 위치만 추가
+로 확인하겠습니다.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "rg -n \"없|빈|필터|
+검색|업무|empty|결과|추가\" src\\views" in D:\ai-apps\planpilot-local
+ succeeded in 1693ms:
+src\views\ProjectsView.tsx:51:        title="새 프로젝트 추가"
+src\views\ProjectsView.tsx:52:        ariaLabel="프로젝트 추가"
+src\views\ProjectsView.tsx:55:        submitLabel="프로젝트 추가"
+src\views\ProjectsView.tsx:62:        <p className="empty">프로젝트가 없습니다.</p>
+src\views\SettingsView.tsx:62:        <p>업무, 프로젝트, 설정 데이터를 로컬 JSON 파일로 내보냅니다.</p>
+src\views\SettingsView.tsx:82:            <p>업무: {importResult.summary.taskCount}개</p>
+src\views\TasksView.tsx:114:  const emptyMessage =
+src\views\TasksView.tsx:116:      ? "검색어와 일치하는 업무가 없어요."
+src\views\TasksView.tsx:118:        ? "현재 조건에 맞는 업무가 없어요."
+src\views\TasksView.tsx:119:        : "아직 등록된 업무가 없어요.";
+src\views\TasksView.tsx:120:  const emptyActionMessage =
+src\views\TasksView.tsx:122:      ? "검색어를 바꾸거나 비운 뒤 다시 확인해보세요."
+src\views\TasksView.tsx:124:        ? "프로젝트 필터를 전체로 바꾸거나 완료 업무 표시를 켜서 숨은 업무를 확인해보세요."
+src\views\TasksView.tsx:126:          ? "프로젝트 필터를 전체로 바꾸면 다른 업무를 확인할 수 있어요."
+src\views\TasksView.tsx:128:            ? "완료 업무 표시를 켜면 숨은 완료 업무를 확인할 수 있어요."
+src\views\TasksView.tsx:129:            : "목표를 바로 실행할 수 있는 작은 업무로 나누어 로컬에 먼저 기록해보세요.";
+src\views\TasksView.tsx:133:      <h2>전체 업무</h2>
+src\views\TasksView.tsx:136:        {completedTaskSummary} · 남은 업무 {remainingTaskCount}개
+src\views\TasksView.tsx:140:        업무 검색
+src\views\TasksView.tsx:145:          placeholder="업무 제목 또는 메모 내용을 검색하세요"
+src\views\TasksView.tsx:155:        완료 업무 표시
+src\views\TasksView.tsx:172:        프로젝트 필터
+src\views\TasksView.tsx:190:        {isTaskFormOpen ? "작은 업무 추가 닫기" : "작은 업무 추가"}
+src\views\TasksView.tsx:195:          title="새 작은 업무 추가"
+src\views\TasksView.tsx:196:          ariaLabel="새 작은 업무 추가"
+src\views\TasksView.tsx:203:          submitLabel="로컬에 업무 추가"
+src\views\TasksView.tsx:214:        <div className="empty">
+src\views\TasksView.tsx:215:          <p>{emptyMessage}</p>
+src\views\TasksView.tsx:216:          <p>{emptyActionMessage}</p>
+src\views\TasksView.tsx:225:                    title="업무 수정"
+src\views\TasksView.tsx:226:                    ariaLabel="업무 수정"
+src\views\TodayView.tsx:25:        전체 업무 수: {totalTasks}개<br />
+src\views\TodayView.tsx:26:        완료 업무 수: {completedTasks}개<br />
+src\views\TodayView.tsx:27:        지난 마감 업무 수: {overdueTasks.length}개<br />
+src\views\TodayView.tsx:28:        7일 이내 마감 업무 수: {upcomingTasks.length}개
+src\views\TodayView.tsx:30:      <p className="summary">추천 업무 {recommendedTasks.length}개</
+p>
+src\views\TodayView.tsx:33:        <p className="empty">추천할 미완료 업무가 없습니다.</p>
+src\views\TodayView.tsx:43:              <span>{task.dueDate ? `마감일: ${task.dueDate}` : "마
+감일 없음"}</span>
+src\views\TodayView.tsx:49:      <h3>지난 마감 업무</h3>
+src\views\TodayView.tsx:51:        <p className="empty">지난 마감일을 넘긴 미완료 업무가 없습니다.</p>
+src\views\TodayView.tsx:66:      <h3>7일 이내 마감 업무</h3>
+src\views\TodayView.tsx:68:        <p className="empty">7일 이내에 마감되는 미완료 업무가 없습니다.</p>
+
+codex
+문구 개선 대상이 `src/views/TasksView.tsx`에 모여 있습니다. 기존 조건 분기는 유지하고 표시 문구만 좁게 다듬겠습니다.
 exec
 "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -Li
 teralPath 'D:\\ai-apps\\planpilot-local\\src\\views\\TasksView.tsx'" in D:\ai-apps\planpil
 ot-local
- succeeded in 1354ms:
+ succeeded in 1282ms:
 import type { FormEvent } from "react";
 import { TaskCard } from "../components/TaskCard";
 import { TaskForm } from "../components/TaskForm";
@@ -495,9 +607,13 @@ export function TasksView({
   const emptyActionMessage =
     hasSearchQuery
       ? "寃?됱뼱瑜?諛붽씀嫄곕굹 鍮꾩슫 ???ㅼ떆 ?뺤씤?대낫?몄슂."
-      : hasProjectFilter || hasVisibilityFilter
+      : hasProjectFilter && hasVisibilityFilter
         ? "?꾨줈?앺듃 ?꾪꽣瑜??꾩껜濡?諛붽씀嫄곕굹 ?꾨즺 ?낅Т ?쒖떆瑜?耳쒖꽌 ?⑥? ?낅Т瑜??뺤씤?대낫?몄슂."
-        : "紐⑺몴瑜?諛붾줈 ?ㅽ뻾?????덈뒗 ?묒? ?낅Т濡??섎늻??濡쒖뺄??癒쇱? 湲곕줉?대낫?몄슂.";
+        : hasProjectFilter
+          ? "?꾨줈?앺듃 ?꾪꽣瑜??꾩껜濡?諛붽씀硫??ㅻⅨ ?낅Т瑜??뺤씤?????덉뼱??"
+          : hasVisibilityFilter
+            ? "?꾨즺 ?낅Т ?쒖떆瑜?耳쒕㈃ ?⑥? ?꾨즺 ?낅Т瑜??뺤씤?????덉뼱??"
+            : "紐⑺몴瑜?諛붾줈 ?ㅽ뻾?????덈뒗 ?묒? ?낅Т濡??섎늻??濡쒖뺄??癒쇱? 湲곕줉?대낫?몄슂.";
 
   return (
     <section className="screen-card">
@@ -635,14 +751,11 @@ export function TasksView({
   );
 }
 
-codex
-PowerShell 5.1 기본 출력 인코딩 때문에 한글이 깨져 보였습니다. 파일 자체를 바꾸기 전에 UTF-8로 다시 읽어 실제 문구와 주변 코드를 확인하겠습니
-다.
 exec
 "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -Li
 teralPath 'D:\\ai-apps\\planpilot-local\\src\\views\\TasksView.tsx' -Encoding UTF8" in D:\
 ai-apps\planpilot-local
- succeeded in 1320ms:
+ succeeded in 1299ms:
 import type { FormEvent } from "react";
 import { TaskCard } from "../components/TaskCard";
 import { TaskForm } from "../components/TaskForm";
@@ -765,9 +878,13 @@ export function TasksView({
   const emptyActionMessage =
     hasSearchQuery
       ? "검색어를 바꾸거나 비운 뒤 다시 확인해보세요."
-      : hasProjectFilter || hasVisibilityFilter
+      : hasProjectFilter && hasVisibilityFilter
         ? "프로젝트 필터를 전체로 바꾸거나 완료 업무 표시를 켜서 숨은 업무를 확인해보세요."
-        : "목표를 바로 실행할 수 있는 작은 업무로 나누어 로컬에 먼저 기록해보세요.";
+        : hasProjectFilter
+          ? "프로젝트 필터를 전체로 바꾸면 다른 업무를 확인할 수 있어요."
+          : hasVisibilityFilter
+            ? "완료 업무 표시를 켜면 숨은 완료 업무를 확인할 수 있어요."
+            : "목표를 바로 실행할 수 있는 작은 업무로 나누어 로컬에 먼저 기록해보세요.";
 
   return (
     <section className="screen-card">
@@ -906,167 +1023,479 @@ export function TasksView({
 }
 
 codex
-수정은 `emptyActionMessage`의 조건 분기만 바꿉니다. 검색어, 프로젝트 필터만, 완료 숨김만, 둘 다 적용된 상태가 서로 다른 안내를 내도록 하겠
-습니다.
+이제 `TasksView.tsx`의 빈 상태/필터 결과 없음 문구만 바꿉니다. 조건 계산과 UI 구조는 건드리지 않아 영향 범위를 문구 표시로 제한하겠습니다.
 apply patch
 patch: completed
 D:\ai-apps\planpilot-local\src\views\TasksView.tsx
 diff --git a/src/views/TasksView.tsx b/src/views/TasksView.tsx
-index ce65ec63df436644357b9ff4c179e846fc4a2d1a..18ee722dfdfa7d898a3f5ca487cdd100d2de0a3d
+index 18ee722dfdfa7d898a3f5ca487cdd100d2de0a3d..0038138f1b81845dc9e8c298a7a07c30ea77131b
 --- a/src/views/TasksView.tsx
 +++ b/src/views/TasksView.tsx
-@@ -120,9 +120,13 @@
+@@ -113,20 +113,20 @@
+     : `완료 ${completedTaskCount}개(숨김)`;
+   const emptyMessage =
+     hasSearchQuery
+-      ? "검색어와 일치하는 업무가 없어요."
++      ? "검색 결과에 맞는 업무가 없어요."
+       : hasProjectFilter || hasVisibilityFilter
+-        ? "현재 조건에 맞는 업무가 없어요."
++        ? "선택한 조건에 표시할 업무가 없어요."
+         : "아직 등록된 업무가 없어요.";
    const emptyActionMessage =
      hasSearchQuery
-       ? "검색어를 바꾸거나 비운 뒤 다시 확인해보세요."
--      : hasProjectFilter || hasVisibilityFilter
-+      : hasProjectFilter && hasVisibilityFilter
-         ? "프로젝트 필터를 전체로 바꾸거나 완료 업무 표시를 켜서 숨은 업무를 확인해보세요."
--        : "목표를 바로 실행할 수 있는 작은 업무로 나누어 로컬에 먼저 기록해보세요.";
-+        : hasProjectFilter
-+          ? "프로젝트 필터를 전체로 바꾸면 다른 업무를 확인할 수 있어요."
-+          : hasVisibilityFilter
-+            ? "완료 업무 표시를 켜면 숨은 완료 업무를 확인할 수 있어요."
-+            : "목표를 바로 실행할 수 있는 작은 업무로 나누어 로컬에 먼저 기록해보세요.";
+-      ? "검색어를 바꾸거나 비운 뒤 다시 확인해보세요."
++      ? "검색어를 줄이거나 비운 뒤 다시 확인해보세요."
+       : hasProjectFilter && hasVisibilityFilter
+-        ? "프로젝트 필터를 전체로 바꾸거나 완료 업무 표시를 켜서 숨은 업무를 확인해보세요."
++        ? "프로젝트를 전체로 바꾸거나 완료 업무 표시를 켜서 숨은 업무를 확인해보세요."
+         : hasProjectFilter
+-          ? "프로젝트 필터를 전체로 바꾸면 다른 업무를 확인할 수 있어요."
++          ? "프로젝트를 전체로 바꾸면 다른 업무를 확인할 수 있어요."
+           : hasVisibilityFilter
+             ? "완료 업무 표시를 켜면 숨은 완료 업무를 확인할 수 있어요."
+-            : "목표를 바로 실행할 수 있는 작은 업무로 나누어 로컬에 먼저 기록해보세요.";
++            : "작은 업무를 하나 추가하면 이 기기 안에 바로 저장돼요.";
  
    return (
      <section className="screen-card">
 
 diff --git a/src/views/TasksView.tsx b/src/views/TasksView.tsx
-index ce65ec63df436644357b9ff4c179e846fc4a2d1a..18ee722dfdfa7d898a3f5ca487cdd100d2de0a3d
+index 18ee722dfdfa7d898a3f5ca487cdd100d2de0a3d..0038138f1b81845dc9e8c298a7a07c30ea77131b
 --- a/src/views/TasksView.tsx
 +++ b/src/views/TasksView.tsx
-@@ -120,9 +120,13 @@
+@@ -113,20 +113,20 @@
+     : `완료 ${completedTaskCount}개(숨김)`;
+   const emptyMessage =
+     hasSearchQuery
+-      ? "검색어와 일치하는 업무가 없어요."
++      ? "검색 결과에 맞는 업무가 없어요."
+       : hasProjectFilter || hasVisibilityFilter
+-        ? "현재 조건에 맞는 업무가 없어요."
++        ? "선택한 조건에 표시할 업무가 없어요."
+         : "아직 등록된 업무가 없어요.";
    const emptyActionMessage =
      hasSearchQuery
-       ? "검색어를 바꾸거나 비운 뒤 다시 확인해보세요."
--      : hasProjectFilter || hasVisibilityFilter
-+      : hasProjectFilter && hasVisibilityFilter
-         ? "프로젝트 필터를 전체로 바꾸거나 완료 업무 표시를 켜서 숨은 업무를 확인해보세요."
--        : "목표를 바로 실행할 수 있는 작은 업무로 나누어 로컬에 먼저 기록해보세요.";
-+        : hasProjectFilter
-+          ? "프로젝트 필터를 전체로 바꾸면 다른 업무를 확인할 수 있어요."
-+          : hasVisibilityFilter
-+            ? "완료 업무 표시를 켜면 숨은 완료 업무를 확인할 수 있어요."
-+            : "목표를 바로 실행할 수 있는 작은 업무로 나누어 로컬에 먼저 기록해보세요.";
+-      ? "검색어를 바꾸거나 비운 뒤 다시 확인해보세요."
++      ? "검색어를 줄이거나 비운 뒤 다시 확인해보세요."
+       : hasProjectFilter && hasVisibilityFilter
+-        ? "프로젝트 필터를 전체로 바꾸거나 완료 업무 표시를 켜서 숨은 업무를 확인해보세요."
++        ? "프로젝트를 전체로 바꾸거나 완료 업무 표시를 켜서 숨은 업무를 확인해보세요."
+         : hasProjectFilter
+-          ? "프로젝트 필터를 전체로 바꾸면 다른 업무를 확인할 수 있어요."
++          ? "프로젝트를 전체로 바꾸면 다른 업무를 확인할 수 있어요."
+           : hasVisibilityFilter
+             ? "완료 업무 표시를 켜면 숨은 완료 업무를 확인할 수 있어요."
+-            : "목표를 바로 실행할 수 있는 작은 업무로 나누어 로컬에 먼저 기록해보세요.";
++            : "작은 업무를 하나 추가하면 이 기기 안에 바로 저장돼요.";
  
    return (
      <section className="screen-card">
 
 codex
-패치를 적용했습니다. 이제 변경된 분기만 다시 읽어서 리뷰 요구처럼 프로젝트 필터와 완료 숨김 안내가 분리됐는지 확인하겠습니다.
+문구 변경은 적용됐습니다. 검증은 허용된 읽기 범위에서 변경 구간을 다시 확인하고, 자동 빌드는 실행하지 않은 상태로 보고하겠습니다.
 exec
-"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Select-String -
-LiteralPath 'D:\\ai-apps\\planpilot-local\\src\\views\\TasksView.tsx' -Pattern 'const empt
-yActionMessage' -Context 0,12" in D:\ai-apps\planpilot-local
- succeeded in 1347ms:
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -Li
+teralPath 'D:\\ai-apps\\planpilot-local\\src\\views\\TasksView.tsx' -Encoding UTF8 | Selec
+t-Object -Skip 108 -First 24" in D:\ai-apps\planpilot-local
+ succeeded in 1311ms:
+    ? `총 ${summaryTasks.length}개`
+    : `표시 ${filteredTasks.length}개 / 조건 일치 ${summaryTasks.length}개`;
+  const completedTaskSummary = showCompletedTasks
+    ? `완료 ${completedTaskCount}개`
+    : `완료 ${completedTaskCount}개(숨김)`;
+  const emptyMessage =
+    hasSearchQuery
+      ? "검색 결과에 맞는 업무가 없어요."
+      : hasProjectFilter || hasVisibilityFilter
+        ? "선택한 조건에 표시할 업무가 없어요."
+        : "아직 등록된 업무가 없어요.";
+  const emptyActionMessage =
+    hasSearchQuery
+      ? "검색어를 줄이거나 비운 뒤 다시 확인해보세요."
+      : hasProjectFilter && hasVisibilityFilter
+        ? "프로젝트를 전체로 바꾸거나 완료 업무 표시를 켜서 숨은 업무를 확인해보세요."
+        : hasProjectFilter
+          ? "프로젝트를 전체로 바꾸면 다른 업무를 확인할 수 있어요."
+          : hasVisibilityFilter
+            ? "완료 업무 표시를 켜면 숨은 완료 업무를 확인할 수 있어요."
+            : "작은 업무를 하나 추가하면 이 기기 안에 바로 저장돼요.";
 
-> src\views\TasksView.tsx:120:  const emptyActionMessage =
-  src\views\TasksView.tsx:121:    hasSearchQuery
-  src\views\TasksView.tsx:122:      ? "검색어를 바꾸거나 비운 뒤 다시 확인해보세요."
-  src\views\TasksView.tsx:123:      : hasProjectFilter && hasVisibilityFilter
-  src\views\TasksView.tsx:124:        ? "프로젝트 필터를 전체로 바꾸거나 완료 업무 표시를 켜서 숨은 업무를 확인해보세요."
-  src\views\TasksView.tsx:125:        : hasProjectFilter
-  src\views\TasksView.tsx:126:          ? "프로젝트 필터를 전체로 바꾸면 다른 업무를 확인할 수 있어요."
-  src\views\TasksView.tsx:127:          : hasVisibilityFilter
-  src\views\TasksView.tsx:128:            ? "완료 업무 표시를 켜면 숨은 완료 업무를 확인할 수 있어요."
-  src\views\TasksView.tsx:129:            : "목표를 바로 실행할 수 있는 작은 업무로 나누어 로컬에 먼저 기록해보세요.";
-  src\views\TasksView.tsx:130:
-  src\views\TasksView.tsx:131:  return (
-  src\views\TasksView.tsx:132:    <section className="screen-card">
-
-
+  return (
+    <section className="screen-card">
 
 diff --git a/src/views/TasksView.tsx b/src/views/TasksView.tsx
-index ce65ec63df436644357b9ff4c179e846fc4a2d1a..18ee722dfdfa7d898a3f5ca487cdd100d2de0a3d
+index 18ee722dfdfa7d898a3f5ca487cdd100d2de0a3d..0038138f1b81845dc9e8c298a7a07c30ea77131b
 --- a/src/views/TasksView.tsx
 +++ b/src/views/TasksView.tsx
-@@ -120,9 +120,13 @@
+@@ -113,20 +113,20 @@
+     : `완료 ${completedTaskCount}개(숨김)`;
+   const emptyMessage =
+     hasSearchQuery
+-      ? "검색어와 일치하는 업무가 없어요."
++      ? "검색 결과에 맞는 업무가 없어요."
+       : hasProjectFilter || hasVisibilityFilter
+-        ? "현재 조건에 맞는 업무가 없어요."
++        ? "선택한 조건에 표시할 업무가 없어요."
+         : "아직 등록된 업무가 없어요.";
    const emptyActionMessage =
      hasSearchQuery
-       ? "검색어를 바꾸거나 비운 뒤 다시 확인해보세요."
--      : hasProjectFilter || hasVisibilityFilter
-+      : hasProjectFilter && hasVisibilityFilter
-         ? "프로젝트 필터를 전체로 바꾸거나 완료 업무 표시를 켜서 숨은 업무를 확인해보세요."
--        : "목표를 바로 실행할 수 있는 작은 업무로 나누어 로컬에 먼저 기록해보세요.";
-+        : hasProjectFilter
-+          ? "프로젝트 필터를 전체로 바꾸면 다른 업무를 확인할 수 있어요."
-+          : hasVisibilityFilter
-+            ? "완료 업무 표시를 켜면 숨은 완료 업무를 확인할 수 있어요."
-+            : "목표를 바로 실행할 수 있는 작은 업무로 나누어 로컬에 먼저 기록해보세요.";
+-      ? "검색어를 바꾸거나 비운 뒤 다시 확인해보세요."
++      ? "검색어를 줄이거나 비운 뒤 다시 확인해보세요."
+       : hasProjectFilter && hasVisibilityFilter
+-        ? "프로젝트 필터를 전체로 바꾸거나 완료 업무 표시를 켜서 숨은 업무를 확인해보세요."
++        ? "프로젝트를 전체로 바꾸거나 완료 업무 표시를 켜서 숨은 업무를 확인해보세요."
+         : hasProjectFilter
+-          ? "프로젝트 필터를 전체로 바꾸면 다른 업무를 확인할 수 있어요."
++          ? "프로젝트를 전체로 바꾸면 다른 업무를 확인할 수 있어요."
+           : hasVisibilityFilter
+             ? "완료 업무 표시를 켜면 숨은 완료 업무를 확인할 수 있어요."
+-            : "목표를 바로 실행할 수 있는 작은 업무로 나누어 로컬에 먼저 기록해보세요.";
++            : "작은 업무를 하나 추가하면 이 기기 안에 바로 저장돼요.";
  
    return (
      <section className="screen-card">
 
 codex
-반영한 required_changes:
-- [src/views/TasksView.tsx](D:/ai-apps/planpilot-local/src/views/TasksView.tsx:120)에서 필터 결
-과 없음 안내를 분기했습니다.
-- 프로젝트 필터 + 완료 숨김 둘 다 적용: 두 행동 모두 안내
-- 프로젝트 필터만 적용: 전체 프로젝트로 변경만 안내
-- 완료 숨김만 적용: 완료 업무 표시 켜기만 안내
+프롬프트가 `.ai-dev/loop-log.md` 기록용 요약을 요구하므로, 실제 로그 파일이 있는지만 확인하겠습니다. 작업 범위 밖 파일을 수정하지 않고 최종 
+답변에 기록용 문구를 제공하는 방식으로 처리합니다.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-ChildItem -
+LiteralPath 'D:\\ai-apps\\planpilot-local\\.ai-dev'" in D:\ai-apps\planpilot-local
+ succeeded in 1374ms:
 
-수정한 파일:
-- `src/views/TasksView.tsx`
 
-검증 방법:
-- 변경된 `emptyActionMessage` 분기를 다시 읽어 조건별 문구가 분리된 것을 확인했습니다.
-- 기존 JSX 블록은 추가하거나 중복하지 않았고, 안내 문구 변수만 최소 수정했습니다.
-- `npm run build`, `npm run lint`는 사용자 허용이 없어 실행하지 않았습니다.
+    디렉터리: D:\ai-apps\planpilot-local\.ai-dev
 
-반영하지 못한 항목과 이유:
-- 없음.
+
+Mode                 LastWriteTime         Length Name                                    
+                             
+----                 -------------         ------ ----                                    
+                             
+-a----        2026-06-07   오후 8:00           1682 backlog.md                              
+                             
+-a----        2026-06-25   오후 3:19           1303 codex-result.md                         
+                             
+-a----        2026-06-25   오후 3:14          27615 codex-review-result.md                  
+                             
+-a----        2026-06-25   오후 3:49           3872 current-task-prompt.md                  
+                             
+-a----        2026-06-25   오후 3:13           5237 diff.md                                 
+                             
+-a----        2026-06-04  오전 12:01            307 extra-instructions.example.md           
+                             
+-a----        2026-06-25   오후 3:19           1713 goal.md                                 
+                             
+-a----        2026-06-25   오후 3:14          19946 loop-log.md                             
+                             
+-a----        2026-06-07  오후 10:10           6979 plan.md                                 
+                             
+-a----        2026-06-03   오후 4:30           4068 queue.example.json                      
+                             
+-a----        2026-06-25   오후 3:19           4063 queue.json                              
+                             
+-a----        2026-06-19   오후 9:52          45777 README.md                               
+                             
+-a----        2026-06-25   오후 3:13          11566 review-prompt.md                        
+                             
+-a----        2026-06-25   오후 3:14           1394 review-response.json                    
+                             
+-a----        2026-06-25   오후 3:14           2009 review.md                               
+                             
+-a----        2026-06-25   오후 3:12          11033 revise-prompt.md                        
+                             
+-a----        2026-06-03   오후 4:30            395 state.example.json                      
+                             
+-a----        2026-06-25   오후 3:19            487 state.json                              
+                             
+-a----        2026-06-25   오후 3:13            974 test-result.md                          
+                             
+
+
+
+diff --git a/src/views/TasksView.tsx b/src/views/TasksView.tsx
+index 18ee722dfdfa7d898a3f5ca487cdd100d2de0a3d..0038138f1b81845dc9e8c298a7a07c30ea77131b
+--- a/src/views/TasksView.tsx
++++ b/src/views/TasksView.tsx
+@@ -113,20 +113,20 @@
+     : `완료 ${completedTaskCount}개(숨김)`;
+   const emptyMessage =
+     hasSearchQuery
+-      ? "검색어와 일치하는 업무가 없어요."
++      ? "검색 결과에 맞는 업무가 없어요."
+       : hasProjectFilter || hasVisibilityFilter
+-        ? "현재 조건에 맞는 업무가 없어요."
++        ? "선택한 조건에 표시할 업무가 없어요."
+         : "아직 등록된 업무가 없어요.";
+   const emptyActionMessage =
+     hasSearchQuery
+-      ? "검색어를 바꾸거나 비운 뒤 다시 확인해보세요."
++      ? "검색어를 줄이거나 비운 뒤 다시 확인해보세요."
+       : hasProjectFilter && hasVisibilityFilter
+-        ? "프로젝트 필터를 전체로 바꾸거나 완료 업무 표시를 켜서 숨은 업무를 확인해보세요."
++        ? "프로젝트를 전체로 바꾸거나 완료 업무 표시를 켜서 숨은 업무를 확인해보세요."
+         : hasProjectFilter
+-          ? "프로젝트 필터를 전체로 바꾸면 다른 업무를 확인할 수 있어요."
++          ? "프로젝트를 전체로 바꾸면 다른 업무를 확인할 수 있어요."
+           : hasVisibilityFilter
+             ? "완료 업무 표시를 켜면 숨은 완료 업무를 확인할 수 있어요."
+-            : "목표를 바로 실행할 수 있는 작은 업무로 나누어 로컬에 먼저 기록해보세요.";
++            : "작은 업무를 하나 추가하면 이 기기 안에 바로 저장돼요.";
+ 
+   return (
+     <section className="screen-card">
+
+codex
+현재 task 완료 상태를 별도 파일로 관리하는지 확인하기 위해 `.ai-dev/queue.json`과 `state.json`의 task 상태만 읽겠습니다. 수정
+ 여부는 파일 구조와 프롬프트 요구가 명확한 경우에만 판단하겠습니다.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -Li
+teralPath 'D:\\ai-apps\\planpilot-local\\.ai-dev\\queue.json' -Encoding UTF8" in D:\ai-app
+s\planpilot-local
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -Li
+teralPath 'D:\\ai-apps\\planpilot-local\\.ai-dev\\state.json' -Encoding UTF8" in D:\ai-app
+s\planpilot-local
+ succeeded in 1619ms:
+{
+    "goalTitle":  "PlanPilot Local 다중 task 자동 개발 루프 검증",
+    "goalSource":  ".ai-dev/goal.md",
+    "createdAt":  "2026-06-25T00:00:00+09:00",
+    "updatedAt":  "2026-06-25T00:00:00+09:00",
+    "currentTaskId":  "T001",
+    "tasks":  [
+                  {
+                      "id":  "T001",
+                      "title":  "빈 상태와 필터 결과 없음 안내 개선",
+                      "description":  "빈 상태와 필터 결과 없음 화면의 안내 문구를 더 명확하고 다음 행동이 드러나도록 다듬는다.
+",
+                      "type":  "implementation",
+                      "status":  "in_progress",
+                      "priority":  "P0",
+                      "dependsOn":  [
+
+                                    ],
+                      "filesLikelyToChange":  [
+                                                  "src/App.tsx"
+                                              ],
+                      "verification":  [
+                                           "빈 상태 안내 문구가 한국어로 자연스러운지 확인한다.",
+                                           "필터 결과 없음 안내가 다음 행동을 제안하는지 확인한다.",
+                                           "허용된 검증 명령이 있으면 실행 결과를 기록한다."
+                                       ],
+                      "commitMessage":  "Improve empty state copy"
+                  },
+                  {
+                      "id":  "T002",
+                      "title":  "업무 카드 상태와 다음 행동 안내 정리",
+                      "description":  "업무 카드에서 보이는 상태 안내와 다음 행동 안내가 같은 표현 규칙을 따르도록 작은 문구를 
+정리한다.",
+                      "type":  "implementation",
+                      "status":  "pending",
+                      "priority":  "P1",
+                      "dependsOn":  [
+                                        "T001"
+                                    ],
+                      "filesLikelyToChange":  [
+                                                  "src/App.tsx"
+                                              ],
+                      "verification":  [
+                                           "업무 카드의 상태 라벨이 일관된지 확인한다.",
+                                           "다음 행동 안내가 상태와 모순되지 않는지 확인한다.",
+                                           "허용된 검증 명령이 있으면 실행 결과를 기록한다."
+                                       ],
+                      "commitMessage":  "Refine task card guidance"
+                  },
+                  {
+                      "id":  "T003",
+                      "title":  "로컬 저장 안내 문구 보강",
+                      "description":  "앱이 이 기기 안에 데이터를 저장한다는 점을 사용자가 부담 없이 이해할 수 있도록 작은 안내
+ 문구를 보강한다.",
+                      "type":  "implementation",
+                      "status":  "pending",
+                      "priority":  "P1",
+                      "dependsOn":  [
+                                        "T002"
+                                    ],
+                      "filesLikelyToChange":  [
+                                                  "src/App.tsx"
+                                              ],
+                      "verification":  [
+                                           "로컬 저장 안내가 과하게 강조되지 않는지 확인한다.",
+                                           "기존 privacy-first 방향과 충돌하지 않는지 확인한다.",
+                                           "허용된 검증 명령이 있으면 실행 결과를 기록한다."
+                                       ],
+                      "commitMessage":  "Add local storage guidance"
+                  }
+              ]
+}
+
+ succeeded in 1613ms:
+{
+    "goalStatus":  "in_progress",
+    "currentTaskId":  "T001",
+    "currentLoop":  0,
+    "maxLoopsPerTask":  2,
+    "repeatedFailureCount":  0,
+    "lastCommand":  null,
+    "lastCommandStatus":  "not_started",
+    "lastErrorSummary":  null,
+    "lastReviewDecision":  "not_started",
+    "lastReviewSeverity":  null,
+    "lastCommitHash":  null,
+    "startedAt":  "2026-06-25T00:00:00+09:00",
+    "updatedAt":  "2026-06-25T00:00:00+09:00",
+    "stopReason":  null
+}
+
+diff --git a/src/views/TasksView.tsx b/src/views/TasksView.tsx
+index 18ee722dfdfa7d898a3f5ca487cdd100d2de0a3d..0038138f1b81845dc9e8c298a7a07c30ea77131b
+--- a/src/views/TasksView.tsx
++++ b/src/views/TasksView.tsx
+@@ -113,20 +113,20 @@
+     : `완료 ${completedTaskCount}개(숨김)`;
+   const emptyMessage =
+     hasSearchQuery
+-      ? "검색어와 일치하는 업무가 없어요."
++      ? "검색 결과에 맞는 업무가 없어요."
+       : hasProjectFilter || hasVisibilityFilter
+-        ? "현재 조건에 맞는 업무가 없어요."
++        ? "선택한 조건에 표시할 업무가 없어요."
+         : "아직 등록된 업무가 없어요.";
+   const emptyActionMessage =
+     hasSearchQuery
+-      ? "검색어를 바꾸거나 비운 뒤 다시 확인해보세요."
++      ? "검색어를 줄이거나 비운 뒤 다시 확인해보세요."
+       : hasProjectFilter && hasVisibilityFilter
+-        ? "프로젝트 필터를 전체로 바꾸거나 완료 업무 표시를 켜서 숨은 업무를 확인해보세요."
++        ? "프로젝트를 전체로 바꾸거나 완료 업무 표시를 켜서 숨은 업무를 확인해보세요."
+         : hasProjectFilter
+-          ? "프로젝트 필터를 전체로 바꾸면 다른 업무를 확인할 수 있어요."
++          ? "프로젝트를 전체로 바꾸면 다른 업무를 확인할 수 있어요."
+           : hasVisibilityFilter
+             ? "완료 업무 표시를 켜면 숨은 완료 업무를 확인할 수 있어요."
+-            : "목표를 바로 실행할 수 있는 작은 업무로 나누어 로컬에 먼저 기록해보세요.";
++            : "작은 업무를 하나 추가하면 이 기기 안에 바로 저장돼요.";
+ 
+   return (
+     <section className="screen-card">
+
+codex
+최종 보고에 정확한 위치를 넣기 위해 변경된 문구의 라인 번호만 확인하겠습니다.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "rg -n \"검색 결과에 
+맞는|선택한 조건에 표시할|작은 업무를 하나 추가\" src\\views\\TasksView.tsx" in D:\ai-apps\planpilot-local
+ succeeded in 1624ms:
+116:      ? "검색 결과에 맞는 업무가 없어요."
+118:        ? "선택한 조건에 표시할 업무가 없어요."
+129:            : "작은 업무를 하나 추가하면 이 기기 안에 바로 저장돼요.";
+
+diff --git a/src/views/TasksView.tsx b/src/views/TasksView.tsx
+index 18ee722dfdfa7d898a3f5ca487cdd100d2de0a3d..0038138f1b81845dc9e8c298a7a07c30ea77131b
+--- a/src/views/TasksView.tsx
++++ b/src/views/TasksView.tsx
+@@ -113,20 +113,20 @@
+     : `완료 ${completedTaskCount}개(숨김)`;
+   const emptyMessage =
+     hasSearchQuery
+-      ? "검색어와 일치하는 업무가 없어요."
++      ? "검색 결과에 맞는 업무가 없어요."
+       : hasProjectFilter || hasVisibilityFilter
+-        ? "현재 조건에 맞는 업무가 없어요."
++        ? "선택한 조건에 표시할 업무가 없어요."
+         : "아직 등록된 업무가 없어요.";
+   const emptyActionMessage =
+     hasSearchQuery
+-      ? "검색어를 바꾸거나 비운 뒤 다시 확인해보세요."
++      ? "검색어를 줄이거나 비운 뒤 다시 확인해보세요."
+       : hasProjectFilter && hasVisibilityFilter
+-        ? "프로젝트 필터를 전체로 바꾸거나 완료 업무 표시를 켜서 숨은 업무를 확인해보세요."
++        ? "프로젝트를 전체로 바꾸거나 완료 업무 표시를 켜서 숨은 업무를 확인해보세요."
+         : hasProjectFilter
+-          ? "프로젝트 필터를 전체로 바꾸면 다른 업무를 확인할 수 있어요."
++          ? "프로젝트를 전체로 바꾸면 다른 업무를 확인할 수 있어요."
+           : hasVisibilityFilter
+             ? "완료 업무 표시를 켜면 숨은 완료 업무를 확인할 수 있어요."
+-            : "목표를 바로 실행할 수 있는 작은 업무로 나누어 로컬에 먼저 기록해보세요.";
++            : "작은 업무를 하나 추가하면 이 기기 안에 바로 저장돼요.";
+ 
+   return (
+     <section className="screen-card">
+
+codex
+변경한 파일: [src/views/TasksView.tsx](D:/ai-apps/planpilot-local/src/views/TasksView.tsx:116)
+
+구현 요약:
+- 빈 상태 문구를 더 명확하게 조정했습니다.
+- 검색 결과 없음, 필터 결과 없음, 완전 빈 상태 각각에 다음 행동이 드러나도록 문구를 다듬었습니다.
+- 빈 상태에는 “이 기기 안에 바로 저장” 문구를 작게 넣어 로컬 저장 맥락도 자연스럽게 보강했습니다.
+
+검증:
+- 변경 구간을 다시 읽어 한국어 문구와 조건 분기 표시를 확인했습니다.
+- `npm run build`, `npm run lint`, `npm run test`는 사용자 허용이 없어 실행하지 않았습니다.
 
 남은 위험:
-- 빌드/린트는 이번 턴에서 실행하지 않아 타입/포맷 검증은 미실행 상태입니다.
+- 실제 화면 렌더링 검증은 하지 않았습니다.
+- 문자열만 변경했으므로 기능 영향은 낮습니다.
 
-`.ai-dev/loop-log.md`에 기록할 재수정 요약:
-- `TasksView`의 필터 결과 없음 안내에서 프로젝트 필터와 완료 업무 숨김 상태를 각각 구분하도록 `emptyActionMessage` 조건을 세분화했다
-.
+다음 task로 넘어가도 되는지:
+- 네. T001 범위는 완료로 보고 다음 task 진행 가능 상태입니다.
+
+`.ai-dev/loop-log.md` 기록용 요약:
+- `T001 빈 상태와 필터 결과 없음 안내 개선 완료. src/views/TasksView.tsx의 빈 상태/검색 결과 없음/필터 결과 없음 안내 문구를 다음
+ 행동이 드러나도록 개선했고, 빈 상태에 로컬 저장 안내를 작게 반영했다. 자동 build/lint/test는 사용자 허용이 없어 실행하지 않았다.`
 diff --git a/src/views/TasksView.tsx b/src/views/TasksView.tsx
-index ce65ec63df436644357b9ff4c179e846fc4a2d1a..18ee722dfdfa7d898a3f5ca487cdd100d2de0a3d
+index 18ee722dfdfa7d898a3f5ca487cdd100d2de0a3d..0038138f1b81845dc9e8c298a7a07c30ea77131b
 --- a/src/views/TasksView.tsx
 +++ b/src/views/TasksView.tsx
-@@ -120,9 +120,13 @@
+@@ -113,20 +113,20 @@
+     : `완료 ${completedTaskCount}개(숨김)`;
+   const emptyMessage =
+     hasSearchQuery
+-      ? "검색어와 일치하는 업무가 없어요."
++      ? "검색 결과에 맞는 업무가 없어요."
+       : hasProjectFilter || hasVisibilityFilter
+-        ? "현재 조건에 맞는 업무가 없어요."
++        ? "선택한 조건에 표시할 업무가 없어요."
+         : "아직 등록된 업무가 없어요.";
    const emptyActionMessage =
      hasSearchQuery
-       ? "검색어를 바꾸거나 비운 뒤 다시 확인해보세요."
--      : hasProjectFilter || hasVisibilityFilter
-+      : hasProjectFilter && hasVisibilityFilter
-         ? "프로젝트 필터를 전체로 바꾸거나 완료 업무 표시를 켜서 숨은 업무를 확인해보세요."
--        : "목표를 바로 실행할 수 있는 작은 업무로 나누어 로컬에 먼저 기록해보세요.";
-+        : hasProjectFilter
-+          ? "프로젝트 필터를 전체로 바꾸면 다른 업무를 확인할 수 있어요."
-+          : hasVisibilityFilter
-+            ? "완료 업무 표시를 켜면 숨은 완료 업무를 확인할 수 있어요."
-+            : "목표를 바로 실행할 수 있는 작은 업무로 나누어 로컬에 먼저 기록해보세요.";
+-      ? "검색어를 바꾸거나 비운 뒤 다시 확인해보세요."
++      ? "검색어를 줄이거나 비운 뒤 다시 확인해보세요."
+       : hasProjectFilter && hasVisibilityFilter
+-        ? "프로젝트 필터를 전체로 바꾸거나 완료 업무 표시를 켜서 숨은 업무를 확인해보세요."
++        ? "프로젝트를 전체로 바꾸거나 완료 업무 표시를 켜서 숨은 업무를 확인해보세요."
+         : hasProjectFilter
+-          ? "프로젝트 필터를 전체로 바꾸면 다른 업무를 확인할 수 있어요."
++          ? "프로젝트를 전체로 바꾸면 다른 업무를 확인할 수 있어요."
+           : hasVisibilityFilter
+             ? "완료 업무 표시를 켜면 숨은 완료 업무를 확인할 수 있어요."
+-            : "목표를 바로 실행할 수 있는 작은 업무로 나누어 로컬에 먼저 기록해보세요.";
++            : "작은 업무를 하나 추가하면 이 기기 안에 바로 저장돼요.";
  
    return (
      <section className="screen-card">
 
 tokens used
-57,183
-반영한 required_changes:
-- [src/views/TasksView.tsx](D:/ai-apps/planpilot-local/src/views/TasksView.tsx:120)에서 필터 결과 없음 안내를 분기했습니다.
-- 프로젝트 필터 + 완료 숨김 둘 다 적용: 두 행동 모두 안내
-- 프로젝트 필터만 적용: 전체 프로젝트로 변경만 안내
-- 완료 숨김만 적용: 완료 업무 표시 켜기만 안내
+54,345
+변경한 파일: [src/views/TasksView.tsx](D:/ai-apps/planpilot-local/src/views/TasksView.tsx:116)
 
-수정한 파일:
-- `src/views/TasksView.tsx`
+구현 요약:
+- 빈 상태 문구를 더 명확하게 조정했습니다.
+- 검색 결과 없음, 필터 결과 없음, 완전 빈 상태 각각에 다음 행동이 드러나도록 문구를 다듬었습니다.
+- 빈 상태에는 “이 기기 안에 바로 저장” 문구를 작게 넣어 로컬 저장 맥락도 자연스럽게 보강했습니다.
 
-검증 방법:
-- 변경된 `emptyActionMessage` 분기를 다시 읽어 조건별 문구가 분리된 것을 확인했습니다.
-- 기존 JSX 블록은 추가하거나 중복하지 않았고, 안내 문구 변수만 최소 수정했습니다.
-- `npm run build`, `npm run lint`는 사용자 허용이 없어 실행하지 않았습니다.
-
-반영하지 못한 항목과 이유:
-- 없음.
+검증:
+- 변경 구간을 다시 읽어 한국어 문구와 조건 분기 표시를 확인했습니다.
+- `npm run build`, `npm run lint`, `npm run test`는 사용자 허용이 없어 실행하지 않았습니다.
 
 남은 위험:
-- 빌드/린트는 이번 턴에서 실행하지 않아 타입/포맷 검증은 미실행 상태입니다.
+- 실제 화면 렌더링 검증은 하지 않았습니다.
+- 문자열만 변경했으므로 기능 영향은 낮습니다.
 
-`.ai-dev/loop-log.md`에 기록할 재수정 요약:
-- `TasksView`의 필터 결과 없음 안내에서 프로젝트 필터와 완료 업무 숨김 상태를 각각 구분하도록 `emptyActionMessage` 조건을 세분화했다.
+다음 task로 넘어가도 되는지:
+- 네. T001 범위는 완료로 보고 다음 task 진행 가능 상태입니다.
+
+`.ai-dev/loop-log.md` 기록용 요약:
+- `T001 빈 상태와 필터 결과 없음 안내 개선 완료. src/views/TasksView.tsx의 빈 상태/검색 결과 없음/필터 결과 없음 안내 문구를 다음 행동이 드러나도록 개선했고, 빈 상태에 로컬 저장 안내를 작게 반영했다. 자동 build/lint/test는 사용자 허용이 없어 실행하지 않았다.`
 
 ```

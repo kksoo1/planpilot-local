@@ -1,15 +1,12 @@
 ﻿{
     "decision":  "pass",
     "severity":  "none",
-    "summary":  "앱 변경은 현재 업무 범위 안에서 안내 문구만 작게 보강했으며, 기존 데이터 구조나 주요 동작 변경은 보이지 않습니다.",
+    "summary":  "빈 상태와 필터 결과 없음 안내 문구가 현재 task 범위 안에서 더 명확하게 개선되었고, 다음 행동도 제안합니다.",
     "required_changes":  [
 
                          ],
     "optional_suggestions":  [
-                                 {
-                                     "file":  "unknown",
-                                     "suggestion":  "자동 테스트 스크립트가 없어 npm run test는 skipped입니다. 이번 변경은 문구 중심이라 build/lint 통\r\n과로 큰 위험은 낮지만, 향후 UI 문구 회귀를 확인할 수 있는 테스트가 있으면 좋습니다."
-                                 }
+
                              ],
     "scope_check":  {
                         "within_current_task":  true,
@@ -22,7 +19,7 @@
                        "test_passed":  false,
                        "lint_passed":  true,
                        "issues":  [
-                                      "package.json에 test script가 없어 npm run test는 skipped입니다."
+                                      "package.json에 test script가 없어 npm run test는 skipped 상태입니다."
                                   ]
                    },
     "next_step":  "complete_task"
