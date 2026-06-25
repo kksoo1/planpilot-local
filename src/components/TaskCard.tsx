@@ -52,21 +52,21 @@ export function TaskCard({
         }
         onClick={() => onToggleDone(task)}
       >
-        {task.status === "done" ? "미완료로 되돌리기" : "완료로 표시"}
+        {task.status === "done" ? "미완료로 되돌리기" : "업무 완료로 표시"}
       </button>
       <button
         type="button"
         aria-label={`'${task.title}' 업무 삭제하기`}
         onClick={() => onDelete(task)}
       >
-        삭제
+        업무 삭제
       </button>
       <button
         type="button"
         aria-label={`'${task.title}' 업무 수정하기`}
         onClick={() => onStartEdit(task)}
       >
-        수정
+        업무 수정
       </button>
     </li>
   );

@@ -117,6 +117,16 @@ export function TasksView({
       : hasProjectFilter || hasVisibilityFilter
         ? "현재 조건에 맞는 업무가 없어요."
         : "아직 등록된 업무가 없어요.";
+  const emptyActionMessage =
+    hasSearchQuery
+      ? "검색어를 바꾸거나 비운 뒤 다시 확인해보세요."
+      : hasProjectFilter && hasVisibilityFilter
+        ? "프로젝트 필터를 전체로 바꾸거나 완료 업무 표시를 켜서 숨은 업무를 확인해보세요."
+        : hasProjectFilter
+          ? "프로젝트 필터를 전체로 바꾸면 다른 업무를 확인할 수 있어요."
+          : hasVisibilityFilter
+            ? "완료 업무 표시를 켜면 숨은 완료 업무를 확인할 수 있어요."
+            : "목표를 바로 실행할 수 있는 작은 업무로 나누어 로컬에 먼저 기록해보세요.";
 
   return (
     <section className="screen-card">
@@ -177,20 +187,20 @@ export function TasksView({
         type="button"
         onClick={() => onTaskFormOpenChange((current) => !current)}
       >
-        {isTaskFormOpen ? "새 업무 추가 닫기" : "새 업무 추가"}
+        {isTaskFormOpen ? "작은 업무 추가 닫기" : "작은 업무 추가"}
       </button>
 
       {isTaskFormOpen && (
         <TaskForm
-          title="새 업무 추가"
-          ariaLabel="업무 추가"
+          title="새 작은 업무 추가"
+          ariaLabel="새 작은 업무 추가"
           taskTitle={newTaskTitle}
           memo={newTaskMemo}
           dueDate={newTaskDueDate}
           priority={newTaskPriority}
           projectId={newTaskProjectId}
           projects={projects}
-          submitLabel="업무 추가"
+          submitLabel="로컬에 업무 추가"
           onTitleChange={onNewTaskTitleChange}
           onMemoChange={onNewTaskMemoChange}
           onDueDateChange={onNewTaskDueDateChange}
@@ -203,7 +213,7 @@ export function TasksView({
       {filteredTasks.length === 0 ? (
         <div className="empty">
           <p>{emptyMessage}</p>
-          {hasSearchQuery && <p>다른 검색어를 입력해보세요.</p>}
+          <p>{emptyActionMessage}</p>
         </div>
       ) : (
         <ul className="task-list">
@@ -220,7 +230,7 @@ export function TasksView({
                     priority={editTaskPriority}
                     projectId={editTaskProjectId}
                     projects={projects}
-                    submitLabel="저장"
+                    submitLabel="수정 저장"
                     onTitleChange={onEditTaskTitleChange}
                     onMemoChange={onEditTaskMemoChange}
                     onDueDateChange={onEditTaskDueDateChange}
