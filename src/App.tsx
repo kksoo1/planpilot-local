@@ -140,7 +140,7 @@ function App() {
       <header className="app-header">
         <p className="eyebrow">Privacy-first local planner</p>
         <h1>PlanPilot Local</h1>
-        <p>서버 없이 로컬에 저장되는 개인 일정·업무 관리 앱</p>
+        <p>서버 없이 이 기기 안에 저장되는 개인 일정·업무 관리 앱</p>
       </header>
 
       <main className="app-main">
