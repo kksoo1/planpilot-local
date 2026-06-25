@@ -1,6 +1,6 @@
 ﻿# AI Dev Review
 
-## 2026-06-25 15:58:57
+## 2026-06-25 16:33:29
 
 - Decision: pass
 - Severity: none
@@ -40,7 +40,7 @@ rivacy-first 방향에 부합합니다.
                        "test_passed\r\n":  false,
                        "lint_passed":  true,
                        "issues":  [
-                                      "package.json에 test script가 없어 npm run test는 skipped \r\n처리되었습니다."
+                                      "package.json에 test script가 없어 npm run test는 skipped\r\n \r\n처리되었습니다."
                                   ]
                    },
     "next_step":  "complete_task"

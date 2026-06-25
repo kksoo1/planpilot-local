@@ -360,3 +360,13 @@
 - Task: T003 로컬 저장 안내 문구 보강
 - Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
 - Next task: 없음
+## 2026-06-25 16:33:41 - Commit created
+
+- Task: T001 상태 출력의 오래된 요약 차단
+- Commit: ff5f085982b462cd01657b3bad5e8f1927dc5d06
+- Message: Hide stale AI dev status summaries
+## 2026-06-25 16:33:45 - Task completed
+
+- Task: T001 상태 출력의 오래된 요약 차단
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
+- Next task: 없음

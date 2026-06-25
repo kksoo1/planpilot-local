@@ -2,8 +2,8 @@
 
 ## Run
 
-- Started at: 2026-06-25 15:58:04
-- Ended at: 2026-06-25 15:58:56
+- Started at: 2026-06-25 16:32:32
+- Ended at: 2026-06-25 16:33:28
 - Exit code: 0
 - Review prompt: .ai-dev/review-prompt.md
 - Review response: .ai-dev/review-response.json
@@ -28,18 +28,17 @@ approval: never
 sandbox: workspace-write [workdir, /tmp, $TMPDIR]
 reasoning effort: medium
 reasoning summaries: none
-session id: 019efd92-4e15-7713-8636-e15bb71281ba
+session id: 019efdb1-de62-76b1-8b58-65a8d19953c9
 --------
 user
 Read and follow the full review prompt at this absolute file path: D:\ai-apps\planpilot-lo
 cal\.ai-dev\review-prompt.md
 codex
-요청하신 리뷰 지시문을 먼저 읽고, 그 안의 범위와 출력 형식에 맞춰 진행하겠습니다.
+`.ai-dev\review-prompt.md`의 지시를 읽고, 그 범위 안에서 코드 리뷰 방식으로 진행하겠습니다. 우선 해당 프롬프트만 확인합니다.
 exec
 "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -Li
-teralPath 'D:\\ai-apps\\planpilot-local\\.ai-dev\\review-prompt.md'" in D:\ai-apps\planpil
-ot-local
- succeeded in 1352ms:
+teralPath .ai-dev\\review-prompt.md" in D:\ai-apps\planpilot-local
+ succeeded in 1339ms:
 # AI Dev Review Prompt
 
 ## Role
@@ -57,62 +56,60 @@ ot-local
 ## Project Goal
 
 # 목표
-PlanPilot Local의 자동 개발 루프가 여러 개의 작은 task를 연속으로 처리할 수 있는지 검증한다.
+AI Dev Loop 상태 출력에서 새 goal 또는 새 task가 `not_started` 상태일 때 이전 작업의 테스트 결과나 리뷰 응답 요약이 섞여 보이지 
+않도록 개선한다.
 
 ## 배경
-이번 목표는 앱 자체를 크게 완성하는 것이 아니라, 작은 UI 문구 개선 작업을 순차적으로 처리하면서 구현, 검증, 리뷰, 수정, 완료 기록 흐름이 안정적으로 이
-어지는지 확인하는 데 있다.
+현재 자동 개발 루프 상태 표시에서 오래된 test-result 또는 review-response 요약이 현재 task의 `lastCommand`, `lastRe
+viewDecision`, `currentTaskId`, goal 상태와 맞지 않게 노출될 수 있다. 이로 인해 새 작업이 시작되지 않았거나 초기 상태인데도 이전
+ 작업 결과가 현재 상태처럼 보이는 혼선이 생긴다.
 
 ## 성공 기준
-- 빈 상태와 필터 결과 없음 안내가 더 명확해진다.
-- 업무 카드의 상태 안내와 다음 행동 안내가 더 일관되게 정리된다.
-- 로컬 저장 기반 앱이라는 점을 과하지 않은 작은 안내 문구로 보강한다.
-- 각 task가 순서대로 완료 상태로 전환된다.
-- 모든 task 완료 후 목표 상태가 completed로 기록된다.
+- 현재 task가 `not_started` 또는 초기 상태일 때 이전 task의 리뷰/테스트 요약이 현재 결과처럼 표시되지 않는다.
+- `currentTaskId`, goal 상태, `lastCommand`, `lastReviewDecision`과 맞지 않는 오래된 요약은 숨기거나 stale 
+상태로 구분된다.
+- 상태 출력 로직의 변경 범위가 작고 기존 자동 개발 루프 파일 구조를 유지한다.
+- 관련 상태 표시 동작을 검증할 수 있는 최소 확인 절차가 정리된다.
 
 ## 제약사항
-- 한 번에 하나의 작은 변경만 진행한다.
-- 기존 React, Vite, TypeScript, Zustand, Dexie 구조를 유지한다.
-- 사용자-facing UI 문자열은 한국어를 기본으로 한다.
-- 화면 문구 개선 중심으로 작업하고 저장 구조 변경은 하지 않는다.
-- 사용자가 관리하는 스타일 파일은 수정하지 않는다.
+- 앱 기능 변경이 아니라 자동 개발 루프 운영 상태 표시 개선에만 집중한다.
+- 기존 상태 파일 구조와 명명 규칙을 우선 사용한다.
+- 불필요한 대규모 재작성이나 추상화는 피한다.
+- 사용자 변경 사항은 되돌리지 않는다.
 
 ## 범위 제외
-- 계정 기반 기능 추가
-- 원격 연동 기능 추가
-- 결제 기능 추가
-- 외부 서비스 연결
-- 대규모 화면 재작성
+- React 앱의 사용자 기능 변경은 포함하지 않는다.
+- IndexedDB 스키마 변경은 포함하지 않는다.
+- 알림, 동기화, 계정 관련 기능은 포함하지 않는다.
 
 ## 수동 검증
-- 빈 데이터 상태에서 안내 문구가 자연스럽게 보이는지 확인한다.
-- 필터 결과가 없을 때 사용자가 다음 행동을 이해할 수 있는지 확인한다.
-- 업무 카드의 상태 및 다음 행동 안내가 서로 어색하지 않은지 확인한다.
-- 로컬 저장 안내 문구가 과도하게 강조되지 않는지 확인한다.
+- 새 goal 또는 새 task를 `not_started` 상태로 두고 상태 출력에서 이전 리뷰/테스트 요약이 현재 결과처럼 보이지 않는지 확인한다.
+- 현재 task와 일치하는 최신 리뷰/테스트 요약은 정상적으로 표시되는지 확인한다.
+- 오래된 요약을 stale로 표시하는 경우 현재 상태와 구분 가능한지 확인한다.
 
 ## Current Task
 
-- Task ID: T003
-- Title: 로컬 저장 안내 문구 보강
-- Description: 앱이 이 기기 안에 데이터를 저장한다는 점을 사용자가 부담 없이 이해할 수 있도록 작은 안내 문구를 보강한다.
+- Task ID: T001
+- Title: 상태 출력의 오래된 요약 차단
+- Description: ai-dev-status 출력 로직에서 현재 task와 goal 상태에 맞지 않는 이전 리뷰 또는 테스트 요약이 표시되지 않도록 작은 
+범위로 개선한다.
 - Type: implementation
-- Status: pending
-- Priority: P1
+- Status: in_progress
+- Priority: P0
 - Depends on:
-- T002
+- 없음
 - Verification:
-- 로컬 저장 안내가 과하게 강조되지 않는지 확인한다.
-- 기존 privacy-first 방향과 충돌하지 않는지 확인한다.
-- 허용된 검증 명령이 있으면 실행 결과를 기록한다.
+- 새 task 초기 상태에서 이전 리뷰/테스트 요약이 현재 결과처럼 표시되지 않는지 확인한다.
+- 현재 task와 일치하는 최신 요약은 정상 표시되는지 확인한다.
 
 ## Test Result
 
 # AI Dev Test Result
 
-## 2026-06-25 15:57:53
+## 2026-06-25 16:32:21
 
 - Overall result: passed
-- Current task: T003
+- Current task: T001
 - Mode: BuildOnly (build + lint when available)
 - Commands:
   - npm run build: passed
@@ -138,7 +135,7 @@ dist/index.html                   0.46 kB │ gzip:   0.29 kB
 dist/assets/index-DvjxWt30.css    5.69 kB │ gzip:   1.93 kB
 dist/assets/index-DtLVvPCG.js   317.50 kB │ gzip: 100.16 kB
 
-[32m✓ built in 213ms[39m
+[32m✓ built in 230ms[39m
 ```
 ### npm run test
 
@@ -165,44 +162,30 @@ package.json에 test script가 없습니다.
 
 ## Generated At
 
-2026-06-25 15:58:00
+2026-06-25 16:32:28
 
 ## Git Status
 
 ```text
  M .ai-dev/codex-result.md
- M .ai-dev/codex-review-result.md
  M .ai-dev/current-task-prompt.md
- M .ai-dev/diff.md
- M .ai-dev/loop-log.md
+ M .ai-dev/goal.md
  M .ai-dev/queue.json
- M .ai-dev/review-prompt.md
- M .ai-dev/review-response.json
- M .ai-dev/review.md
- M .ai-dev/revise-prompt.md
  M .ai-dev/state.json
  M .ai-dev/test-result.md
- M src/App.tsx
- M src/components/TaskCard.tsx
+ M scripts/ai-dev-status.ps1
 ```
 
 ## App Change Files
 
-- src/App.tsx
-- src/components/TaskCard.tsx
+- scripts/ai-dev-status.ps1
 
 ## AI Dev Operational Artifact Files
 
 - .ai-dev/codex-result.md
-- .ai-dev/codex-review-result.md
 - .ai-dev/current-task-prompt.md
-- .ai-dev/diff.md
-- .ai-dev/loop-log.md
+- .ai-dev/goal.md
 - .ai-dev/queue.json
-- .ai-dev/review-prompt.md
-- .ai-dev/review-response.json
-- .ai-dev/review.md
-- .ai-dev/revise-prompt.md
 - .ai-dev/state.json
 - .ai-dev/test-result.md
 
@@ -214,26 +197,232 @@ package.json에 test script가 없습니다.
 ## Unstaged Diff Stat
 
 ```text
- src/App.tsx | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/ai-dev-status.ps1 | 114 ++++++++++++++++++++++++++++++++++++++--------
+ 1 file changed, 94 insertions(+), 20 deletions(-)
 ```
 
 ## Unstaged Diff
 
 ```text
-diff --git a/src/App.tsx b/src/App.tsx
-index 5e76eb3..cf3bfb3 100644
---- a/src/App.tsx
-+++ b/src/App.tsx
-@@ -140,7 +140,7 @@ function App() {
-       <header className="app-header">
-         <p className="eyebrow">Privacy-first local planner</p>
-         <h1>PlanPilot Local</h1>
--        <p>서버 없이 로컬에 저장되는 개인 일정·업무 관리 앱</p>
-+        <p>서버 없이 이 기기 안에 저장되는 개인 일정·업무 관리 앱</p>
-       </header>
+diff --git a/scripts/ai-dev-status.ps1 b/scripts/ai-dev-status.ps1
+index 83046c6..ec23aa9 100644
+--- a/scripts/ai-dev-status.ps1
++++ b/scripts/ai-dev-status.ps1
+@@ -53,36 +53,77 @@ function Test-HasValue {
+     return $true
+ }
  
-       <main className="app-main">
+-function Get-LastLines {
++function Get-TestResultCurrentTaskId {
++    param(
++        [string[]]$Lines
++    )
++
++    $currentTaskLine = $Lines | Where-Object { $_ -match '^- Current task:\s*(.+)$' } | S
+elect-Object -First 1
++
++    if ($currentTaskLine -match '^- Current task:\s*(.+)$') {
++        return $Matches[1].Trim()
++    }
++
++    return $null
++}
++
++function New-SummaryStatus {
++    param(
++        [string]$Status,
++        [string]$Reason,
++        [object]$Content
++    )
++
++    return [PSCustomObject]@{
++        status = $Status
++        reason = $Reason
++        content = $Content
++    }
++}
++
++function Get-TestResultSummary {
+     param(
+         [string]$Path,
+-        [int]$Count = 30
++        [string]$CurrentTaskId,
++        [bool]$IsInitialState
+     )
+ 
+     if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
+-        return "없음"
++        return New-SummaryStatus "missing" "test-result 파일이 없습니다." "없음"
+     }
+ 
+     try {
+         $lines = @(Get-Content -Encoding UTF8 -LiteralPath $Path)
+ 
+         if ($lines.Count -eq 0) {
+-            return "없음"
++            return New-SummaryStatus "missing" "test-result 파일이 비어 있습니다." "없음"
+         }
+ 
+-        return ($lines | Select-Object -Last $Count) -join "`r`n"
++        $resultTaskId = Get-TestResultCurrentTaskId $lines
++
++        if ($IsInitialState) {
++            return New-SummaryStatus "stale" "현재 task가 초기 상태라 이전 test-result 요약을 숨겼습니다." 
+"숨김"
++        }
++
++        if ((Test-HasValue $CurrentTaskId) -and (Test-HasValue $resultTaskId) -and $resul
+tTaskId -ne $CurrentTaskId) {
++            return New-SummaryStatus "stale" "test-result의 task($resultTaskId)가 현재 task($
+CurrentTaskId)와 다릅니다." "숨김"
++        }
++
++        return New-SummaryStatus "current" "현재 상태와 일치합니다." (($lines | Select-Object -Last
+ 30) -join "`r`n")
+     } catch {
+-        return "읽기 실패: $($_.Exception.Message)"
++        return New-SummaryStatus "error" "읽기 실패: $($_.Exception.Message)" "읽기 실패: $($_.Ex
+ception.Message)"
+     }
+ }
+ 
+ function Get-ReviewSummary {
+     param(
+-        [string]$Path
++        [string]$Path,
++        [string]$LastReviewDecision,
++        [bool]$IsInitialState
+     )
+ 
+     if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
+-        return [PSCustomObject]@{
++        $missingSummary = [PSCustomObject]@{
+             available = $false
+             decision = $null
+             severity = $null
+@@ -90,6 +131,8 @@ function Get-ReviewSummary {
+             summary = "없음"
+             fallback = $null
+         }
++
++        return New-SummaryStatus "missing" "review 파일이 없습니다." $missingSummary
+     }
+ 
+     try {
+@@ -105,7 +148,7 @@ function Get-ReviewSummary {
+         $summary = if ($summaryLine -match '^- Summary:\s*(.+)$') { $Matches[1].Trim() } 
+else { $null }
+         $hasStandardFields = (Test-HasValue $decision) -or (Test-HasValue $severity) -or 
+(Test-HasValue $nextStep) -or (Test-HasValue $summary)
+ 
+-        return [PSCustomObject]@{
++        $review = [PSCustomObject]@{
+             available = $true
+             decision = $decision
+             severity = $severity
+@@ -113,8 +156,22 @@ function Get-ReviewSummary {
+             summary = if (Test-HasValue $summary) { $summary } else { "요약 필드 없음" }
+             fallback = if ($hasStandardFields) { $null } else { (($lines | Select-Object 
+-Last 30) -join "`r`n") }
+         }
++
++        if ($IsInitialState) {
++            return New-SummaryStatus "stale" "현재 task가 초기 상태라 이전 review 요약을 숨겼습니다." $revi
+ew
++        }
++
++        if ((Test-HasValue $LastReviewDecision) -and $LastReviewDecision -ne "not_started
+" -and (Test-HasValue $decision) -and $decision -ne $LastReviewDecision) {
++            return New-SummaryStatus "stale" "review decision($decision)이 state lastRevie
+wDecision($LastReviewDecision)와 다릅니다." $review
++        }
++
++        if (-not (Test-HasValue $LastReviewDecision) -or $LastReviewDecision -eq "not_sta
+rted") {
++            return New-SummaryStatus "stale" "state lastReviewDecision이 초기 상태라 이전 review 
+요약을 숨겼습니다." $review
++        }
++
++        return New-SummaryStatus "current" "현재 상태와 일치합니다." $review
+     } catch {
+-        return [PSCustomObject]@{
++        $errorSummary = [PSCustomObject]@{
+             available = $true
+             decision = $null
+             severity = $null
+@@ -122,6 +179,8 @@ function Get-ReviewSummary {
+             summary = "읽기 실패: $($_.Exception.Message)"
+             fallback = $null
+         }
++
++        return New-SummaryStatus "error" "읽기 실패: $($_.Exception.Message)" $errorSummary
+     }
+ }
+ 
+@@ -182,6 +241,17 @@ $taskCounts = [ordered]@{
+     skipped = @($tasks | Where-Object { $_.status -eq "skipped" }).Count
+ }
+ 
++$currentTaskStatus = if ($null -ne $currentTask) { [string]$currentTask.status } else { $
+null }
++$lastCommandStatus = if (Test-HasValue $state.lastCommandStatus) { [string]$state.lastCom
+mandStatus } else { $null }
++$lastReviewDecision = if (Test-HasValue $state.lastReviewDecision) { [string]$state.lastR
+eviewDecision } else { $null }
++$goalStatus = if (Test-HasValue $state.goalStatus) { [string]$state.goalStatus } else { $
+null }
++$initialTaskStatuses = @("not_started", "pending")
++$isTaskInitialState = ($initialTaskStatuses -contains $currentTaskStatus) -or ($goalStatu
+s -eq "not_started")
++$isTestResultInitialState = $isTaskInitialState -or `
++    (-not (Test-HasValue $state.lastCommand) -and ($lastCommandStatus -eq "not_started" -
+or -not (Test-HasValue $lastCommandStatus)))
++$isReviewInitialState = $isTaskInitialState -or `
++    (-not (Test-HasValue $lastReviewDecision) -or $lastReviewDecision -eq "not_started")
++
+ $gitStatus = "unavailable"
+ $gitChangedFilesCount = $null
+ $gitStatusLines = @()
+@@ -202,8 +272,8 @@ try {
+     $gitStatus = "unavailable"
+ }
+ 
+-$testResultSummary = Get-LastLines $testResultPath 30
+-$reviewSummary = Get-ReviewSummary $reviewPath
++$testResultSummary = Get-TestResultSummary $testResultPath $currentTaskId $isTestResultIn
+itialState
++$reviewSummary = Get-ReviewSummary $reviewPath $lastReviewDecision $isReviewInitialState
+ 
+ $statusObject = [ordered]@{
+     goalTitle = if (Test-HasValue $queue.goalTitle) { $queue.goalTitle } else { "없음" }
+@@ -256,14 +326,18 @@ Write-Host "Git status: $($statusObject.git.status)"
+ Write-Host "Git changed files count: $($statusObject.git.changedFilesCount)"
+ Write-Host ""
+ Write-Host "Test result summary:"
+-Write-Host $statusObject.testResultSummary
++Write-Host "  Status: $($testResultSummary.status)"
++Write-Host "  Reason: $($testResultSummary.reason)"
++Write-Host $testResultSummary.content
+ Write-Host ""
+ Write-Host "Review summary:"
+-Write-Host "  Decision: $($reviewSummary.decision)"
+-Write-Host "  Severity: $($reviewSummary.severity)"
+-Write-Host "  Next step: $($reviewSummary.nextStep)"
+-Write-Host "  Summary: $($reviewSummary.summary)"
+-
+-if (Test-HasValue $reviewSummary.fallback) {
+-    Write-Host $reviewSummary.fallback
++Write-Host "  Status: $($reviewSummary.status)"
++Write-Host "  Reason: $($reviewSummary.reason)"
++Write-Host "  Decision: $($reviewSummary.content.decision)"
++Write-Host "  Severity: $($reviewSummary.content.severity)"
++Write-Host "  Next step: $($reviewSummary.content.nextStep)"
++Write-Host "  Summary: $($reviewSummary.content.summary)"
++
++if ($reviewSummary.status -eq "current" -and (Test-HasValue $reviewSummary.content.fallba
+ck)) {
++    Write-Host $reviewSummary.content.fallback
+ }
 ```
 
 ## Staged Diff Stat
@@ -310,725 +499,585 @@ index 5e76eb3..cf3bfb3 100644
 - blocked: 요구사항 충돌, 데이터 위험, 패키지 추가, 대규모 리팩터링 등 사용자 판단 필요
 
 codex
-리뷰 프롬프트 기준은 “실제 앱 변경 파일 중심”이므로, diff에 나온 `src/App.tsx`와 상태 목록에 있는 `src/components/TaskCard
-.tsx`만 확인하겠습니다. Git 명령은 프로젝트 규칙상 실행하지 않습니다.
+프롬프트에 diff가 포함되어 있지만, 실제 파일 상태 기준으로 `scripts/ai-dev-status.ps1`의 변경부를 확인해 리뷰 판단을 보강하겠습니다. 
+git 명령과 빌드/테스트 실행은 프로젝트 규칙상 새로 실행하지 않습니다.
 exec
 "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -Li
-teralPath 'D:\\ai-apps\\planpilot-local\\src\\App.tsx'" in D:\ai-apps\planpilot-local
-exec
-"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -Li
-teralPath 'D:\\ai-apps\\planpilot-local\\src\\components\\TaskCard.tsx'" in D:\ai-apps\pla
-npilot-local
- succeeded in 1655ms:
-import { getPriorityLabel, getStatusLabel } from "../utils/taskLabels";
-import { isUpcomingTask } from "../utils/dateUtils";
-import type { Task } from "../types";
+teralPath scripts\\ai-dev-status.ps1" in D:\ai-apps\planpilot-local
+ succeeded in 1329ms:
+param(
+    [switch]$Json
+)
 
-type TaskCardProps = {
-  task: Task;
-  projectName: string;
-  onToggleDone: (task: Task) => void;
-  onDelete: (task: Task) => void;
-  onStartEdit: (task: Task) => void;
-};
+. "$PSScriptRoot\ai-dev-env.ps1"
 
-export function TaskCard({
-  task,
-  projectName,
-  onToggleDone,
-  onDelete,
-  onStartEdit,
-}: TaskCardProps) {
-  const showDueSoonBadge = isUpcomingTask(task);
+$projectRoot = (Get-Location).Path
+$queueRelativePath = ".ai-dev/queue.json"
+$stateRelativePath = ".ai-dev/state.json"
+$testResultRelativePath = ".ai-dev/test-result.md"
+$reviewRelativePath = ".ai-dev/review.md"
 
-  return (
-    <li className="task-card">
-      <strong>{task.title}</strong>
-      {showDueSoonBadge && (
-        <span
-          aria-label="留덇컧?쇱씠 怨??ㅺ??ㅻ뒗 ?낅Т?낅땲??
-          style={{
-            alignSelf: "flex-start",
-            border: "1px solid #d97706",
-            borderRadius: "999px",
-            color: "#92400e",
-            fontSize: "0.78rem",
-            fontWeight: 700,
-            padding: "0.15rem 0.5rem",
-          }}
-        >
-          留덇컧 ?꾨컯
-        </span>
-      )}
-      {task.memo && <span>硫붾え: {task.memo}</span>}
-      <span>
-        以묒슂?? {getPriorityLabel(task.priority)} 쨌 ?곹깭: {getStatusLabel(task.status)} 쨌 ?꾨줈
-?앺듃: {projectName}
-      </span>
-      <span>{task.dueDate ? `留덇컧?? ${task.dueDate}` : "留덇컧???놁쓬"}</span>
-      <button
-        type="button"
-        aria-label={
-          task.status === "done"
-            ? `'${task.title}' ?낅Т瑜?誘몄셿猷뚮줈 ?섎룎由ш린`
-            : `'${task.title}' ?낅Т瑜??꾨즺濡??쒖떆?섍린`
+$queuePath = Join-Path $projectRoot $queueRelativePath
+$statePath = Join-Path $projectRoot $stateRelativePath
+$testResultPath = Join-Path $projectRoot $testResultRelativePath
+$reviewPath = Join-Path $projectRoot $reviewRelativePath
+
+function Stop-WithError {
+    param(
+        [string]$Message
+    )
+
+    Write-Error $Message
+    exit 1
+}
+
+function Read-JsonFile {
+    param(
+        [string]$Path,
+        [string]$RelativePath
+    )
+
+    try {
+        return Get-Content -Raw -Encoding UTF8 -LiteralPath $Path | ConvertFrom-Json
+    } catch {
+        Stop-WithError "$RelativePath JSON 파싱에 실패했습니다: $($_.Exception.Message)"
+    }
+}
+
+function Test-HasValue {
+    param(
+        [object]$Value
+    )
+
+    if ($null -eq $Value) {
+        return $false
+    }
+
+    if ($Value -is [string]) {
+        return -not [string]::IsNullOrWhiteSpace($Value)
+    }
+
+    return $true
+}
+
+function Get-TestResultCurrentTaskId {
+    param(
+        [string[]]$Lines
+    )
+
+    $currentTaskLine = $Lines | Where-Object { $_ -match '^- Current task:\s*(.+)$' } | Se
+lect-Object -First 1
+
+    if ($currentTaskLine -match '^- Current task:\s*(.+)$') {
+        return $Matches[1].Trim()
+    }
+
+    return $null
+}
+
+function New-SummaryStatus {
+    param(
+        [string]$Status,
+        [string]$Reason,
+        [object]$Content
+    )
+
+    return [PSCustomObject]@{
+        status = $Status
+        reason = $Reason
+        content = $Content
+    }
+}
+
+function Get-TestResultSummary {
+    param(
+        [string]$Path,
+        [string]$CurrentTaskId,
+        [bool]$IsInitialState
+    )
+
+    if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
+        return New-SummaryStatus "missing" "test-result 파일이 없습니다." "없음"
+    }
+
+    try {
+        $lines = @(Get-Content -Encoding UTF8 -LiteralPath $Path)
+
+        if ($lines.Count -eq 0) {
+            return New-SummaryStatus "missing" "test-result 파일이 비어 있습니다." "없음"
         }
-        onClick={() => onToggleDone(task)}
-      >
-        {task.status === "done" ? "誘몄셿猷뚮줈 ?섎룎由ш린" : "?낅Т ?꾨즺濡??쒖떆"}
-      </button>
-      <button
-        type="button"
-        aria-label={`'${task.title}' ?낅Т ??젣?섍린`}
-        onClick={() => onDelete(task)}
-      >
-        ?낅Т ??젣
-      </button>
-      <button
-        type="button"
-        aria-label={`'${task.title}' ?낅Т ?섏젙?섍린`}
-        onClick={() => onStartEdit(task)}
-      >
-        ?낅Т ?섏젙
-      </button>
-    </li>
-  );
-}
 
- succeeded in 1703ms:
-import { useEffect, useMemo, useState } from "react";
-import { RuleBasedAIProvider } from "./ai/RuleBasedAIProvider";
-import { useProjectActions } from "./hooks/useProjectActions";
-import { useProjectFormState } from "./hooks/useProjectFormState";
-import { useTaskActions } from "./hooks/useTaskActions";
-import { useTaskFormState } from "./hooks/useTaskFormState";
-import { useStore } from "./store";
-import { startOfToday } from "./utils/dateUtils";
-import { getProjectName } from "./utils/projectLookup";
-import { getOverdueTasks, getUpcomingTasks } from "./utils/taskDates";
-import { filterTasks, sortTasks, type TaskSortOrder } from "./utils/taskFilters";
-import { getTaskSummary } from "./utils/taskSummary";
-import { SettingsView } from "./views/SettingsView";
-import { TasksView } from "./views/TasksView";
-import { ProjectsView } from "./views/ProjectsView";
-import { TodayView } from "./views/TodayView";
-import type { Task } from "./types";
-import "./App.css";
+        $resultTaskId = Get-TestResultCurrentTaskId $lines
 
-type Tab = "today" | "tasks" | "projects" | "settings";
-
-function App() {
-  const [activeTab, setActiveTab] = useState<Tab>("today");
-  const [recommendedTasks, setRecommendedTasks] = useState<Task[]>([]);
-  const [selectedProjectFilter, setSelectedProjectFilter] = useState("all");
-  const [showCompletedTasks, setShowCompletedTasks] = useState(true);
-  const [taskSortOrder, setTaskSortOrder] = useState<TaskSortOrder>("none");
-  const [taskSearchQuery, setTaskSearchQuery] = useState("");
-
-  const { tasks, projects, appSettings, initializeApp, addTask, updateTask, deleteTask, de
-leteProject, addProject, updateProject } = useStore();
-  const taskFormState = useTaskFormState();
-  const {
-    editingTaskId,
-    editTaskTitle,
-    editTaskDueDate,
-    editTaskPriority,
-    editTaskMemo,
-    editTaskProjectId,
-    newTaskTitle,
-    newTaskDueDate,
-    newTaskPriority,
-    newTaskProjectId,
-    newTaskMemo,
-    isTaskFormOpen,
-    setEditTaskTitle,
-    setEditTaskDueDate,
-    setEditTaskPriority,
-    setEditTaskMemo,
-    setEditTaskProjectId,
-    setNewTaskTitle,
-    setNewTaskDueDate,
-    setNewTaskPriority,
-    setNewTaskProjectId,
-    setNewTaskMemo,
-    setIsTaskFormOpen,
-    resetNewTaskForm,
-    resetEditTaskForm,
-    startEditTask,
-  } = taskFormState;
-  const { handleAddTask, handleSaveEditTask, handleToggleTaskDone, handleDeleteTask } = us
-eTaskActions({
-    addTask,
-    updateTask,
-    deleteTask,
-    newTaskTitle,
-    newTaskDueDate,
-    newTaskPriority,
-    newTaskProjectId,
-    newTaskMemo,
-    editTaskTitle,
-    editTaskDueDate,
-    editTaskPriority,
-    editTaskMemo,
-    editTaskProjectId,
-    resetNewTaskForm,
-    resetEditTaskForm,
-  });
-  const projectFormState = useProjectFormState();
-  const {
-    editingProjectId,
-    editProjectName,
-    editProjectDescription,
-    newProjectName,
-    newProjectDescription,
-    setEditProjectName,
-    setEditProjectDescription,
-    setNewProjectName,
-    setNewProjectDescription,
-    resetNewProjectForm,
-    resetEditProjectForm,
-    startEditProject,
-  } = projectFormState;
-  const { handleAddProject, handleSaveEditProject, handleDeleteProject } = useProjectActio
-ns({
-    addProject,
-    updateProject,
-    deleteProject,
-    projects,
-    tasks,
-    newProjectName,
-    newProjectDescription,
-    editProjectName,
-    editProjectDescription,
-    resetNewProjectForm,
-    resetEditProjectForm,
-  });
-
-  const today = startOfToday();
-
-  const overdueTasks = getOverdueTasks(tasks, today);
-  const upcomingTasks = getUpcomingTasks(tasks, today, 7);
-  const taskSummary = getTaskSummary(tasks);
-
-  const filteredTasks = filterTasks(tasks, {
-    selectedProjectFilter,
-    showCompletedTasks,
-    taskSearchQuery,
-    projects,
-  });
-
-  const summaryTasks = filterTasks(tasks, {
-    selectedProjectFilter,
-    showCompletedTasks: true,
-    taskSearchQuery,
-    projects,
-  });
-
-  const sortedTasks = sortTasks(filteredTasks, taskSortOrder);
-
-  const aiProvider = useMemo(() => new RuleBasedAIProvider(), []);
-
-  useEffect(() => {
-    void initializeApp();
-  }, [initializeApp]);
-
-  useEffect(() => {
-    void aiProvider.suggestTodayTasks(tasks, 3).then(setRecommendedTasks);
-  }, [aiProvider, tasks]);
-
-  return (
-    <div className="app-shell">
-      <header className="app-header">
-        <p className="eyebrow">Privacy-first local planner</p>
-        <h1>PlanPilot Local</h1>
-        <p>?쒕쾭 ?놁씠 ??湲곌린 ?덉뿉 ??λ릺??媛쒖씤 ?쇱젙쨌?낅Т 愿由???/p>
-      </header>
-
-      <main className="app-main">
-{activeTab === "today" && (
-  <TodayView
-    totalTasks={taskSummary.totalTasks}
-    completedTasks={taskSummary.completedTasks}
-    recommendedTasks={recommendedTasks}
-    overdueTasks={overdueTasks}
-    upcomingTasks={upcomingTasks}
-    getProjectName={(projectId) => getProjectName(projects, projectId)}
-  />
-)}
-
-        {activeTab === "tasks" && (
-          <TasksView
-            projects={projects}
-            filteredTasks={filteredTasks}
-            summaryTasks={summaryTasks}
-            sortedTasks={sortedTasks}
-            selectedProjectFilter={selectedProjectFilter}
-            showCompletedTasks={showCompletedTasks}
-            taskSortOrder={taskSortOrder}
-            taskSearchQuery={taskSearchQuery}
-            isTaskFormOpen={isTaskFormOpen}
-            newTaskTitle={newTaskTitle}
-            newTaskMemo={newTaskMemo}
-            newTaskDueDate={newTaskDueDate}
-            newTaskPriority={newTaskPriority}
-            newTaskProjectId={newTaskProjectId}
-            editingTaskId={editingTaskId}
-            editTaskTitle={editTaskTitle}
-            editTaskMemo={editTaskMemo}
-            editTaskDueDate={editTaskDueDate}
-            editTaskPriority={editTaskPriority}
-            editTaskProjectId={editTaskProjectId}
-            getProjectName={(projectId) => getProjectName(projects, projectId)}
-            onTaskSearchQueryChange={setTaskSearchQuery}
-            onShowCompletedTasksChange={setShowCompletedTasks}
-            onTaskSortOrderChange={setTaskSortOrder}
-            onSelectedProjectFilterChange={setSelectedProjectFilter}
-            onTaskFormOpenChange={setIsTaskFormOpen}
-            onNewTaskTitleChange={setNewTaskTitle}
-            onNewTaskMemoChange={setNewTaskMemo}
-            onNewTaskDueDateChange={setNewTaskDueDate}
-            onNewTaskPriorityChange={setNewTaskPriority}
-            onNewTaskProjectIdChange={setNewTaskProjectId}
-            onEditTaskTitleChange={setEditTaskTitle}
-            onEditTaskMemoChange={setEditTaskMemo}
-            onEditTaskDueDateChange={setEditTaskDueDate}
-            onEditTaskPriorityChange={setEditTaskPriority}
-            onEditTaskProjectIdChange={setEditTaskProjectId}
-            onAddTask={handleAddTask}
-            onSaveEditTask={handleSaveEditTask}
-            onCancelEditTask={resetEditTaskForm}
-            onToggleTaskDone={handleToggleTaskDone}
-            onDeleteTask={handleDeleteTask}
-            onStartEditTask={startEditTask}
-          />
-        )}
-
-        {activeTab === "projects" && (
-          <ProjectsView
-            projects={projects}
-            tasks={tasks}
-            editingProjectId={editingProjectId}
-            editProjectName={editProjectName}
-            editProjectDescription={editProjectDescription}
-            newProjectName={newProjectName}
-            newProjectDescription={newProjectDescription}
-            onNewProjectNameChange={setNewProjectName}
-            onNewProjectDescriptionChange={setNewProjectDescription}
-            onEditProjectNameChange={setEditProjectName}
-            onEditProjectDescriptionChange={setEditProjectDescription}
-            onAddProject={handleAddProject}
-            onSaveEditProject={handleSaveEditProject}
-            onCancelEditProject={resetEditProjectForm}
-            onDeleteProject={handleDeleteProject}
-            onStartEditProject={startEditProject}
-          />
-        )}
-
-        {activeTab === "settings" && (
-          <SettingsView
-            appSettings={appSettings}
-            tasks={tasks}
-            projects={projects}
-          />
-        )}
-      </main>
-
-      <nav className="bottom-nav" aria-label="?섎떒 硫붾돱">
-        <button
-          className={activeTab === "today" ? "active" : ""}
-          onClick={() => setActiveTab("today")}
-        >
-          ?ㅻ뒛
-        </button>
-        <button
-          className={activeTab === "tasks" ? "active" : ""}
-          onClick={() => setActiveTab("tasks")}
-        >
-          ?낅Т
-        </button>
-        <button
-          className={activeTab === "projects" ? "active" : ""}
-          onClick={() => setActiveTab("projects")}
-        >
-          ?꾨줈?앺듃
-        </button>
-        <button
-          className={activeTab === "settings" ? "active" : ""}
-          onClick={() => setActiveTab("settings")}
-        >
-          ?ㅼ젙
-        </button>
-      </nav>
-    </div>
-  );
-}
-
-export default App;
-
-codex
-PowerShell 5.1의 기본 인코딩 출력이 한글을 깨뜨려 보여서, 같은 두 파일을 UTF-8 지정으로 다시 읽어 실제 내용을 확인하겠습니다.
-exec
-"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -En
-coding UTF8 -LiteralPath 'D:\\ai-apps\\planpilot-local\\src\\App.tsx'" in D:\ai-apps\planp
-ilot-local
-exec
-"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -En
-coding UTF8 -LiteralPath 'D:\\ai-apps\\planpilot-local\\src\\components\\TaskCard.tsx'" in
- D:\ai-apps\planpilot-local
- succeeded in 1682ms:
-import { useEffect, useMemo, useState } from "react";
-import { RuleBasedAIProvider } from "./ai/RuleBasedAIProvider";
-import { useProjectActions } from "./hooks/useProjectActions";
-import { useProjectFormState } from "./hooks/useProjectFormState";
-import { useTaskActions } from "./hooks/useTaskActions";
-import { useTaskFormState } from "./hooks/useTaskFormState";
-import { useStore } from "./store";
-import { startOfToday } from "./utils/dateUtils";
-import { getProjectName } from "./utils/projectLookup";
-import { getOverdueTasks, getUpcomingTasks } from "./utils/taskDates";
-import { filterTasks, sortTasks, type TaskSortOrder } from "./utils/taskFilters";
-import { getTaskSummary } from "./utils/taskSummary";
-import { SettingsView } from "./views/SettingsView";
-import { TasksView } from "./views/TasksView";
-import { ProjectsView } from "./views/ProjectsView";
-import { TodayView } from "./views/TodayView";
-import type { Task } from "./types";
-import "./App.css";
-
-type Tab = "today" | "tasks" | "projects" | "settings";
-
-function App() {
-  const [activeTab, setActiveTab] = useState<Tab>("today");
-  const [recommendedTasks, setRecommendedTasks] = useState<Task[]>([]);
-  const [selectedProjectFilter, setSelectedProjectFilter] = useState("all");
-  const [showCompletedTasks, setShowCompletedTasks] = useState(true);
-  const [taskSortOrder, setTaskSortOrder] = useState<TaskSortOrder>("none");
-  const [taskSearchQuery, setTaskSearchQuery] = useState("");
-
-  const { tasks, projects, appSettings, initializeApp, addTask, updateTask, deleteTask, de
-leteProject, addProject, updateProject } = useStore();
-  const taskFormState = useTaskFormState();
-  const {
-    editingTaskId,
-    editTaskTitle,
-    editTaskDueDate,
-    editTaskPriority,
-    editTaskMemo,
-    editTaskProjectId,
-    newTaskTitle,
-    newTaskDueDate,
-    newTaskPriority,
-    newTaskProjectId,
-    newTaskMemo,
-    isTaskFormOpen,
-    setEditTaskTitle,
-    setEditTaskDueDate,
-    setEditTaskPriority,
-    setEditTaskMemo,
-    setEditTaskProjectId,
-    setNewTaskTitle,
-    setNewTaskDueDate,
-    setNewTaskPriority,
-    setNewTaskProjectId,
-    setNewTaskMemo,
-    setIsTaskFormOpen,
-    resetNewTaskForm,
-    resetEditTaskForm,
-    startEditTask,
-  } = taskFormState;
-  const { handleAddTask, handleSaveEditTask, handleToggleTaskDone, handleDeleteTask } = us
-eTaskActions({
-    addTask,
-    updateTask,
-    deleteTask,
-    newTaskTitle,
-    newTaskDueDate,
-    newTaskPriority,
-    newTaskProjectId,
-    newTaskMemo,
-    editTaskTitle,
-    editTaskDueDate,
-    editTaskPriority,
-    editTaskMemo,
-    editTaskProjectId,
-    resetNewTaskForm,
-    resetEditTaskForm,
-  });
-  const projectFormState = useProjectFormState();
-  const {
-    editingProjectId,
-    editProjectName,
-    editProjectDescription,
-    newProjectName,
-    newProjectDescription,
-    setEditProjectName,
-    setEditProjectDescription,
-    setNewProjectName,
-    setNewProjectDescription,
-    resetNewProjectForm,
-    resetEditProjectForm,
-    startEditProject,
-  } = projectFormState;
-  const { handleAddProject, handleSaveEditProject, handleDeleteProject } = useProjectActio
-ns({
-    addProject,
-    updateProject,
-    deleteProject,
-    projects,
-    tasks,
-    newProjectName,
-    newProjectDescription,
-    editProjectName,
-    editProjectDescription,
-    resetNewProjectForm,
-    resetEditProjectForm,
-  });
-
-  const today = startOfToday();
-
-  const overdueTasks = getOverdueTasks(tasks, today);
-  const upcomingTasks = getUpcomingTasks(tasks, today, 7);
-  const taskSummary = getTaskSummary(tasks);
-
-  const filteredTasks = filterTasks(tasks, {
-    selectedProjectFilter,
-    showCompletedTasks,
-    taskSearchQuery,
-    projects,
-  });
-
-  const summaryTasks = filterTasks(tasks, {
-    selectedProjectFilter,
-    showCompletedTasks: true,
-    taskSearchQuery,
-    projects,
-  });
-
-  const sortedTasks = sortTasks(filteredTasks, taskSortOrder);
-
-  const aiProvider = useMemo(() => new RuleBasedAIProvider(), []);
-
-  useEffect(() => {
-    void initializeApp();
-  }, [initializeApp]);
-
-  useEffect(() => {
-    void aiProvider.suggestTodayTasks(tasks, 3).then(setRecommendedTasks);
-  }, [aiProvider, tasks]);
-
-  return (
-    <div className="app-shell">
-      <header className="app-header">
-        <p className="eyebrow">Privacy-first local planner</p>
-        <h1>PlanPilot Local</h1>
-        <p>서버 없이 이 기기 안에 저장되는 개인 일정·업무 관리 앱</p>
-      </header>
-
-      <main className="app-main">
-{activeTab === "today" && (
-  <TodayView
-    totalTasks={taskSummary.totalTasks}
-    completedTasks={taskSummary.completedTasks}
-    recommendedTasks={recommendedTasks}
-    overdueTasks={overdueTasks}
-    upcomingTasks={upcomingTasks}
-    getProjectName={(projectId) => getProjectName(projects, projectId)}
-  />
-)}
-
-        {activeTab === "tasks" && (
-          <TasksView
-            projects={projects}
-            filteredTasks={filteredTasks}
-            summaryTasks={summaryTasks}
-            sortedTasks={sortedTasks}
-            selectedProjectFilter={selectedProjectFilter}
-            showCompletedTasks={showCompletedTasks}
-            taskSortOrder={taskSortOrder}
-            taskSearchQuery={taskSearchQuery}
-            isTaskFormOpen={isTaskFormOpen}
-            newTaskTitle={newTaskTitle}
-            newTaskMemo={newTaskMemo}
-            newTaskDueDate={newTaskDueDate}
-            newTaskPriority={newTaskPriority}
-            newTaskProjectId={newTaskProjectId}
-            editingTaskId={editingTaskId}
-            editTaskTitle={editTaskTitle}
-            editTaskMemo={editTaskMemo}
-            editTaskDueDate={editTaskDueDate}
-            editTaskPriority={editTaskPriority}
-            editTaskProjectId={editTaskProjectId}
-            getProjectName={(projectId) => getProjectName(projects, projectId)}
-            onTaskSearchQueryChange={setTaskSearchQuery}
-            onShowCompletedTasksChange={setShowCompletedTasks}
-            onTaskSortOrderChange={setTaskSortOrder}
-            onSelectedProjectFilterChange={setSelectedProjectFilter}
-            onTaskFormOpenChange={setIsTaskFormOpen}
-            onNewTaskTitleChange={setNewTaskTitle}
-            onNewTaskMemoChange={setNewTaskMemo}
-            onNewTaskDueDateChange={setNewTaskDueDate}
-            onNewTaskPriorityChange={setNewTaskPriority}
-            onNewTaskProjectIdChange={setNewTaskProjectId}
-            onEditTaskTitleChange={setEditTaskTitle}
-            onEditTaskMemoChange={setEditTaskMemo}
-            onEditTaskDueDateChange={setEditTaskDueDate}
-            onEditTaskPriorityChange={setEditTaskPriority}
-            onEditTaskProjectIdChange={setEditTaskProjectId}
-            onAddTask={handleAddTask}
-            onSaveEditTask={handleSaveEditTask}
-            onCancelEditTask={resetEditTaskForm}
-            onToggleTaskDone={handleToggleTaskDone}
-            onDeleteTask={handleDeleteTask}
-            onStartEditTask={startEditTask}
-          />
-        )}
-
-        {activeTab === "projects" && (
-          <ProjectsView
-            projects={projects}
-            tasks={tasks}
-            editingProjectId={editingProjectId}
-            editProjectName={editProjectName}
-            editProjectDescription={editProjectDescription}
-            newProjectName={newProjectName}
-            newProjectDescription={newProjectDescription}
-            onNewProjectNameChange={setNewProjectName}
-            onNewProjectDescriptionChange={setNewProjectDescription}
-            onEditProjectNameChange={setEditProjectName}
-            onEditProjectDescriptionChange={setEditProjectDescription}
-            onAddProject={handleAddProject}
-            onSaveEditProject={handleSaveEditProject}
-            onCancelEditProject={resetEditProjectForm}
-            onDeleteProject={handleDeleteProject}
-            onStartEditProject={startEditProject}
-          />
-        )}
-
-        {activeTab === "settings" && (
-          <SettingsView
-            appSettings={appSettings}
-            tasks={tasks}
-            projects={projects}
-          />
-        )}
-      </main>
-
-      <nav className="bottom-nav" aria-label="하단 메뉴">
-        <button
-          className={activeTab === "today" ? "active" : ""}
-          onClick={() => setActiveTab("today")}
-        >
-          오늘
-        </button>
-        <button
-          className={activeTab === "tasks" ? "active" : ""}
-          onClick={() => setActiveTab("tasks")}
-        >
-          업무
-        </button>
-        <button
-          className={activeTab === "projects" ? "active" : ""}
-          onClick={() => setActiveTab("projects")}
-        >
-          프로젝트
-        </button>
-        <button
-          className={activeTab === "settings" ? "active" : ""}
-          onClick={() => setActiveTab("settings")}
-        >
-          설정
-        </button>
-      </nav>
-    </div>
-  );
-}
-
-export default App;
-
- succeeded in 1710ms:
-import { getPriorityLabel, getStatusLabel } from "../utils/taskLabels";
-import { isUpcomingTask } from "../utils/dateUtils";
-import type { Task } from "../types";
-
-type TaskCardProps = {
-  task: Task;
-  projectName: string;
-  onToggleDone: (task: Task) => void;
-  onDelete: (task: Task) => void;
-  onStartEdit: (task: Task) => void;
-};
-
-export function TaskCard({
-  task,
-  projectName,
-  onToggleDone,
-  onDelete,
-  onStartEdit,
-}: TaskCardProps) {
-  const showDueSoonBadge = isUpcomingTask(task);
-
-  return (
-    <li className="task-card">
-      <strong>{task.title}</strong>
-      {showDueSoonBadge && (
-        <span
-          aria-label="마감일이 곧 다가오는 업무입니다"
-          style={{
-            alignSelf: "flex-start",
-            border: "1px solid #d97706",
-            borderRadius: "999px",
-            color: "#92400e",
-            fontSize: "0.78rem",
-            fontWeight: 700,
-            padding: "0.15rem 0.5rem",
-          }}
-        >
-          마감 임박
-        </span>
-      )}
-      {task.memo && <span>메모: {task.memo}</span>}
-      <span>
-        중요도: {getPriorityLabel(task.priority)} · 상태: {getStatusLabel(task.status)} · 프로젝트:
- {projectName}
-      </span>
-      <span>{task.dueDate ? `마감일: ${task.dueDate}` : "마감일 없음"}</span>
-      <button
-        type="button"
-        aria-label={
-          task.status === "done"
-            ? `'${task.title}' 업무를 미완료로 되돌리기`
-            : `'${task.title}' 업무를 완료로 표시하기`
+        if ($IsInitialState) {
+            return New-SummaryStatus "stale" "현재 task가 초기 상태라 이전 test-result 요약을 숨겼습니다." "
+숨김"
         }
-        onClick={() => onToggleDone(task)}
-      >
-        {task.status === "done" ? "미완료로 되돌리기" : "업무 완료로 표시"}
-      </button>
-      <button
-        type="button"
-        aria-label={`'${task.title}' 업무 삭제하기`}
-        onClick={() => onDelete(task)}
-      >
-        업무 삭제
-      </button>
-      <button
-        type="button"
-        aria-label={`'${task.title}' 업무 수정하기`}
-        onClick={() => onStartEdit(task)}
-      >
-        업무 수정
-      </button>
-    </li>
-  );
+
+        if ((Test-HasValue $CurrentTaskId) -and (Test-HasValue $resultTaskId) -and $result
+TaskId -ne $CurrentTaskId) {
+            return New-SummaryStatus "stale" "test-result의 task($resultTaskId)가 현재 task($C
+urrentTaskId)와 다릅니다." "숨김"
+        }
+
+        return New-SummaryStatus "current" "현재 상태와 일치합니다." (($lines | Select-Object -Last 
+30) -join "`r`n")
+    } catch {
+        return New-SummaryStatus "error" "읽기 실패: $($_.Exception.Message)" "읽기 실패: $($_.Exc
+eption.Message)"
+    }
+}
+
+function Get-ReviewSummary {
+    param(
+        [string]$Path,
+        [string]$LastReviewDecision,
+        [bool]$IsInitialState
+    )
+
+    if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
+        $missingSummary = [PSCustomObject]@{
+            available = $false
+            decision = $null
+            severity = $null
+            nextStep = $null
+            summary = "없음"
+            fallback = $null
+        }
+
+        return New-SummaryStatus "missing" "review 파일이 없습니다." $missingSummary
+    }
+
+    try {
+        $lines = @(Get-Content -Encoding UTF8 -LiteralPath $Path)
+        $decisionLine = $lines | Where-Object { $_ -match '^- Decision:\s*(.+)$' } | Selec
+t-Object -First 1
+        $severityLine = $lines | Where-Object { $_ -match '^- Severity:\s*(.+)$' } | Selec
+t-Object -First 1
+        $nextStepLine = $lines | Where-Object { $_ -match '^- Next step:\s*(.+)$' } | Sele
+ct-Object -First 1
+        $summaryLine = $lines | Where-Object { $_ -match '^- Summary:\s*(.+)$' } | Select-
+Object -First 1
+
+        $decision = if ($decisionLine -match '^- Decision:\s*(.+)$') { $Matches[1].Trim() 
+} else { $null }
+        $severity = if ($severityLine -match '^- Severity:\s*(.+)$') { $Matches[1].Trim() 
+} else { $null }
+        $nextStep = if ($nextStepLine -match '^- Next step:\s*(.+)$') { $Matches[1].Trim()
+ } else { $null }
+        $summary = if ($summaryLine -match '^- Summary:\s*(.+)$') { $Matches[1].Trim() } e
+lse { $null }
+        $hasStandardFields = (Test-HasValue $decision) -or (Test-HasValue $severity) -or (
+Test-HasValue $nextStep) -or (Test-HasValue $summary)
+
+        $review = [PSCustomObject]@{
+            available = $true
+            decision = $decision
+            severity = $severity
+            nextStep = $nextStep
+            summary = if (Test-HasValue $summary) { $summary } else { "요약 필드 없음" }
+            fallback = if ($hasStandardFields) { $null } else { (($lines | Select-Object -
+Last 30) -join "`r`n") }
+        }
+
+        if ($IsInitialState) {
+            return New-SummaryStatus "stale" "현재 task가 초기 상태라 이전 review 요약을 숨겼습니다." $revie
+w
+        }
+
+        if ((Test-HasValue $LastReviewDecision) -and $LastReviewDecision -ne "not_started"
+ -and (Test-HasValue $decision) -and $decision -ne $LastReviewDecision) {
+            return New-SummaryStatus "stale" "review decision($decision)이 state lastReview
+Decision($LastReviewDecision)와 다릅니다." $review
+        }
+
+        if (-not (Test-HasValue $LastReviewDecision) -or $LastReviewDecision -eq "not_star
+ted") {
+            return New-SummaryStatus "stale" "state lastReviewDecision이 초기 상태라 이전 review 요
+약을 숨겼습니다." $review
+        }
+
+        return New-SummaryStatus "current" "현재 상태와 일치합니다." $review
+    } catch {
+        $errorSummary = [PSCustomObject]@{
+            available = $true
+            decision = $null
+            severity = $null
+            nextStep = $null
+            summary = "읽기 실패: $($_.Exception.Message)"
+            fallback = $null
+        }
+
+        return New-SummaryStatus "error" "읽기 실패: $($_.Exception.Message)" $errorSummary
+    }
+}
+
+foreach ($requiredPath in @($queueRelativePath, $stateRelativePath)) {
+    $fullPath = Join-Path $projectRoot $requiredPath
+
+    if (-not (Test-Path -LiteralPath $fullPath -PathType Leaf)) {
+        Stop-WithError "필수 파일이 없습니다: $requiredPath"
+    }
+}
+
+$queue = Read-JsonFile $queuePath $queueRelativePath
+$state = Read-JsonFile $statePath $stateRelativePath
+
+if (-not ($queue.PSObject.Properties.Name -contains "tasks")) {
+    Stop-WithError "$queueRelativePath 필수 필드가 누락되었습니다: tasks"
+}
+
+if ($null -eq $queue.tasks -or -not ($queue.tasks -is [System.Collections.IEnumerable])) {
+    Stop-WithError "$queueRelativePath tasks 필드는 배열이어야 합니다."
+}
+
+$tasks = @($queue.tasks)
+$currentTaskId = $null
+
+if (Test-HasValue $state.currentTaskId) {
+    $currentTaskId = [string]$state.currentTaskId
+} elseif (Test-HasValue $queue.currentTaskId) {
+    $currentTaskId = [string]$queue.currentTaskId
+} else {
+    $inProgressTask = $tasks | Where-Object { $_.status -eq "in_progress" } | Select-Objec
+t -First 1
+
+    if ($null -ne $inProgressTask) {
+        $currentTaskId = [string]$inProgressTask.id
+    } else {
+        $pendingTask = $tasks | Where-Object { $_.status -eq "pending" } | Select-Object -
+First 1
+
+        if ($null -ne $pendingTask) {
+            $currentTaskId = [string]$pendingTask.id
+        }
+    }
+}
+
+$currentTask = $null
+
+if (Test-HasValue $currentTaskId) {
+    $currentTask = $tasks | Where-Object { $_.id -eq $currentTaskId } | Select-Object -Fir
+st 1
+}
+
+$taskCounts = [ordered]@{
+    total = $tasks.Count
+    pending = @($tasks | Where-Object { $_.status -eq "pending" }).Count
+    in_progress = @($tasks | Where-Object { $_.status -eq "in_progress" }).Count
+    review_required = @($tasks | Where-Object { $_.status -eq "review_required" }).Count
+    done = @($tasks | Where-Object { $_.status -eq "done" }).Count
+    failed = @($tasks | Where-Object { $_.status -eq "failed" }).Count
+    blocked = @($tasks | Where-Object { $_.status -eq "blocked" }).Count
+    skipped = @($tasks | Where-Object { $_.status -eq "skipped" }).Count
+}
+
+$currentTaskStatus = if ($null -ne $currentTask) { [string]$currentTask.status } else { $n
+ull }
+$lastCommandStatus = if (Test-HasValue $state.lastCommandStatus) { [string]$state.lastComm
+andStatus } else { $null }
+$lastReviewDecision = if (Test-HasValue $state.lastReviewDecision) { [string]$state.lastRe
+viewDecision } else { $null }
+$goalStatus = if (Test-HasValue $state.goalStatus) { [string]$state.goalStatus } else { $n
+ull }
+$initialTaskStatuses = @("not_started", "pending")
+$isTaskInitialState = ($initialTaskStatuses -contains $currentTaskStatus) -or ($goalStatus
+ -eq "not_started")
+$isTestResultInitialState = $isTaskInitialState -or `
+    (-not (Test-HasValue $state.lastCommand) -and ($lastCommandStatus -eq "not_started" -o
+r -not (Test-HasValue $lastCommandStatus)))
+$isReviewInitialState = $isTaskInitialState -or `
+    (-not (Test-HasValue $lastReviewDecision) -or $lastReviewDecision -eq "not_started")
+
+$gitStatus = "unavailable"
+$gitChangedFilesCount = $null
+$gitStatusLines = @()
+
+try {
+    $null = & git rev-parse --show-toplevel 2>&1
+
+    if ($LASTEXITCODE -eq 0) {
+        $gitOutput = & git status --short 2>&1 | Out-String
+
+        if ($LASTEXITCODE -eq 0) {
+            $gitStatusLines = @($gitOutput -split "`r?`n" | Where-Object { -not [string]::
+IsNullOrWhiteSpace($_) })
+            $gitChangedFilesCount = $gitStatusLines.Count
+            $gitStatus = "available"
+        }
+    }
+} catch {
+    $gitStatus = "unavailable"
+}
+
+$testResultSummary = Get-TestResultSummary $testResultPath $currentTaskId $isTestResultIni
+tialState
+$reviewSummary = Get-ReviewSummary $reviewPath $lastReviewDecision $isReviewInitialState
+
+$statusObject = [ordered]@{
+    goalTitle = if (Test-HasValue $queue.goalTitle) { $queue.goalTitle } else { "없음" }
+    goalStatus = if (Test-HasValue $state.goalStatus) { $state.goalStatus } else { "없음" }
+    currentTask = [ordered]@{
+        id = if ($null -ne $currentTask) { $currentTask.id } elseif (Test-HasValue $curren
+tTaskId) { $currentTaskId } else { $null }
+        title = if ($null -ne $currentTask) { $currentTask.title } else { "없음" }
+        status = if ($null -ne $currentTask) { $currentTask.status } else { "없음" }
+        type = if ($null -ne $currentTask) { $currentTask.type } else { "없음" }
+        priority = if ($null -ne $currentTask) { $currentTask.priority } else { "없음" }
+    }
+    taskProgress = "$($taskCounts.done)/$($taskCounts.total)"
+    taskCounts = $taskCounts
+    lastCommand = if (Test-HasValue $state.lastCommand) { $state.lastCommand } else { "없음"
+ }
+    lastCommandStatus = if (Test-HasValue $state.lastCommandStatus) { $state.lastCommandSt
+atus } else { "없음" }
+    lastErrorSummary = if (Test-HasValue $state.lastErrorSummary) { $state.lastErrorSummar
+y } else { "없음" }
+    lastReviewDecision = if (Test-HasValue $state.lastReviewDecision) { $state.lastReviewD
+ecision } else { "없음" }
+    lastReviewSeverity = if (Test-HasValue $state.lastReviewSeverity) { $state.lastReviewS
+everity } else { "없음" }
+    lastCommitHash = if (Test-HasValue $state.lastCommitHash) { $state.lastCommitHash } el
+se { "없음" }
+    git = [ordered]@{
+        status = $gitStatus
+        changedFilesCount = $gitChangedFilesCount
+        statusLines = $gitStatusLines
+    }
+    testResultSummary = $testResultSummary
+    reviewSummary = $reviewSummary
+}
+
+if ($Json) {
+    $statusObject | ConvertTo-Json -Depth 20
+    exit 0
+}
+
+Write-Host "Goal title: $($statusObject.goalTitle)"
+Write-Host "Goal status: $($statusObject.goalStatus)"
+Write-Host "Current task id: $($statusObject.currentTask.id)"
+Write-Host "Current task title: $($statusObject.currentTask.title)"
+Write-Host "Current task status: $($statusObject.currentTask.status)"
+Write-Host "Current task type: $($statusObject.currentTask.type)"
+Write-Host "Current task priority: $($statusObject.currentTask.priority)"
+Write-Host "Task progress: $($statusObject.taskProgress)"
+Write-Host "Task counts: pending=$($taskCounts.pending), in_progress=$($taskCounts.in_prog
+ress), review_required=$($taskCounts.review_required), done=$($taskCounts.done), failed=$(
+$taskCounts.failed), blocked=$($taskCounts.blocked), skipped=$($taskCounts.skipped), total
+=$($taskCounts.total)"
+Write-Host "Last command: $($statusObject.lastCommand)"
+Write-Host "Last command status: $($statusObject.lastCommandStatus)"
+Write-Host "Last error: $($statusObject.lastErrorSummary)"
+Write-Host "Last review decision: $($statusObject.lastReviewDecision)"
+Write-Host "Last review severity: $($statusObject.lastReviewSeverity)"
+Write-Host "Last commit hash: $($statusObject.lastCommitHash)"
+Write-Host "Git status: $($statusObject.git.status)"
+Write-Host "Git changed files count: $($statusObject.git.changedFilesCount)"
+Write-Host ""
+Write-Host "Test result summary:"
+Write-Host "  Status: $($testResultSummary.status)"
+Write-Host "  Reason: $($testResultSummary.reason)"
+Write-Host $testResultSummary.content
+Write-Host ""
+Write-Host "Review summary:"
+Write-Host "  Status: $($reviewSummary.status)"
+Write-Host "  Reason: $($reviewSummary.reason)"
+Write-Host "  Decision: $($reviewSummary.content.decision)"
+Write-Host "  Severity: $($reviewSummary.content.severity)"
+Write-Host "  Next step: $($reviewSummary.content.nextStep)"
+Write-Host "  Summary: $($reviewSummary.content.summary)"
+
+if ($reviewSummary.status -eq "current" -and (Test-HasValue $reviewSummary.content.fallbac
+k)) {
+    Write-Host $reviewSummary.content.fallback
 }
 
 codex
-{"decision":"pass","severity":"none","summary":"로컬 저장 안내 문구가 작은 범위에서 보강되었고 현재 task 요구사항과 p
-rivacy-first 방향에 부합합니다.","required_changes":[],"optional_suggestions":[],"scope_check":{"w
-ithin_current_task":true,"scope_issues":[]},"test_check":{"build_passed":true,"test_passed
-":false,"lint_passed":true,"issues":["package.json에 test script가 없어 npm run test는 skipped 
-처리되었습니다."]},"next_step":"complete_task"}
-{"decision":"pass","severity":"none","summary":"로컬 저장 안내 문구가 작은 범위에서 보강되었고 현재 task 요구사항과 privacy-first 방향에 부합합니다.","required_changes":[],"optional_suggestions":[],"scope_check":{"within_current_task":true,"scope_issues":[]},"test_check":{"build_passed":true,"test_passed":false,"lint_passed":true,"issues":["package.json에 test script가 없어 npm run test는 skipped 처리되었습니다."]},"next_step":"complete_task"}
+현재 구현은 요약에 `current/stale` 상태를 붙이는 방향입니다. 이제 상태 파일의 실제 필드 구조를 최소로 확인해, 비교 기준이 현재 자동화 산출물과 
+맞는지 보겠습니다.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -Li
+teralPath .ai-dev\\state.json" in D:\ai-apps\planpilot-local
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -Li
+teralPath .ai-dev\\queue.json" in D:\ai-apps\planpilot-local
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -Li
+teralPath .ai-dev\\review.md" in D:\ai-apps\planpilot-local
+ succeeded in 2007ms:
+# AI Dev Review
+
+## 2026-06-25 15:58:57
+
+- Decision: pass
+- Severity: none
+- Next step: complete_task
+- Summary: 로컬 저장 안내 문구가 작은 범위에서 보강되었고 현재 task 요구사항과 p
+rivacy-first 방향에 부합합니다.
+
+### Required Changes
+
+- 없음
+
+### Optional Suggestions
+
+- 없음
+
+### Raw JSON
+
+```json
+{
+    "decision":  "pass",
+    "severity":  "none",
+    "summary":  "로컬 저장 안내 문구가 작은 범위에서 보강되었고 현재 task 요구사항과 p\r\nrivacy-first 방향에 부합합니다.",
+    "required_changes":  [
+
+                         ],
+    "optional_suggestions":  [
+
+                             ],
+    "scope_check":  {
+                        "w\r\nithin_current_task":  true,
+                        "scope_issues":  [
+
+                                         ]
+                    },
+    "test_check":  {
+                       "build_passed":  true,
+                       "test_passed\r\n":  false,
+                       "lint_passed":  true,
+                       "issues":  [
+                                      "package.json에 test script가 없어 npm run test는 skipped
+ \r\n처리되었습니다."
+                                  ]
+                   },
+    "next_step":  "complete_task"
+}
+```
+
+ succeeded in 2015ms:
+{
+    "goalStatus":  "in_progress",
+    "currentTaskId":  "T001",
+    "currentLoop":  0,
+    "maxLoopsPerTask":  2,
+    "repeatedFailureCount":  0,
+    "lastCommand":  "save-diff",
+    "lastCommandStatus":  "passed",
+    "lastErrorSummary":  "",
+    "lastReviewDecision":  "not_started",
+    "lastReviewSeverity":  null,
+    "lastCommitHash":  null,
+    "startedAt":  "2026-06-25T00:00:00+09:00",
+    "updatedAt":  "2026-06-25T07:32:28.4041077+00:00",
+    "stopReason":  null
+}
+
+ succeeded in 2048ms:
+{
+    "goalTitle":  "AI Dev Loop status stale summary 차단",
+    "goalSource":  ".ai-dev/goal.md",
+    "createdAt":  "2026-06-25T00:00:00+09:00",
+    "updatedAt":  "2026-06-25T00:00:00+09:00",
+    "currentTaskId":  "T001",
+    "tasks":  [
+                  {
+                      "id":  "T001",
+                      "title":  "상태 출력의 오래된 요약 차단",
+                      "description":  "ai-dev-status 출력 로직에서 현재 task와 goal 상태에 맞지 않는 이전 리뷰
+ 또는 테스트 요약이 표시되지 않도록 작은 범위로 개선한다.",
+                      "type":  "implementation",
+                      "status":  "in_progress",
+                      "priority":  "P0",
+                      "dependsOn":  [
+
+                                    ],
+                      "filesLikelyToChange":  [
+                                                  ".ai-dev/goal.md",
+                                                  ".ai-dev/queue.json",
+                                                  ".ai-dev/state.json"
+                                              ],
+                      "verification":  [
+                                           "새 task 초기 상태에서 이전 리뷰/테스트 요약이 현재 결과처럼 표시되지 않는지 
+확인한다.",
+                                           "현재 task와 일치하는 최신 요약은 정상 표시되는지 확인한다."
+                                       ],
+                      "commitMessage":  "Hide stale AI dev status summaries"
+                  }
+              ]
+}
+
+codex
+{
+  "decision": "revise",
+  "severity": "medium",
+  "summary": "stale review 상태를 표시하더라도 이전 리뷰의 decision/severity/summary를 그대로 출력해 초기 task에서 
+오래된 리뷰 요약이 계속 노출될 수 있습니다.",
+  "required_changes": [
+    {
+      "file": "scripts/ai-dev-status.ps1",
+      "reason": "Get-ReviewSummary가 stale을 반환한 뒤에도 일반 출력 경로에서 content.decision, content.se
+verity, content.nextStep, content.summary를 항상 출력합니다. Reason은 '숨겼습니다'라고 하지만 실제로는 이전 review.
+md의 요약이 노출되어 성공 기준과 불일치합니다.",
+      "suggestion": "reviewSummary.status가 current일 때만 decision/severity/nextStep/summary/
+fallback을 출력하고, stale일 때는 상태와 reason만 출력하거나 summary를 '숨김' 같은 값으로 대체하십시오."
+    }
+  ],
+  "optional_suggestions": [
+    {
+      "file": "scripts/ai-dev-status.ps1",
+      "suggestion": "stale 상태의 JSON 출력에서도 content에 이전 리뷰 상세가 그대로 포함됩니다. 자동 소비자가 JSON을 읽는 경
+우까지 고려하면 stale content를 최소 정보로 대체하는 편이 더 명확합니다."
+    }
+  ],
+  "scope_check": {
+    "within_current_task": true,
+    "scope_issues": []
+  },
+  "test_check": {
+    "build_passed": true,
+    "test_passed": false,
+    "lint_passed": true,
+    "issues": [
+      "package.json에 test script가 없어 npm run test가 skipped 처리되었습니다.",
+      "새 task 초기 상태와 현재 task 일치 상태에 대한 수동 검증 결과가 diff 내에 별도로 확인되지 않습니다."
+    ]
+  },
+  "next_step": "revise_with_codex"
+}
 tokens used
-23,058
+17,010
+{
+  "decision": "revise",
+  "severity": "medium",
+  "summary": "stale review 상태를 표시하더라도 이전 리뷰의 decision/severity/summary를 그대로 출력해 초기 task에서 오래된 리뷰 요약이 계속 노출될 수 있습니다.",
+  "required_changes": [
+    {
+      "file": "scripts/ai-dev-status.ps1",
+      "reason": "Get-ReviewSummary가 stale을 반환한 뒤에도 일반 출력 경로에서 content.decision, content.severity, content.nextStep, content.summary를 항상 출력합니다. Reason은 '숨겼습니다'라고 하지만 실제로는 이전 review.md의 요약이 노출되어 성공 기준과 불일치합니다.",
+      "suggestion": "reviewSummary.status가 current일 때만 decision/severity/nextStep/summary/fallback을 출력하고, stale일 때는 상태와 reason만 출력하거나 summary를 '숨김' 같은 값으로 대체하십시오."
+    }
+  ],
+  "optional_suggestions": [
+    {
+      "file": "scripts/ai-dev-status.ps1",
+      "suggestion": "stale 상태의 JSON 출력에서도 content에 이전 리뷰 상세가 그대로 포함됩니다. 자동 소비자가 JSON을 읽는 경우까지 고려하면 stale content를 최소 정보로 대체하는 편이 더 명확합니다."
+    }
+  ],
+  "scope_check": {
+    "within_current_task": true,
+    "scope_issues": []
+  },
+  "test_check": {
+    "build_passed": true,
+    "test_passed": false,
+    "lint_passed": true,
+    "issues": [
+      "package.json에 test script가 없어 npm run test가 skipped 처리되었습니다.",
+      "새 task 초기 상태와 현재 task 일치 상태에 대한 수동 검증 결과가 diff 내에 별도로 확인되지 않습니다."
+    ]
+  },
+  "next_step": "revise_with_codex"
+}
 
 ```

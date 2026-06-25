@@ -1,14 +1,14 @@
 ﻿{
-    "goalTitle":  "PlanPilot Local 다중 task 자동 개발 루프 검증",
+    "goalTitle":  "AI Dev Loop status stale summary 차단",
     "goalSource":  ".ai-dev/goal.md",
     "createdAt":  "2026-06-25T00:00:00+09:00",
-    "updatedAt":  "2026-06-25T06:59:11.4658514+00:00",
+    "updatedAt":  "2026-06-25T07:33:43.5918602+00:00",
     "currentTaskId":  null,
     "tasks":  [
                   {
                       "id":  "T001",
-                      "title":  "빈 상태와 필터 결과 없음 안내 개선",
-                      "description":  "빈 상태와 필터 결과 없음 화면의 안내 문구를 더 명확하고 다음 행동이 드러나도록 다듬는다.",
+                      "title":  "상태 출력의 오래된 요약 차단",
+                      "description":  "ai-dev-status 출력 로직에서 현재 task와 goal 상태에 맞지 않는 이전 리뷰 또는 테스트 요약이 표시되지 않도록 작은 범위로 개선한다.",
                       "type":  "implementation",
                       "status":  "done",
                       "priority":  "P0",
@@ -16,59 +16,16 @@
 
                                     ],
                       "filesLikelyToChange":  [
-                                                  "src/App.tsx"
+                                                  ".ai-dev/goal.md",
+                                                  ".ai-dev/queue.json",
+                                                  ".ai-dev/state.json"
                                               ],
                       "verification":  [
-                                           "빈 상태 안내 문구가 한국어로 자연스러운지 확인한다.",
-                                           "필터 결과 없음 안내가 다음 행동을 제안하는지 확인한다.",
-                                           "허용된 검증 명령이 있으면 실행 결과를 기록한다."
+                                           "새 task 초기 상태에서 이전 리뷰/테스트 요약이 현재 결과처럼 표시되지 않는지 확인한다.",
+                                           "현재 task와 일치하는 최신 요약은 정상 표시되는지 확인한다."
                                        ],
-                      "commitMessage":  "Improve empty state copy",
-                      "completedAt":  "2026-06-25T06:52:20.2341719+00:00",
-                      "resultSummary":  "자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료"
-                  },
-                  {
-                      "id":  "T002",
-                      "title":  "업무 카드 상태와 다음 행동 안내 정리",
-                      "description":  "업무 카드에서 보이는 상태 안내와 다음 행동 안내가 같은 표현 규칙을 따르도록 작은 문구를 정리한다.",
-                      "type":  "implementation",
-                      "status":  "done",
-                      "priority":  "P1",
-                      "dependsOn":  [
-                                        "T001"
-                                    ],
-                      "filesLikelyToChange":  [
-                                                  "src/App.tsx"
-                                              ],
-                      "verification":  [
-                                           "업무 카드의 상태 라벨이 일관된지 확인한다.",
-                                           "다음 행동 안내가 상태와 모순되지 않는지 확인한다.",
-                                           "허용된 검증 명령이 있으면 실행 결과를 기록한다."
-                                       ],
-                      "commitMessage":  "Refine task card guidance",
-                      "completedAt":  "2026-06-25T06:54:29.9050727+00:00",
-                      "resultSummary":  "업무 카드에서 상태 라벨과 다음 행동 안내를 같은 문구 규칙으로 정리함"
-                  },
-                  {
-                      "id":  "T003",
-                      "title":  "로컬 저장 안내 문구 보강",
-                      "description":  "앱이 이 기기 안에 데이터를 저장한다는 점을 사용자가 부담 없이 이해할 수 있도록 작은 안내 문구를 보강한다.",
-                      "type":  "implementation",
-                      "status":  "done",
-                      "priority":  "P1",
-                      "dependsOn":  [
-                                        "T002"
-                                    ],
-                      "filesLikelyToChange":  [
-                                                  "src/App.tsx"
-                                              ],
-                      "verification":  [
-                                           "로컬 저장 안내가 과하게 강조되지 않는지 확인한다.",
-                                           "기존 privacy-first 방향과 충돌하지 않는지 확인한다.",
-                                           "허용된 검증 명령이 있으면 실행 결과를 기록한다."
-                                       ],
-                      "commitMessage":  "Add local storage guidance",
-                      "completedAt":  "2026-06-25T06:59:11.4658514+00:00",
+                      "commitMessage":  "Hide stale AI dev status summaries",
+                      "completedAt":  "2026-06-25T07:33:43.5918602+00:00",
                       "resultSummary":  "자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료"
                   }
               ]

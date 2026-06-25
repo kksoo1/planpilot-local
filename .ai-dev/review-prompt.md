@@ -15,61 +15,55 @@
 ## Project Goal
 
 # 목표
-PlanPilot Local의 자동 개발 루프가 여러 개의 작은 task를 연속으로 처리할 수 있는지 검증한다.
+AI Dev Loop 상태 출력에서 새 goal 또는 새 task가 `not_started` 상태일 때 이전 작업의 테스트 결과나 리뷰 응답 요약이 섞여 보이지 않도록 개선한다.
 
 ## 배경
-이번 목표는 앱 자체를 크게 완성하는 것이 아니라, 작은 UI 문구 개선 작업을 순차적으로 처리하면서 구현, 검증, 리뷰, 수정, 완료 기록 흐름이 안정적으로 이어지는지 확인하는 데 있다.
+현재 자동 개발 루프 상태 표시에서 오래된 test-result 또는 review-response 요약이 현재 task의 `lastCommand`, `lastReviewDecision`, `currentTaskId`, goal 상태와 맞지 않게 노출될 수 있다. 이로 인해 새 작업이 시작되지 않았거나 초기 상태인데도 이전 작업 결과가 현재 상태처럼 보이는 혼선이 생긴다.
 
 ## 성공 기준
-- 빈 상태와 필터 결과 없음 안내가 더 명확해진다.
-- 업무 카드의 상태 안내와 다음 행동 안내가 더 일관되게 정리된다.
-- 로컬 저장 기반 앱이라는 점을 과하지 않은 작은 안내 문구로 보강한다.
-- 각 task가 순서대로 완료 상태로 전환된다.
-- 모든 task 완료 후 목표 상태가 completed로 기록된다.
+- 현재 task가 `not_started` 또는 초기 상태일 때 이전 task의 리뷰/테스트 요약이 현재 결과처럼 표시되지 않는다.
+- `currentTaskId`, goal 상태, `lastCommand`, `lastReviewDecision`과 맞지 않는 오래된 요약은 숨기거나 stale 상태로 구분된다.
+- 상태 출력 로직의 변경 범위가 작고 기존 자동 개발 루프 파일 구조를 유지한다.
+- 관련 상태 표시 동작을 검증할 수 있는 최소 확인 절차가 정리된다.
 
 ## 제약사항
-- 한 번에 하나의 작은 변경만 진행한다.
-- 기존 React, Vite, TypeScript, Zustand, Dexie 구조를 유지한다.
-- 사용자-facing UI 문자열은 한국어를 기본으로 한다.
-- 화면 문구 개선 중심으로 작업하고 저장 구조 변경은 하지 않는다.
-- 사용자가 관리하는 스타일 파일은 수정하지 않는다.
+- 앱 기능 변경이 아니라 자동 개발 루프 운영 상태 표시 개선에만 집중한다.
+- 기존 상태 파일 구조와 명명 규칙을 우선 사용한다.
+- 불필요한 대규모 재작성이나 추상화는 피한다.
+- 사용자 변경 사항은 되돌리지 않는다.
 
 ## 범위 제외
-- 계정 기반 기능 추가
-- 원격 연동 기능 추가
-- 결제 기능 추가
-- 외부 서비스 연결
-- 대규모 화면 재작성
+- React 앱의 사용자 기능 변경은 포함하지 않는다.
+- IndexedDB 스키마 변경은 포함하지 않는다.
+- 알림, 동기화, 계정 관련 기능은 포함하지 않는다.
 
 ## 수동 검증
-- 빈 데이터 상태에서 안내 문구가 자연스럽게 보이는지 확인한다.
-- 필터 결과가 없을 때 사용자가 다음 행동을 이해할 수 있는지 확인한다.
-- 업무 카드의 상태 및 다음 행동 안내가 서로 어색하지 않은지 확인한다.
-- 로컬 저장 안내 문구가 과도하게 강조되지 않는지 확인한다.
+- 새 goal 또는 새 task를 `not_started` 상태로 두고 상태 출력에서 이전 리뷰/테스트 요약이 현재 결과처럼 보이지 않는지 확인한다.
+- 현재 task와 일치하는 최신 리뷰/테스트 요약은 정상적으로 표시되는지 확인한다.
+- 오래된 요약을 stale로 표시하는 경우 현재 상태와 구분 가능한지 확인한다.
 
 ## Current Task
 
-- Task ID: T003
-- Title: 로컬 저장 안내 문구 보강
-- Description: 앱이 이 기기 안에 데이터를 저장한다는 점을 사용자가 부담 없이 이해할 수 있도록 작은 안내 문구를 보강한다.
+- Task ID: T001
+- Title: 상태 출력의 오래된 요약 차단
+- Description: ai-dev-status 출력 로직에서 현재 task와 goal 상태에 맞지 않는 이전 리뷰 또는 테스트 요약이 표시되지 않도록 작은 범위로 개선한다.
 - Type: implementation
-- Status: pending
-- Priority: P1
+- Status: in_progress
+- Priority: P0
 - Depends on:
-- T002
+- 없음
 - Verification:
-- 로컬 저장 안내가 과하게 강조되지 않는지 확인한다.
-- 기존 privacy-first 방향과 충돌하지 않는지 확인한다.
-- 허용된 검증 명령이 있으면 실행 결과를 기록한다.
+- 새 task 초기 상태에서 이전 리뷰/테스트 요약이 현재 결과처럼 표시되지 않는지 확인한다.
+- 현재 task와 일치하는 최신 요약은 정상 표시되는지 확인한다.
 
 ## Test Result
 
 # AI Dev Test Result
 
-## 2026-06-25 15:57:53
+## 2026-06-25 16:32:21
 
 - Overall result: passed
-- Current task: T003
+- Current task: T001
 - Mode: BuildOnly (build + lint when available)
 - Commands:
   - npm run build: passed
@@ -95,7 +89,7 @@ dist/index.html                   0.46 kB │ gzip:   0.29 kB
 dist/assets/index-DvjxWt30.css    5.69 kB │ gzip:   1.93 kB
 dist/assets/index-DtLVvPCG.js   317.50 kB │ gzip: 100.16 kB
 
-[32m✓ built in 213ms[39m
+[32m✓ built in 230ms[39m
 ```
 ### npm run test
 
@@ -122,44 +116,30 @@ package.json에 test script가 없습니다.
 
 ## Generated At
 
-2026-06-25 15:58:00
+2026-06-25 16:32:28
 
 ## Git Status
 
 ```text
  M .ai-dev/codex-result.md
- M .ai-dev/codex-review-result.md
  M .ai-dev/current-task-prompt.md
- M .ai-dev/diff.md
- M .ai-dev/loop-log.md
+ M .ai-dev/goal.md
  M .ai-dev/queue.json
- M .ai-dev/review-prompt.md
- M .ai-dev/review-response.json
- M .ai-dev/review.md
- M .ai-dev/revise-prompt.md
  M .ai-dev/state.json
  M .ai-dev/test-result.md
- M src/App.tsx
- M src/components/TaskCard.tsx
+ M scripts/ai-dev-status.ps1
 ```
 
 ## App Change Files
 
-- src/App.tsx
-- src/components/TaskCard.tsx
+- scripts/ai-dev-status.ps1
 
 ## AI Dev Operational Artifact Files
 
 - .ai-dev/codex-result.md
-- .ai-dev/codex-review-result.md
 - .ai-dev/current-task-prompt.md
-- .ai-dev/diff.md
-- .ai-dev/loop-log.md
+- .ai-dev/goal.md
 - .ai-dev/queue.json
-- .ai-dev/review-prompt.md
-- .ai-dev/review-response.json
-- .ai-dev/review.md
-- .ai-dev/revise-prompt.md
 - .ai-dev/state.json
 - .ai-dev/test-result.md
 
@@ -170,26 +150,210 @@ package.json에 test script가 없습니다.
 ## Unstaged Diff Stat
 
 ```text
- src/App.tsx | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/ai-dev-status.ps1 | 114 ++++++++++++++++++++++++++++++++++++++--------
+ 1 file changed, 94 insertions(+), 20 deletions(-)
 ```
 
 ## Unstaged Diff
 
 ```text
-diff --git a/src/App.tsx b/src/App.tsx
-index 5e76eb3..cf3bfb3 100644
---- a/src/App.tsx
-+++ b/src/App.tsx
-@@ -140,7 +140,7 @@ function App() {
-       <header className="app-header">
-         <p className="eyebrow">Privacy-first local planner</p>
-         <h1>PlanPilot Local</h1>
--        <p>서버 없이 로컬에 저장되는 개인 일정·업무 관리 앱</p>
-+        <p>서버 없이 이 기기 안에 저장되는 개인 일정·업무 관리 앱</p>
-       </header>
+diff --git a/scripts/ai-dev-status.ps1 b/scripts/ai-dev-status.ps1
+index 83046c6..ec23aa9 100644
+--- a/scripts/ai-dev-status.ps1
++++ b/scripts/ai-dev-status.ps1
+@@ -53,36 +53,77 @@ function Test-HasValue {
+     return $true
+ }
  
-       <main className="app-main">
+-function Get-LastLines {
++function Get-TestResultCurrentTaskId {
++    param(
++        [string[]]$Lines
++    )
++
++    $currentTaskLine = $Lines | Where-Object { $_ -match '^- Current task:\s*(.+)$' } | Select-Object -First 1
++
++    if ($currentTaskLine -match '^- Current task:\s*(.+)$') {
++        return $Matches[1].Trim()
++    }
++
++    return $null
++}
++
++function New-SummaryStatus {
++    param(
++        [string]$Status,
++        [string]$Reason,
++        [object]$Content
++    )
++
++    return [PSCustomObject]@{
++        status = $Status
++        reason = $Reason
++        content = $Content
++    }
++}
++
++function Get-TestResultSummary {
+     param(
+         [string]$Path,
+-        [int]$Count = 30
++        [string]$CurrentTaskId,
++        [bool]$IsInitialState
+     )
+ 
+     if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
+-        return "없음"
++        return New-SummaryStatus "missing" "test-result 파일이 없습니다." "없음"
+     }
+ 
+     try {
+         $lines = @(Get-Content -Encoding UTF8 -LiteralPath $Path)
+ 
+         if ($lines.Count -eq 0) {
+-            return "없음"
++            return New-SummaryStatus "missing" "test-result 파일이 비어 있습니다." "없음"
+         }
+ 
+-        return ($lines | Select-Object -Last $Count) -join "`r`n"
++        $resultTaskId = Get-TestResultCurrentTaskId $lines
++
++        if ($IsInitialState) {
++            return New-SummaryStatus "stale" "현재 task가 초기 상태라 이전 test-result 요약을 숨겼습니다." "숨김"
++        }
++
++        if ((Test-HasValue $CurrentTaskId) -and (Test-HasValue $resultTaskId) -and $resultTaskId -ne $CurrentTaskId) {
++            return New-SummaryStatus "stale" "test-result의 task($resultTaskId)가 현재 task($CurrentTaskId)와 다릅니다." "숨김"
++        }
++
++        return New-SummaryStatus "current" "현재 상태와 일치합니다." (($lines | Select-Object -Last 30) -join "`r`n")
+     } catch {
+-        return "읽기 실패: $($_.Exception.Message)"
++        return New-SummaryStatus "error" "읽기 실패: $($_.Exception.Message)" "읽기 실패: $($_.Exception.Message)"
+     }
+ }
+ 
+ function Get-ReviewSummary {
+     param(
+-        [string]$Path
++        [string]$Path,
++        [string]$LastReviewDecision,
++        [bool]$IsInitialState
+     )
+ 
+     if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
+-        return [PSCustomObject]@{
++        $missingSummary = [PSCustomObject]@{
+             available = $false
+             decision = $null
+             severity = $null
+@@ -90,6 +131,8 @@ function Get-ReviewSummary {
+             summary = "없음"
+             fallback = $null
+         }
++
++        return New-SummaryStatus "missing" "review 파일이 없습니다." $missingSummary
+     }
+ 
+     try {
+@@ -105,7 +148,7 @@ function Get-ReviewSummary {
+         $summary = if ($summaryLine -match '^- Summary:\s*(.+)$') { $Matches[1].Trim() } else { $null }
+         $hasStandardFields = (Test-HasValue $decision) -or (Test-HasValue $severity) -or (Test-HasValue $nextStep) -or (Test-HasValue $summary)
+ 
+-        return [PSCustomObject]@{
++        $review = [PSCustomObject]@{
+             available = $true
+             decision = $decision
+             severity = $severity
+@@ -113,8 +156,22 @@ function Get-ReviewSummary {
+             summary = if (Test-HasValue $summary) { $summary } else { "요약 필드 없음" }
+             fallback = if ($hasStandardFields) { $null } else { (($lines | Select-Object -Last 30) -join "`r`n") }
+         }
++
++        if ($IsInitialState) {
++            return New-SummaryStatus "stale" "현재 task가 초기 상태라 이전 review 요약을 숨겼습니다." $review
++        }
++
++        if ((Test-HasValue $LastReviewDecision) -and $LastReviewDecision -ne "not_started" -and (Test-HasValue $decision) -and $decision -ne $LastReviewDecision) {
++            return New-SummaryStatus "stale" "review decision($decision)이 state lastReviewDecision($LastReviewDecision)와 다릅니다." $review
++        }
++
++        if (-not (Test-HasValue $LastReviewDecision) -or $LastReviewDecision -eq "not_started") {
++            return New-SummaryStatus "stale" "state lastReviewDecision이 초기 상태라 이전 review 요약을 숨겼습니다." $review
++        }
++
++        return New-SummaryStatus "current" "현재 상태와 일치합니다." $review
+     } catch {
+-        return [PSCustomObject]@{
++        $errorSummary = [PSCustomObject]@{
+             available = $true
+             decision = $null
+             severity = $null
+@@ -122,6 +179,8 @@ function Get-ReviewSummary {
+             summary = "읽기 실패: $($_.Exception.Message)"
+             fallback = $null
+         }
++
++        return New-SummaryStatus "error" "읽기 실패: $($_.Exception.Message)" $errorSummary
+     }
+ }
+ 
+@@ -182,6 +241,17 @@ $taskCounts = [ordered]@{
+     skipped = @($tasks | Where-Object { $_.status -eq "skipped" }).Count
+ }
+ 
++$currentTaskStatus = if ($null -ne $currentTask) { [string]$currentTask.status } else { $null }
++$lastCommandStatus = if (Test-HasValue $state.lastCommandStatus) { [string]$state.lastCommandStatus } else { $null }
++$lastReviewDecision = if (Test-HasValue $state.lastReviewDecision) { [string]$state.lastReviewDecision } else { $null }
++$goalStatus = if (Test-HasValue $state.goalStatus) { [string]$state.goalStatus } else { $null }
++$initialTaskStatuses = @("not_started", "pending")
++$isTaskInitialState = ($initialTaskStatuses -contains $currentTaskStatus) -or ($goalStatus -eq "not_started")
++$isTestResultInitialState = $isTaskInitialState -or `
++    (-not (Test-HasValue $state.lastCommand) -and ($lastCommandStatus -eq "not_started" -or -not (Test-HasValue $lastCommandStatus)))
++$isReviewInitialState = $isTaskInitialState -or `
++    (-not (Test-HasValue $lastReviewDecision) -or $lastReviewDecision -eq "not_started")
++
+ $gitStatus = "unavailable"
+ $gitChangedFilesCount = $null
+ $gitStatusLines = @()
+@@ -202,8 +272,8 @@ try {
+     $gitStatus = "unavailable"
+ }
+ 
+-$testResultSummary = Get-LastLines $testResultPath 30
+-$reviewSummary = Get-ReviewSummary $reviewPath
++$testResultSummary = Get-TestResultSummary $testResultPath $currentTaskId $isTestResultInitialState
++$reviewSummary = Get-ReviewSummary $reviewPath $lastReviewDecision $isReviewInitialState
+ 
+ $statusObject = [ordered]@{
+     goalTitle = if (Test-HasValue $queue.goalTitle) { $queue.goalTitle } else { "없음" }
+@@ -256,14 +326,18 @@ Write-Host "Git status: $($statusObject.git.status)"
+ Write-Host "Git changed files count: $($statusObject.git.changedFilesCount)"
+ Write-Host ""
+ Write-Host "Test result summary:"
+-Write-Host $statusObject.testResultSummary
++Write-Host "  Status: $($testResultSummary.status)"
++Write-Host "  Reason: $($testResultSummary.reason)"
++Write-Host $testResultSummary.content
+ Write-Host ""
+ Write-Host "Review summary:"
+-Write-Host "  Decision: $($reviewSummary.decision)"
+-Write-Host "  Severity: $($reviewSummary.severity)"
+-Write-Host "  Next step: $($reviewSummary.nextStep)"
+-Write-Host "  Summary: $($reviewSummary.summary)"
+-
+-if (Test-HasValue $reviewSummary.fallback) {
+-    Write-Host $reviewSummary.fallback
++Write-Host "  Status: $($reviewSummary.status)"
++Write-Host "  Reason: $($reviewSummary.reason)"
++Write-Host "  Decision: $($reviewSummary.content.decision)"
++Write-Host "  Severity: $($reviewSummary.content.severity)"
++Write-Host "  Next step: $($reviewSummary.content.nextStep)"
++Write-Host "  Summary: $($reviewSummary.content.summary)"
++
++if ($reviewSummary.status -eq "current" -and (Test-HasValue $reviewSummary.content.fallback)) {
++    Write-Host $reviewSummary.content.fallback
+ }
 ```
 
 ## Staged Diff Stat
