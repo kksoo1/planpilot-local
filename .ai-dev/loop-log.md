@@ -320,3 +320,13 @@
 - Task: T001 review-gate revise 자동 재시도 흐름 연결
 - Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
 - Next task: 없음
+## 2026-06-25 15:14:53 - Commit created
+
+- Task: T001 업무 흐름 안내 문구 개선
+- Commit: 7814005d29f5449d9c687f1b90e115806825280f
+- Message: Improve task flow guidance copy
+## 2026-06-25 15:14:56 - Task completed
+
+- Task: T001 업무 흐름 안내 문구 개선
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
+- Next task: 없음

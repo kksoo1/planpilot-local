@@ -9,17 +9,17 @@
     "lastErrorSummary":  "",
     "lastReviewDecision":  "pass",
     "lastReviewSeverity":  "none",
-    "lastCommitHash":  "388d05a41c652ca0c198fcceb9ec8d785dafbd6c",
-    "startedAt":  "2026-06-23T00:00:00+09:00",
-    "updatedAt":  "2026-06-24T01:48:02.9168993+00:00",
+    "lastCommitHash":  "7814005d29f5449d9c687f1b90e115806825280f",
+    "startedAt":  "2026-06-24T00:00:00+09:00",
+    "updatedAt":  "2026-06-25T06:14:55.0434124+00:00",
     "stopReason":  "all_tasks_completed",
     "lastReviewNextStep":  "revise_with_codex",
-    "lastReviewSummary":  "핵심 스크립트 변경 범위는 task와 일치하지만, 성공 기준의 핵심 분기인 재리뷰 pass 및 재리뷰 revise 반복 경로가 실제\r\n로 검\r\n증되지 않았고 npm test도 skipped라서 pass로 보기 어렵습니다.",
+    "lastReviewSummary":  "업무 안내 문구 변경 자체는 T001 범위와 대체로 일치하지만, scripts/ai-dev-auto-cycle-full.ps1 변경이 현\r\n재 업무 범위를 벗어난 것으로 표시되어 수정이 필요합니다.",
     "lastReviewRequiredChanges":  [
                                       {
-                                          "file":  ".ai-dev/test-result.md",
-                                          "reason":  "현재 검증 기록은 build/lint와 DryRun no-mutation 시나리오\r\n만 포함하며, 성공 기준에 명시된 재리뷰 pass \r\n시 commit/complete/meta 흐름과 재리뷰 revise 반복 시 state/log 기록 및 \r\n실패 종료를 검증하지 않았다고 명시되어 있습니다.",
-                                          "suggestion":  "가능한 범위에서 mock 또는 저장된 review-response/stat\r\ne를 이용해 re-review pass 경로와 re\r\npeated revise 경로를 재현하고, commit/complete 차단 또는 진행 여부와 lastR\r\neviewSummary/Severity/NextStep/R\r\nequiredChanges 기록 결과를 test-result에 추가하십시오."
+                                          "file":  "scripts/ai-dev-auto-cycle-full.ps1",
+                                          "reason":  "현재 task는 UI 안내 문구 개선인데 자동화 스크립트가 App Change Files 및 Git Status에 변경 파일로 포함\r\n되어 있어 범위 초과입니다.",
+                                          "suggestion":  "이번 task와 직접 관련 없는 스크립트 변경은 제외하거나, 실제로 필요한 변경이라면 별도 task로 분리하세요."
                                       }
                                   ]
 }

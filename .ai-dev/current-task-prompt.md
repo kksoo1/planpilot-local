@@ -7,44 +7,46 @@
 ## Goal
 
 # 목표
-AI Dev Loop의 review-gate에서 `decision=revise`, `next_step=revise_with_codex`가 반환될 때 실패로 즉시 중단하지 않고, 자동 revise 재시도 흐름으로 연결되도록 자동화 스크립트를 보강한다.
+PlanPilot Local 자동 개발 루프 검증을 위해 작은 MVP 개선을 수행한다.
 
 ## 배경
-현재 auto-cycle-full 실행 중 리뷰 결과가 revise_with_codex인 경우 review-gate failed로 멈추며, 수정 프롬프트 생성부터 재검증, 재리뷰까지의 자동 흐름이 이어지지 않는다. 이번 작업은 앱 기능 개발이 아니라 자동 개발 루프의 검증 자동화 안정성 개선이 목적이다.
+이번 목표는 앱 자체의 대규모 완성이 아니라 자동 개발 루프가 구현, 검증, 리뷰, 수정, 커밋 흐름을 안정적으로 처리하는지 확인하기 위한 것이다. 업무 추가, 수정, 완료, 삭제 흐름에서 사용자가 다음 행동을 더 쉽게 이해하도록 안내 문구를 보강한다.
 
 ## 성공 기준
-- review-gate가 revise_with_codex를 만나면 실패 종료하지 않고 revise 프롬프트 생성, Codex revise 실행, 검증, diff 저장, review prompt 생성, review Codex 재실행, review 저장까지 자동 수행한다.
-- 재리뷰가 pass이면 구현 커밋, task 완료 처리, 메타 정보 커밋, 다음 task 진행 흐름이 이어진다.
-- 재리뷰가 계속 revise이면 최신 summary, severity, next_step, required_changes를 state와 로그에 남기고 명확히 실패 종료한다.
-- pass 전 완료 차단, stale/missing implementation 차단, completed final 정리 상태 확인, DryRun no-mutation 동작은 유지된다.
-- DryRun에서는 변경 작업을 실행하지 않고 preview만 출력한다.
-- 앱 src 파일은 변경하지 않는다.
+- 업무가 없는 상태에서 사용자가 다음에 할 일을 알 수 있다.
+- 필터 결과가 없는 상태에서 필터 해제 또는 새 업무 추가 같은 다음 행동을 알 수 있다.
+- 업무 추가, 수정, 완료, 삭제 흐름의 안내 문구가 더 명확하다.
+- 로컬 저장 기반 앱이라는 점과 목표를 작은 업무로 나누는 방향성이 UI 또는 문서에 작게 반영된다.
+- 기존 데이터 구조와 주요 동작을 변경하지 않는다.
 
 ## 제약사항
-- 작업 중심 파일은 ai-dev 자동화 스크립트로 제한한다.
-- 기존 자동화 흐름과 상태 파일 형식을 최대한 유지한다.
-- 앱 소스 파일은 수정하지 않는다.
-- DryRun 동작은 실제 변경 없이 확인 가능한 출력만 제공해야 한다.
+- 한 번에 하나의 작은 개선만 수행한다.
+- 기존 React, Vite, TypeScript, Zustand, Dexie 구조를 따른다.
+- 사용자-facing 문구는 한국어로 작성한다.
+- 기존 저장 방식과 데이터 일관성을 유지한다.
+- 불필요한 대규모 구조 변경을 하지 않는다.
 
 ## 범위 제외
-- 앱 UI 또는 기능 변경은 제외한다.
-- 데이터 저장 구조 변경은 제외한다.
-- 대규모 자동화 구조 재작성은 제외한다.
+- 계정 기반 기능
+- 외부 연동 기능
+- 결제 기능
+- 대규모 화면 재구성
+- 저장소 구조 변경
 
 ## 수동 검증
-- revise_with_codex 리뷰 결과를 재현해 자동 revise 재시도 흐름이 이어지는지 확인한다.
-- 재리뷰 pass 시 구현 커밋, task 완료 처리, 메타 커밋 단계가 순서대로 수행되는지 확인한다.
-- 재리뷰 revise 반복 시 상태와 로그에 필요한 실패 정보가 남고 완료 처리가 차단되는지 확인한다.
-- DryRun에서 Codex 실행, 검증, review, commit, complete-task 같은 변경 작업이 실행되지 않는지 확인한다.
+- 업무가 하나도 없을 때 빈 상태 안내가 자연스러운지 확인한다.
+- 필터 적용 후 결과가 없을 때 다음 행동 안내가 보이는지 확인한다.
+- 업무 추가, 수정, 완료, 삭제 흐름의 문구가 실제 동작과 맞는지 확인한다.
+- 작은 업무로 목표를 나누는 제품 방향성이 과하지 않게 드러나는지 확인한다.
 
 ## Current Task
 
 - Task ID: T001
-- Title: review-gate revise 자동 재시도 흐름 연결
-- Description: ai-dev-auto-cycle-full.ps1을 중심으로 review-gate의 revise_with_codex 결과를 자동 revise 재시도 흐름으로 연결하고, pass 전 완료 차단과 DryRun preview 동작을 유지한다.
+- Title: 업무 흐름 안내 문구 개선
+- Description: 빈 상태, 필터 결과 없음, 업무 추가·수정·완료·삭제 흐름에서 사용자가 다음 행동을 이해할 수 있도록 한국어 안내 문구를 작게 보강한다. 로컬 저장 기반 앱이라는 점과 목표를 작은 업무로 나누는 방향성을 과하지 않게 반영한다.
 - Type: implementation
 - Status: in_progress
-- Priority: P0
+- Priority: P1
 - Depends on:
 - 없음
 
@@ -57,18 +59,13 @@ AI Dev Loop의 review-gate에서 `decision=revise`, `next_step=revise_with_codex
 
 ## Likely Files
 
-- .ai-dev/scripts/ai-dev-auto-cycle-full.ps1
-- .ai-dev/scripts/make-revise-prompt.ps1
-- .ai-dev/state.json
-- .ai-dev/queue.json
-- .ai-dev/goal.md
+- src/App.tsx
 
 ## Verification
 
-- revise_with_codex 결과에서 revise 프롬프트 생성부터 재리뷰 저장까지 자동으로 이어지는지 확인한다.
-- 재리뷰 pass 전에는 commit과 complete-task가 실행되지 않는지 확인한다.
-- 재리뷰 revise 반복 시 summary, severity, next_step, required_changes가 state와 로그에 남는지 확인한다.
-- DryRun에서 변경 작업 없이 preview만 출력되는지 확인한다.
+- 변경 파일을 확인해 기존 JSX 구조가 중복되지 않았는지 검토한다.
+- 업무 없음 상태와 필터 결과 없음 상태의 안내 문구가 서로 구분되는지 확인한다.
+- 업무 추가, 수정, 완료, 삭제 관련 문구가 실제 동작과 일치하는지 확인한다.
 
 - 필요한 경우 `npm run build`는 사람이 별도로 실행한다.
 - 이 프롬프트는 자동으로 build, test, lint를 실행하라고 지시하지 않는다.

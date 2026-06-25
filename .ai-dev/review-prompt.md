@@ -15,57 +15,58 @@
 ## Project Goal
 
 # 목표
-AI Dev Loop의 review-gate에서 `decision=revise`, `next_step=revise_with_codex`가 반환될 때 실패로 즉시 중단하지 않고, 자동 revise 재시도 흐름으로 연결되도록 자동화 스크립트를 보강한다.
+PlanPilot Local 자동 개발 루프 검증을 위해 작은 MVP 개선을 수행한다.
 
 ## 배경
-현재 auto-cycle-full 실행 중 리뷰 결과가 revise_with_codex인 경우 review-gate failed로 멈추며, 수정 프롬프트 생성부터 재검증, 재리뷰까지의 자동 흐름이 이어지지 않는다. 이번 작업은 앱 기능 개발이 아니라 자동 개발 루프의 검증 자동화 안정성 개선이 목적이다.
+이번 목표는 앱 자체의 대규모 완성이 아니라 자동 개발 루프가 구현, 검증, 리뷰, 수정, 커밋 흐름을 안정적으로 처리하는지 확인하기 위한 것이다. 업무 추가, 수정, 완료, 삭제 흐름에서 사용자가 다음 행동을 더 쉽게 이해하도록 안내 문구를 보강한다.
 
 ## 성공 기준
-- review-gate가 revise_with_codex를 만나면 실패 종료하지 않고 revise 프롬프트 생성, Codex revise 실행, 검증, diff 저장, review prompt 생성, review Codex 재실행, review 저장까지 자동 수행한다.
-- 재리뷰가 pass이면 구현 커밋, task 완료 처리, 메타 정보 커밋, 다음 task 진행 흐름이 이어진다.
-- 재리뷰가 계속 revise이면 최신 summary, severity, next_step, required_changes를 state와 로그에 남기고 명확히 실패 종료한다.
-- pass 전 완료 차단, stale/missing implementation 차단, completed final 정리 상태 확인, DryRun no-mutation 동작은 유지된다.
-- DryRun에서는 변경 작업을 실행하지 않고 preview만 출력한다.
-- 앱 src 파일은 변경하지 않는다.
+- 업무가 없는 상태에서 사용자가 다음에 할 일을 알 수 있다.
+- 필터 결과가 없는 상태에서 필터 해제 또는 새 업무 추가 같은 다음 행동을 알 수 있다.
+- 업무 추가, 수정, 완료, 삭제 흐름의 안내 문구가 더 명확하다.
+- 로컬 저장 기반 앱이라는 점과 목표를 작은 업무로 나누는 방향성이 UI 또는 문서에 작게 반영된다.
+- 기존 데이터 구조와 주요 동작을 변경하지 않는다.
 
 ## 제약사항
-- 작업 중심 파일은 ai-dev 자동화 스크립트로 제한한다.
-- 기존 자동화 흐름과 상태 파일 형식을 최대한 유지한다.
-- 앱 소스 파일은 수정하지 않는다.
-- DryRun 동작은 실제 변경 없이 확인 가능한 출력만 제공해야 한다.
+- 한 번에 하나의 작은 개선만 수행한다.
+- 기존 React, Vite, TypeScript, Zustand, Dexie 구조를 따른다.
+- 사용자-facing 문구는 한국어로 작성한다.
+- 기존 저장 방식과 데이터 일관성을 유지한다.
+- 불필요한 대규모 구조 변경을 하지 않는다.
 
 ## 범위 제외
-- 앱 UI 또는 기능 변경은 제외한다.
-- 데이터 저장 구조 변경은 제외한다.
-- 대규모 자동화 구조 재작성은 제외한다.
+- 계정 기반 기능
+- 외부 연동 기능
+- 결제 기능
+- 대규모 화면 재구성
+- 저장소 구조 변경
 
 ## 수동 검증
-- revise_with_codex 리뷰 결과를 재현해 자동 revise 재시도 흐름이 이어지는지 확인한다.
-- 재리뷰 pass 시 구현 커밋, task 완료 처리, 메타 커밋 단계가 순서대로 수행되는지 확인한다.
-- 재리뷰 revise 반복 시 상태와 로그에 필요한 실패 정보가 남고 완료 처리가 차단되는지 확인한다.
-- DryRun에서 Codex 실행, 검증, review, commit, complete-task 같은 변경 작업이 실행되지 않는지 확인한다.
+- 업무가 하나도 없을 때 빈 상태 안내가 자연스러운지 확인한다.
+- 필터 적용 후 결과가 없을 때 다음 행동 안내가 보이는지 확인한다.
+- 업무 추가, 수정, 완료, 삭제 흐름의 문구가 실제 동작과 맞는지 확인한다.
+- 작은 업무로 목표를 나누는 제품 방향성이 과하지 않게 드러나는지 확인한다.
 
 ## Current Task
 
 - Task ID: T001
-- Title: review-gate revise 자동 재시도 흐름 연결
-- Description: ai-dev-auto-cycle-full.ps1을 중심으로 review-gate의 revise_with_codex 결과를 자동 revise 재시도 흐름으로 연결하고, pass 전 완료 차단과 DryRun preview 동작을 유지한다.
+- Title: 업무 흐름 안내 문구 개선
+- Description: 빈 상태, 필터 결과 없음, 업무 추가·수정·완료·삭제 흐름에서 사용자가 다음 행동을 이해할 수 있도록 한국어 안내 문구를 작게 보강한다. 로컬 저장 기반 앱이라는 점과 목표를 작은 업무로 나누는 방향성을 과하지 않게 반영한다.
 - Type: implementation
 - Status: in_progress
-- Priority: P0
+- Priority: P1
 - Depends on:
 - 없음
 - Verification:
-- revise_with_codex 결과에서 revise 프롬프트 생성부터 재리뷰 저장까지 자동으로 이어지는지 확인한다.
-- 재리뷰 pass 전에는 commit과 complete-task가 실행되지 않는지 확인한다.
-- 재리뷰 revise 반복 시 summary, severity, next_step, required_changes가 state와 로그에 남는지 확인한다.
-- DryRun에서 변경 작업 없이 preview만 출력되는지 확인한다.
+- 변경 파일을 확인해 기존 JSX 구조가 중복되지 않았는지 검토한다.
+- 업무 없음 상태와 필터 결과 없음 상태의 안내 문구가 서로 구분되는지 확인한다.
+- 업무 추가, 수정, 완료, 삭제 관련 문구가 실제 동작과 일치하는지 확인한다.
 
 ## Test Result
 
 # AI Dev Test Result
 
-## 2026-06-24 09:49:40
+## 2026-06-25 15:13:45
 
 - Overall result: passed
 - Current task: T001
@@ -90,11 +91,11 @@ AI Dev Loop의 review-gate에서 `decision=revise`, `next_step=revise_with_codex
 transforming...✓ 48 modules transformed.
 rendering chunks...
 computing gzip size...
-dist/index.html                   0.46 kB │ gzip:   0.29 kB
+dist/index.html                   0.46 kB │ gzip:   0.30 kB
 dist/assets/index-DvjxWt30.css    5.69 kB │ gzip:   1.93 kB
-dist/assets/index-CVTFf3OT.js   317.03 kB │ gzip: 100.03 kB
+dist/assets/index-6B6Ll8UE.js   317.52 kB │ gzip: 100.16 kB
 
-[32m✓ built in 259ms[39m
+[32m✓ built in 227ms[39m
 ```
 ### npm run test
 
@@ -114,53 +115,6 @@ package.json에 test script가 없습니다.
 > planpilot-local@0.0.0 lint
 > eslint .
 ```
-## Verification: non-DryRun repeated revise scenario
-
-- Verification type: actual non-DryRun execution already completed.
-- Command executed: `ai-dev-auto-cycle-full.ps1 -AllowCodex -AllowReviewCodex -AllowCommit -MaxTasks 5`
-- Scenario: review-gate returned `decision=revise` and `next_step=revise_with_codex`; the full auto cycle retried the revise path.
-- Observed execution flow:
-  - `ai-dev-auto-cycle-full` ran.
-  - `.ai-dev/revise-prompt.md` was generated.
-  - The cycle reached re-review after the revise retry.
-  - Re-review returned `decision=revise` and `next_step=revise_with_codex` again.
-  - The cycle stopped at `review-gate` with failed status.
-- Observed final state:
-  - Last command: `review-gate`
-  - Last command status: `failed`
-  - Last commit hash: none
-  - Task status remained `in_progress`
-  - No commit was created.
-  - `complete-task` was not executed.
-- Last error preservation:
-  - `summary` was preserved from the latest review response.
-  - `severity=medium` was preserved.
-  - `next_step=revise_with_codex` was preserved.
-  - `required_changes` was preserved, including the `.ai-dev/test-result.md` required change.
-- Interpretation: the repeated revise path was actually exercised in non-DryRun mode. It safely stopped before commit and complete-task, while retaining enough review detail in Last error for the next revise attempt.
-
-### Captured evidence from repeated revise run
-
-- Re-review result: `decision=revise`, `next_step=revise_with_codex`.
-- Follow-up behavior: the review gate failed again, no commit was created, and `complete-task` was not executed.
-- Last error evidence: the latest review `summary`, `severity=medium`, `next_step=revise_with_codex`, and `required_changes` were preserved for the next revise attempt.
-- Scope note: this is actual non-DryRun evidence for the repeated revise path only. It is not evidence that a pass commit happened.
-
-## Verification: re-review pass path gating
-
-- Verification type: fixture/static verification using the stored script flow and expected pass review state.
-- Real pass commit status for this current run: not executed. The actual current repeated-revise run ended with another `revise`, so no real non-DryRun pass commit is claimed here.
-- Stored pass-path fixture condition: re-review returns `decision=pass`.
-- Verified pass-path order after pass re-review:
-  - pass-before-complete gating is checked before completion.
-  - commit step runs only after pass re-review.
-  - commit-result-gate runs after commit.
-  - complete-task runs after commit-result-gate.
-  - meta-commit runs after complete-task.
-  - final-status runs after meta-commit.
-  - Complete-Cycle then performs completed-clean-gate.
-- Interpretation: the pass branch has explicit gating and ordered post-pass steps for commit, commit result validation, task completion, metadata commit, final status reporting, and final clean-state validation. This section is fixture/static verification only; it does not assert that the current repeated-revise run performed a pass commit.
-
 
 ## Diff To Review
 
@@ -168,7 +122,7 @@ package.json에 test script가 없습니다.
 
 ## Generated At
 
-2026-06-24 10:38:15
+2026-06-25 15:13:51
 
 ## Git Status
 
@@ -178,20 +132,21 @@ package.json에 test script가 없습니다.
  M .ai-dev/current-task-prompt.md
  M .ai-dev/diff.md
  M .ai-dev/goal.md
- M .ai-dev/loop-log.md
  M .ai-dev/queue.json
  M .ai-dev/review-prompt.md
  M .ai-dev/review-response.json
  M .ai-dev/review.md
+ M .ai-dev/revise-prompt.md
  M .ai-dev/state.json
  M .ai-dev/test-result.md
- M scripts/ai-dev-auto-cycle-full.ps1
-?? .ai-dev/revise-prompt.md
+ M src/components/TaskCard.tsx
+ M src/views/TasksView.tsx
 ```
 
 ## App Change Files
 
-- scripts/ai-dev-auto-cycle-full.ps1
+- src/components/TaskCard.tsx
+- src/views/TasksView.tsx
 
 ## AI Dev Operational Artifact Files
 
@@ -200,14 +155,13 @@ package.json에 test script가 없습니다.
 - .ai-dev/current-task-prompt.md
 - .ai-dev/diff.md
 - .ai-dev/goal.md
-- .ai-dev/loop-log.md
 - .ai-dev/queue.json
 - .ai-dev/review-prompt.md
 - .ai-dev/review-response.json
 - .ai-dev/review.md
+- .ai-dev/revise-prompt.md
 - .ai-dev/state.json
 - .ai-dev/test-result.md
-- .ai-dev/revise-prompt.md
 
 ## Review Diff Scope
 
@@ -216,305 +170,107 @@ package.json에 test script가 없습니다.
 ## Unstaged Diff Stat
 
 ```text
- scripts/ai-dev-auto-cycle-full.ps1 | 190 +++++++++++++++++++++++++++++++++----
- 1 file changed, 172 insertions(+), 18 deletions(-)
+ src/components/TaskCard.tsx |  6 +++---
+ src/views/TasksView.tsx     | 22 ++++++++++++++++------
+ 2 files changed, 19 insertions(+), 9 deletions(-)
 ```
 
 ## Unstaged Diff
 
 ```text
-diff --git a/scripts/ai-dev-auto-cycle-full.ps1 b/scripts/ai-dev-auto-cycle-full.ps1
-index 5031713..6710fb0 100644
---- a/scripts/ai-dev-auto-cycle-full.ps1
-+++ b/scripts/ai-dev-auto-cycle-full.ps1
-@@ -1,6 +1,6 @@
- ﻿param(
-     [int]$MaxTasks = 1,
--    [int]$MaxSteps = 20,
-+    [int]$MaxSteps = 22,
-     [switch]$DryRun,
-     [switch]$Json,
-     [switch]$AllowCodex,
-@@ -94,6 +94,18 @@ function Save-CycleFailureState {
-             Set-ObjectProperty $state "lastReviewSeverity" ([string]$ReviewGate.severity)
+diff --git a/src/components/TaskCard.tsx b/src/components/TaskCard.tsx
+index 7218a1c..1ef5a96 100644
+--- a/src/components/TaskCard.tsx
++++ b/src/components/TaskCard.tsx
+@@ -52,21 +52,21 @@ export function TaskCard({
          }
+         onClick={() => onToggleDone(task)}
+       >
+-        {task.status === "done" ? "미완료로 되돌리기" : "완료로 표시"}
++        {task.status === "done" ? "미완료로 되돌리기" : "업무 완료로 표시"}
+       </button>
+       <button
+         type="button"
+         aria-label={`'${task.title}' 업무 삭제하기`}
+         onClick={() => onDelete(task)}
+       >
+-        삭제
++        업무 삭제
+       </button>
+       <button
+         type="button"
+         aria-label={`'${task.title}' 업무 수정하기`}
+         onClick={() => onStartEdit(task)}
+       >
+-        수정
++        업무 수정
+       </button>
+     </li>
+   );
+diff --git a/src/views/TasksView.tsx b/src/views/TasksView.tsx
+index b2129c1..ba68ad2 100644
+--- a/src/views/TasksView.tsx
++++ b/src/views/TasksView.tsx
+@@ -117,6 +117,16 @@ export function TasksView({
+       : hasProjectFilter || hasVisibilityFilter
+         ? "현재 조건에 맞는 업무가 없어요."
+         : "아직 등록된 업무가 없어요.";
++  const emptyActionMessage =
++    hasSearchQuery
++      ? "검색어를 바꾸거나 비운 뒤 다시 확인해보세요."
++      : hasProjectFilter && hasVisibilityFilter
++        ? "프로젝트 필터를 전체로 바꾸거나 완료 업무 표시를 켜서 숨은 업무를 확인해보세요."
++        : hasProjectFilter
++          ? "프로젝트 필터를 전체로 바꾸면 다른 업무를 확인할 수 있어요."
++          : hasVisibilityFilter
++            ? "완료 업무 표시를 켜면 숨은 완료 업무를 확인할 수 있어요."
++            : "목표를 바로 실행할 수 있는 작은 업무로 나누어 로컬에 먼저 기록해보세요.";
  
-+        if ($null -ne $ReviewGate -and (Test-HasValue $ReviewGate.nextStep)) {
-+            Set-ObjectProperty $state "lastReviewNextStep" ([string]$ReviewGate.nextStep)
-+        }
-+
-+        if ($null -ne $ReviewGate -and (Test-HasValue $ReviewGate.summary)) {
-+            Set-ObjectProperty $state "lastReviewSummary" ([string]$ReviewGate.summary)
-+        }
-+
-+        if ($null -ne $ReviewGate -and ($ReviewGate.PSObject.Properties.Name -contains "requiredChanges")) {
-+            Set-ObjectProperty $state "lastReviewRequiredChanges" @($ReviewGate.requiredChanges)
-+        }
-+
-         Set-ObjectProperty $state "lastCommand" $Command
-         Set-ObjectProperty $state "lastCommandStatus" "failed"
-         Set-ObjectProperty $state "lastErrorSummary" $ErrorSummary
-@@ -540,6 +552,8 @@ function Get-ReviewGate {
-     $severity = $null
-     $nextStep = $null
-     $normalizedNextStep = $null
-+    $summary = $null
-+    $requiredChanges = @()
-     $hasNextStep = $false
+   return (
+     <section className="screen-card">
+@@ -177,20 +187,20 @@ export function TasksView({
+         type="button"
+         onClick={() => onTaskFormOpenChange((current) => !current)}
+       >
+-        {isTaskFormOpen ? "새 업무 추가 닫기" : "새 업무 추가"}
++        {isTaskFormOpen ? "작은 업무 추가 닫기" : "작은 업무 추가"}
+       </button>
  
-     if (Test-Path -LiteralPath $reviewResponsePath -PathType Leaf) {
-@@ -553,11 +567,19 @@ function Get-ReviewGate {
-             $severity = [string]$reviewResponse.severity
-         }
- 
-+        if (Test-HasValue $reviewResponse.summary) {
-+            $summary = [string]$reviewResponse.summary
-+        }
-+
-         if ($reviewResponse.PSObject.Properties.Name -contains "next_step") {
-             $hasNextStep = $true
-             $nextStep = [string]$reviewResponse.next_step
-             $normalizedNextStep = $nextStep.Trim().ToLowerInvariant().Replace("-", "_")
-         }
-+
-+        if ($reviewResponse.PSObject.Properties.Name -contains "required_changes") {
-+            $requiredChanges = @($reviewResponse.required_changes)
-+        }
-     }
- 
-     return [PSCustomObject][ordered]@{
-@@ -566,9 +588,11 @@ function Get-ReviewGate {
-         stateDecision = [string]$state.lastReviewDecision
-         decision = $decision
-         severity = $severity
-+        summary = $summary
-         hasNextStep = $hasNextStep
-         nextStep = $nextStep
-         normalizedNextStep = $normalizedNextStep
-+        requiredChanges = @($requiredChanges)
-         requiredChangeFiles = @(Get-RequiredReviewChangeFiles $reviewResponse)
-     }
- }
-@@ -581,6 +605,24 @@ function Test-IsAcceptableReviewNextStep {
-     return (-not $ReviewGate.hasNextStep) -or $ReviewGate.normalizedNextStep -eq "complete_task"
- }
- 
-+function Test-IsReviewReviseWithCodex {
-+    param(
-+        [object]$ReviewGate
-+    )
-+
-+    return $ReviewGate.decision -eq "revise" -and $ReviewGate.normalizedNextStep -eq "revise_with_codex"
-+}
-+
-+function New-ReviewReviseFailureMessage {
-+    param(
-+        [object]$ReviewGate,
-+        [string]$Prefix
-+    )
-+
-+    $requiredChangesJson = @($ReviewGate.requiredChanges) | ConvertTo-Json -Depth 20
-+    return "$Prefix summary=$($ReviewGate.summary), severity=$($ReviewGate.severity), next_step=$($ReviewGate.nextStep), required_changes=$requiredChangesJson"
-+}
-+
- function Test-IsSavedReviewPassReady {
-     param(
-         [object]$ReviewGate
-@@ -748,6 +790,7 @@ try {
- 
-     $scriptPaths = @{
-         makePrompt = Get-ScriptPath "ai-dev-make-prompt.ps1"
-+        makeRevisePrompt = Get-ScriptPath "ai-dev-make-revise-prompt.ps1"
-         runCodex = Get-ScriptPath "ai-dev-run-codex.ps1"
-         check = Get-ScriptPath "ai-dev-check.ps1"
-         saveDiff = Get-ScriptPath "ai-dev-save-diff.ps1"
-@@ -771,12 +814,20 @@ $plannedSteps = @(
-     "make-review-prompt",
-     "run-review-codex",
-     "review-gate",
-+    "make-revise-prompt",
-+    "run-codex-revise",
-+    "check-revise",
-+    "save-diff-revise",
-+    "make-review-prompt-revise",
-+    "run-review-codex-revise",
-+    "review-gate",
-     "package-change-gate",
-     "commit",
-     "commit-result-gate",
-     "complete-task",
-     "meta-commit",
--    "final-status"
-+    "final-status",
-+    "completed-clean-gate"
- )
- 
- if ($plannedSteps.Count -gt $MaxSteps) {
-@@ -835,19 +886,16 @@ while ($completedTaskCount -lt $MaxTasks) {
-             $script:steps += New-StepResult $stepNumber "resume-review-gate" "state/review-response 재확인" $false $false 0 "이미 저장된 리뷰 pass와 허용 가능한 next_step 상태를 확인했습니다. 구현/리뷰 재실행 없이 commit/complete/meta-commit으로 계속 진행합니다."
-             $stepNumber++
-         } elseif ($resumeReviewGate.lastCommand -eq "save-review" -and $resumeReviewGate.lastCommandStatus -eq "passed") {
--            $resumeImplementationGate = Get-ReviewImplementationGate $currentTask $resumeReviewGate
--            $message = "save-review 이후 계속 진행할 수 없습니다. review.decision=$($resumeReviewGate.decision), state.lastReviewDecision=$($resumeReviewGate.stateDecision), next_step=$($resumeReviewGate.nextStep)"
--
--            if (-not $resumeImplementationGate.passed) {
--                $message = $resumeImplementationGate.message
-+            if (Test-IsReviewReviseWithCodex $resumeReviewGate) {
-+                $resumeFromSavedReview = $true
-+                $script:steps += New-StepResult $stepNumber "resume-review-gate" "state/review-response 재확인" $false $false 0 "저장된 리뷰가 revise + revise_with_codex이므로 구현/초기 리뷰 재실행 없이 revise 자동 재시도 단계로 계속 진행합니다."
-+                $stepNumber++
-+            } else {
-+                $message = "save-review 이후 계속 진행할 수 없습니다. review.decision=$($resumeReviewGate.decision), state.lastReviewDecision=$($resumeReviewGate.stateDecision), next_step=$($resumeReviewGate.nextStep)"
-                 Save-CycleFailureState "resume-review-gate" $message $resumeReviewGate
--                $script:steps += New-StepResult $stepNumber "resume-review-gate" "state/review-response required_changes 및 현재 diff 확인" $false $true 1 $message
--                Stop-Cycle $script:steps $resumeImplementationGate.reason $false 1
-+                $script:steps += New-StepResult $stepNumber "resume-review-gate" "state/review-response 재확인" $false $true 1 $message
-+                Stop-Cycle $script:steps "saved_review_not_ready_to_complete" $false 1
-             }
--
--            Save-CycleFailureState "resume-review-gate" $message $resumeReviewGate
--            $script:steps += New-StepResult $stepNumber "resume-review-gate" "state/review-response 재확인" $false $true 1 $message
--            Stop-Cycle $script:steps "saved_review_not_ready_to_complete" $false 1
-         }
-     }
- 
-@@ -915,6 +963,18 @@ while ($completedTaskCount -lt $MaxTasks) {
-     if ($DryRun) {
-         $script:steps += New-StepResult $stepNumber "review-gate" "state.lastReviewDecision 확인" $false $true 0 "DryRun: 리뷰 pass 여부를 실제 상태에서 읽지 않았습니다."
-         $stepNumber++
-+        $script:steps += New-StepResult $stepNumber "make-revise-prompt" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-revise-prompt.ps1" $false $true 0 "DryRun: review-gate가 revise + revise_with_codex인 경우 생성할 revise 프롬프트를 실제로 만들지 않았습니다."
-+        $stepNumber++
-+        $script:steps += New-StepResult $stepNumber "run-codex-revise" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-codex.ps1 -AllowDirty -PromptPath .ai-dev/revise-prompt.md" $false $true 0 "DryRun: Codex 재수정 실행을 실행하지 않았습니다."
-+        $stepNumber++
-+        $script:steps += New-StepResult $stepNumber "check-revise" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-check.ps1 -BuildOnly" $false $true 0 "DryRun: 재수정 검증을 실행하지 않았습니다."
-+        $stepNumber++
-+        $script:steps += New-StepResult $stepNumber "save-diff-revise" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-save-diff.ps1" $false $true 0 "DryRun: 재수정 diff 저장을 실행하지 않았습니다."
-+        $stepNumber++
-+        $script:steps += New-StepResult $stepNumber "make-review-prompt-revise" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-review-prompt.ps1 -Strict" $false $true 0 "DryRun: 재리뷰 프롬프트 생성을 실행하지 않았습니다."
-+        $stepNumber++
-+        $script:steps += New-StepResult $stepNumber "run-review-codex-revise" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-review-codex.ps1 -AllowDirty -SaveReview" $false $true 0 "DryRun: Codex 재리뷰와 save-review를 실행하지 않았습니다."
-+        $stepNumber++
-         $script:steps += New-StepResult $stepNumber "package-change-gate" "git status --porcelain -- package.json package-lock.json" $false $true 0 "DryRun: package 파일 변경 여부를 확인하지 않았습니다."
-         $stepNumber++
-         $script:steps += New-StepResult $stepNumber "commit" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-commit.ps1" $false $true 0 "DryRun: git add/commit을 실행하지 않았습니다."
-@@ -942,12 +1002,98 @@ while ($completedTaskCount -lt $MaxTasks) {
-         Stop-Cycle $script:steps "review_save_not_passed" $false 1
-     }
- 
--    $implementationGate = Get-ReviewImplementationGate $currentTask $reviewGate
-+    if (Test-IsReviewReviseWithCodex $reviewGate) {
-+        $implementationGate = Get-ReviewImplementationGate $currentTask $reviewGate
- 
--    if (-not $implementationGate.passed) {
--        Save-CycleFailureState "review-gate" $implementationGate.message $reviewGate
--        $script:steps += New-StepResult $stepNumber "review-gate" "task type, $reviewResponseRelativePath required_changes, 현재 diff 확인" $false $true 1 $implementationGate.message
--        Stop-Cycle $script:steps $implementationGate.reason $false 1
-+        if (-not $implementationGate.passed) {
-+            Save-CycleFailureState "review-gate" $implementationGate.message $reviewGate
-+            $script:steps += New-StepResult $stepNumber "review-gate" "task type, $reviewResponseRelativePath required_changes, 현재 diff 확인" $false $true 1 $implementationGate.message
-+            Stop-Cycle $script:steps $implementationGate.reason $false 1
-+        }
-+
-+        $script:steps += New-StepResult $stepNumber "review-gate" "$reviewResponseRelativePath decision/next_step 확인" $false $false 0 "리뷰 결과가 revise + revise_with_codex입니다. 자동 revise 재시도를 시작합니다. severity=$($reviewGate.severity), summary=$($reviewGate.summary)"
-+        $stepNumber++
-+
-+        Invoke-CycleCommand $stepNumber "make-revise-prompt" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-revise-prompt.ps1" $scriptPaths.makeRevisePrompt @()
-+        $stepNumber++
-+
-+        if (-not $AllowCodex) {
-+            $command = "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cycle-full.ps1 -AllowCodex -AllowReviewCodex -MaxTasks $MaxTasks"
-+            if ($AllowDirty) {
-+                $command = "$command -AllowDirty"
-+            }
-+
-+            if ($AllowCommit) {
-+                $command = "$command -AllowCommit"
-+            }
-+
-+            if ($null -ne $CommitFiles -and $CommitFiles.Count -gt 0) {
-+                $command = "$command -CommitFiles $($CommitFiles -join ',')"
-+            }
-+
-+            $script:steps += New-StepResult $stepNumber "run-codex-revise" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-codex.ps1 -AllowDirty -PromptPath .ai-dev/revise-prompt.md" $false $true 1 "Codex 재수정 실행에는 -AllowCodex가 필요합니다. 추천 명령: $command"
-+            Stop-Cycle $script:steps "allow_codex_required" $false 1
-+        }
-+
-+        Invoke-CycleCommand $stepNumber "run-codex-revise" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-codex.ps1 -AllowDirty -PromptPath .ai-dev/revise-prompt.md" $scriptPaths.runCodex @("-AllowDirty", "-PromptPath", ".ai-dev/revise-prompt.md")
-+        $stepNumber++
-+
-+        Invoke-CycleCommand $stepNumber "check-revise" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-check.ps1 -BuildOnly" $scriptPaths.check @("-BuildOnly")
-+        $stepNumber++
-+
-+        Invoke-CycleCommand $stepNumber "save-diff-revise" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-save-diff.ps1" $scriptPaths.saveDiff @()
-+        $stepNumber++
-+
-+        Invoke-CycleCommand $stepNumber "make-review-prompt-revise" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-review-prompt.ps1 -Strict" $scriptPaths.makeReviewPrompt @("-Strict")
-+        $stepNumber++
-+
-+        if (-not $AllowReviewCodex) {
-+            $command = "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cycle-full.ps1 -AllowCodex -AllowReviewCodex -MaxTasks $MaxTasks"
-+            if ($AllowDirty) {
-+                $command = "$command -AllowDirty"
-+            }
-+
-+            if ($AllowCommit) {
-+                $command = "$command -AllowCommit"
-+            }
-+
-+            if ($null -ne $CommitFiles -and $CommitFiles.Count -gt 0) {
-+                $command = "$command -CommitFiles $($CommitFiles -join ',')"
-+            }
-+
-+            $script:steps += New-StepResult $stepNumber "run-review-codex-revise" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-review-codex.ps1 -AllowDirty -SaveReview" $false $true 1 "Codex 재리뷰 실행에는 -AllowReviewCodex가 필요합니다. 추천 명령: $command"
-+            Stop-Cycle $script:steps "allow_review_codex_required" $false 1
-+        }
-+
-+        Invoke-CycleCommand $stepNumber "run-review-codex-revise" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-review-codex.ps1 -AllowDirty -SaveReview" $scriptPaths.runReviewCodex @("-AllowDirty", "-SaveReview")
-+        $stepNumber++
-+
-+        try {
-+            $reviewGate = Get-ReviewGate
-+        } catch {
-+            $script:steps += New-StepResult $stepNumber "review-gate" "재리뷰 state/review-response 확인" $false $false 1 $_.Exception.Message
-+            Stop-Cycle $script:steps "review_gate_failed" $false 1
-+        }
-+
-+        if ($reviewGate.lastCommand -ne "save-review" -or $reviewGate.lastCommandStatus -ne "passed") {
-+            $message = "재리뷰 이후 최신 state가 save-review passed가 아니므로 자동 커밋하지 않습니다: lastCommand=$($reviewGate.lastCommand), lastCommandStatus=$($reviewGate.lastCommandStatus)"
-+            $script:steps += New-StepResult $stepNumber "review-gate" "재리뷰 state.lastCommand/state.lastCommandStatus 확인" $false $true 1 $message
-+            Stop-Cycle $script:steps "review_save_not_passed" $false 1
-+        }
-+
-+        if ($reviewGate.decision -eq "revise") {
-+            if (Test-IsReviewReviseWithCodex $reviewGate) {
-+                $message = New-ReviewReviseFailureMessage $reviewGate "재리뷰도 revise + revise_with_codex를 반환해 자동 revise 재시도를 중단합니다."
-+                Save-CycleFailureState "review-gate" $message $reviewGate
-+                $script:steps += New-StepResult $stepNumber "review-gate" "재리뷰 decision/next_step/required_changes 확인" $false $true 1 $message
-+                Stop-Cycle $script:steps "review_revise_repeated" $false 1
-+            }
-+
-+            $message = New-ReviewReviseFailureMessage $reviewGate "재리뷰가 revise를 반환해 자동 커밋과 complete-task를 실행하지 않습니다."
-+            Save-CycleFailureState "review-gate" $message $reviewGate
-+            $script:steps += New-StepResult $stepNumber "review-gate" "재리뷰 decision/next_step/required_changes 확인" $false $true 1 $message
-+            Stop-Cycle $script:steps "revise_review_not_pass" $false 1
-+        }
-     }
- 
-     if ($reviewGate.decision -ne "pass") {
-@@ -967,6 +1113,14 @@ while ($completedTaskCount -lt $MaxTasks) {
-         Stop-Cycle $script:steps "review_next_step_not_complete_task" $false 1
-     }
- 
-+    $implementationGate = Get-ReviewImplementationGate $currentTask $reviewGate
-+
-+    if (-not $implementationGate.passed) {
-+        Save-CycleFailureState "review-gate" $implementationGate.message $reviewGate
-+        $script:steps += New-StepResult $stepNumber "review-gate" "task type, $reviewResponseRelativePath required_changes, 현재 diff 확인" $false $true 1 $implementationGate.message
-+        Stop-Cycle $script:steps $implementationGate.reason $false 1
-+    }
-+
-     $script:steps += New-StepResult $stepNumber "review-gate" "최신 state 및 $reviewResponseRelativePath 재확인" $false $false 0 "리뷰 pass 및 허용 가능한 next_step 상태 수락: 존재=$($reviewGate.hasNextStep), 원본='$($reviewGate.nextStep)', 정규화='$($reviewGate.normalizedNextStep)'. commit/commit-result-gate/complete-task/meta-commit으로 계속 진행합니다."
-     $stepNumber++
+       {isTaskFormOpen && (
+         <TaskForm
+-          title="새 업무 추가"
+-          ariaLabel="업무 추가"
++          title="새 작은 업무 추가"
++          ariaLabel="새 작은 업무 추가"
+           taskTitle={newTaskTitle}
+           memo={newTaskMemo}
+           dueDate={newTaskDueDate}
+           priority={newTaskPriority}
+           projectId={newTaskProjectId}
+           projects={projects}
+-          submitLabel="업무 추가"
++          submitLabel="로컬에 업무 추가"
+           onTitleChange={onNewTaskTitleChange}
+           onMemoChange={onNewTaskMemoChange}
+           onDueDateChange={onNewTaskDueDateChange}
+@@ -203,7 +213,7 @@ export function TasksView({
+       {filteredTasks.length === 0 ? (
+         <div className="empty">
+           <p>{emptyMessage}</p>
+-          {hasSearchQuery && <p>다른 검색어를 입력해보세요.</p>}
++          <p>{emptyActionMessage}</p>
+         </div>
+       ) : (
+         <ul className="task-list">
+@@ -220,7 +230,7 @@ export function TasksView({
+                     priority={editTaskPriority}
+                     projectId={editTaskProjectId}
+                     projects={projects}
+-                    submitLabel="저장"
++                    submitLabel="수정 저장"
+                     onTitleChange={onEditTaskTitleChange}
+                     onMemoChange={onEditTaskMemoChange}
+                     onDueDateChange={onEditTaskDueDateChange}
 ```
 
 ## Staged Diff Stat
