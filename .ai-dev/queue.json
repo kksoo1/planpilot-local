@@ -1,31 +1,77 @@
 ﻿{
-    "goalTitle":  "AI Dev Loop status stale review 상세 숨김 구현",
+    "goalTitle":  "AI Dev Loop Autopilot 모드 도입",
     "goalSource":  ".ai-dev/goal.md",
     "createdAt":  "2026-06-28T00:00:00+09:00",
-    "updatedAt":  "2026-06-28T11:03:28.3699939+00:00",
-    "currentTaskId":  null,
+    "updatedAt":  "2026-06-28T11:41:18.1442878+00:00",
+    "currentTaskId":  "T002",
     "tasks":  [
                   {
                       "id":  "T001",
-                      "title":  "stale Review summary 상세 숨김 구현",
-                      "description":  "`ai-dev-status.ps1`에서 Review summary가 stale 상태일 때 이전 task의 상세 항목을 출력하지 않고 상태, 이유, 숨김 안내만 표시하도록 수정한다. Test result summary의 stale 숨김 동작은 유지한다.",
-                      "type":  "implementation",
+                      "title":  "기존 AI Dev Loop 자동화 흐름 분석",
+                      "description":  "현재 `.ai-dev` 상태 파일, 실행 스크립트, goal 생성 흐름을 확인해 autopilot 진입점을 어디에 둘지 결정한다.",
+                      "type":  "analysis",
                       "status":  "done",
                       "priority":  "P0",
                       "dependsOn":  [
 
                                     ],
                       "filesLikelyToChange":  [
-                                                  ".ai-dev/ai-dev-status.ps1"
+                                                  ".ai-dev/goal.md",
+                                                  ".ai-dev/queue.json",
+                                                  ".ai-dev/state.json"
                                               ],
                       "verification":  [
-                                           "Review summary stale 상태에서 Decision, Severity, Next step, Summary가 출력되지 않는지 확인한다.",
-                                           "Test result summary stale 숨김 동작이 유지되는지 확인한다.",
-                                           "새 goal 또는 새 task의 not_started 상태에서 이전 요약이 현재 결과처럼 보이지 않는지 확인한다."
+                                           "기존 실행 스크립트와 상태 파일의 역할을 확인한다.",
+                                           "autopilot에서 재사용할 수 있는 입력과 출력 파일을 식별한다."
                                        ],
-                      "commitMessage":  "Hide stale review summary details",
-                      "completedAt":  "2026-06-28T11:03:28.3699939+00:00",
-                      "resultSummary":  "자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료"
+                      "commitMessage":  null,
+                      "completedAt":  "2026-06-28T11:41:18.1442878+00:00",
+                      "resultSummary":  "자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 구현 커밋 없음, 저장된 리뷰 pass에서 자동 완료"
+                  },
+                  {
+                      "id":  "T002",
+                      "title":  "제한된 autopilot 실행 흐름 구현",
+                      "description":  "최대 goal 수 제한, 상태 확인, 다음 goal 생성, 기존 실행 흐름 호출, 실패 사유 기록을 포함한 작은 autopilot 모드를 추가한다.",
+                      "type":  "implementation",
+                      "status":  "in_progress",
+                      "priority":  "P0",
+                      "dependsOn":  [
+                                        "T001"
+                                    ],
+                      "filesLikelyToChange":  [
+                                                  ".ai-dev/goal.md",
+                                                  ".ai-dev/queue.json",
+                                                  ".ai-dev/state.json",
+                                                  ".ai-dev/scripts"
+                                              ],
+                      "verification":  [
+                                           "제한값이 없을 때 기본값으로 동작하는지 확인한다.",
+                                           "goal 생성 실패 시 state 또는 log에 사유가 남는지 확인한다.",
+                                           "기존 단일 goal 실행 흐름이 유지되는지 확인한다."
+                                       ],
+                      "commitMessage":  "Add AI dev loop autopilot mode"
+                  },
+                  {
+                      "id":  "T003",
+                      "title":  "사용법과 검증 기준 문서화",
+                      "description":  "autopilot 모드 실행 방법, 제한값, 중단 조건, 수동 검증 절차를 문서나 템플릿에 정리한다.",
+                      "type":  "documentation",
+                      "status":  "pending",
+                      "priority":  "P1",
+                      "dependsOn":  [
+                                        "T002"
+                                    ],
+                      "filesLikelyToChange":  [
+                                                  ".ai-dev/goal.md",
+                                                  ".ai-dev/queue.json",
+                                                  ".ai-dev/state.json",
+                                                  ".ai-dev"
+                                              ],
+                      "verification":  [
+                                           "문서에 실행 방법과 제한값 설명이 포함되어 있는지 확인한다.",
+                                           "중단 조건과 확인할 상태 파일이 명확히 적혀 있는지 확인한다."
+                                       ],
+                      "commitMessage":  "Document autopilot mode usage"
                   }
               ]
 }

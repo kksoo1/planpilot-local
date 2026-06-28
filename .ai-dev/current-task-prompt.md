@@ -7,47 +7,43 @@
 ## Goal
 
 # 목표
-
-AI Dev Loop 상태 출력에서 stale 상태의 Review summary가 이전 task의 상세 결과를 현재 결과처럼 보이지 않게 숨긴다.
+AI Dev Loop에 제한된 autopilot 모드를 추가해, 저장된 프로젝트 비전과 backlog, 현재 상태를 바탕으로 다음 개발 goal을 자동 생성하고 기존 실행 흐름에 전달할 수 있게 한다.
 
 ## 배경
-
-새 goal 또는 새 task가 `not_started` 상태일 때 이전 goal/task의 review 요약 상세가 남아 있으면 사용자가 현재 결과로 오해할 수 있다. Test result summary의 stale 숨김 동작은 유지하면서 Review summary에도 같은 기준을 적용한다.
+현재 AI Dev Loop는 사용자가 매번 목표 제목과 설명을 제공하는 goal 단위 실행에 가깝다. 반복 개발을 줄이려면 로컬 상태 파일을 기준으로 다음 작업을 제안하고 실행 준비까지 이어 주는 자동화 진입점이 필요하다.
 
 ## 성공 기준
-
-- `ai-dev-status.ps1`에서 Review summary가 stale 상태일 때 `Decision`, `Severity`, `Next step`, `Summary`를 출력하지 않는다.
-- stale Review summary에는 `Status`, `Reason`, 숨김 안내만 표시된다.
-- Test result summary의 기존 stale 숨김 동작은 유지된다.
-- 새 goal 또는 새 task가 `not_started` 상태일 때 이전 review/test 요약이 현재 결과처럼 표시되지 않는다.
-- 앱 `src` 파일은 수정하지 않는다.
+- autopilot 모드를 실행하는 스크립트 또는 기존 스크립트 옵션이 추가된다.
+- autopilot은 최대 실행 goal 수를 제한값으로 받거나 기본 제한값을 사용한다.
+- 현재 상태와 완료 조건을 확인한 뒤 다음 goal 후보를 생성한다.
+- goal 생성 실패, 검증 실패, 반복 실패, 작업 불가 상태를 state 또는 log에 명확히 기록하고 중단한다.
+- 앱 src 기능 코드는 변경하지 않는다.
+- 관련 사용법 문서 또는 템플릿이 함께 정리된다.
 
 ## 제약사항
-
-- 변경 범위는 AI Dev Loop 상태 출력 스크립트에 한정한다.
-- 기존 출력 구조와 용어를 최대한 유지한다.
-- 불필요한 구조 변경이나 대규모 재작성은 하지 않는다.
-- 앱 소스 파일은 수정하지 않는다.
+- React 앱 기능 개발은 하지 않는다.
+- 자동화 스크립트와 필요한 문서, 템플릿만 최소 범위로 수정한다.
+- 기존 AI Dev Loop의 상태 파일 형식과 실행 흐름을 우선 재사용한다.
+- 무한 반복이 아닌 제한된 반복만 허용한다.
+- 실패 시 원인을 추적할 수 있는 상태 기록을 남긴다.
 
 ## 범위 제외
-
-- 앱 UI 변경
-- 데이터 저장 구조 변경
-- 새 기능 추가
-- 알림 또는 외부 연동 추가
+- 앱 화면, IndexedDB 스키마, 사용자 데이터 구조 변경은 제외한다.
+- 새로운 제품 기능 구현은 제외한다.
+- 대규모 구조 변경은 제외한다.
 
 ## 수동 검증
-
-- Review summary가 stale인 상태 파일로 `ai-dev-status.ps1`을 실행했을 때 상세 항목이 숨겨지는지 확인한다.
-- Test result summary의 stale 숨김 출력이 기존처럼 동작하는지 확인한다.
-- `not_started` 상태의 새 task에서 이전 review/test 결과가 현재 결과처럼 보이지 않는지 확인한다.
+- autopilot 모드가 제한값을 인식하는지 확인한다.
+- 다음 goal 생성 결과가 `.ai-dev` 상태 파일에 반영되는지 확인한다.
+- 실패 조건에서 중단 사유가 기록되는지 확인한다.
+- 기존 단일 goal 실행 흐름이 깨지지 않는지 확인한다.
 
 ## Current Task
 
 - Task ID: T001
-- Title: stale Review summary 상세 숨김 구현
-- Description: `ai-dev-status.ps1`에서 Review summary가 stale 상태일 때 이전 task의 상세 항목을 출력하지 않고 상태, 이유, 숨김 안내만 표시하도록 수정한다. Test result summary의 stale 숨김 동작은 유지한다.
-- Type: implementation
+- Title: 기존 AI Dev Loop 자동화 흐름 분석
+- Description: 현재 `.ai-dev` 상태 파일, 실행 스크립트, goal 생성 흐름을 확인해 autopilot 진입점을 어디에 둘지 결정한다.
+- Type: analysis
 - Status: in_progress
 - Priority: P0
 - Depends on:
@@ -62,13 +58,14 @@ AI Dev Loop 상태 출력에서 stale 상태의 Review summary가 이전 task의
 
 ## Likely Files
 
-- .ai-dev/ai-dev-status.ps1
+- .ai-dev/goal.md
+- .ai-dev/queue.json
+- .ai-dev/state.json
 
 ## Verification
 
-- Review summary stale 상태에서 Decision, Severity, Next step, Summary가 출력되지 않는지 확인한다.
-- Test result summary stale 숨김 동작이 유지되는지 확인한다.
-- 새 goal 또는 새 task의 not_started 상태에서 이전 요약이 현재 결과처럼 보이지 않는지 확인한다.
+- 기존 실행 스크립트와 상태 파일의 역할을 확인한다.
+- autopilot에서 재사용할 수 있는 입력과 출력 파일을 식별한다.
 
 - 필요한 경우 `npm run build`는 사람이 별도로 실행한다.
 - 이 프롬프트는 자동으로 build, test, lint를 실행하라고 지시하지 않는다.
