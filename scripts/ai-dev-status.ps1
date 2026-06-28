@@ -158,15 +158,15 @@ function Get-ReviewSummary {
         }
 
         if ($IsInitialState) {
-            return New-SummaryStatus "stale" "현재 task가 초기 상태라 이전 review 요약을 숨겼습니다." $review
+            return New-SummaryStatus "stale" "현재 task가 초기 상태라 이전 review 요약을 숨겼습니다." "숨김"
         }
 
         if ((Test-HasValue $LastReviewDecision) -and $LastReviewDecision -ne "not_started" -and (Test-HasValue $decision) -and $decision -ne $LastReviewDecision) {
-            return New-SummaryStatus "stale" "review decision($decision)이 state lastReviewDecision($LastReviewDecision)와 다릅니다." $review
+            return New-SummaryStatus "stale" "review decision($decision)이 state lastReviewDecision($LastReviewDecision)와 다릅니다." "숨김"
         }
 
         if (-not (Test-HasValue $LastReviewDecision) -or $LastReviewDecision -eq "not_started") {
-            return New-SummaryStatus "stale" "state lastReviewDecision이 초기 상태라 이전 review 요약을 숨겼습니다." $review
+            return New-SummaryStatus "stale" "state lastReviewDecision이 초기 상태라 이전 review 요약을 숨겼습니다." "숨김"
         }
 
         return New-SummaryStatus "current" "현재 상태와 일치합니다." $review
@@ -333,10 +333,14 @@ Write-Host ""
 Write-Host "Review summary:"
 Write-Host "  Status: $($reviewSummary.status)"
 Write-Host "  Reason: $($reviewSummary.reason)"
-Write-Host "  Decision: $($reviewSummary.content.decision)"
-Write-Host "  Severity: $($reviewSummary.content.severity)"
-Write-Host "  Next step: $($reviewSummary.content.nextStep)"
-Write-Host "  Summary: $($reviewSummary.content.summary)"
+if ($reviewSummary.status -eq "stale") {
+    Write-Host $reviewSummary.content
+} else {
+    Write-Host "  Decision: $($reviewSummary.content.decision)"
+    Write-Host "  Severity: $($reviewSummary.content.severity)"
+    Write-Host "  Next step: $($reviewSummary.content.nextStep)"
+    Write-Host "  Summary: $($reviewSummary.content.summary)"
+}
 
 if ($reviewSummary.status -eq "current" -and (Test-HasValue $reviewSummary.content.fallback)) {
     Write-Host $reviewSummary.content.fallback
