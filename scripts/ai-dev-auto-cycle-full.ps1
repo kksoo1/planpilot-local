@@ -1149,45 +1149,67 @@ while ($completedTaskCount -lt $MaxTasks) {
     }
 
     $commitArguments = Get-CommitArguments
+    $commitHashForComplete = $null
+    $resultSummary = "자동 완료: Codex 구현, build/check, Codex 리뷰 pass"
 
     if ($commitArguments.Count -eq 0) {
-        $script:steps += New-StepResult $stepNumber "commit" "git status --porcelain" $false $true 1 "커밋할 구현 변경사항이 없어 complete-task를 실행하지 않습니다."
-        Stop-Cycle $script:steps "no_implementation_changes" $false 1
+        $script:steps += New-StepResult $stepNumber "commit" "git status --porcelain" $false $true 0 "커밋할 구현 변경사항이 없습니다. 저장된 리뷰 pass 상태를 유지하고 complete-task/meta-commit으로 계속 진행합니다."
+        $stepNumber++
+        $script:steps += New-StepResult $stepNumber "commit-result-gate" "state.lastCommitHash 확인" $false $true 0 "새 구현 커밋이 없습니다. 기존 lastCommitHash가 있으면 complete-task에 전달하고, 없으면 CommitHash 없이 완료 처리합니다."
+        $stepNumber++
+
+        $stateBeforeComplete = Read-JsonFile $statePath $stateRelativePath
+
+        if (Test-HasValue $stateBeforeComplete.lastCommitHash) {
+            $commitHashForComplete = [string]$stateBeforeComplete.lastCommitHash
+        }
+
+        $resultSummary = "$resultSummary, 구현 커밋 없음, 저장된 리뷰 pass에서 자동 완료"
+    } else {
+        $commitCommandText = "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-commit.ps1"
+        if ($commitArguments.Count -gt 0) {
+            $commitCommandText = "$commitCommandText $($commitArguments -join ' ')"
+        }
+
+        try {
+            $preCommitHeadCommitHash = Invoke-GitCapture -Arguments @("rev-parse", "HEAD") -DisplayName "git rev-parse HEAD"
+        } catch {
+            $script:steps += New-StepResult $stepNumber "commit" "git rev-parse HEAD" $false $false 1 $_.Exception.Message
+            Stop-Cycle $script:steps "pre_commit_head_failed" $false 1
+        }
+
+        Invoke-CycleCommand $stepNumber "commit" $commitCommandText $scriptPaths.commit $commitArguments
+        $stepNumber++
+
+        try {
+            $commitGate = Get-CommitGate $preCommitHeadCommitHash
+        } catch {
+            $script:steps += New-StepResult $stepNumber "commit-result-gate" "state.lastCommand/lastCommitHash 확인" $false $false 1 $_.Exception.Message
+            Stop-Cycle $script:steps "commit_result_gate_failed" $false 1
+        }
+
+        if ($commitGate.lastCommand -ne "commit" -or $commitGate.lastCommandStatus -ne "passed" -or -not $commitGate.commitHashChanged -or -not $commitGate.commitHashMatchesHead) {
+            $message = "커밋 완료 상태를 확인하지 못해 complete-task를 실행하지 않습니다. lastCommand=$($commitGate.lastCommand), lastCommandStatus=$($commitGate.lastCommandStatus), lastCommitHash=$($commitGate.lastCommitHash)"
+            $script:steps += New-StepResult $stepNumber "commit-result-gate" "state.lastCommand/lastCommitHash 확인" $false $true 1 $message
+            Stop-Cycle $script:steps "commit_not_confirmed" $false 1
+        }
+
+        $script:steps += New-StepResult $stepNumber "commit-result-gate" "state.lastCommand/lastCommitHash 확인" $false $false 0 "커밋 생성 확인: $($commitGate.lastCommitHash)"
+        $stepNumber++
+
+        $commitHashForComplete = $commitGate.lastCommitHash
+        $resultSummary = "$resultSummary, 자동 커밋 완료"
     }
 
-    $commitCommandText = "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-commit.ps1"
-    if ($commitArguments.Count -gt 0) {
-        $commitCommandText = "$commitCommandText $($commitArguments -join ' ')"
+    $completeTaskArguments = @("-ResultSummary", $resultSummary)
+    $completeTaskCommand = "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-complete-task.ps1 -ResultSummary `"$resultSummary`""
+
+    if (Test-HasValue $commitHashForComplete) {
+        $completeTaskArguments += @("-CommitHash", $commitHashForComplete)
+        $completeTaskCommand = "$completeTaskCommand -CommitHash $commitHashForComplete"
     }
 
-    try {
-        $preCommitHeadCommitHash = Invoke-GitCapture -Arguments @("rev-parse", "HEAD") -DisplayName "git rev-parse HEAD"
-    } catch {
-        $script:steps += New-StepResult $stepNumber "commit" "git rev-parse HEAD" $false $false 1 $_.Exception.Message
-        Stop-Cycle $script:steps "pre_commit_head_failed" $false 1
-    }
-
-    Invoke-CycleCommand $stepNumber "commit" $commitCommandText $scriptPaths.commit $commitArguments
-    $stepNumber++
-
-    try {
-        $commitGate = Get-CommitGate $preCommitHeadCommitHash
-    } catch {
-        $script:steps += New-StepResult $stepNumber "commit-result-gate" "state.lastCommand/lastCommitHash 확인" $false $false 1 $_.Exception.Message
-        Stop-Cycle $script:steps "commit_result_gate_failed" $false 1
-    }
-
-    if ($commitGate.lastCommand -ne "commit" -or $commitGate.lastCommandStatus -ne "passed" -or -not $commitGate.commitHashChanged -or -not $commitGate.commitHashMatchesHead) {
-        $message = "커밋 완료 상태를 확인하지 못해 complete-task를 실행하지 않습니다. lastCommand=$($commitGate.lastCommand), lastCommandStatus=$($commitGate.lastCommandStatus), lastCommitHash=$($commitGate.lastCommitHash)"
-        $script:steps += New-StepResult $stepNumber "commit-result-gate" "state.lastCommand/lastCommitHash 확인" $false $true 1 $message
-        Stop-Cycle $script:steps "commit_not_confirmed" $false 1
-    }
-
-    $script:steps += New-StepResult $stepNumber "commit-result-gate" "state.lastCommand/lastCommitHash 확인" $false $false 0 "커밋 생성 확인: $($commitGate.lastCommitHash)"
-    $stepNumber++
-
-    $resultSummary = "자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료"
-    Invoke-CycleCommand $stepNumber "complete-task" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-complete-task.ps1 -ResultSummary `"$resultSummary`" -CommitHash $($commitGate.lastCommitHash)" $scriptPaths.completeTask @("-ResultSummary", $resultSummary, "-CommitHash", $commitGate.lastCommitHash)
+    Invoke-CycleCommand $stepNumber "complete-task" $completeTaskCommand $scriptPaths.completeTask $completeTaskArguments
     $stepNumber++
 
     Invoke-DirectMetaCommit $stepNumber
