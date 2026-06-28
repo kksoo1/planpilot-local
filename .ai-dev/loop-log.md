@@ -370,3 +370,13 @@
 - Task: T001 상태 출력의 오래된 요약 차단
 - Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
 - Next task: 없음
+## 2026-06-28 20:03:25 - Commit created
+
+- Task: T001 stale Review summary 상세 숨김 구현
+- Commit: d8e7ba0a517d92af064979342df903b817613195
+- Message: Hide stale review summary details
+## 2026-06-28 20:03:30 - Task completed
+
+- Task: T001 stale Review summary 상세 숨김 구현
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
+- Next task: 없음

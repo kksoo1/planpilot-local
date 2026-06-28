@@ -1,14 +1,14 @@
 ﻿{
-    "goalTitle":  "AI Dev Loop status stale summary 차단",
+    "goalTitle":  "AI Dev Loop status stale review 상세 숨김 구현",
     "goalSource":  ".ai-dev/goal.md",
-    "createdAt":  "2026-06-25T00:00:00+09:00",
-    "updatedAt":  "2026-06-25T07:33:43.5918602+00:00",
+    "createdAt":  "2026-06-28T00:00:00+09:00",
+    "updatedAt":  "2026-06-28T11:03:28.3699939+00:00",
     "currentTaskId":  null,
     "tasks":  [
                   {
                       "id":  "T001",
-                      "title":  "상태 출력의 오래된 요약 차단",
-                      "description":  "ai-dev-status 출력 로직에서 현재 task와 goal 상태에 맞지 않는 이전 리뷰 또는 테스트 요약이 표시되지 않도록 작은 범위로 개선한다.",
+                      "title":  "stale Review summary 상세 숨김 구현",
+                      "description":  "`ai-dev-status.ps1`에서 Review summary가 stale 상태일 때 이전 task의 상세 항목을 출력하지 않고 상태, 이유, 숨김 안내만 표시하도록 수정한다. Test result summary의 stale 숨김 동작은 유지한다.",
                       "type":  "implementation",
                       "status":  "done",
                       "priority":  "P0",
@@ -16,16 +16,15 @@
 
                                     ],
                       "filesLikelyToChange":  [
-                                                  ".ai-dev/goal.md",
-                                                  ".ai-dev/queue.json",
-                                                  ".ai-dev/state.json"
+                                                  ".ai-dev/ai-dev-status.ps1"
                                               ],
                       "verification":  [
-                                           "새 task 초기 상태에서 이전 리뷰/테스트 요약이 현재 결과처럼 표시되지 않는지 확인한다.",
-                                           "현재 task와 일치하는 최신 요약은 정상 표시되는지 확인한다."
+                                           "Review summary stale 상태에서 Decision, Severity, Next step, Summary가 출력되지 않는지 확인한다.",
+                                           "Test result summary stale 숨김 동작이 유지되는지 확인한다.",
+                                           "새 goal 또는 새 task의 not_started 상태에서 이전 요약이 현재 결과처럼 보이지 않는지 확인한다."
                                        ],
-                      "commitMessage":  "Hide stale AI dev status summaries",
-                      "completedAt":  "2026-06-25T07:33:43.5918602+00:00",
+                      "commitMessage":  "Hide stale review summary details",
+                      "completedAt":  "2026-06-28T11:03:28.3699939+00:00",
                       "resultSummary":  "자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료"
                   }
               ]

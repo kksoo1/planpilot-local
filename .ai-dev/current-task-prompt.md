@@ -7,38 +7,46 @@
 ## Goal
 
 # 목표
-AI Dev Loop 상태 출력에서 새 goal 또는 새 task가 `not_started` 상태일 때 이전 작업의 테스트 결과나 리뷰 응답 요약이 섞여 보이지 않도록 개선한다.
+
+AI Dev Loop 상태 출력에서 stale 상태의 Review summary가 이전 task의 상세 결과를 현재 결과처럼 보이지 않게 숨긴다.
 
 ## 배경
-현재 자동 개발 루프 상태 표시에서 오래된 test-result 또는 review-response 요약이 현재 task의 `lastCommand`, `lastReviewDecision`, `currentTaskId`, goal 상태와 맞지 않게 노출될 수 있다. 이로 인해 새 작업이 시작되지 않았거나 초기 상태인데도 이전 작업 결과가 현재 상태처럼 보이는 혼선이 생긴다.
+
+새 goal 또는 새 task가 `not_started` 상태일 때 이전 goal/task의 review 요약 상세가 남아 있으면 사용자가 현재 결과로 오해할 수 있다. Test result summary의 stale 숨김 동작은 유지하면서 Review summary에도 같은 기준을 적용한다.
 
 ## 성공 기준
-- 현재 task가 `not_started` 또는 초기 상태일 때 이전 task의 리뷰/테스트 요약이 현재 결과처럼 표시되지 않는다.
-- `currentTaskId`, goal 상태, `lastCommand`, `lastReviewDecision`과 맞지 않는 오래된 요약은 숨기거나 stale 상태로 구분된다.
-- 상태 출력 로직의 변경 범위가 작고 기존 자동 개발 루프 파일 구조를 유지한다.
-- 관련 상태 표시 동작을 검증할 수 있는 최소 확인 절차가 정리된다.
+
+- `ai-dev-status.ps1`에서 Review summary가 stale 상태일 때 `Decision`, `Severity`, `Next step`, `Summary`를 출력하지 않는다.
+- stale Review summary에는 `Status`, `Reason`, 숨김 안내만 표시된다.
+- Test result summary의 기존 stale 숨김 동작은 유지된다.
+- 새 goal 또는 새 task가 `not_started` 상태일 때 이전 review/test 요약이 현재 결과처럼 표시되지 않는다.
+- 앱 `src` 파일은 수정하지 않는다.
 
 ## 제약사항
-- 앱 기능 변경이 아니라 자동 개발 루프 운영 상태 표시 개선에만 집중한다.
-- 기존 상태 파일 구조와 명명 규칙을 우선 사용한다.
-- 불필요한 대규모 재작성이나 추상화는 피한다.
-- 사용자 변경 사항은 되돌리지 않는다.
+
+- 변경 범위는 AI Dev Loop 상태 출력 스크립트에 한정한다.
+- 기존 출력 구조와 용어를 최대한 유지한다.
+- 불필요한 구조 변경이나 대규모 재작성은 하지 않는다.
+- 앱 소스 파일은 수정하지 않는다.
 
 ## 범위 제외
-- React 앱의 사용자 기능 변경은 포함하지 않는다.
-- IndexedDB 스키마 변경은 포함하지 않는다.
-- 알림, 동기화, 계정 관련 기능은 포함하지 않는다.
+
+- 앱 UI 변경
+- 데이터 저장 구조 변경
+- 새 기능 추가
+- 알림 또는 외부 연동 추가
 
 ## 수동 검증
-- 새 goal 또는 새 task를 `not_started` 상태로 두고 상태 출력에서 이전 리뷰/테스트 요약이 현재 결과처럼 보이지 않는지 확인한다.
-- 현재 task와 일치하는 최신 리뷰/테스트 요약은 정상적으로 표시되는지 확인한다.
-- 오래된 요약을 stale로 표시하는 경우 현재 상태와 구분 가능한지 확인한다.
+
+- Review summary가 stale인 상태 파일로 `ai-dev-status.ps1`을 실행했을 때 상세 항목이 숨겨지는지 확인한다.
+- Test result summary의 stale 숨김 출력이 기존처럼 동작하는지 확인한다.
+- `not_started` 상태의 새 task에서 이전 review/test 결과가 현재 결과처럼 보이지 않는지 확인한다.
 
 ## Current Task
 
 - Task ID: T001
-- Title: 상태 출력의 오래된 요약 차단
-- Description: ai-dev-status 출력 로직에서 현재 task와 goal 상태에 맞지 않는 이전 리뷰 또는 테스트 요약이 표시되지 않도록 작은 범위로 개선한다.
+- Title: stale Review summary 상세 숨김 구현
+- Description: `ai-dev-status.ps1`에서 Review summary가 stale 상태일 때 이전 task의 상세 항목을 출력하지 않고 상태, 이유, 숨김 안내만 표시하도록 수정한다. Test result summary의 stale 숨김 동작은 유지한다.
 - Type: implementation
 - Status: in_progress
 - Priority: P0
@@ -54,14 +62,13 @@ AI Dev Loop 상태 출력에서 새 goal 또는 새 task가 `not_started` 상태
 
 ## Likely Files
 
-- .ai-dev/goal.md
-- .ai-dev/queue.json
-- .ai-dev/state.json
+- .ai-dev/ai-dev-status.ps1
 
 ## Verification
 
-- 새 task 초기 상태에서 이전 리뷰/테스트 요약이 현재 결과처럼 표시되지 않는지 확인한다.
-- 현재 task와 일치하는 최신 요약은 정상 표시되는지 확인한다.
+- Review summary stale 상태에서 Decision, Severity, Next step, Summary가 출력되지 않는지 확인한다.
+- Test result summary stale 숨김 동작이 유지되는지 확인한다.
+- 새 goal 또는 새 task의 not_started 상태에서 이전 요약이 현재 결과처럼 보이지 않는지 확인한다.
 
 - 필요한 경우 `npm run build`는 사람이 별도로 실행한다.
 - 이 프롬프트는 자동으로 build, test, lint를 실행하라고 지시하지 않는다.
