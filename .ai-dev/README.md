@@ -806,6 +806,18 @@ powershell -ExecutionPolicy Bypass -File .\scripts\ai-dev-auto-goal.ps1 -GoalTit
 
 `ai-dev-autopilot.ps1`는 현재 goal이 완료되고 open task가 없는 상태인지 확인한 뒤 `.ai-dev/backlog.md`에서 제한된 다음 goal 후보를 하나 고르고, 기존 `ai-dev-auto-goal.ps1`에 전달한다. 기본값은 `MaxGoals 1`, `MaxTasks 1`, `MaxSteps 22`이며 무한 반복하지 않는 제한 실행 흐름이다.
 
+주요 제한값과 실행 옵션:
+
+| 옵션 | 기본값 | 의미 |
+| --- | --- | --- |
+| `-MaxGoals` | `1` | autopilot 한 번의 실행에서 준비할 수 있는 최대 goal 수다. `1`보다 작으면 실행하지 않고 중단한다. |
+| `-MaxTasks` | `1` | 생성되는 다음 goal의 최대 task 수로 `ai-dev-auto-goal.ps1`에 전달된다. |
+| `-MaxSteps` | `22` | 하위 full cycle 래퍼가 사용할 최대 step 수로 전달된다. |
+| `-DryRun` | 꺼짐 | 파일을 수정하지 않고 gate, 후보, 하위 실행 계획만 확인한다. |
+| `-Json` | 꺼짐 | 사람이 읽는 로그 대신 JSON 결과를 출력한다. |
+| `-AllowRun` | 꺼짐 | 다음 goal 준비 뒤 기존 full cycle 래퍼 호출을 허용한다. |
+| `-AllowCodex`, `-AllowReviewCodex`, `-AllowCommit` | 꺼짐 | 하위 auto-goal/full-cycle 흐름의 Codex 구현, Codex 리뷰, 커밋 단계를 각각 허용한다. |
+
 먼저 DryRun으로 제한값과 중단 조건을 확인한다.
 
 ```powershell
@@ -839,6 +851,25 @@ powershell -ExecutionPolicy Bypass -File .\scripts\ai-dev-autopilot.ps1 -AllowCo
 - `MaxGoals`, `MaxTasks`, `MaxSteps`가 1보다 작으면 입력 검증 실패로 중단한다.
 
 실패 시 DryRun이 아니면 `state.json`의 `lastCommand`, `lastCommandStatus`, `lastErrorSummary`, `stopReason`, `repeatedFailureCount`, `updatedAt`을 갱신하고 `.ai-dev/loop-log.md`에 중단 사유를 남긴다. DryRun은 파일을 수정하지 않고 예상 결과만 출력한다.
+
+실패 또는 중단 후 확인할 파일:
+
+| 파일 | 확인할 내용 |
+| --- | --- |
+| `.ai-dev/state.json` | `lastCommand=autopilot`, `lastCommandStatus`, `lastErrorSummary`, `stopReason`, `repeatedFailureCount`, `updatedAt` |
+| `.ai-dev/loop-log.md` | `Autopilot stopped` 또는 `Autopilot goal prepared` 항목과 중단/준비 사유 |
+| `.ai-dev/goal.md` | DryRun이 아닌 goal 준비 성공 시 새 goal 제목과 설명 |
+| `.ai-dev/queue.json` | DryRun이 아닌 goal 준비 성공 시 `goalTitle`, `currentTaskId`, 생성된 task 목록 |
+| `.ai-dev/current-task-prompt.md` | 다음 task 실행 프롬프트가 새 goal 기준으로 재생성됐는지 여부 |
+
+수동 검증 기준:
+
+- 제한값 확인: `-DryRun -Json` 출력에서 `maxGoals`, `preparedGoals`, 각 step의 `message`를 확인한다. `-MaxGoals 0 -DryRun -Json`은 실패해야 하며 `stoppedReason`이 `max_goals_must_be_at_least_1`인지 확인한다.
+- 현재 goal gate 확인: 현재 goal이 완료되지 않았거나 open task가 남아 있으면 `current_goal_not_completed`로 중단되는지 확인한다. 이때 `state.json`의 `goalStatus`, `currentTaskId`와 `queue.json`의 미완료 task 상태를 함께 본다.
+- 후보 생성 확인: goal이 완료된 상태에서 실행하면 `.ai-dev/backlog.md`의 후보가 `goalCandidate`로 표시되는지 확인한다. 실제 실행에서는 `.ai-dev/goal.md`, `.ai-dev/queue.json`, `.ai-dev/state.json`, `.ai-dev/current-task-prompt.md`가 새 goal 기준으로 갱신되는지 확인한다.
+- 실패 기록 확인: DryRun이 아닌 실패에서는 `.ai-dev/state.json`의 `lastCommand=autopilot`, `lastCommandStatus=failed`, `lastErrorSummary`, `stopReason`, `repeatedFailureCount`, `updatedAt`을 확인하고, `.ai-dev/loop-log.md`에 같은 중단 사유가 남았는지 확인한다.
+- 기존 단일 goal 흐름 확인: `scripts/ai-dev-auto-goal.ps1`는 여전히 `GoalTitle`과 `GoalDescription`을 직접 받는 진입점이다. autopilot 검증 후에도 auto-goal DryRun이 기존처럼 goal/task 계획을 출력하는지 확인한다.
+- 실행 권한 확인: `-AllowRun`, `-AllowCodex`, `-AllowReviewCodex`, `-AllowCommit`을 주지 않은 autopilot은 다음 goal 준비까지만 수행하고 full cycle을 실행하지 않아야 한다.
 
 ## 운영 원칙
 

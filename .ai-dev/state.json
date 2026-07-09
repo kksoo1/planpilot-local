@@ -1,6 +1,6 @@
 ﻿{
-    "goalStatus":  "in_progress",
-    "currentTaskId":  "T003",
+    "goalStatus":  "completed",
+    "currentTaskId":  null,
     "currentLoop":  0,
     "maxLoopsPerTask":  2,
     "repeatedFailureCount":  0,
@@ -11,8 +11,8 @@
     "lastReviewSeverity":  "none",
     "lastCommitHash":  "98977ec50aaea338f258131fb0738e090b5cbfda",
     "startedAt":  "2026-06-28T00:00:00+09:00",
-    "updatedAt":  "2026-07-09T13:12:31.0987330+00:00",
-    "stopReason":  null,
+    "updatedAt":  "2026-07-09T13:28:04.5591844+00:00",
+    "stopReason":  "all_tasks_completed",
     "lastReviewNextStep":  "revise_with_codex",
     "lastReviewSummary":  "autopilot 흐름은 추가됐지만, 현재 backlog의 mojibake 항목을 여전히 정상 후보로 선택할 수 있고 task 요구 수동 검증도 기\r\n록되지 않았습니다.",
     "lastReviewRequiredChanges":  [

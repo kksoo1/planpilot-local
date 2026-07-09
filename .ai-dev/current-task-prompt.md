@@ -40,14 +40,14 @@ AI Dev Loop에 제한된 autopilot 모드를 추가해, 저장된 프로젝트 �
 
 ## Current Task
 
-- Task ID: T002
-- Title: 제한된 autopilot 실행 흐름 구현
-- Description: 최대 goal 수 제한, 상태 확인, 다음 goal 생성, 기존 실행 흐름 호출, 실패 사유 기록을 포함한 작은 autopilot 모드를 추가한다.
-- Type: implementation
+- Task ID: T003
+- Title: 사용법과 검증 기준 문서화
+- Description: autopilot 모드 실행 방법, 제한값, 중단 조건, 수동 검증 절차를 문서나 템플릿에 정리한다.
+- Type: documentation
 - Status: in_progress
-- Priority: P0
+- Priority: P1
 - Depends on:
-- T001
+- T002
 
 ## Task Scope
 
@@ -61,13 +61,12 @@ AI Dev Loop에 제한된 autopilot 모드를 추가해, 저장된 프로젝트 �
 - .ai-dev/goal.md
 - .ai-dev/queue.json
 - .ai-dev/state.json
-- .ai-dev/scripts
+- .ai-dev
 
 ## Verification
 
-- 제한값이 없을 때 기본값으로 동작하는지 확인한다.
-- goal 생성 실패 시 state 또는 log에 사유가 남는지 확인한다.
-- 기존 단일 goal 실행 흐름이 유지되는지 확인한다.
+- 문서에 실행 방법과 제한값 설명이 포함되어 있는지 확인한다.
+- 중단 조건과 확인할 상태 파일이 명확히 적혀 있는지 확인한다.
 
 - 필요한 경우 `npm run build`는 사람이 별도로 실행한다.
 - 이 프롬프트는 자동으로 build, test, lint를 실행하라고 지시하지 않는다.

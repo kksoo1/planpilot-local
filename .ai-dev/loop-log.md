@@ -403,3 +403,23 @@
 - Task: T002 제한된 autopilot 실행 흐름 구현
 - Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
 - Next task: T003 사용법과 검증 기준 문서화
+
+## 2026-07-09 22:30:00 - Task progress
+
+- Task: T003 사용법과 검증 기준 문서화
+- Result: `.ai-dev/README.md`의 제한된 autopilot 실행 섹션에 수동 검증 기준을 추가함
+- Scope: 문서와 AI Dev Loop 기록만 수정함. 앱 `src` 기능 코드는 변경하지 않음
+- Verification: 문서에 제한값 확인, 중단 조건, 상태 파일 확인 지점, 기존 auto-goal 흐름 확인 절차가 포함되는지 수동 검토 예정
+
+## 2026-07-09 22:38:00 - Task progress
+
+- Task: T003 사용법과 검증 기준 문서화
+- Result: `.ai-dev/README.md`의 autopilot 문서에 제한값/실행 옵션 표와 실패 후 확인할 상태 파일 표를 보강함
+- Verification: `.ai-dev/test-result.md`에 문서 수동 검증 기준과 미실행 항목을 기록함
+- Not executed: 문서화 작업이므로 `npm run build`, `npm run test`, `npm run lint`, autopilot 실제 실행은 수행하지 않음
+
+## 2026-07-09 22:28:04 - Task completed
+
+- Task: T003 사용법과 검증 기준 문서화
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 구현 커밋 없음, 저장된 리뷰 pass에서 자동 완료
+- Next task: 없음
