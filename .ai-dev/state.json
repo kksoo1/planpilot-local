@@ -1,6 +1,6 @@
 ﻿{
     "goalStatus":  "in_progress",
-    "currentTaskId":  "T002",
+    "currentTaskId":  "T003",
     "currentLoop":  0,
     "maxLoopsPerTask":  2,
     "repeatedFailureCount":  0,
@@ -9,8 +9,22 @@
     "lastErrorSummary":  "",
     "lastReviewDecision":  "pass",
     "lastReviewSeverity":  "none",
-    "lastCommitHash":  null,
+    "lastCommitHash":  "98977ec50aaea338f258131fb0738e090b5cbfda",
     "startedAt":  "2026-06-28T00:00:00+09:00",
-    "updatedAt":  "2026-06-28T11:41:18.1442878+00:00",
-    "stopReason":  null
+    "updatedAt":  "2026-07-09T13:12:31.0987330+00:00",
+    "stopReason":  null,
+    "lastReviewNextStep":  "revise_with_codex",
+    "lastReviewSummary":  "autopilot 흐름은 추가됐지만, 현재 backlog의 mojibake 항목을 여전히 정상 후보로 선택할 수 있고 task 요구 수동 검증도 기\r\n록되지 않았습니다.",
+    "lastReviewRequiredChanges":  [
+                                      {
+                                          "file":  "scripts/ai-dev-autopilot.ps1",
+                                          "reason":  "현재 .ai-dev/backlog.md에는 깨진 한글 항목이 있고, Test-IsReadableBacklogText는 U+FFFD 또는 연속 \r\n물음표만 거르기 때문에 \u0027full auto-cycle 濡쒓렇 援ъ“ 媛쒖꽑\u0027 같은 mojibake 제목을 읽을 수 있는 후보로 통과시킬 수 있습니다. 그러면 다음 goal \r\ntitle/description이 손상되어 \u0027현재 상태와 backlog 기반 goal 생성\u0027 및 실패 추적 품질을 만족하지 못합니다.",
+                                          "suggestion":  "backlog 후보 판별에서 mojibake 특유의 깨진 문자 패턴을 더 엄격히 제외하거나, 후보 제목에 의심 패턴이 있으면 fallb\r\nack 후보를 사용하도록 수정하세요. 최소한 현재 backlog의 깨진 P1/P2 항목이 직접 goal title로 전달되지 않는지 확인해야 합니다."
+                                      },
+                                      {
+                                          "file":  ".ai-dev/test-result.md",
+                                          "reason":  "Current Task의 Verification은 기본 MaxGoals 동작, goal 생성 실패 기록, 기존 단일 goal 흐름 유지 확인을\r\n 요구하지만, 기록된 검증은 npm build/lint뿐이고 npm test는 스크립트 없음으로 skipped입니다.",
+                                          "suggestion":  "autopilot DryRun/Json 또는 통제된 실패 케이스 실행 결과를 수동 검증으로 기록해 제한값 인식, 실패 사유 state/\r\nlog 기록, auto-goal 기존 흐름 보존 여부를 확인하세요."
+                                      }
+                                  ]
 }

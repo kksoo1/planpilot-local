@@ -20,8 +20,10 @@
 추후 검토할 목표 후보와 아이디어를 우선순위별로 기록한다.
 
 - backlog 항목은 자동 실행이 확정된 task가 아니다.
-- 현재 단계에서는 AI가 backlog에서 다음 목표를 자동 선택하지 않는다.
-- 실행할 항목은 사용자가 검토한 뒤 `goal.md`로 옮긴다.
+- 기본 흐름에서는 실행할 항목을 사용자가 검토한 뒤 `goal.md`로 옮긴다.
+- 수동 `ai-dev-auto-goal.ps1` 흐름은 여전히 명시적인 `GoalTitle`과 `GoalDescription`을 사용한다.
+- 단, 현재 goal이 완료되었고 open task가 없을 때 `scripts/ai-dev-autopilot.ps1`는 제한된 범위에서 `.ai-dev/backlog.md`의 다음 goal 후보를 선택할 수 있다.
+- autopilot은 `MaxGoals`, `MaxTasks`, `MaxSteps` 제한 안에서만 동작하며 무제한 백그라운드 데몬이 아니다.
 
 ## AI가 추후 생성하거나 수정할 파일
 
@@ -567,6 +569,7 @@ powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cycle.ps1 -DryRun -
 - `scripts/ai-dev-run-review-codex.ps1`: `.ai-dev/review-prompt.md`를 Codex CLI에 전달해 JSON 리뷰를 생성하고 저장 흐름에 연결한다.
 - `scripts/ai-dev-auto-cycle-full.ps1`: prompt 생성, Codex 구현, check, diff 저장, Codex 리뷰, save-review, pass 시 commit/complete-task를 연결한다.
 - `scripts/ai-dev-auto-goal.ps1`: 사용자가 `GoalTitle`과 `GoalDescription`만 입력하면 goal/queue/state 생성, current-task-prompt 생성, full auto-cycle 실행까지 이어지게 한다.
+- `scripts/ai-dev-autopilot.ps1`: 완료된 현재 goal과 backlog를 기준으로 다음 goal 후보를 고르고 `ai-dev-auto-goal.ps1` 흐름에 전달한다.
 
 초기 안전 기준:
 
@@ -575,6 +578,7 @@ powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cycle.ps1 -DryRun -
 - Codex 리뷰 실행은 `AllowReviewCodex`가 있을 때만 수행한다.
 - git commit은 `AllowCommit`이 있을 때만 수행한다.
 - auto-goal에서 실제 full cycle 실행은 `AllowRun` 또는 명시적 실행 옵션이 있을 때만 수행한다.
+- autopilot은 기본 `MaxGoals 1`로 제한하며, 현재 goal이 완료되지 않았거나 후보 생성에 실패하면 state와 loop-log에 중단 사유를 기록한다.
 - git status가 dirty이면 Codex 구현 실행을 기본 중단한다.
 - build/check 실패, package 파일 변경, 리뷰 decision이 `pass`가 아닌 경우 자동 커밋하지 않는다.
 - `git reset`, `git clean`, `npm install`, `git push`는 자동 실행하지 않는다.
@@ -797,6 +801,44 @@ powershell -ExecutionPolicy Bypass -File .\scripts\ai-dev-auto-goal.ps1 -GoalTit
 - `-AllowRun` 단독은 구현, 리뷰, 커밋을 수행한다는 의미가 아니다. 하위 full cycle은 여전히 `-AllowCodex`, `-AllowReviewCodex`, `-AllowCommit` 권한에 따라 각 위험 단계를 허용하거나 중단한다.
 - package 파일 변경, build/check 실패, 리뷰 `pass` 아님, dirty worktree 위험이 있으면 자동 커밋하지 않는다.
 - `git reset`, `git clean`, `npm install`, `git push`는 실행하지 않는다.
+
+### 제한된 autopilot 실행
+
+`ai-dev-autopilot.ps1`는 현재 goal이 완료되고 open task가 없는 상태인지 확인한 뒤 `.ai-dev/backlog.md`에서 제한된 다음 goal 후보를 하나 고르고, 기존 `ai-dev-auto-goal.ps1`에 전달한다. 기본값은 `MaxGoals 1`, `MaxTasks 1`, `MaxSteps 22`이며 무한 반복하지 않는 제한 실행 흐름이다.
+
+먼저 DryRun으로 제한값과 중단 조건을 확인한다.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\ai-dev-autopilot.ps1 -DryRun
+```
+
+JSON 출력이 필요하면 `-Json`을 함께 사용한다.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\ai-dev-autopilot.ps1 -DryRun -Json
+```
+
+실제 다음 goal 준비까지 수행하려면 `-DryRun`을 제거한다. 이 모드는 goal/queue/state/current-task-prompt 생성까지만 진행하고 full cycle은 실행하지 않는다.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\ai-dev-autopilot.ps1 -MaxGoals 1
+```
+
+후보 생성 이후 full cycle 래퍼까지 호출하려면 기존 실행 권한 옵션을 명시한다.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\ai-dev-autopilot.ps1 -AllowCodex -AllowReviewCodex -AllowCommit -MaxGoals 1 -MaxTasks 1
+```
+
+중단 조건:
+
+- 현재 `state.json`과 `queue.json`이 완료된 goal 상태가 아니면 `current_goal_not_completed`로 중단한다.
+- backlog에서 사용할 수 있는 후보를 찾지 못하면 `goal_candidate_not_found`로 중단한다.
+- `ai-dev-auto-goal.ps1`가 goal 생성, 검증, 실행 흐름에서 실패하면 `auto_goal_failed`로 중단한다.
+- build/lint/review 실패, 반복 revise loop, dirty worktree 안전 검사 실패처럼 하위 full cycle 게이트가 실패하면 해당 실패 사유를 읽을 수 있게 남기고 중단한다.
+- `MaxGoals`, `MaxTasks`, `MaxSteps`가 1보다 작으면 입력 검증 실패로 중단한다.
+
+실패 시 DryRun이 아니면 `state.json`의 `lastCommand`, `lastCommandStatus`, `lastErrorSummary`, `stopReason`, `repeatedFailureCount`, `updatedAt`을 갱신하고 `.ai-dev/loop-log.md`에 중단 사유를 남긴다. DryRun은 파일을 수정하지 않고 예상 결과만 출력한다.
 
 ## 운영 원칙
 

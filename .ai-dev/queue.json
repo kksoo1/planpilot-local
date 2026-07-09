@@ -2,8 +2,8 @@
     "goalTitle":  "AI Dev Loop Autopilot 모드 도입",
     "goalSource":  ".ai-dev/goal.md",
     "createdAt":  "2026-06-28T00:00:00+09:00",
-    "updatedAt":  "2026-06-28T11:41:18.1442878+00:00",
-    "currentTaskId":  "T002",
+    "updatedAt":  "2026-07-09T13:12:31.0987330+00:00",
+    "currentTaskId":  "T003",
     "tasks":  [
                   {
                       "id":  "T001",
@@ -33,7 +33,7 @@
                       "title":  "제한된 autopilot 실행 흐름 구현",
                       "description":  "최대 goal 수 제한, 상태 확인, 다음 goal 생성, 기존 실행 흐름 호출, 실패 사유 기록을 포함한 작은 autopilot 모드를 추가한다.",
                       "type":  "implementation",
-                      "status":  "in_progress",
+                      "status":  "done",
                       "priority":  "P0",
                       "dependsOn":  [
                                         "T001"
@@ -49,14 +49,16 @@
                                            "goal 생성 실패 시 state 또는 log에 사유가 남는지 확인한다.",
                                            "기존 단일 goal 실행 흐름이 유지되는지 확인한다."
                                        ],
-                      "commitMessage":  "Add AI dev loop autopilot mode"
+                      "commitMessage":  "Add AI dev loop autopilot mode",
+                      "completedAt":  "2026-07-09T13:12:31.0987330+00:00",
+                      "resultSummary":  "자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료"
                   },
                   {
                       "id":  "T003",
                       "title":  "사용법과 검증 기준 문서화",
                       "description":  "autopilot 모드 실행 방법, 제한값, 중단 조건, 수동 검증 절차를 문서나 템플릿에 정리한다.",
                       "type":  "documentation",
-                      "status":  "pending",
+                      "status":  "in_progress",
                       "priority":  "P1",
                       "dependsOn":  [
                                         "T002"

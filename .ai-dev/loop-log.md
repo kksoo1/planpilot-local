@@ -385,3 +385,21 @@
 - Task: T001 기존 AI Dev Loop 자동화 흐름 분석
 - Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 구현 커밋 없음, 저장된 리뷰 pass에서 자동 완료
 - Next task: T002 제한된 autopilot 실행 흐름 구현
+
+## 2026-06-28 21:10:00 - Task progress
+
+- Task: T002 제한된 autopilot 실행 흐름 구현
+- Result: `scripts/ai-dev-autopilot.ps1`를 추가해 완료된 현재 goal 확인, backlog 기반 다음 goal 후보 생성, 기존 `ai-dev-auto-goal.ps1` 호출, `MaxGoals` 제한, 실패 시 state/loop-log 기록 흐름을 구현함
+- Docs: `.ai-dev/README.md`에 autopilot 실행 방법, 기본 제한값, full cycle 권한 옵션, 중단 조건, 실패 기록 방식을 추가함
+- Verification: PowerShell AST 문법 검증 예정. build/test/lint, git 명령, 실제 Codex 실행은 수행하지 않음
+
+## 2026-07-09 22:12:28 - Commit created
+
+- Task: T002 제한된 autopilot 실행 흐름 구현
+- Commit: 98977ec50aaea338f258131fb0738e090b5cbfda
+- Message: Add AI dev loop autopilot mode
+## 2026-07-09 22:12:32 - Task completed
+
+- Task: T002 제한된 autopilot 실행 흐름 구현
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
+- Next task: T003 사용법과 검증 기준 문서화
