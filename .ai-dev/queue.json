@@ -1,15 +1,15 @@
 ﻿{
-    "goalTitle":  "AI Dev Loop Autopilot 모드 도입",
+    "goalTitle":  "Codex CLI 완전 자동화 정책 문서화",
     "goalSource":  ".ai-dev/goal.md",
-    "createdAt":  "2026-06-28T00:00:00+09:00",
-    "updatedAt":  "2026-07-09T13:28:04.5591844+00:00",
+    "createdAt":  "2026-07-09T00:00:00+09:00",
+    "updatedAt":  "2026-07-09T13:40:14.4966876+00:00",
     "currentTaskId":  null,
     "tasks":  [
                   {
                       "id":  "T001",
-                      "title":  "기존 AI Dev Loop 자동화 흐름 분석",
-                      "description":  "현재 `.ai-dev` 상태 파일, 실행 스크립트, goal 생성 흐름을 확인해 autopilot 진입점을 어디에 둘지 결정한다.",
-                      "type":  "analysis",
+                      "title":  "Codex CLI 자동화 정책 문서 작성",
+                      "description":  "현재 저장소의 로컬 AI Dev Loop 운영 방식에 맞춰 Codex CLI 완전 자동화 정책을 한국어 문서로 정리한다.",
+                      "type":  "documentation",
                       "status":  "done",
                       "priority":  "P0",
                       "dependsOn":  [
@@ -17,64 +17,14 @@
                                     ],
                       "filesLikelyToChange":  [
                                                   ".ai-dev/goal.md",
-                                                  ".ai-dev/queue.json",
-                                                  ".ai-dev/state.json"
+                                                  ".ai-dev/codex-cli-automation-policy.md"
                                               ],
                       "verification":  [
-                                           "기존 실행 스크립트와 상태 파일의 역할을 확인한다.",
-                                           "autopilot에서 재사용할 수 있는 입력과 출력 파일을 식별한다."
+                                           "정책 문서에 목적, 적용 범위, 작업 단위, 검증 기록, 중단 조건이 포함되어 있는지 확인한다.",
+                                           "문서 내용이 현재 저장소 작업 규칙과 충돌하지 않는지 확인한다."
                                        ],
-                      "commitMessage":  null,
-                      "completedAt":  "2026-06-28T11:41:18.1442878+00:00",
-                      "resultSummary":  "자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 구현 커밋 없음, 저장된 리뷰 pass에서 자동 완료"
-                  },
-                  {
-                      "id":  "T002",
-                      "title":  "제한된 autopilot 실행 흐름 구현",
-                      "description":  "최대 goal 수 제한, 상태 확인, 다음 goal 생성, 기존 실행 흐름 호출, 실패 사유 기록을 포함한 작은 autopilot 모드를 추가한다.",
-                      "type":  "implementation",
-                      "status":  "done",
-                      "priority":  "P0",
-                      "dependsOn":  [
-                                        "T001"
-                                    ],
-                      "filesLikelyToChange":  [
-                                                  ".ai-dev/goal.md",
-                                                  ".ai-dev/queue.json",
-                                                  ".ai-dev/state.json",
-                                                  ".ai-dev/scripts"
-                                              ],
-                      "verification":  [
-                                           "제한값이 없을 때 기본값으로 동작하는지 확인한다.",
-                                           "goal 생성 실패 시 state 또는 log에 사유가 남는지 확인한다.",
-                                           "기존 단일 goal 실행 흐름이 유지되는지 확인한다."
-                                       ],
-                      "commitMessage":  "Add AI dev loop autopilot mode",
-                      "completedAt":  "2026-07-09T13:12:31.0987330+00:00",
-                      "resultSummary":  "자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료"
-                  },
-                  {
-                      "id":  "T003",
-                      "title":  "사용법과 검증 기준 문서화",
-                      "description":  "autopilot 모드 실행 방법, 제한값, 중단 조건, 수동 검증 절차를 문서나 템플릿에 정리한다.",
-                      "type":  "documentation",
-                      "status":  "done",
-                      "priority":  "P1",
-                      "dependsOn":  [
-                                        "T002"
-                                    ],
-                      "filesLikelyToChange":  [
-                                                  ".ai-dev/goal.md",
-                                                  ".ai-dev/queue.json",
-                                                  ".ai-dev/state.json",
-                                                  ".ai-dev"
-                                              ],
-                      "verification":  [
-                                           "문서에 실행 방법과 제한값 설명이 포함되어 있는지 확인한다.",
-                                           "중단 조건과 확인할 상태 파일이 명확히 적혀 있는지 확인한다."
-                                       ],
-                      "commitMessage":  "Document autopilot mode usage",
-                      "completedAt":  "2026-07-09T13:28:04.5591844+00:00",
+                      "commitMessage":  "Document Codex CLI automation policy",
+                      "completedAt":  "2026-07-09T13:40:14.4966876+00:00",
                       "resultSummary":  "자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 구현 커밋 없음, 저장된 리뷰 pass에서 자동 완료"
                   }
               ]

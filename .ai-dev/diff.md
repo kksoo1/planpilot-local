@@ -2,22 +2,19 @@
 
 ## Generated At
 
-2026-07-09 22:27:08
+2026-07-09 22:39:16
 
 ## Git Status
 
 ```text
- M .ai-dev/README.md
  M .ai-dev/codex-result.md
- M .ai-dev/codex-review-result.md
  M .ai-dev/current-task-prompt.md
- M .ai-dev/diff.md
- M .ai-dev/loop-log.md
- M .ai-dev/review-prompt.md
- M .ai-dev/review-response.json
- M .ai-dev/review.md
+ M .ai-dev/goal.md
+ M .ai-dev/queue.json
  M .ai-dev/state.json
  M .ai-dev/test-result.md
+?? .ai-dev/auto-goal-planning-prompt.md
+?? .ai-dev/codex-cli-automation-policy.md
 ```
 
 ## App Change Files
@@ -26,17 +23,14 @@
 
 ## AI Dev Operational Artifact Files
 
-- .ai-dev/README.md
 - .ai-dev/codex-result.md
-- .ai-dev/codex-review-result.md
 - .ai-dev/current-task-prompt.md
-- .ai-dev/diff.md
-- .ai-dev/loop-log.md
-- .ai-dev/review-prompt.md
-- .ai-dev/review-response.json
-- .ai-dev/review.md
+- .ai-dev/goal.md
+- .ai-dev/queue.json
 - .ai-dev/state.json
 - .ai-dev/test-result.md
+- .ai-dev/auto-goal-planning-prompt.md
+- .ai-dev/codex-cli-automation-policy.md
 
 ## Review Diff Scope
 

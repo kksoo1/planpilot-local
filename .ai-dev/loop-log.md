@@ -423,3 +423,8 @@
 - Task: T003 사용법과 검증 기준 문서화
 - Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 구현 커밋 없음, 저장된 리뷰 pass에서 자동 완료
 - Next task: 없음
+## 2026-07-09 22:40:14 - Task completed
+
+- Task: T001 Codex CLI 자동화 정책 문서 작성
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 구현 커밋 없음, 저장된 리뷰 pass에서 자동 완료
+- Next task: 없음
