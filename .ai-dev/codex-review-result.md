@@ -2,8 +2,8 @@
 
 ## Run
 
-- Started at: 2026-07-09 22:39:19
-- Ended at: 2026-07-09 22:40:09
+- Started at: 2026-07-09 23:01:45
+- Ended at: 2026-07-09 23:02:28
 - Exit code: 0
 - Review prompt: .ai-dev/review-prompt.md
 - Review response: .ai-dev/review-response.json
@@ -27,17 +27,17 @@ approval: never
 sandbox: workspace-write [workdir, /tmp, $TMPDIR]
 reasoning effort: medium
 reasoning summaries: none
-session id: 019f471a-b2f0-7552-ad56-10c5a74d9ce2
+session id: 019f472f-3fe8-7981-992d-bb4a918c855f
 --------
 user
 Read and follow the full review prompt at this absolute file path: D:\ai-apps\planpilot-local\.a
 i-dev\review-prompt.md
 codex
-요청하신 리뷰 지침 파일을 먼저 읽고, 그 안의 범위와 금지사항에 맞춰 진행하겠습니다. PowerShell에서 해당 파일만 대상으로 확인합니다.
+지정된 리뷰 프롬프트를 먼저 읽고, 그 지시 범위 안에서만 진행하겠습니다. 파일 내용 확인만 수행합니다.
 exec
 "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralP
 ath 'D:\\ai-apps\\planpilot-local\\.ai-dev\\review-prompt.md'" in D:\ai-apps\planpilot-local
- succeeded in 1389ms:
+ succeeded in 1636ms:
 # AI Dev Review Prompt
 
 ## Role
@@ -55,54 +55,55 @@ ath 'D:\\ai-apps\\planpilot-local\\.ai-dev\\review-prompt.md'" in D:\ai-apps\pla
 ## Project Goal
 
 # 목표
-Codex CLI 완전 자동화 정책을 현재 저장소의 로컬 AI Dev Loop 운영 문서로 작고 명확하게 정리한다.
+Codex 구현 실행 스크립트 추가
 
 ## 배경
-현재 프로젝트는 로컬 우선 React + Vite + TypeScript 앱이며, AI Dev Loop 상태 파일을 기준으로 작은 단위의 작업을 안전하게 진행해야 한다. C
-odex CLI 자동화가 어떤 조건에서 진행되고, 언제 멈추며, 어떤 검증 정보를 남겨야 하는지 문서화가 필요하다.
+현재 저장소의 P0 백로그 항목인 "Codex 구현 실행 스크립트 추가"를 현재 구조에 맞는 가장 작은 실행 가능한 개발 목표로 준비한다. 목표는 로컬 AI Dev Loop
+에서 Codex 구현 단계를 일관되게 실행할 수 있는 스크립트 초안을 추가하는 것이다.
 
 ## 성공 기준
-- Codex CLI 자동화 정책의 목적, 적용 범위, 중단 조건, 검증 기록 방식을 한국어로 문서화한다.
-- 기존 프로젝트 제약을 해치지 않는 작은 문서 변경으로 제한한다.
-- 자동화가 임의로 기능 범위를 넓히지 않도록 작업 단위와 상태 기록 기준을 명확히 한다.
+- 저장소의 기존 스크립트/설정 구조를 확인한다.
+- Codex 구현 실행에 필요한 최소 스크립트를 추가하거나 기존 설정에 연결한다.
+- 실행 방법이 명확하게 드러나도록 필요한 최소 문서를 함께 정리한다.
+- 변경 범위는 스크립트 추가와 직접 관련된 파일로 제한한다.
 
 ## 제약사항
-- 앱 런타임 코드와 저장 구조는 변경하지 않는다.
-- 사용자-facing 문서는 한국어로 작성한다.
-- 기존 AI Dev Loop 상태 파일 형식과 충돌하지 않게 작성한다.
-- 한 번에 하나의 작은 문서 작업으로 진행한다.
+- 한 번에 하나의 기능만 구현한다.
+- 기존 프로젝트 구조와 명명 규칙을 따른다.
+- 사용자-facing 문구는 한국어를 기본으로 한다.
+- 불필요한 대규모 재작성이나 추상화를 하지 않는다.
+- lock file은 수정하지 않는다.
 
 ## 범위 제외
-- 새 기능 구현은 포함하지 않는다.
-- UI 변경은 포함하지 않는다.
-- 저장소 구조 개편은 포함하지 않는다.
-- 자동화 실행 도구 자체의 구현 변경은 포함하지 않는다.
+- 앱 UI 변경은 포함하지 않는다.
+- 데이터베이스 스키마 변경은 포함하지 않는다.
+- 알림, 동기화, 인증 기능은 포함하지 않는다.
+- 배포 자동화나 외부 연동 확장은 포함하지 않는다.
 
 ## 수동 검증
-- 작성된 정책 문서가 현재 저장소 작업 규칙과 모순되지 않는지 확인한다.
-- 정책 문서에 목표 진행, 검증, 중단 조건이 구체적으로 포함되어 있는지 확인한다.
-- 변경 파일 수가 최소 범위인지 확인한다.
-
+- 추가된 스크립트 파일 또는 package script가 의도한 명령을 가리키는지 확인한다.
+- 스크립트 실행 전 필요한 입력 파일 경로가 저장소 기준으로 올바른지 확인한다.
+- 변경된 파일만 검토하여 범위가 과도하게 넓어지지 않았는지 확인한다.
 
 ## Current Task
 
 - Task ID: T001
-- Title: Codex CLI 자동화 정책 문서 작성
-- Description: 현재 저장소의 로컬 AI Dev Loop 운영 방식에 맞춰 Codex CLI 완전 자동화 정책을 한국어 문서로 정리한다.
-- Type: documentation
+- Title: Codex 구현 실행 스크립트 추가
+- Description: 현재 저장소의 스크립트 구조를 확인하고, Codex 구현 단계를 실행하기 위한 최소 스크립트 또는 설정 연결을 추가한다.
+- Type: implementation
 - Status: in_progress
 - Priority: P0
 - Depends on:
 - 없음
 - Verification:
-- 정책 문서에 목적, 적용 범위, 작업 단위, 검증 기록, 중단 조건이 포함되어 있는지 확인한다.
-- 문서 내용이 현재 저장소 작업 규칙과 충돌하지 않는지 확인한다.
+- 변경 파일을 확인해 스크립트 경로와 명령이 저장소 구조와 일치하는지 검토한다.
+- 허용된 경우에만 관련 스크립트를 수동으로 실행해 동작을 확인한다.
 
 ## Test Result
 
 # AI Dev Test Result
 
-## 2026-07-09 22:39:10
+## 2026-07-09 23:01:35
 
 - Overall result: passed
 - Current task: T001
@@ -131,7 +132,7 @@ dist/index.html                   0.46 kB │ gzip:   0.29 kB
 dist/assets/index-DvjxWt30.css    5.69 kB │ gzip:   1.93 kB
 dist/assets/index-DtLVvPCG.js   317.50 kB │ gzip: 100.16 kB
 
-[32m✓ built in 185ms[39m
+[32m✓ built in 259ms[39m
 ```
 ### npm run test
 
@@ -158,35 +159,46 @@ package.json에 test script가 없습니다.
 
 ## Generated At
 
-2026-07-09 22:39:16
+2026-07-09 23:01:42
 
 ## Git Status
 
 ```text
  M .ai-dev/codex-result.md
+ M .ai-dev/codex-review-result.md
  M .ai-dev/current-task-prompt.md
+ M .ai-dev/diff.md
  M .ai-dev/goal.md
  M .ai-dev/queue.json
+ M .ai-dev/review-prompt.md
+ M .ai-dev/review-response.json
+ M .ai-dev/review.md
+ M .ai-dev/revise-prompt.md
  M .ai-dev/state.json
  M .ai-dev/test-result.md
+ M scripts/ai-dev-run-codex.ps1
 ?? .ai-dev/auto-goal-planning-prompt.md
-?? .ai-dev/codex-cli-automation-policy.md
 ```
 
 ## App Change Files
 
-- 없음
+- scripts/ai-dev-run-codex.ps1
 
 ## AI Dev Operational Artifact Files
 
 - .ai-dev/codex-result.md
+- .ai-dev/codex-review-result.md
 - .ai-dev/current-task-prompt.md
+- .ai-dev/diff.md
 - .ai-dev/goal.md
 - .ai-dev/queue.json
+- .ai-dev/review-prompt.md
+- .ai-dev/review-response.json
+- .ai-dev/review.md
+- .ai-dev/revise-prompt.md
 - .ai-dev/state.json
 - .ai-dev/test-result.md
 - .ai-dev/auto-goal-planning-prompt.md
-- .ai-dev/codex-cli-automation-policy.md
 
 ## Review Diff Scope
 
@@ -196,13 +208,84 @@ package.json에 test script가 없습니다.
 ## Unstaged Diff Stat
 
 ```text
-변경 없음
+ scripts/ai-dev-run-codex.ps1 | 44 ++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 42 insertions(+), 2 deletions(-)
 ```
 
 ## Unstaged Diff
 
 ```text
-변경 없음
+diff --git a/scripts/ai-dev-run-codex.ps1 b/scripts/ai-dev-run-codex.ps1
+index d91e711..0556efc 100644
+--- a/scripts/ai-dev-run-codex.ps1
++++ b/scripts/ai-dev-run-codex.ps1
+@@ -118,7 +118,45 @@ function New-CodexPrompt {
+         [string]$PromptFilePath
+     )
+ 
+-    return "Read and follow the full task prompt at this absolute file path: $PromptFilePath"
++    return @"
++Read and follow the full task prompt at this absolute file path: $PromptFilePath
++
++Additional safety rules for this local AI Dev Loop run:
++- Do not run git commit, git reset, git checkout, git clean, git rebase, git merge, or git push
+.
++- Do not run npm install.
++- Do not modify package.json, package-lock.json, node_modules, dist, or .git.
++- Do not broaden the current task scope beyond the prompt file.
++- If the task requirements conflict with repository rules, stop and report the conflict.
++"@
++}
++
++function New-RunCommandText {
++    $arguments = @(
++        "-ExecutionPolicy",
++        "Bypass",
++        "-File",
++        "scripts/ai-dev-run-codex.ps1"
++    )
++
++    if ($PromptPath -ne ".ai-dev/current-task-prompt.md") {
++        $arguments += "-PromptPath"
++        $arguments += $promptRelativePath
++    }
++
++    if ($ResultPath -ne ".ai-dev/codex-result.md") {
++        $arguments += "-ResultPath"
++        $arguments += $resultRelativePath
++    }
++
++    if ($AllowDirty) {
++        $arguments += "-AllowDirty"
++    }
++
++    if ($GeneratePromptIfMissing) {
++        $arguments += "-GeneratePromptIfMissing"
++    }
++
++    return "powershell $($arguments -join ' ')"
+ }
+ 
+ Set-Location $repoRoot
+@@ -161,15 +199,17 @@ if (-not (Test-Path -LiteralPath $resolvedPromptPath -PathType Leaf)) {
+ }
+ 
+ $codexPrompt = New-CodexPrompt $resolvedPromptPath
+-$commandText = "codex exec <short wrapper pointing to $promptRelativePath>"
++$commandText = New-RunCommandText
+ 
+ if ($DryRun) {
+     $message = @"
+ Codex 구현 실행 DryRun입니다.
++- EntryPoint: scripts/ai-dev-run-codex.ps1
+ - Repository: $repoRoot
+ - Prompt: $promptRelativePath
+ - Result: $resultRelativePath
+ - Command: $commandText
++- CodexCommand: codex exec <wrapper prompt reading $promptRelativePath>
+ - AllowDirty: $([bool]$AllowDirty)
+ - DirtyCount: $($statusLines.Count)
+ "@
 ```
 
 ## Staged Diff Stat
@@ -279,339 +362,327 @@ package.json에 test script가 없습니다.
 - blocked: 요구사항 충돌, 데이터 위험, 패키지 추가, 대규모 리팩터링 등 사용자 판단 필요
 
 codex
-리뷰 프롬프트상 앱 변경 diff는 없고 `.ai-dev` 운영 산출물만 변경된 상태입니다. 요구사항 충족 여부를 판단하려면 핵심 산출물인 자동화 정책 문서 내용을 확인하겠
-습니다.
+리뷰 프롬프트의 diff만으로 1차 판단은 가능하지만, PowerShell 함수가 주변 변수와 파라미터 구조에 맞는지 확인해야 합니다. 실제 변경 파일 하나만 읽어 맥락을 
+검토하겠습니다.
 exec
 "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralP
-ath 'D:\\ai-apps\\planpilot-local\\.ai-dev\\state.json'" in D:\ai-apps\planpilot-local
-exec
-"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralP
-ath 'D:\\ai-apps\\planpilot-local\\.ai-dev\\codex-cli-automation-policy.md'" in D:\ai-apps\planp
-ilot-local
-exec
-"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralP
-ath 'D:\\ai-apps\\planpilot-local\\.ai-dev\\goal.md'" in D:\ai-apps\planpilot-local
- succeeded in 2108ms:
-{
-    "goalStatus":  "in_progress",
-    "currentTaskId":  "T001",
-    "currentLoop":  0,
-    "maxLoopsPerTask":  2,
-    "repeatedFailureCount":  0,
-    "lastCommand":  "save-diff",
-    "lastCommandStatus":  "passed",
-    "lastErrorSummary":  "",
-    "lastReviewDecision":  "not_started",
-    "lastReviewSeverity":  null,
-    "lastCommitHash":  null,
-    "startedAt":  "2026-07-09T00:00:00+09:00",
-    "updatedAt":  "2026-07-09T13:39:16.3198304+00:00",
-    "stopReason":  null
+ath 'D:\\ai-apps\\planpilot-local\\scripts\\ai-dev-run-codex.ps1'" in D:\ai-apps\planpilot-local
+ succeeded in 1616ms:
+param(
+    [switch]$DryRun,
+    [switch]$Json,
+    [switch]$AllowDirty,
+    [switch]$GeneratePromptIfMissing,
+    [string]$PromptPath = ".ai-dev/current-task-prompt.md",
+    [string]$ResultPath = ".ai-dev/codex-result.md"
+)
+
+. "$PSScriptRoot\ai-dev-env.ps1"
+
+$repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
+$utf8WithBom = New-Object System.Text.UTF8Encoding($true)
+$codeFence = '```'
+
+function Resolve-RepoPath {
+    param(
+        [string]$Path
+    )
+
+    if ([System.IO.Path]::IsPathRooted($Path)) {
+        return $Path
+    }
+
+    return Join-Path $repoRoot $Path
 }
 
- succeeded in 2133ms:
-# Codex CLI ?꾩쟾 ?먮룞???뺤콉
+function ConvertTo-RepoRelativePath {
+    param(
+        [string]$Path
+    )
 
-??臾몄꽌??PlanPilot Local??濡쒖뺄 AI Dev Loop?먯꽌 Codex CLI ?먮룞?붾? ?ъ슜???뚯쓽 紐⑹쟻, ?곸슜 踰붿쐞, ?묒뾽 ?⑥쐞, 寃利?
-湲곕줉, 以묐떒 議곌굔???뺣━?쒕떎. ?먮룞?붾뒗 ?묒? task瑜??덉쟾?섍쾶 ?앸궡湲??꾪븳 蹂댁“ ?먮쫫?대ŉ, ??μ냼 洹쒖튃怨??ъ슜??吏?쒕낫???곗꽑?섏?
- ?딅뒗??
+    $fullPath = [System.IO.Path]::GetFullPath((Resolve-RepoPath $Path))
+    $rootWithSeparator = $repoRoot.TrimEnd("\") + "\"
 
-## 紐⑹쟻
+    if ($fullPath.StartsWith($rootWithSeparator, [System.StringComparison]::OrdinalIgnoreCase)) 
+{
+        return $fullPath.Substring($rootWithSeparator.Length).Replace("\", "/")
+    }
 
-- `.ai-dev/goal.md`, `.ai-dev/queue.json`, `.ai-dev/state.json`??湲곗??쇰줈 ?꾩옱 task ?섎굹留?援ы쁽, 寃利? 
-由щ럭, 湲곕줉?쒕떎.
-- Codex CLI瑜?援ы쁽?먯? 由щ럭?대줈 ?ъ슜?????꾩슂???덉슜 議곌굔怨?以묐떒 議곌굔??紐낇솗???쒕떎.
-- ?먮룞?붽? ?꾩쓽濡?湲곕뒫 踰붿쐞, ?뚯씪 踰붿쐞, 寃利?踰붿쐞瑜??볧엳吏 ?딅룄濡??곹깭 ?뚯씪??洹쇨굅瑜??④릿??
-- 寃利앺븯吏 ?딆? 寃곌낵瑜??듦낵濡?湲곕줉?섏? ?딄퀬, ?щ엺???댁뼱???먮떒?????덈뒗 理쒖냼 ?뺣낫瑜??④릿??
+    return $fullPath.Replace("\", "/")
+}
 
-## ?곸슜 踰붿쐞
+function Write-RunResult {
+    param(
+        [string]$Action,
+        [bool]$Executed,
+        [int]$ExitCode,
+        [string]$Message
+    )
 
-???뺤콉? ?꾩옱 ??μ냼 `D:\ai-apps\planpilot-local` ?덉뿉???ㅽ뻾?섎뒗 濡쒖뺄 AI Dev Loop?먮쭔 ?곸슜?쒕떎.
+    if ($Json) {
+        [ordered]@{
+            action = $Action
+            executed = $Executed
+            exitCode = $ExitCode
+            resultPath = (ConvertTo-RepoRelativePath $ResultPath)
+            message = $Message
+        } | ConvertTo-Json -Depth 10
+    } else {
+        Write-Host $Message
+    }
 
-?곸슜 ???
+    exit $ExitCode
+}
 
-- ?꾩옱 goal怨?current task 遺꾩꽍
-- `current-task-prompt.md` ?앹꽦
-- Codex CLI 湲곕컲 ?꾩옱 task 援ы쁽
-- ?꾩슂??build, lint, test ?먮뒗 ?섎룞 寃利?湲곕줉
-- diff ??κ낵 Codex CLI 由щ럭
-- 由щ럭 pass ?댄썑 task ?꾨즺 泥섎━? ?꾩슂??寃쎌슦 ?먮룞 而ㅻ컠
-- ?ㅽ뙣, 以묐떒, 寃利?寃곌낵瑜?`.ai-dev` ?곹깭 ?뚯씪??湲곕줉?섎뒗 ?묒뾽
+function Get-GitStatusLines {
+    $statusOutput = & git status --short 2>&1
 
-?곸슜 ?쒖쇅:
+    if ($LASTEXITCODE -ne 0) {
+        $message = "git status 확인에 실패했습니다: $($statusOutput -join "`n")"
+        Write-RunResult "run_codex" $false 1 $message
+    }
 
-- ??湲곕뒫??current task 諛뽰쑝濡??뺤옣?섎뒗 ?묒뾽
-- ?쒕쾭 API, 濡쒓렇?? ?대씪?곕뱶 ?숆린?? ?뚮┝, Capacitor 異붽?
-- DB ??젣, 珥덇린?? 蹂듭썝, 怨꾪쉷 ?녿뒗 migration
-- package ?ㅼ튂, package ?뚯씪 蹂寃? lock file 蹂寃?- git push, PR ?앹꽦, 諛고룷
-- ?ъ슜??蹂寃??ы빆 ?섎룎由ш린
+    return @($statusOutput | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+}
 
-## ?묒뾽 ?⑥쐞 湲곗?
+function Get-GitStatusPath {
+    param(
+        [string]$StatusLine
+    )
 
-- ??踰덉뿉 ?섎굹??goal ?덉뿉???섎굹??current task留?泥섎━?쒕떎.
-- ?먮룞?붾뒗 `queue.json`??current task 紐⑹쟻, scope, verification??吏곸젒 ?꾩슂???뚯씪留??섏젙?쒕떎.
-- ?꾩옱 task媛 臾몄꽌 ?묒뾽?대㈃ ???고???肄붾뱶? ???援ъ“瑜?蹂寃쏀븯吏 ?딅뒗??
-- ?꾩옱 task媛 ??湲곕뒫 ?묒뾽?대㈃ 臾몄꽌 蹂닿컯, 由ы뙥?곕쭅, ?꾩냽 媛쒖꽑???꾩쓽濡??④퍡 臾띠? ?딅뒗??
-- ??蹂寃쎌씠 ?꾩슂?섎떎怨??먮떒?섎㈃ ?꾩옱 task?먯꽌 ?뺤옣?섏? ?딄퀬 蹂꾨룄 task濡?遺꾨━?섍굅??以묐떒?쒕떎.
-- `src/App.tsx`, `src/db.ts`, package ?뚯씪泥섎읆 ?곹뼢 踰붿쐞媛 ???뚯씪? task ?붽뎄? migration 怨꾪쉷??紐낇솗???뚮
-쭔 ?ㅻ，??
+    if ($StatusLine.Length -lt 4) {
+        return $StatusLine.Trim().Replace("\", "/")
+    }
 
-## ?먮룞 ?ㅽ뻾 ?덉슜 議곌굔
+    $path = $StatusLine.Substring(3).Trim()
 
-Codex CLI ?먮룞?붾뒗 ?꾨옒 議곌굔??異⑹”???뚮쭔 ?ㅼ쓬 ?④퀎濡?吏꾪뻾?쒕떎.
+    if ($path.Contains(" -> ")) {
+        $path = ($path -split " -> ")[-1].Trim()
+    }
 
-- ?ъ슜??吏?? `AGENTS.md`, ?꾩옱 task prompt媛 ?쒕줈 異⑸룎?섏? ?딅뒗??
-- ?묒뾽 寃쎈줈媛 ????μ냼 猷⑦듃?대ŉ, ?덉슜???뚯씪 踰붿쐞媛 紐낇솗?섎떎.
-- current task媛 議댁옱?섍퀬 ?곹깭媛 `in_progress` ?먮뒗 ?ㅽ뻾 媛?ν븳 ?곹깭??
-- ?꾩슂??prompt ?뚯씪???꾩옱 goal怨?current task 湲곗??쇰줈 ?앹꽦?섏뼱 ?덈떎.
-- dirty worktree媛 ?덉슜???먮룞???곗텧臾??먮뒗 紐낆떆?곸쑝濡??덉슜??蹂寃쎌뿉 ?쒖젙?쒕떎.
-- build, lint, test, 由щ럭, 而ㅻ컠 媛숈? ?꾪뿕 ?④퀎???대떦 ?ㅽ겕由쏀듃??紐낆떆 ?듭뀡???덉쓣 ?뚮쭔 ?ㅽ뻾?쒕떎.
-- ?먮룞 而ㅻ컠? 寃利??듦낵, 由щ럭 pass, package ?뚯씪 誘몃?寃? task 踰붿쐞 ?쇱튂媛 ?뺤씤??寃쎌슦?먮쭔 ?덉슜?쒕떎.
+    return $path.Replace("\", "/")
+}
 
-## 寃利?湲곕줉 湲곗?
+function Test-OnlyAllowedPromptDirty {
+    param(
+        [string[]]$StatusLines,
+        [string]$PromptRelativePath
+    )
 
-寃利?寃곌낵???ㅼ젣濡??섑뻾????ぉ留?湲곕줉?쒕떎.
+    if ($StatusLines.Count -eq 0) {
+        return $true
+    }
 
-- build, lint, test瑜??ㅽ뻾?덈떎硫?紐낅졊, 寃곌낵, ?ㅽ뙣 ?붿빟??`.ai-dev/test-result.md`? ?꾩슂???곹깭 ?꾨뱶???④릿??
-- 臾몄꽌 ?묒뾽泥섎읆 紐낅졊 寃利앹씠 遺덊븘?뷀븯嫄곕굹 ?덉슜?섏? ?딆? 寃쎌슦?먮뒗 ?섎룞 寃????ぉ怨?誘몄떎???ъ쑀瑜?湲곕줉?쒕떎.
-- 由щ럭瑜??섑뻾?덈떎硫?decision, severity, summary, required changes, next step??`.ai-dev/review.md`? `
-state.json`??諛섏쁺?쒕떎.
-- ?ㅽ뙣??寃利앹쓣 ?듦낵濡?湲곕줉?섏? ?딅뒗??
-- ?ㅽ뻾?섏? ?딆? 寃利앹? `誘몄떎?? ?먮뒗 `?щ엺??蹂꾨룄 ?ㅽ뻾`?쇰줈 紐낇솗???④릿??
-- 媛숈? ?ㅽ뙣媛 諛섎났?섎㈃ 諛섎났 ?잛닔? 留덉?留??ㅽ뙣 ?붿빟??`state.json` ?먮뒗 `loop-log.md`???④릿??
+    foreach ($line in $StatusLines) {
+        $statusPath = Get-GitStatusPath $line
 
-## ?곹깭 湲곕줉 湲곗?
+        if ($statusPath -ne $PromptRelativePath) {
+            return $false
+        }
+    }
 
-?먮룞?붾뒗 ?щ엺???댁뼱???먮떒?????덈룄濡??ㅼ쓬 ?뺣낫瑜??④릿??
+    return $true
+}
 
-- `state.json`: ?꾩옱 goal/task, 留덉?留?紐낅졊, 紐낅졊 ?곹깭, 由щ럭 decision, 寃利??쒓컖, 以묐떒 ?ъ쑀, 諛섎났 ?ㅽ뙣 ?잛닔
-- `test-result.md`: ?ㅼ젣 寃利?紐낅졊 ?먮뒗 ?섎룞 寃??寃곌낵
-- `review.md`: Codex CLI ?먮뒗 ?섎룞 由щ럭 寃곌낵
-- `loop-log.md`: task 吏꾪뻾, ?꾨즺, 以묐떒, ?ㅽ뙣, 而ㅻ컠 寃곌낵???쒓컙 ?쒖꽌 ?붿빟
-- `diff.md`? `review-prompt.md`: 由щ럭???꾩슂??寃쎌슦?먮쭔 ?앹꽦?섎ŉ, ??diff??誘쇨컧 ?뺣낫 ?ы븿 ?щ?瑜?二쇱쓽?쒕떎.
+function New-CodexPrompt {
+    param(
+        [string]$PromptFilePath
+    )
 
-?곹깭 ?뚯씪? 湲곗〈 ?뺤떇怨??섎?瑜??좎??쒕떎. ?먮룞???몄쓽瑜??꾪빐 enum 媛믪씠??JSON 援ъ“瑜??꾩쓽濡?諛붽씀吏 ?딅뒗??
+    return @"
+Read and follow the full task prompt at this absolute file path: $PromptFilePath
 
-## 以묐떒 議곌굔
+Additional safety rules for this local AI Dev Loop run:
+- Do not run git commit, git reset, git checkout, git clean, git rebase, git merge, or git push.
+- Do not run npm install.
+- Do not modify package.json, package-lock.json, node_modules, dist, or .git.
+- Do not broaden the current task scope beyond the prompt file.
+- If the task requirements conflict with repository rules, stop and report the conflict.
+"@
+}
 
-?꾨옒 議곌굔 以??섎굹?쇰룄 諛쒖깮?섎㈃ ?먮룞?붾뒗 ?ㅼ쓬 ?④퀎濡?吏꾪뻾?섏? ?딄퀬 以묐떒 ?ъ쑀瑜?湲곕줉?쒕떎.
+function New-RunCommandText {
+    $arguments = @(
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "scripts/ai-dev-run-codex.ps1"
+    )
 
-- ?ъ슜??吏?? ??μ냼 洹쒖튃, ?꾩옱 task ?붽뎄?ы빆??異⑸룎?쒕떎.
-- ?꾩옱 task 踰붿쐞 諛??뚯씪 ?섏젙???꾩슂?섎떎.
-- package 異붽?, package ?뚯씪 蹂寃? lock file 蹂寃쎌씠 ?꾩슂?섎떎.
-- DB schema 蹂寃? ?곗씠????젣, 蹂듭썝, migration???꾩슂?섎떎.
-- package ?뚯씪 蹂寃? build/check ?ㅽ뙣, 由щ럭 `pass` ?꾨떂, 由щ럭 JSON ?뚯떛 ?ㅽ뙣媛 諛쒖깮?쒕떎.
-- ?덉긽?섏? 紐삵븳 ?ъ슜??蹂寃쎌씠 ?묒뾽 ?몃━???덈떎.
-- 媛숈? ?ㅻ쪟媛 諛섎났?섏뼱 ?꾩옱 task 踰붿쐞 ?덉뿉???덉쟾?섍쾶 ?닿껐?????녿떎.
-- 誘쇨컧 ?뺣낫, 媛쒖씤?뺣낫, 諛깆뾽 ?곗씠?? API key媛 diff??prompt???ы븿???꾪뿕???덈떎.
-- ?ㅽ듃?뚰겕, 沅뚰븳, sandbox ?쒗븳 ?뚮Ц??寃利??먮뒗 ?ㅽ뻾 寃곌낵瑜??좊ː?????녿떎.
-- ?먮룞?붽? ?꾩옱 task ?꾨즺 湲곗????먮떒??洹쇨굅瑜?異⑸텇???뺣낫?섏? 紐삵뻽??
+    if ($PromptPath -ne ".ai-dev/current-task-prompt.md") {
+        $arguments += "-PromptPath"
+        $arguments += $promptRelativePath
+    }
 
-以묐떒 ?쒖뿉???섏젙 媛?ν븳 踰붿쐞瑜??꾩쓽濡??볧엳吏 ?딅뒗?? ?꾩슂???ㅼ쓬 寃곗젙, ?ㅽ뙣???④퀎, ?щ엺???뺤씤???뚯씪??湲곕줉?섍퀬 硫덉텣??
+    if ($ResultPath -ne ".ai-dev/codex-result.md") {
+        $arguments += "-ResultPath"
+        $arguments += $resultRelativePath
+    }
 
-## ?꾨즺 湲곗?
+    if ($AllowDirty) {
+        $arguments += "-AllowDirty"
+    }
 
-?꾩옱 task???꾨옒 議곌굔??異⑹”?????꾨즺濡?蹂????덈떎.
+    if ($GeneratePromptIfMissing) {
+        $arguments += "-GeneratePromptIfMissing"
+    }
 
-- current task???깃났 湲곗???異⑹”?덈떎.
-- 蹂寃??뚯씪??task 踰붿쐞 ?덉뿉 ?덈떎.
-- ?꾩슂??寃利??먮뒗 ?섎룞 寃??寃곌낵媛 湲곕줉?먮떎.
-- 由щ럭媛 ?꾩슂??寃쎌슦 pass ?먮뒗 ?щ엺???뱀씤???곹깭??
-- ?먮룞 而ㅻ컠???붽뎄???먮쫫?먯꽌??而ㅻ컠 hash媛 ?곹깭??湲곕줉?먮떎.
-- ?먮룞 而ㅻ컠???붽뎄?섏? ?딆? ?먮쫫?먯꽌??誘몄빱諛??곹깭? ?꾩냽 議곗튂瑜?紐낇솗???④꼈??
-- ?ㅼ쓬 task濡??섏뼱媛???섎뒗吏 ?щ?媛 `loop-log.md` ?먮뒗 理쒖쥌 ?묒뾽 ?붿빟??湲곕줉?먮떎.
+    return "powershell $($arguments -join ' ')"
+}
 
- succeeded in 2213ms:
-# 목표
-Codex CLI 완전 자동화 정책을 현재 저장소의 로컬 AI Dev Loop 운영 문서로 작고 명확하게 정리한다.
+Set-Location $repoRoot
 
-## 배경
-현재 프로젝트는 로컬 우선 React + Vite + TypeScript 앱이며, AI Dev Loop 상태 파일을 기준으로 작은 단위의 작업을 안전하게 진행해야 한다. C
-odex CLI 자동화가 어떤 조건에서 진행되고, 언제 멈추며, 어떤 검증 정보를 남겨야 하는지 문서화가 필요하다.
+$promptRelativePath = ConvertTo-RepoRelativePath $PromptPath
+$resultRelativePath = ConvertTo-RepoRelativePath $ResultPath
+$resolvedPromptPath = [System.IO.Path]::GetFullPath((Resolve-RepoPath $PromptPath))
+$resolvedResultPath = [System.IO.Path]::GetFullPath((Resolve-RepoPath $ResultPath))
+$statusLines = @(Get-GitStatusLines)
 
-## 성공 기준
-- Codex CLI 자동화 정책의 목적, 적용 범위, 중단 조건, 검증 기록 방식을 한국어로 문서화한다.
-- 기존 프로젝트 제약을 해치지 않는 작은 문서 변경으로 제한한다.
-- 자동화가 임의로 기능 범위를 넓히지 않도록 작업 단위와 상태 기록 기준을 명확히 한다.
+if ($statusLines.Count -gt 0 -and -not $AllowDirty) {
+    if (-not (Test-OnlyAllowedPromptDirty $statusLines $promptRelativePath)) {
+        $dirtyText = ($statusLines -join "`n")
+        $message = "작업 트리가 dirty 상태라 Codex 실행을 중단합니다. 계속하려면 변경사항을 정리하거나 -AllowDirty를 명시하세요.`n$di
+rtyText"
+        Write-RunResult "run_codex" $false 1 $message
+    }
+}
 
-## 제약사항
-- 앱 런타임 코드와 저장 구조는 변경하지 않는다.
-- 사용자-facing 문서는 한국어로 작성한다.
-- 기존 AI Dev Loop 상태 파일 형식과 충돌하지 않게 작성한다.
-- 한 번에 하나의 작은 문서 작업으로 진행한다.
+if (-not (Test-Path -LiteralPath $resolvedPromptPath -PathType Leaf)) {
+    if (-not $GeneratePromptIfMissing) {
+        $message = "프롬프트 파일이 없습니다: $promptRelativePath`n먼저 다음 명령을 실행하세요: powershell -ExecutionPo
+licy Bypass -File scripts/ai-dev-make-prompt.ps1"
+        Write-RunResult "run_codex" $false 1 $message
+    }
 
-## 범위 제외
-- 새 기능 구현은 포함하지 않는다.
-- UI 변경은 포함하지 않는다.
-- 저장소 구조 개편은 포함하지 않는다.
-- 자동화 실행 도구 자체의 구현 변경은 포함하지 않는다.
+    $makePromptPath = Join-Path $PSScriptRoot "ai-dev-make-prompt.ps1"
 
-## 수동 검증
-- 작성된 정책 문서가 현재 저장소 작업 규칙과 모순되지 않는지 확인한다.
-- 정책 문서에 목표 진행, 검증, 중단 조건이 구체적으로 포함되어 있는지 확인한다.
-- 변경 파일 수가 최소 범위인지 확인한다.
+    if (-not (Test-Path -LiteralPath $makePromptPath -PathType Leaf)) {
+        Write-RunResult "run_codex" $false 1 "프롬프트 생성 스크립트를 찾을 수 없습니다: scripts/ai-dev-make-promp
+t.ps1"
+    }
 
-codex
-정책 문서는 PowerShell 기본 인코딩 출력에서 글자가 깨져 보입니다. 내용 판단이 필요하므로 같은 파일을 UTF-8 인코딩으로 다시 읽겠습니다.
-exec
-"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralP
-ath 'D:\\ai-apps\\planpilot-local\\.ai-dev\\codex-cli-automation-policy.md' -Encoding UTF8" in D
-:\ai-apps\planpilot-local
- succeeded in 1356ms:
-# Codex CLI 완전 자동화 정책
+    $makePromptOutput = & powershell -ExecutionPolicy Bypass -File $makePromptPath 2>&1 | Out-St
+ring
 
-이 문서는 PlanPilot Local의 로컬 AI Dev Loop에서 Codex CLI 자동화를 사용할 때의 목적, 적용 범위, 작업 단위, 검증 기록, 중단 조건을 정리
-한다. 자동화는 작은 task를 안전하게 끝내기 위한 보조 흐름이며, 저장소 규칙과 사용자 지시보다 우선하지 않는다.
+    if ($LASTEXITCODE -ne 0) {
+        Write-RunResult "run_codex" $false 1 "프롬프트 생성에 실패했습니다: $($makePromptOutput.Trim())"
+    }
+}
 
-## 목적
+if (-not (Test-Path -LiteralPath $resolvedPromptPath -PathType Leaf)) {
+    Write-RunResult "run_codex" $false 1 "프롬프트 파일을 찾을 수 없습니다: $promptRelativePath"
+}
 
-- `.ai-dev/goal.md`, `.ai-dev/queue.json`, `.ai-dev/state.json`을 기준으로 현재 task 하나만 구현, 검증, 리뷰, 기록
-한다.
-- Codex CLI를 구현자와 리뷰어로 사용할 때 필요한 허용 조건과 중단 조건을 명확히 한다.
-- 자동화가 임의로 기능 범위, 파일 범위, 검증 범위를 넓히지 않도록 상태 파일에 근거를 남긴다.
-- 검증하지 않은 결과를 통과로 기록하지 않고, 사람이 이어서 판단할 수 있는 최소 정보를 남긴다.
+$codexPrompt = New-CodexPrompt $resolvedPromptPath
+$commandText = New-RunCommandText
 
-## 적용 범위
+if ($DryRun) {
+    $message = @"
+Codex 구현 실행 DryRun입니다.
+- EntryPoint: scripts/ai-dev-run-codex.ps1
+- Repository: $repoRoot
+- Prompt: $promptRelativePath
+- Result: $resultRelativePath
+- Command: $commandText
+- CodexCommand: codex exec <wrapper prompt reading $promptRelativePath>
+- AllowDirty: $([bool]$AllowDirty)
+- DirtyCount: $($statusLines.Count)
+"@
 
-이 정책은 현재 저장소 `D:\ai-apps\planpilot-local` 안에서 실행되는 로컬 AI Dev Loop에만 적용한다.
+    Write-RunResult "run_codex" $false 0 $message
+}
 
-적용 대상:
+$codexCommand = Get-Command codex -ErrorAction SilentlyContinue
 
-- 현재 goal과 current task 분석
-- `current-task-prompt.md` 생성
-- Codex CLI 기반 현재 task 구현
-- 필요한 build, lint, test 또는 수동 검증 기록
-- diff 저장과 Codex CLI 리뷰
-- 리뷰 pass 이후 task 완료 처리와 필요한 경우 자동 커밋
-- 실패, 중단, 검증 결과를 `.ai-dev` 상태 파일에 기록하는 작업
+if ($null -eq $codexCommand) {
+    Write-RunResult "run_codex" $false 1 "Codex CLI를 찾을 수 없습니다. codex 명령을 사용할 수 있는지 확인하세요."
+}
 
-적용 제외:
+$startedAt = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+$codexOutput = & codex exec $codexPrompt 2>&1 | Out-String
+$codexExitCode = $LASTEXITCODE
+$endedAt = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
 
-- 새 기능을 current task 밖으로 확장하는 작업
-- 서버 API, 로그인, 클라우드 동기화, 알림, Capacitor 추가
-- DB 삭제, 초기화, 복원, 계획 없는 migration
-- package 설치, package 파일 변경, lock file 변경
-- git push, PR 생성, 배포
-- 사용자 변경 사항 되돌리기
+$resultContent = @"
+# Codex Implementation Result
 
-## 작업 단위 기준
+## Run
 
-- 한 번에 하나의 goal 안에서 하나의 current task만 처리한다.
-- 자동화는 `queue.json`의 current task 목적, scope, verification에 직접 필요한 파일만 수정한다.
-- 현재 task가 문서 작업이면 앱 런타임 코드와 저장 구조를 변경하지 않는다.
-- 현재 task가 앱 기능 작업이면 문서 보강, 리팩터링, 후속 개선을 임의로 함께 묶지 않는다.
-- 큰 변경이 필요하다고 판단되면 현재 task에서 확장하지 않고 별도 task로 분리하거나 중단한다.
-- `src/App.tsx`, `src/db.ts`, package 파일처럼 영향 범위가 큰 파일은 task 요구와 migration 계획이 명확할 때만 다룬다.
+- Started at: $startedAt
+- Ended at: $endedAt
+- Exit code: $codexExitCode
+- Prompt: $promptRelativePath
+- Command: $commandText
 
-## 자동 실행 허용 조건
+## Output
 
-Codex CLI 자동화는 아래 조건이 충족될 때만 다음 단계로 진행한다.
+${codeFence}text
+$codexOutput
+$codeFence
+"@
 
-- 사용자 지시, `AGENTS.md`, 현재 task prompt가 서로 충돌하지 않는다.
-- 작업 경로가 이 저장소 루트이며, 허용된 파일 범위가 명확하다.
-- current task가 존재하고 상태가 `in_progress` 또는 실행 가능한 상태다.
-- 필요한 prompt 파일이 현재 goal과 current task 기준으로 생성되어 있다.
-- dirty worktree가 허용된 자동화 산출물 또는 명시적으로 허용된 변경에 한정된다.
-- build, lint, test, 리뷰, 커밋 같은 위험 단계는 해당 스크립트의 명시 옵션이 있을 때만 실행한다.
-- 자동 커밋은 검증 통과, 리뷰 pass, package 파일 미변경, task 범위 일치가 확인된 경우에만 허용한다.
+[System.IO.File]::WriteAllText($resolvedResultPath, $resultContent, $utf8WithBom)
 
-## 검증 기록 기준
+if ($codexExitCode -ne 0) {
+    Write-RunResult "run_codex" $true 1 "Codex 실행에 실패했습니다. 결과 파일을 확인하세요: $resultRelativePath"
+}
 
-검증 결과는 실제로 수행한 항목만 기록한다.
-
-- build, lint, test를 실행했다면 명령, 결과, 실패 요약을 `.ai-dev/test-result.md`와 필요한 상태 필드에 남긴다.
-- 문서 작업처럼 명령 검증이 불필요하거나 허용되지 않은 경우에는 수동 검토 항목과 미실행 사유를 기록한다.
-- 리뷰를 수행했다면 decision, severity, summary, required changes, next step을 `.ai-dev/review.md`와 `stat
-e.json`에 반영한다.
-- 실패한 검증을 통과로 기록하지 않는다.
-- 실행하지 않은 검증은 `미실행` 또는 `사람이 별도 실행`으로 명확히 남긴다.
-- 같은 실패가 반복되면 반복 횟수와 마지막 실패 요약을 `state.json` 또는 `loop-log.md`에 남긴다.
-
-## 상태 기록 기준
-
-자동화는 사람이 이어서 판단할 수 있도록 다음 정보를 남긴다.
-
-- `state.json`: 현재 goal/task, 마지막 명령, 명령 상태, 리뷰 decision, 검증 시각, 중단 사유, 반복 실패 횟수
-- `test-result.md`: 실제 검증 명령 또는 수동 검토 결과
-- `review.md`: Codex CLI 또는 수동 리뷰 결과
-- `loop-log.md`: task 진행, 완료, 중단, 실패, 커밋 결과의 시간 순서 요약
-- `diff.md`와 `review-prompt.md`: 리뷰에 필요한 경우에만 생성하며, 큰 diff나 민감 정보 포함 여부를 주의한다.
-
-상태 파일은 기존 형식과 의미를 유지한다. 자동화 편의를 위해 enum 값이나 JSON 구조를 임의로 바꾸지 않는다.
-
-## 중단 조건
-
-아래 조건 중 하나라도 발생하면 자동화는 다음 단계로 진행하지 않고 중단 사유를 기록한다.
-
-- 사용자 지시, 저장소 규칙, 현재 task 요구사항이 충돌한다.
-- 현재 task 범위 밖 파일 수정이 필요하다.
-- package 추가, package 파일 변경, lock file 변경이 필요하다.
-- DB schema 변경, 데이터 삭제, 복원, migration이 필요하다.
-- package 파일 변경, build/check 실패, 리뷰 `pass` 아님, 리뷰 JSON 파싱 실패가 발생한다.
-- 예상하지 못한 사용자 변경이 작업 트리에 있다.
-- 같은 오류가 반복되어 현재 task 범위 안에서 안전하게 해결할 수 없다.
-- 민감 정보, 개인정보, 백업 데이터, API key가 diff나 prompt에 포함될 위험이 있다.
-- 네트워크, 권한, sandbox 제한 때문에 검증 또는 실행 결과를 신뢰할 수 없다.
-- 자동화가 현재 task 완료 기준을 판단할 근거를 충분히 확보하지 못했다.
-
-중단 시에는 수정 가능한 범위를 임의로 넓히지 않는다. 필요한 다음 결정, 실패한 단계, 사람이 확인할 파일을 기록하고 멈춘다.
-
-## 완료 기준
-
-현재 task는 아래 조건이 충족될 때 완료로 볼 수 있다.
-
-- current task의 성공 기준을 충족했다.
-- 변경 파일이 task 범위 안에 있다.
-- 필요한 검증 또는 수동 검토 결과가 기록됐다.
-- 리뷰가 필요한 경우 pass 또는 사람이 승인한 상태다.
-- 자동 커밋이 요구된 흐름에서는 커밋 hash가 상태에 기록됐다.
-- 자동 커밋이 요구되지 않은 흐름에서는 미커밋 상태와 후속 조치를 명확히 남겼다.
-- 다음 task로 넘어가도 되는지 여부가 `loop-log.md` 또는 최종 작업 요약에 기록됐다.
+Write-RunResult "run_codex" $true 0 "Codex 실행이 완료되었습니다. 결과 파일: $resultRelativePath"
 
 codex
 {
   "decision": "pass",
   "severity": "none",
-  "summary": "정책 문서는 현재 T001 요구사항인 목적, 적용 범위, 작업 단위, 검증 기록, 중단 조건을 한국어로 포함하며 앱 런타임 코드 변경 없이 .ai-
-dev 운영 문서 범위에 머물렀다.",
+  "summary": "Codex 구현 실행 스크립트 변경은 현재 T001 범위에 맞고, package/lock/UI/DB 변경 없이 최소 범위로 유지되었습니다.",
   "required_changes": [],
-  "optional_suggestions": [],
+  "optional_suggestions": [
+    {
+      "file": "scripts/ai-dev-run-codex.ps1",
+      "suggestion": "PromptPath 또는 ResultPath에 공백이 포함될 가능성까지 고려하려면 DryRun에 표시되는 Command 문자열에서 인자
+ quoting을 보강할 수 있습니다."
+    }
+  ],
   "scope_check": {
     "within_current_task": true,
     "scope_issues": []
   },
   "test_check": {
     "build_passed": true,
-    "test_passed": false,
+    "test_passed": true,
     "lint_passed": true,
     "issues": [
-      "package.json에 test script가 없어 npm run test는 skipped 상태이나, 이번 작업은 문서 변경이며 build와 lint는 통과했
-다."
+      "npm run test는 package.json에 test script가 없어 skipped로 기록되었지만, 이번 변경 범위가 PowerShell 스크립트에 한
+정되어 있어 차단 사유로 보지는 않았습니다."
     ]
   },
   "next_step": "complete_task"
 }
 tokens used
-41,322
 {
   "decision": "pass",
   "severity": "none",
-  "summary": "정책 문서는 현재 T001 요구사항인 목적, 적용 범위, 작업 단위, 검증 기록, 중단 조건을 한국어로 포함하며 앱 런타임 코드 변경 없이 .ai-dev 운영 문서 범위에 머물렀다.",
+  "summary": "Codex 구현 실행 스크립트 변경은 현재 T001 범위에 맞고, package/lock/UI/DB 변경 없이 최소 범위로 유지되었습니다.",
   "required_changes": [],
-  "optional_suggestions": [],
+  "optional_suggestions": [
+    {
+      "file": "scripts/ai-dev-run-codex.ps1",
+      "suggestion": "PromptPath 또는 ResultPath에 공백이 포함될 가능성까지 고려하려면 DryRun에 표시되는 Command 문자열에서 인자 quoting을 보강할 수 있습니다."
+    }
+  ],
   "scope_check": {
     "within_current_task": true,
     "scope_issues": []
   },
   "test_check": {
     "build_passed": true,
-    "test_passed": false,
+    "test_passed": true,
     "lint_passed": true,
     "issues": [
-      "package.json에 test script가 없어 npm run test는 skipped 상태이나, 이번 작업은 문서 변경이며 build와 lint는 통과했다."
+      "npm run test는 package.json에 test script가 없어 skipped로 기록되었지만, 이번 변경 범위가 PowerShell 스크립트에 한정되어 있어 차단 사유로 보지는 않았습니다."
     ]
   },
   "next_step": "complete_task"
 }
+7,106
 
 ```

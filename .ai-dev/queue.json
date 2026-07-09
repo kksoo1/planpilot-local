@@ -1,31 +1,31 @@
 ﻿{
-    "goalTitle":  "Codex CLI 완전 자동화 정책 문서화",
+    "goalTitle":  "Codex 구현 실행 스크립트 추가",
     "goalSource":  ".ai-dev/goal.md",
-    "createdAt":  "2026-07-09T00:00:00+09:00",
-    "updatedAt":  "2026-07-09T13:40:14.4966876+00:00",
+    "createdAt":  "2026-07-09T22:55:53.0582684+09:00",
+    "updatedAt":  "2026-07-09T14:02:46.1935870+00:00",
     "currentTaskId":  null,
     "tasks":  [
                   {
                       "id":  "T001",
-                      "title":  "Codex CLI 자동화 정책 문서 작성",
-                      "description":  "현재 저장소의 로컬 AI Dev Loop 운영 방식에 맞춰 Codex CLI 완전 자동화 정책을 한국어 문서로 정리한다.",
-                      "type":  "documentation",
+                      "title":  "Codex 구현 실행 스크립트 추가",
+                      "description":  "현재 저장소의 스크립트 구조를 확인하고, Codex 구현 단계를 실행하기 위한 최소 스크립트 또는 설정 연결을 추가한다.",
+                      "type":  "implementation",
                       "status":  "done",
                       "priority":  "P0",
                       "dependsOn":  [
 
                                     ],
                       "filesLikelyToChange":  [
-                                                  ".ai-dev/goal.md",
-                                                  ".ai-dev/codex-cli-automation-policy.md"
+                                                  "package.json",
+                                                  ".ai-dev/scripts/codex-implement.ps1"
                                               ],
                       "verification":  [
-                                           "정책 문서에 목적, 적용 범위, 작업 단위, 검증 기록, 중단 조건이 포함되어 있는지 확인한다.",
-                                           "문서 내용이 현재 저장소 작업 규칙과 충돌하지 않는지 확인한다."
+                                           "변경 파일을 확인해 스크립트 경로와 명령이 저장소 구조와 일치하는지 검토한다.",
+                                           "허용된 경우에만 관련 스크립트를 수동으로 실행해 동작을 확인한다."
                                        ],
-                      "commitMessage":  "Document Codex CLI automation policy",
-                      "completedAt":  "2026-07-09T13:40:14.4966876+00:00",
-                      "resultSummary":  "자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 구현 커밋 없음, 저장된 리뷰 pass에서 자동 완료"
+                      "commitMessage":  "Add Codex implementation script",
+                      "completedAt":  "2026-07-09T14:02:46.1935870+00:00",
+                      "resultSummary":  "자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료"
                   }
               ]
 }
