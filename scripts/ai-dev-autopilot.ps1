@@ -95,6 +95,58 @@ function Add-LoopLogEntry {
     [System.IO.File]::AppendAllText($loopLogPath, ($entryLines -join "`r`n"), $utf8WithBom)
 }
 
+function Invoke-AutopilotLoopLogMetaCommit {
+    param([int]$StepNumber)
+
+    if ($DryRun) {
+        return New-StepResult $StepNumber "autopilot-meta-commit" $false $true 0 "DryRun: autopilot loop-log meta commit was not executed."
+    }
+
+    if (-not $AllowCommit) {
+        return New-StepResult $StepNumber "autopilot-meta-commit" $false $true 0 "AllowCommit is not set, so autopilot loop-log meta commit was not executed."
+    }
+
+    $statusOutput = & git status --short -- $loopLogRelativePath 2>&1 | Out-String
+    $statusExitCode = $LASTEXITCODE
+
+    if ($statusExitCode -ne 0) {
+        return New-StepResult $StepNumber "autopilot-meta-commit" $true $false 1 "git status for autopilot loop-log failed. exit code: $statusExitCode`n$statusOutput"
+    }
+
+    if (-not (Test-HasValue $statusOutput)) {
+        return New-StepResult $StepNumber "autopilot-meta-commit" $true $false 0 "Autopilot loop-log had no changes to commit."
+    }
+
+    $addOutput = & git add -- $loopLogRelativePath 2>&1 | Out-String
+    $addExitCode = $LASTEXITCODE
+
+    if ($addExitCode -ne 0) {
+        return New-StepResult $StepNumber "autopilot-meta-commit" $true $false 1 "Autopilot loop-log git add failed. exit code: $addExitCode`n$addOutput"
+    }
+
+    $metaCommitMessage = "chore(ai-dev): record autopilot progress"
+    $commitOutput = & git commit -m $metaCommitMessage -- $loopLogRelativePath 2>&1 | Out-String
+    $commitExitCode = $LASTEXITCODE
+
+    if ($commitExitCode -ne 0) {
+        return New-StepResult $StepNumber "autopilot-meta-commit" $true $false 1 "Autopilot loop-log meta commit failed. exit code: $commitExitCode`n$commitOutput"
+    }
+
+    $remainingStatus = & git status --short 2>&1 | Out-String
+    $remainingStatusExitCode = $LASTEXITCODE
+
+    if ($remainingStatusExitCode -ne 0) {
+        return New-StepResult $StepNumber "autopilot-meta-commit" $true $false 1 "Autopilot final clean verification failed because git status failed. exit code: $remainingStatusExitCode`n$remainingStatus"
+    }
+
+    if (Test-HasValue $remainingStatus) {
+        return New-StepResult $StepNumber "autopilot-meta-commit" $true $false 1 "Autopilot final clean verification failed: git status --short still reports changes after the loop-log meta commit.`n$remainingStatus"
+    }
+
+    $message = ($commitOutput.Trim(), "Autopilot final clean verification: git status --short returned no changes.") -join "`n"
+    return New-StepResult $StepNumber "autopilot-meta-commit" $true $false 0 $message
+}
+
 function Save-AutopilotFailureState {
     param(
         [string]$StoppedReason,
@@ -630,6 +682,15 @@ for ($goalIndex = 1; $goalIndex -le $MaxGoals; $goalIndex++) {
     }
 
     Add-LoopLogEntry "Autopilot goal prepared" $loopLogLines
+
+    if ($AllowCommit) {
+        $metaCommitStep = Invoke-AutopilotLoopLogMetaCommit ($steps.Count + 1)
+        $steps += $metaCommitStep
+
+        if ($metaCommitStep.exitCode -ne 0) {
+            Stop-Autopilot $steps "autopilot_meta_commit_failed" $false 1 $preparedGoals $metaCommitStep.message
+        }
+    }
 
     if (-not ($AllowRun -or $AllowCodex -or $AllowReviewCodex -or $AllowCommit)) {
         Stop-Autopilot $steps "prepared_without_full_cycle" $true 0 $preparedGoals
