@@ -118,7 +118,45 @@ function New-CodexPrompt {
         [string]$PromptFilePath
     )
 
-    return "Read and follow the full task prompt at this absolute file path: $PromptFilePath"
+    return @"
+Read and follow the full task prompt at this absolute file path: $PromptFilePath
+
+Additional safety rules for this local AI Dev Loop run:
+- Do not run git commit, git reset, git checkout, git clean, git rebase, git merge, or git push.
+- Do not run npm install.
+- Do not modify package.json, package-lock.json, node_modules, dist, or .git.
+- Do not broaden the current task scope beyond the prompt file.
+- If the task requirements conflict with repository rules, stop and report the conflict.
+"@
+}
+
+function New-RunCommandText {
+    $arguments = @(
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "scripts/ai-dev-run-codex.ps1"
+    )
+
+    if ($PromptPath -ne ".ai-dev/current-task-prompt.md") {
+        $arguments += "-PromptPath"
+        $arguments += $promptRelativePath
+    }
+
+    if ($ResultPath -ne ".ai-dev/codex-result.md") {
+        $arguments += "-ResultPath"
+        $arguments += $resultRelativePath
+    }
+
+    if ($AllowDirty) {
+        $arguments += "-AllowDirty"
+    }
+
+    if ($GeneratePromptIfMissing) {
+        $arguments += "-GeneratePromptIfMissing"
+    }
+
+    return "powershell $($arguments -join ' ')"
 }
 
 Set-Location $repoRoot
@@ -161,15 +199,17 @@ if (-not (Test-Path -LiteralPath $resolvedPromptPath -PathType Leaf)) {
 }
 
 $codexPrompt = New-CodexPrompt $resolvedPromptPath
-$commandText = "codex exec <short wrapper pointing to $promptRelativePath>"
+$commandText = New-RunCommandText
 
 if ($DryRun) {
     $message = @"
 Codex 구현 실행 DryRun입니다.
+- EntryPoint: scripts/ai-dev-run-codex.ps1
 - Repository: $repoRoot
 - Prompt: $promptRelativePath
 - Result: $resultRelativePath
 - Command: $commandText
+- CodexCommand: codex exec <wrapper prompt reading $promptRelativePath>
 - AllowDirty: $([bool]$AllowDirty)
 - DirtyCount: $($statusLines.Count)
 "@
