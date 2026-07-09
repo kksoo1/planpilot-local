@@ -1155,14 +1155,29 @@ while ($completedTaskCount -lt $MaxTasks) {
     if ($commitArguments.Count -eq 0) {
         $script:steps += New-StepResult $stepNumber "commit" "git status --porcelain" $false $true 0 "커밋할 구현 변경사항이 없습니다. 저장된 리뷰 pass 상태를 유지하고 complete-task/meta-commit으로 계속 진행합니다."
         $stepNumber++
-        $script:steps += New-StepResult $stepNumber "commit-result-gate" "state.lastCommitHash 확인" $false $true 0 "새 구현 커밋이 없습니다. 기존 lastCommitHash가 있으면 complete-task에 전달하고, 없으면 CommitHash 없이 완료 처리합니다."
-        $stepNumber++
 
         $stateBeforeComplete = Read-JsonFile $statePath $stateRelativePath
 
-        if (Test-HasValue $stateBeforeComplete.lastCommitHash) {
-            $commitHashForComplete = [string]$stateBeforeComplete.lastCommitHash
+        try {
+            $currentHeadCommitHash = Invoke-GitCapture -Arguments @("rev-parse", "HEAD") -DisplayName "git rev-parse HEAD"
+        } catch {
+            $script:steps += New-StepResult $stepNumber "commit-result-gate" "git rev-parse HEAD" $false $false 1 $_.Exception.Message
+            Stop-Cycle $script:steps "no_change_head_failed" $false 1
         }
+
+        if (Test-HasValue $stateBeforeComplete.lastCommitHash) {
+            $savedLastCommitHash = [string]$stateBeforeComplete.lastCommitHash
+
+            if ($savedLastCommitHash -eq $currentHeadCommitHash) {
+                $commitHashForComplete = $savedLastCommitHash
+                $script:steps += New-StepResult $stepNumber "commit-result-gate" "state.lastCommitHash 및 git rev-parse HEAD 확인" $false $true 0 "새 구현 커밋이 없습니다. state.lastCommitHash가 현재 HEAD와 일치하여 complete-task에 CommitHash를 전달합니다: $commitHashForComplete"
+            } else {
+                $script:steps += New-StepResult $stepNumber "commit-result-gate" "state.lastCommitHash 및 git rev-parse HEAD 확인" $false $true 0 "새 구현 커밋이 없습니다. stale state.lastCommitHash를 무시하고 CommitHash 없이 complete-task를 실행합니다. state.lastCommitHash=$savedLastCommitHash, currentHead=$currentHeadCommitHash"
+            }
+        } else {
+            $script:steps += New-StepResult $stepNumber "commit-result-gate" "state.lastCommitHash 및 git rev-parse HEAD 확인" $false $true 0 "새 구현 커밋이 없습니다. state.lastCommitHash가 없어 CommitHash 없이 complete-task를 실행합니다. currentHead=$currentHeadCommitHash"
+        }
+        $stepNumber++
 
         $resultSummary = "$resultSummary, 구현 커밋 없음, 저장된 리뷰 pass에서 자동 완료"
     } else {
