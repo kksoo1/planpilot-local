@@ -1,30 +1,30 @@
 ﻿{
-    "goalTitle":  "Codex 구현 실행 스크립트 추가",
+    "goalTitle":  "Codex CLI 완전 자동화 정책 문서화",
     "goalSource":  ".ai-dev/goal.md",
-    "createdAt":  "2026-07-09T22:55:53.0582684+09:00",
-    "updatedAt":  "2026-07-09T14:02:46.1935870+00:00",
+    "createdAt":  "2026-07-12T00:00:00+09:00",
+    "updatedAt":  "2026-07-12T13:00:18.9015074+00:00",
     "currentTaskId":  null,
     "tasks":  [
                   {
                       "id":  "T001",
-                      "title":  "Codex 구현 실행 스크립트 추가",
-                      "description":  "현재 저장소의 스크립트 구조를 확인하고, Codex 구현 단계를 실행하기 위한 최소 스크립트 또는 설정 연결을 추가한다.",
-                      "type":  "implementation",
+                      "title":  "Codex CLI 자동화 정책 문서 초안 작성",
+                      "description":  "현재 저장소의 로컬 개발 규칙을 기준으로 Codex CLI가 자동으로 진행할 수 있는 범위, 사용자 확인이 필요한 상황, 중단 기준을 작고 명확한 문서로 정리한다.",
+                      "type":  "documentation",
                       "status":  "done",
                       "priority":  "P0",
                       "dependsOn":  [
 
                                     ],
                       "filesLikelyToChange":  [
-                                                  "package.json",
-                                                  ".ai-dev/scripts/codex-implement.ps1"
+                                                  "docs/codex-cli-automation-policy.md"
                                               ],
                       "verification":  [
-                                           "변경 파일을 확인해 스크립트 경로와 명령이 저장소 구조와 일치하는지 검토한다.",
-                                           "허용된 경우에만 관련 스크립트를 수동으로 실행해 동작을 확인한다."
+                                           "문서에 자동화 범위가 한국어로 정리되어 있는지 확인한다.",
+                                           "사용자 확인이 필요한 상황과 중단 기준이 포함되어 있는지 확인한다.",
+                                           "현재 프로젝트 제약사항과 충돌하는 내용이 없는지 확인한다."
                                        ],
-                      "commitMessage":  "Add Codex implementation script",
-                      "completedAt":  "2026-07-09T14:02:46.1935870+00:00",
+                      "commitMessage":  "Document Codex CLI automation policy",
+                      "completedAt":  "2026-07-12T13:00:18.9015074+00:00",
                       "resultSummary":  "자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료"
                   }
               ]

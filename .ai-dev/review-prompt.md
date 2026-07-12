@@ -15,54 +15,53 @@
 ## Project Goal
 
 # 목표
-Codex 구현 실행 스크립트 추가
+Codex CLI 완전 자동화 정책을 현재 로컬 프로젝트 운영 방식에 맞춰 문서화한다.
 
 ## 배경
-현재 저장소의 P0 백로그 항목인 "Codex 구현 실행 스크립트 추가"를 현재 구조에 맞는 가장 작은 실행 가능한 개발 목표로 준비한다. 목표는 로컬 AI Dev Loop에서 Codex 구현 단계를 일관되게 실행할 수 있는 스크립트 초안을 추가하는 것이다.
+PlanPilot Local은 로컬 우선 React + Vite + TypeScript 앱이며, AI Dev Loop가 반복 작업을 수행할 때 따라야 할 자동화 범위와 중단 기준이 명확해야 한다. 이번 목표는 P0 백로그 항목인 Codex CLI 완전 자동화 정책 문서화를 가장 작은 실행 단위로 정리하는 것이다.
 
 ## 성공 기준
-- 저장소의 기존 스크립트/설정 구조를 확인한다.
-- Codex 구현 실행에 필요한 최소 스크립트를 추가하거나 기존 설정에 연결한다.
-- 실행 방법이 명확하게 드러나도록 필요한 최소 문서를 함께 정리한다.
-- 변경 범위는 스크립트 추가와 직접 관련된 파일로 제한한다.
+- Codex CLI 자동화가 수행할 수 있는 작업 범위가 한국어로 명확히 문서화된다.
+- 자동화 중 사용자 확인이 필요한 상황과 중단 기준이 포함된다.
+- 저장소의 기존 제약사항과 로컬 우선 원칙을 벗어나지 않는다.
+- 문서는 작고 독립적인 변경으로 작성된다.
 
 ## 제약사항
-- 한 번에 하나의 기능만 구현한다.
-- 기존 프로젝트 구조와 명명 규칙을 따른다.
-- 사용자-facing 문구는 한국어를 기본으로 한다.
-- 불필요한 대규모 재작성이나 추상화를 하지 않는다.
-- lock file은 수정하지 않는다.
+- 한 번에 하나의 문서화 작업만 진행한다.
+- 기존 앱 구조나 런타임 동작은 변경하지 않는다.
+- 사용자-facing 문구는 한국어로 작성한다.
+- 자동화 정책은 현재 저장소의 로컬 개발 흐름을 기준으로 작성한다.
 
 ## 범위 제외
-- 앱 UI 변경은 포함하지 않는다.
-- 데이터베이스 스키마 변경은 포함하지 않는다.
-- 알림, 동기화, 인증 기능은 포함하지 않는다.
-- 배포 자동화나 외부 연동 확장은 포함하지 않는다.
+- 앱 기능 구현은 포함하지 않는다.
+- 화면 UI 변경은 포함하지 않는다.
+- 데이터 스키마 변경은 포함하지 않는다.
+- 배포 자동화 구현은 포함하지 않는다.
 
 ## 수동 검증
-- 추가된 스크립트 파일 또는 package script가 의도한 명령을 가리키는지 확인한다.
-- 스크립트 실행 전 필요한 입력 파일 경로가 저장소 기준으로 올바른지 확인한다.
-- 변경된 파일만 검토하여 범위가 과도하게 넓어지지 않았는지 확인한다.
+- 작성된 문서를 읽고 자동화 허용 범위, 중단 기준, 사용자 확인 지점이 이해 가능한지 확인한다.
+- 문서 내용이 현재 프로젝트 규칙과 충돌하지 않는지 확인한다.
 
 ## Current Task
 
 - Task ID: T001
-- Title: Codex 구현 실행 스크립트 추가
-- Description: 현재 저장소의 스크립트 구조를 확인하고, Codex 구현 단계를 실행하기 위한 최소 스크립트 또는 설정 연결을 추가한다.
-- Type: implementation
+- Title: Codex CLI 자동화 정책 문서 초안 작성
+- Description: 현재 저장소의 로컬 개발 규칙을 기준으로 Codex CLI가 자동으로 진행할 수 있는 범위, 사용자 확인이 필요한 상황, 중단 기준을 작고 명확한 문서로 정리한다.
+- Type: documentation
 - Status: in_progress
 - Priority: P0
 - Depends on:
 - 없음
 - Verification:
-- 변경 파일을 확인해 스크립트 경로와 명령이 저장소 구조와 일치하는지 검토한다.
-- 허용된 경우에만 관련 스크립트를 수동으로 실행해 동작을 확인한다.
+- 문서에 자동화 범위가 한국어로 정리되어 있는지 확인한다.
+- 사용자 확인이 필요한 상황과 중단 기준이 포함되어 있는지 확인한다.
+- 현재 프로젝트 제약사항과 충돌하는 내용이 없는지 확인한다.
 
 ## Test Result
 
 # AI Dev Test Result
 
-## 2026-07-09 23:01:35
+## 2026-07-12 21:59:02
 
 - Overall result: passed
 - Current task: T001
@@ -91,7 +90,7 @@ dist/index.html                   0.46 kB │ gzip:   0.29 kB
 dist/assets/index-DvjxWt30.css    5.69 kB │ gzip:   1.93 kB
 dist/assets/index-DtLVvPCG.js   317.50 kB │ gzip: 100.16 kB
 
-[32m✓ built in 259ms[39m
+[32m✓ built in 559ms[39m
 ```
 ### npm run test
 
@@ -118,43 +117,31 @@ package.json에 test script가 없습니다.
 
 ## Generated At
 
-2026-07-09 23:01:42
+2026-07-12 21:59:11
 
 ## Git Status
 
 ```text
  M .ai-dev/codex-result.md
- M .ai-dev/codex-review-result.md
  M .ai-dev/current-task-prompt.md
- M .ai-dev/diff.md
  M .ai-dev/goal.md
  M .ai-dev/queue.json
- M .ai-dev/review-prompt.md
- M .ai-dev/review-response.json
- M .ai-dev/review.md
- M .ai-dev/revise-prompt.md
  M .ai-dev/state.json
  M .ai-dev/test-result.md
- M scripts/ai-dev-run-codex.ps1
 ?? .ai-dev/auto-goal-planning-prompt.md
+?? docs/codex-cli-automation-policy.md
 ```
 
 ## App Change Files
 
-- scripts/ai-dev-run-codex.ps1
+- docs/codex-cli-automation-policy.md
 
 ## AI Dev Operational Artifact Files
 
 - .ai-dev/codex-result.md
-- .ai-dev/codex-review-result.md
 - .ai-dev/current-task-prompt.md
-- .ai-dev/diff.md
 - .ai-dev/goal.md
 - .ai-dev/queue.json
-- .ai-dev/review-prompt.md
-- .ai-dev/review-response.json
-- .ai-dev/review.md
-- .ai-dev/revise-prompt.md
 - .ai-dev/state.json
 - .ai-dev/test-result.md
 - .ai-dev/auto-goal-planning-prompt.md
@@ -166,83 +153,13 @@ package.json에 test script가 없습니다.
 ## Unstaged Diff Stat
 
 ```text
- scripts/ai-dev-run-codex.ps1 | 44 ++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 42 insertions(+), 2 deletions(-)
+변경 없음
 ```
 
 ## Unstaged Diff
 
 ```text
-diff --git a/scripts/ai-dev-run-codex.ps1 b/scripts/ai-dev-run-codex.ps1
-index d91e711..0556efc 100644
---- a/scripts/ai-dev-run-codex.ps1
-+++ b/scripts/ai-dev-run-codex.ps1
-@@ -118,7 +118,45 @@ function New-CodexPrompt {
-         [string]$PromptFilePath
-     )
- 
--    return "Read and follow the full task prompt at this absolute file path: $PromptFilePath"
-+    return @"
-+Read and follow the full task prompt at this absolute file path: $PromptFilePath
-+
-+Additional safety rules for this local AI Dev Loop run:
-+- Do not run git commit, git reset, git checkout, git clean, git rebase, git merge, or git push.
-+- Do not run npm install.
-+- Do not modify package.json, package-lock.json, node_modules, dist, or .git.
-+- Do not broaden the current task scope beyond the prompt file.
-+- If the task requirements conflict with repository rules, stop and report the conflict.
-+"@
-+}
-+
-+function New-RunCommandText {
-+    $arguments = @(
-+        "-ExecutionPolicy",
-+        "Bypass",
-+        "-File",
-+        "scripts/ai-dev-run-codex.ps1"
-+    )
-+
-+    if ($PromptPath -ne ".ai-dev/current-task-prompt.md") {
-+        $arguments += "-PromptPath"
-+        $arguments += $promptRelativePath
-+    }
-+
-+    if ($ResultPath -ne ".ai-dev/codex-result.md") {
-+        $arguments += "-ResultPath"
-+        $arguments += $resultRelativePath
-+    }
-+
-+    if ($AllowDirty) {
-+        $arguments += "-AllowDirty"
-+    }
-+
-+    if ($GeneratePromptIfMissing) {
-+        $arguments += "-GeneratePromptIfMissing"
-+    }
-+
-+    return "powershell $($arguments -join ' ')"
- }
- 
- Set-Location $repoRoot
-@@ -161,15 +199,17 @@ if (-not (Test-Path -LiteralPath $resolvedPromptPath -PathType Leaf)) {
- }
- 
- $codexPrompt = New-CodexPrompt $resolvedPromptPath
--$commandText = "codex exec <short wrapper pointing to $promptRelativePath>"
-+$commandText = New-RunCommandText
- 
- if ($DryRun) {
-     $message = @"
- Codex 구현 실행 DryRun입니다.
-+- EntryPoint: scripts/ai-dev-run-codex.ps1
- - Repository: $repoRoot
- - Prompt: $promptRelativePath
- - Result: $resultRelativePath
- - Command: $commandText
-+- CodexCommand: codex exec <wrapper prompt reading $promptRelativePath>
- - AllowDirty: $([bool]$AllowDirty)
- - DirtyCount: $($statusLines.Count)
- "@
+변경 없음
 ```
 
 ## Staged Diff Stat

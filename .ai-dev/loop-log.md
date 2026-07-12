@@ -443,3 +443,14 @@
 - Goal: Codex 구현 실행 스크립트 추가
 - Source: .ai-dev/backlog.md / P0
 - Prepared goals: 1/1
+
+## 2026-07-12 22:00:16 - Commit created
+
+- Task: T001 Codex CLI 자동화 정책 문서 초안 작성
+- Commit: abac2cbd9445bc7374e8f07d31356859b2cab330
+- Message: Document Codex CLI automation policy
+## 2026-07-12 22:00:20 - Task completed
+
+- Task: T001 Codex CLI 자동화 정책 문서 초안 작성
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
+- Next task: 없음
