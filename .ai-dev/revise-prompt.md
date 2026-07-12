@@ -8,73 +8,76 @@
 ## Goal
 
 # 목표
-Codex 구현 실행 스크립트 추가
+
+AI Dev Loop Autopilot이 이미 준비했거나 완료한 backlog goal title을 다음 실행에서 다시 선택하지 않도록 개선한다.
 
 ## 배경
-현재 저장소의 P0 백로그 항목인 "Codex 구현 실행 스크립트 추가"를 현재 구조에 맞는 가장 작은 실행 가능한 개발 목표로 준비한다. 목표는 로컬 AI Dev Loop에서 Codex 구현 단계를 일관되게 실행할 수 있는 스크립트 초안을 추가하는 것이다.
+
+현재 `scripts/ai-dev-autopilot.ps1`은 현재 goal, 직전 goal, 현재 프로세스의 `usedTitles`만 제외한다. 이 때문에 이전 Autopilot 실행에서 이미 완료한 backlog 항목이 이후 실행에서 다시 후보로 선택될 수 있다.
 
 ## 성공 기준
-- 저장소의 기존 스크립트/설정 구조를 확인한다.
-- Codex 구현 실행에 필요한 최소 스크립트를 추가하거나 기존 설정에 연결한다.
-- 실행 방법이 명확하게 드러나도록 필요한 최소 문서를 함께 정리한다.
-- 변경 범위는 스크립트 추가와 직접 관련된 파일로 제한한다.
+
+- Autopilot은 과거 prepared 로그, 완료된 queue/goal 상태, 또는 별도 history 파일을 기준으로 이미 준비했거나 완료한 goal title을 후보에서 제외한다.
+- 중복 후보를 제외한 뒤 남은 후보가 없으면 중단 사유와 제외된 title 목록을 state, loop-log, 출력 중 적절한 위치에 남긴다.
+- 정상 한국어 backlog title은 계속 후보로 허용된다.
+- 기존 mojibake fallback 로직은 유지된다.
+- DryRun 실행에서는 파일을 수정하지 않는다.
+- AllowCommit이 있는 성공 실행은 작업 종료 상태를 명확히 검증할 수 있다.
 
 ## 제약사항
-- 한 번에 하나의 기능만 구현한다.
-- 기존 프로젝트 구조와 명명 규칙을 따른다.
-- 사용자-facing 문구는 한국어를 기본으로 한다.
-- 불필요한 대규모 재작성이나 추상화를 하지 않는다.
-- lock file은 수정하지 않는다.
+
+- 앱 `src` 파일은 수정하지 않는다.
+- 변경 범위는 Autopilot 스크립트와 AI Dev Loop 상태 파일에 한정한다.
+- 기존 backlog 선택 흐름과 fallback 동작을 불필요하게 재작성하지 않는다.
+- 한 번에 하나의 작은 구현 단위로 진행한다.
 
 ## 범위 제외
-- 앱 UI 변경은 포함하지 않는다.
-- 데이터베이스 스키마 변경은 포함하지 않는다.
-- 알림, 동기화, 인증 기능은 포함하지 않는다.
-- 배포 자동화나 외부 연동 확장은 포함하지 않는다.
+
+- 앱 UI 변경은 하지 않는다.
+- IndexedDB schema 변경은 하지 않는다.
+- 새로운 외부 의존성은 추가하지 않는다.
+- 알림, 계정, 원격 동기화 기능은 다루지 않는다.
 
 ## 수동 검증
-- 추가된 스크립트 파일 또는 package script가 의도한 명령을 가리키는지 확인한다.
-- 스크립트 실행 전 필요한 입력 파일 경로가 저장소 기준으로 올바른지 확인한다.
-- 변경된 파일만 검토하여 범위가 과도하게 넓어지지 않았는지 확인한다.
+
+- 과거 완료 title이 있는 상태에서 Autopilot 후보 선택을 실행해 해당 title이 제외되는지 확인한다.
+- 제외 후 후보가 없을 때 중단 사유와 제외 title 목록이 남는지 확인한다.
+- DryRun에서 상태 파일이 변경되지 않는지 확인한다.
+- 한국어 backlog title과 mojibake fallback 처리가 기존처럼 동작하는지 확인한다.
+
 
 ## Current Task
 
 - Task ID: T001
-- Title: Codex 구현 실행 스크립트 추가
-- Description: 현재 저장소의 스크립트 구조를 확인하고, Codex 구현 단계를 실행하기 위한 최소 스크립트 또는 설정 연결을 추가한다.
+- Title: 완료된 Autopilot goal 제외 처리 구현
+- Description: Autopilot backlog 후보 선택 시 과거에 준비했거나 완료한 goal title을 수집해 중복 후보를 제외하고, 남은 후보가 없을 때 읽을 수 있는 중단 사유와 제외 목록을 기록한다.
 - Type: implementation
 - Status: in_progress
 - Priority: P0
 - Verification:
-- 변경 파일을 확인해 스크립트 경로와 명령이 저장소 구조와 일치하는지 검토한다.
-- 허용된 경우에만 관련 스크립트를 수동으로 실행해 동작을 확인한다.
+- DryRun에서 파일 변경이 발생하지 않는지 확인한다.
+- 이전 완료 title이 후보에서 제외되는지 확인한다.
+- 모든 후보가 제외된 경우 중단 사유와 제외 title 목록이 기록되는지 확인한다.
+- 정상 한국어 backlog title과 기존 mojibake fallback 동작이 유지되는지 확인한다.
 
 ## Review Result
 
 - Decision: revise
-- Severity: medium
+- Severity: low
 - Next step: revise_with_codex
-- Summary: 현재 diff는 Codex 실행 스크립트 자체 추가/연결보다 프롬프트 안전 문구 보강에만 가깝고, test script가 없어 테스트가 skippe
-d 상태입니다.
+- Summary: 구현 범위와 코드 흐름은 대체로 현재 task에 맞지만, task 성공 기준에 대한 수동 검증 결과가 기록되지 않았고 npm test도 스크립트 부재로 skipped라서 strict 기준상 보완이 필요하다.
 
 ## Required Changes
 
-- File: scripts/ai-dev-run-codex.ps1
-  - Reason: 현재 task의 핵심은 Codex 구현 실행을 위한 최소 스크립트 또는 설정 연결 추가인데, 제공된 diff는 기존 New-CodexPromp
-t 반환 문구만 확장합니다. 이 변경만으로는 task 성공 기준을 충족했는지 불확실합니다.
-  - Suggestion: 현재 저장소 기준에서 이 파일이 실제 실행 진입점임을 명확히 하거나, 필요한 경우 실행 방법 문서/스크립트 연결을 최소 범위로 보강하세
-요.
-- File: unknown
-  - Reason: npm run test가 package.json에 test script가 없어 skipped 되었습니다. Strict Criteria상 테스트
-가 없거나 skipped이면 revise 후보입니다.
-  - Suggestion: 이번 task가 스크립트 변경만이라면 수동 검증 결과를 명확히 남기고, 테스트 부재가 허용 가능한 범위인지 리뷰 산출물에 기록하세요.
+- File: .ai-dev/test-result.md
+  - Reason: 현재 검증은 build/lint 중심이며, DryRun 파일 미변경, 과거 완료 title 제외, 모든 후보 제외 시 중단 사유/제외 목록 기록, 한국어 title 및 mojibake fallback 유지 여부가 실제로 확인됐다는 기록이 없다.
+  - Suggestion: 현재 task의 Verification 항목 4가지를 실행하거나 실행 불가 사유를 구체적으로 기록하고, 각 결과를 test-result 또는 동등한 리뷰 입력 산출물에 남긴다.
 
 ## Optional Suggestions
 
 - optional_suggestions는 참고만 하며 구현하지 않는다.
-- File: scripts/ai-dev-run-codex.ps1
-  - Suggestion: 추가 안전 규칙 중 package.json 수정 금지는 향후 task가 package script 연결을 요구할 때 충돌할 수 있으므로
-, 이 제한이 현재 AI Dev Loop 정책상 의도된 것인지 주석이나 프롬프트 생성 위치에서 명확히 하는 편이 좋습니다.
+- File: scripts/ai-dev-autopilot.ps1
+  - Suggestion: Get-PreparedGoalTitlesFromLoopLog의 헤더 매칭은 현재 로그 형식에는 맞지만, 향후 제목에 하이픈이 포함될 가능성을 줄이려면 날짜 패턴을 더 명확히 고정하는 방식도 고려할 수 있다.
 
 ## Diff Context
 
@@ -82,34 +85,46 @@ t 반환 문구만 확장합니다. 이 변경만으로는 task 성공 기준을
 
 ## Generated At
 
-2026-07-09 22:58:36
+2026-07-12 22:50:55
 
 ## Git Status
 
 ```text
  M .ai-dev/codex-result.md
+ M .ai-dev/codex-review-result.md
  M .ai-dev/current-task-prompt.md
+ M .ai-dev/diff.md
  M .ai-dev/goal.md
+ M .ai-dev/loop-log.md
  M .ai-dev/queue.json
+ M .ai-dev/review-prompt.md
+ M .ai-dev/review-response.json
+ M .ai-dev/review.md
+ M .ai-dev/revise-prompt.md
  M .ai-dev/state.json
  M .ai-dev/test-result.md
- M scripts/ai-dev-run-codex.ps1
-?? .ai-dev/auto-goal-planning-prompt.md
+ M scripts/ai-dev-autopilot.ps1
 ```
 
 ## App Change Files
 
-- scripts/ai-dev-run-codex.ps1
+- scripts/ai-dev-autopilot.ps1
 
 ## AI Dev Operational Artifact Files
 
 - .ai-dev/codex-result.md
+- .ai-dev/codex-review-result.md
 - .ai-dev/current-task-prompt.md
+- .ai-dev/diff.md
 - .ai-dev/goal.md
+- .ai-dev/loop-log.md
 - .ai-dev/queue.json
+- .ai-dev/review-prompt.md
+- .ai-dev/review-response.json
+- .ai-dev/review.md
+- .ai-dev/revise-prompt.md
 - .ai-dev/state.json
 - .ai-dev/test-result.md
-- .ai-dev/auto-goal-planning-prompt.md
 
 ## Review Diff Scope
 
@@ -118,35 +133,171 @@ t 반환 문구만 확장합니다. 이 변경만으로는 task 성공 기준을
 ## Unstaged Diff Stat
 
 ```text
- scripts/ai-dev-run-codex.ps1 | 11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ scripts/ai-dev-autopilot.ps1 | 133 ++++++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 125 insertions(+), 8 deletions(-)
 ```
 
 ## Unstaged Diff
 
 ```text
-diff --git a/scripts/ai-dev-run-codex.ps1 b/scripts/ai-dev-run-codex.ps1
-index d91e711..60f9658 100644
---- a/scripts/ai-dev-run-codex.ps1
-+++ b/scripts/ai-dev-run-codex.ps1
-@@ -118,7 +118,16 @@ function New-CodexPrompt {
-         [string]$PromptFilePath
-     )
- 
--    return "Read and follow the full task prompt at this absolute file path: $PromptFilePath"
-+    return @"
-+Read and follow the full task prompt at this absolute file path: $PromptFilePath
-+
-+Additional safety rules for this local AI Dev Loop run:
-+- Do not run git commit, git reset, git checkout, git clean, git rebase, git merge, or git push.
-+- Do not run npm install.
-+- Do not modify package.json, package-lock.json, node_modules, dist, or .git.
-+- Do not broaden the current task scope beyond the prompt file.
-+- If the task requirements conflict with repository rules, stop and report the conflict.
-+"@
+diff --git a/scripts/ai-dev-autopilot.ps1 b/scripts/ai-dev-autopilot.ps1
+index 47d8acc..20d4d35 100644
+--- a/scripts/ai-dev-autopilot.ps1
++++ b/scripts/ai-dev-autopilot.ps1
+@@ -502,6 +502,117 @@ function Get-BacklogCandidates {
+     return @($fallbackCandidate)
  }
  
- Set-Location $repoRoot
++function Add-UniqueTitle {
++    param(
++        [string[]]$Titles,
++        [string]$Title
++    )
++
++    if (-not (Test-HasValue $Title)) {
++        return @($Titles)
++    }
++
++    $trimmedTitle = $Title.Trim()
++
++    if ($Titles -contains $trimmedTitle) {
++        return @($Titles)
++    }
++
++    return @($Titles + $trimmedTitle)
++}
++
++function Get-PreparedGoalTitlesFromLoopLog {
++    if (-not (Test-Path -LiteralPath $loopLogPath -PathType Leaf)) {
++        return @()
++    }
++
++    $titles = @()
++    $isAutopilotPreparedEntry = $false
++    $lines = @(Get-Content -Encoding UTF8 -LiteralPath $loopLogPath)
++
++    foreach ($line in $lines) {
++        if ($line -match '^##\s+.+\s+-\s+(.+)$') {
++            $isAutopilotPreparedEntry = ($Matches[1].Trim() -eq "Autopilot goal prepared")
++            continue
++        }
++
++        if (-not $isAutopilotPreparedEntry) {
++            continue
++        }
++
++        if ($line -match '^\s*-\s+Goal:\s+(.+)$') {
++            $titles = @(Add-UniqueTitle $titles $Matches[1])
++        }
++    }
++
++    return @($titles)
++}
++
++function Get-CompletedCurrentGoalTitleFromQueueState {
++    $queue = Read-JsonFile $queuePath $queueRelativePath
++    $state = Read-JsonFile $statePath $stateRelativePath
++    $goalStatus = if (Test-HasValue $state.goalStatus) { [string]$state.goalStatus } else { "" }
++
++    if ($goalStatus -ne "completed") {
++        return @()
++    }
++
++    if (-not (Test-HasValue $queue.goalTitle)) {
++        return @()
++    }
++
++    return @([string]$queue.goalTitle)
++}
++
++function Get-HistoricalGoalTitles {
++    $titles = @()
++
++    foreach ($title in @(Get-PreparedGoalTitlesFromLoopLog)) {
++        $titles = @(Add-UniqueTitle $titles $title)
++    }
++
++    foreach ($title in @(Get-CompletedCurrentGoalTitleFromQueueState)) {
++        $titles = @(Add-UniqueTitle $titles $title)
++    }
++
++    return @($titles)
++}
++
++function Get-ExcludedGoalTitles {
++    param(
++        [string[]]$UsedTitles,
++        [object]$Gate
++    )
++
++    $titles = @()
++
++    foreach ($title in @($UsedTitles)) {
++        $titles = @(Add-UniqueTitle $titles $title)
++    }
++
++    if ($null -ne $Gate -and (Test-HasValue $Gate.goalTitle)) {
++        $titles = @(Add-UniqueTitle $titles ([string]$Gate.goalTitle))
++    }
++
++    foreach ($title in @(Get-HistoricalGoalTitles)) {
++        $titles = @(Add-UniqueTitle $titles $title)
++    }
++
++    return @($titles)
++}
++
++function Format-ExcludedGoalTitles {
++    param([string[]]$Titles)
++
++    $filteredTitles = @($Titles | Where-Object { Test-HasValue $_ } | Select-Object -Unique)
++
++    if ($filteredTitles.Count -eq 0) {
++        return "none"
++    }
++
++    return ($filteredTitles -join "; ")
++}
++
+ function Invoke-AutoGoal {
+     param(
+         [object]$Candidate,
+@@ -621,13 +732,9 @@ for ($goalIndex = 1; $goalIndex -le $MaxGoals; $goalIndex++) {
+     $steps += New-StepResult ($steps.Count + 1) "current-goal-gate" $false $false 0 "Current goal is completed. Previous goal: $($gate.goalTitle)"
+ 
+     try {
+-        $excludedTitles = @($usedTitles)
+-
+-        if (Test-HasValue $gate.goalTitle) {
+-            $excludedTitles += [string]$gate.goalTitle
+-        }
+-
+-        $candidates = @(Get-BacklogCandidates | Where-Object { $excludedTitles -notcontains ([string]$_.title) })
++        $excludedTitles = @(Get-ExcludedGoalTitles $usedTitles $gate)
++        $allCandidates = @(Get-BacklogCandidates)
++        $candidates = @($allCandidates | Where-Object { $excludedTitles -notcontains ([string]$_.title) })
+     } catch {
+         $message = $_.Exception.Message
+         $steps += New-StepResult ($steps.Count + 1) "generate-goal-candidate" $false $false 1 $message
+@@ -635,7 +742,17 @@ for ($goalIndex = 1; $goalIndex -le $MaxGoals; $goalIndex++) {
+     }
+ 
+     if ($candidates.Count -eq 0) {
+-        $message = "No actionable next goal candidate was found in the backlog after excluding the current or already prepared goal titles. Check backlog encoding, empty items, completed or deferred sections, and duplicate backlog titles."
++        $excludedTitleSummary = Format-ExcludedGoalTitles $excludedTitles
++        $candidateTitles = @($allCandidates | ForEach-Object { [string]$_.title } | Where-Object { Test-HasValue $_ } | Select-Object -Unique)
++        $candidateTitleSummary = Format-ExcludedGoalTitles $candidateTitles
++
++        if ($allCandidates.Count -gt 0) {
++            $message = "All backlog goal candidates were already completed or prepared, so autopilot will not create a duplicate goal. Excluded goal titles: $excludedTitleSummary. Candidate goal titles: $candidateTitleSummary."
++            $steps += New-StepResult ($steps.Count + 1) "generate-goal-candidate" $false $true 1 $message
++            Stop-Autopilot $steps "all_goal_candidates_excluded" $false 1 $preparedGoals $message
++        }
++
++        $message = "No actionable next goal candidate was found in the backlog after excluding current, prepared, or completed goal titles. Excluded goal titles: $excludedTitleSummary. Check backlog encoding, empty items, completed or deferred sections, and duplicate backlog titles."
+         $steps += New-StepResult ($steps.Count + 1) "generate-goal-candidate" $false $true 1 $message
+         Stop-Autopilot $steps "goal_candidate_not_found" $false 1 $preparedGoals $message
+     }
 ```
 
 ## Staged Diff Stat
@@ -165,7 +316,7 @@ index d91e711..60f9658 100644
 
 # AI Dev Test Result
 
-## 2026-07-09 22:58:29
+## 2026-07-12 22:50:46
 
 - Overall result: passed
 - Current task: T001
@@ -194,7 +345,7 @@ dist/index.html                   0.46 kB │ gzip:   0.29 kB
 dist/assets/index-DvjxWt30.css    5.69 kB │ gzip:   1.93 kB
 dist/assets/index-DtLVvPCG.js   317.50 kB │ gzip: 100.16 kB
 
-[32m✓ built in 251ms[39m
+[32m✓ built in 279ms[39m
 ```
 ### npm run test
 

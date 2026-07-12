@@ -2,8 +2,8 @@
 
 ## Run
 
-- Started at: 2026-07-12 21:59:15
-- Ended at: 2026-07-12 21:59:59
+- Started at: 2026-07-12 22:55:26
+- Ended at: 2026-07-12 22:56:32
 - Exit code: 0
 - Review prompt: .ai-dev/review-prompt.md
 - Review response: .ai-dev/review-response.json
@@ -27,17 +27,17 @@ approval: never
 sandbox: workspace-write [workdir, /tmp, $TMPDIR]
 reasoning effort: medium
 reasoning summaries: none
-session id: 019f5669-1af3-76f0-bdb0-d215c13020f5
+session id: 019f569c-8927-7ed0-b962-759421bc9d32
 --------
 user
-Read and follow the full review prompt at this absolute file path: D:\ai-apps\planpilot-local\.a
-i-dev\review-prompt.md
+Read and follow the full review prompt at this absolute file path: D:\ai-apps\planpilot-local\.ai-de
+v\review-prompt.md
 codex
-리뷰 지시문을 확인하기 위해 지정된 파일만 읽겠습니다. 수정이나 git 명령은 실행하지 않습니다.
+지정된 리뷰 프롬프트 파일만 먼저 읽고, 그 안의 지시를 기준으로 작업 범위를 정하겠습니다.
 exec
-"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralP
-ath 'D:\\ai-apps\\planpilot-local\\.ai-dev\\review-prompt.md'" in D:\ai-apps\planpilot-local
- succeeded in 1775ms:
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralPath 
+'D:\\ai-apps\\planpilot-local\\.ai-dev\\review-prompt.md'" in D:\ai-apps\planpilot-local
+ succeeded in 1722ms:
 # AI Dev Review Prompt
 
 ## Role
@@ -55,55 +55,68 @@ ath 'D:\\ai-apps\\planpilot-local\\.ai-dev\\review-prompt.md'" in D:\ai-apps\pla
 ## Project Goal
 
 # 목표
-Codex CLI 완전 자동화 정책을 현재 로컬 프로젝트 운영 방식에 맞춰 문서화한다.
+
+AI Dev Loop Autopilot이 이미 준비했거나 완료한 backlog goal title을 다음 실행에서 다시 선택하지 않도록 개선한다.
 
 ## 배경
-PlanPilot Local은 로컬 우선 React + Vite + TypeScript 앱이며, AI Dev Loop가 반복 작업을 수행할 때 따라야 할 자동화 범위와 중단
- 기준이 명확해야 한다. 이번 목표는 P0 백로그 항목인 Codex CLI 완전 자동화 정책 문서화를 가장 작은 실행 단위로 정리하는 것이다.
+
+현재 `scripts/ai-dev-autopilot.ps1`은 현재 goal, 직전 goal, 현재 프로세스의 `usedTitles`만 제외한다. 이 때문에 이전 Autopilot
+ 실행에서 이미 완료한 backlog 항목이 이후 실행에서 다시 후보로 선택될 수 있다.
 
 ## 성공 기준
-- Codex CLI 자동화가 수행할 수 있는 작업 범위가 한국어로 명확히 문서화된다.
-- 자동화 중 사용자 확인이 필요한 상황과 중단 기준이 포함된다.
-- 저장소의 기존 제약사항과 로컬 우선 원칙을 벗어나지 않는다.
-- 문서는 작고 독립적인 변경으로 작성된다.
+
+- Autopilot은 과거 prepared 로그, 완료된 queue/goal 상태, 또는 별도 history 파일을 기준으로 이미 준비했거나 완료한 goal title을 후보에서
+ 제외한다.
+- 중복 후보를 제외한 뒤 남은 후보가 없으면 중단 사유와 제외된 title 목록을 state, loop-log, 출력 중 적절한 위치에 남긴다.
+- 정상 한국어 backlog title은 계속 후보로 허용된다.
+- 기존 mojibake fallback 로직은 유지된다.
+- DryRun 실행에서는 파일을 수정하지 않는다.
+- AllowCommit이 있는 성공 실행은 작업 종료 상태를 명확히 검증할 수 있다.
 
 ## 제약사항
-- 한 번에 하나의 문서화 작업만 진행한다.
-- 기존 앱 구조나 런타임 동작은 변경하지 않는다.
-- 사용자-facing 문구는 한국어로 작성한다.
-- 자동화 정책은 현재 저장소의 로컬 개발 흐름을 기준으로 작성한다.
+
+- 앱 `src` 파일은 수정하지 않는다.
+- 변경 범위는 Autopilot 스크립트와 AI Dev Loop 상태 파일에 한정한다.
+- 기존 backlog 선택 흐름과 fallback 동작을 불필요하게 재작성하지 않는다.
+- 한 번에 하나의 작은 구현 단위로 진행한다.
 
 ## 범위 제외
-- 앱 기능 구현은 포함하지 않는다.
-- 화면 UI 변경은 포함하지 않는다.
-- 데이터 스키마 변경은 포함하지 않는다.
-- 배포 자동화 구현은 포함하지 않는다.
+
+- 앱 UI 변경은 하지 않는다.
+- IndexedDB schema 변경은 하지 않는다.
+- 새로운 외부 의존성은 추가하지 않는다.
+- 알림, 계정, 원격 동기화 기능은 다루지 않는다.
 
 ## 수동 검증
-- 작성된 문서를 읽고 자동화 허용 범위, 중단 기준, 사용자 확인 지점이 이해 가능한지 확인한다.
-- 문서 내용이 현재 프로젝트 규칙과 충돌하지 않는지 확인한다.
+
+- 과거 완료 title이 있는 상태에서 Autopilot 후보 선택을 실행해 해당 title이 제외되는지 확인한다.
+- 제외 후 후보가 없을 때 중단 사유와 제외 title 목록이 남는지 확인한다.
+- DryRun에서 상태 파일이 변경되지 않는지 확인한다.
+- 한국어 backlog title과 mojibake fallback 처리가 기존처럼 동작하는지 확인한다.
+
 
 ## Current Task
 
 - Task ID: T001
-- Title: Codex CLI 자동화 정책 문서 초안 작성
-- Description: 현재 저장소의 로컬 개발 규칙을 기준으로 Codex CLI가 자동으로 진행할 수 있는 범위, 사용자 확인이 필요한 상황, 중단 기준을 작고 명확한
- 문서로 정리한다.
-- Type: documentation
+- Title: 완료된 Autopilot goal 제외 처리 구현
+- Description: Autopilot backlog 후보 선택 시 과거에 준비했거나 완료한 goal title을 수집해 중복 후보를 제외하고, 남은 후보가 없을 때 읽을 수
+ 있는 중단 사유와 제외 목록을 기록한다.
+- Type: implementation
 - Status: in_progress
 - Priority: P0
 - Depends on:
 - 없음
 - Verification:
-- 문서에 자동화 범위가 한국어로 정리되어 있는지 확인한다.
-- 사용자 확인이 필요한 상황과 중단 기준이 포함되어 있는지 확인한다.
-- 현재 프로젝트 제약사항과 충돌하는 내용이 없는지 확인한다.
+- DryRun에서 파일 변경이 발생하지 않는지 확인한다.
+- 이전 완료 title이 후보에서 제외되는지 확인한다.
+- 모든 후보가 제외된 경우 중단 사유와 제외 title 목록이 기록되는지 확인한다.
+- 정상 한국어 backlog title과 기존 mojibake fallback 동작이 유지되는지 확인한다.
 
 ## Test Result
 
 # AI Dev Test Result
 
-## 2026-07-12 21:59:02
+## 2026-07-12 22:55:13
 
 - Overall result: passed
 - Current task: T001
@@ -132,7 +145,7 @@ dist/index.html                   0.46 kB │ gzip:   0.29 kB
 dist/assets/index-DvjxWt30.css    5.69 kB │ gzip:   1.93 kB
 dist/assets/index-DtLVvPCG.js   317.50 kB │ gzip: 100.16 kB
 
-[32m✓ built in 559ms[39m
+[32m✓ built in 234ms[39m
 ```
 ### npm run test
 
@@ -159,50 +172,232 @@ package.json에 test script가 없습니다.
 
 ## Generated At
 
-2026-07-12 21:59:11
+2026-07-12 22:55:22
 
 ## Git Status
 
 ```text
  M .ai-dev/codex-result.md
+ M .ai-dev/codex-review-result.md
  M .ai-dev/current-task-prompt.md
+ M .ai-dev/diff.md
  M .ai-dev/goal.md
+ M .ai-dev/loop-log.md
  M .ai-dev/queue.json
+ M .ai-dev/review-prompt.md
+ M .ai-dev/review-response.json
+ M .ai-dev/review.md
+ M .ai-dev/revise-prompt.md
  M .ai-dev/state.json
  M .ai-dev/test-result.md
-?? .ai-dev/auto-goal-planning-prompt.md
-?? docs/codex-cli-automation-policy.md
+ M scripts/ai-dev-autopilot.ps1
 ```
 
 ## App Change Files
 
-- docs/codex-cli-automation-policy.md
+- scripts/ai-dev-autopilot.ps1
 
 ## AI Dev Operational Artifact Files
 
 - .ai-dev/codex-result.md
+- .ai-dev/codex-review-result.md
 - .ai-dev/current-task-prompt.md
+- .ai-dev/diff.md
 - .ai-dev/goal.md
+- .ai-dev/loop-log.md
 - .ai-dev/queue.json
+- .ai-dev/review-prompt.md
+- .ai-dev/review-response.json
+- .ai-dev/review.md
+- .ai-dev/revise-prompt.md
 - .ai-dev/state.json
 - .ai-dev/test-result.md
-- .ai-dev/auto-goal-planning-prompt.md
 
 ## Review Diff Scope
 
-아래 diff 본문은 실제 앱 변경 파일 중심으로 검토하도록 .ai-dev 운영 산출물 diff를 제외합니다. .ai-dev 변경은 위 운영 산출물 목록에서 별도로 확인합니
-다.
+아래 diff 본문은 실제 앱 변경 파일 중심으로 검토하도록 .ai-dev 운영 산출물 diff를 제외합니다. .ai-dev 변경은 위 운영 산출물 목록에서 별도로 확인합니다.
 
 ## Unstaged Diff Stat
 
 ```text
-변경 없음
+ scripts/ai-dev-autopilot.ps1 | 133 ++++++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 125 insertions(+), 8 deletions(-)
 ```
 
 ## Unstaged Diff
 
 ```text
-변경 없음
+diff --git a/scripts/ai-dev-autopilot.ps1 b/scripts/ai-dev-autopilot.ps1
+index 47d8acc..20d4d35 100644
+--- a/scripts/ai-dev-autopilot.ps1
++++ b/scripts/ai-dev-autopilot.ps1
+@@ -502,6 +502,117 @@ function Get-BacklogCandidates {
+     return @($fallbackCandidate)
+ }
+ 
++function Add-UniqueTitle {
++    param(
++        [string[]]$Titles,
++        [string]$Title
++    )
++
++    if (-not (Test-HasValue $Title)) {
++        return @($Titles)
++    }
++
++    $trimmedTitle = $Title.Trim()
++
++    if ($Titles -contains $trimmedTitle) {
++        return @($Titles)
++    }
++
++    return @($Titles + $trimmedTitle)
++}
++
++function Get-PreparedGoalTitlesFromLoopLog {
++    if (-not (Test-Path -LiteralPath $loopLogPath -PathType Leaf)) {
++        return @()
++    }
++
++    $titles = @()
++    $isAutopilotPreparedEntry = $false
++    $lines = @(Get-Content -Encoding UTF8 -LiteralPath $loopLogPath)
++
++    foreach ($line in $lines) {
++        if ($line -match '^##\s+.+\s+-\s+(.+)$') {
++            $isAutopilotPreparedEntry = ($Matches[1].Trim() -eq "Autopilot goal prepared")
++            continue
++        }
++
++        if (-not $isAutopilotPreparedEntry) {
++            continue
++        }
++
++        if ($line -match '^\s*-\s+Goal:\s+(.+)$') {
++            $titles = @(Add-UniqueTitle $titles $Matches[1])
++        }
++    }
++
++    return @($titles)
++}
++
++function Get-CompletedCurrentGoalTitleFromQueueState {
++    $queue = Read-JsonFile $queuePath $queueRelativePath
++    $state = Read-JsonFile $statePath $stateRelativePath
++    $goalStatus = if (Test-HasValue $state.goalStatus) { [string]$state.goalStatus } else { "" }
++
++    if ($goalStatus -ne "completed") {
++        return @()
++    }
++
++    if (-not (Test-HasValue $queue.goalTitle)) {
++        return @()
++    }
++
++    return @([string]$queue.goalTitle)
++}
++
++function Get-HistoricalGoalTitles {
++    $titles = @()
++
++    foreach ($title in @(Get-PreparedGoalTitlesFromLoopLog)) {
++        $titles = @(Add-UniqueTitle $titles $title)
++    }
++
++    foreach ($title in @(Get-CompletedCurrentGoalTitleFromQueueState)) {
++        $titles = @(Add-UniqueTitle $titles $title)
++    }
++
++    return @($titles)
++}
++
++function Get-ExcludedGoalTitles {
++    param(
++        [string[]]$UsedTitles,
++        [object]$Gate
++    )
++
++    $titles = @()
++
++    foreach ($title in @($UsedTitles)) {
++        $titles = @(Add-UniqueTitle $titles $title)
++    }
++
++    if ($null -ne $Gate -and (Test-HasValue $Gate.goalTitle)) {
++        $titles = @(Add-UniqueTitle $titles ([string]$Gate.goalTitle))
++    }
++
++    foreach ($title in @(Get-HistoricalGoalTitles)) {
++        $titles = @(Add-UniqueTitle $titles $title)
++    }
++
++    return @($titles)
++}
++
++function Format-ExcludedGoalTitles {
++    param([string[]]$Titles)
++
++    $filteredTitles = @($Titles | Where-Object { Test-HasValue $_ } | Select-Object -Unique)
++
++    if ($filteredTitles.Count -eq 0) {
++        return "none"
++    }
++
++    return ($filteredTitles -join "; ")
++}
++
+ function Invoke-AutoGoal {
+     param(
+         [object]$Candidate,
+@@ -621,13 +732,9 @@ for ($goalIndex = 1; $goalIndex -le $MaxGoals; $goalIndex++) {
+     $steps += New-StepResult ($steps.Count + 1) "current-goal-gate" $false $false 0 "Current goal i
+s completed. Previous goal: $($gate.goalTitle)"
+ 
+     try {
+-        $excludedTitles = @($usedTitles)
+-
+-        if (Test-HasValue $gate.goalTitle) {
+-            $excludedTitles += [string]$gate.goalTitle
+-        }
+-
+-        $candidates = @(Get-BacklogCandidates | Where-Object { $excludedTitles -notcontains ([strin
+g]$_.title) })
++        $excludedTitles = @(Get-ExcludedGoalTitles $usedTitles $gate)
++        $allCandidates = @(Get-BacklogCandidates)
++        $candidates = @($allCandidates | Where-Object { $excludedTitles -notcontains ([string]$_.ti
+tle) })
+     } catch {
+         $message = $_.Exception.Message
+         $steps += New-StepResult ($steps.Count + 1) "generate-goal-candidate" $false $false 1 $mess
+age
+@@ -635,7 +742,17 @@ for ($goalIndex = 1; $goalIndex -le $MaxGoals; $goalIndex++) {
+     }
+ 
+     if ($candidates.Count -eq 0) {
+-        $message = "No actionable next goal candidate was found in the backlog after excluding the 
+current or already prepared goal titles. Check backlog encoding, empty items, completed or deferred 
+sections, and duplicate backlog titles."
++        $excludedTitleSummary = Format-ExcludedGoalTitles $excludedTitles
++        $candidateTitles = @($allCandidates | ForEach-Object { [string]$_.title } | Where-Object { 
+Test-HasValue $_ } | Select-Object -Unique)
++        $candidateTitleSummary = Format-ExcludedGoalTitles $candidateTitles
++
++        if ($allCandidates.Count -gt 0) {
++            $message = "All backlog goal candidates were already completed or prepared, so autopilo
+t will not create a duplicate goal. Excluded goal titles: $excludedTitleSummary. Candidate goal titl
+es: $candidateTitleSummary."
++            $steps += New-StepResult ($steps.Count + 1) "generate-goal-candidate" $false $true 1 $m
+essage
++            Stop-Autopilot $steps "all_goal_candidates_excluded" $false 1 $preparedGoals $message
++        }
++
++        $message = "No actionable next goal candidate was found in the backlog after excluding curr
+ent, prepared, or completed goal titles. Excluded goal titles: $excludedTitleSummary. Check backlog 
+encoding, empty items, completed or deferred sections, and duplicate backlog titles."
+         $steps += New-StepResult ($steps.Count + 1) "generate-goal-candidate" $false $true 1 $messa
+ge
+         Stop-Autopilot $steps "goal_candidate_not_found" $false 1 $preparedGoals $message
+     }
 ```
 
 ## Staged Diff Stat
@@ -279,220 +474,1159 @@ package.json에 test script가 없습니다.
 - blocked: 요구사항 충돌, 데이터 위험, 패키지 추가, 대규모 리팩터링 등 사용자 판단 필요
 
 codex
-리뷰 범위의 실제 변경 파일은 `docs/codex-cli-automation-policy.md` 하나로 표시되어 있습니다. 해당 문서 내용을 직접 확인해 요구사항 충족 여
-부와 범위 이탈 여부를 판단하겠습니다.
+리뷰 프롬프트의 diff만으로 결론내리지 않고, 스크립트의 주변 흐름과 종료/상태 기록 함수까지 확인하겠습니다. 특히 DryRun에서 상태 파일을 쓰지 않는지, 새 제외 로직이 기
+존 후보 선택 흐름을 깨지 않는지 보겠습니다.
 exec
-"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralP
-ath 'D:\\ai-apps\\planpilot-local\\docs\\codex-cli-automation-policy.md'" in D:\ai-apps\planpilo
-t-local
- succeeded in 1665ms:
-# Codex CLI ?먮룞???뺤콉 珥덉븞
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralPath 
+'D:\\ai-apps\\planpilot-local\\scripts\\ai-dev-autopilot.ps1' -Encoding UTF8 | Select-Object -Skip 4
+60 -First 330" in D:\ai-apps\planpilot-local
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Select-String -LiteralPat
+h 'D:\\ai-apps\\planpilot-local\\scripts\\ai-dev-autopilot.ps1' -Pattern 'function Stop-Autopilot|fu
+nction Read-JsonFile|function Get-BacklogCandidates|function Test-HasValue|function New-StepResult' 
+-Context 0,40" in D:\ai-apps\planpilot-local
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Select-String -LiteralPat
+h 'D:\\ai-apps\\planpilot-local\\scripts\\ai-dev-autopilot.ps1' -Pattern 'DryRun|Stop-Autopilot|Writ
+e-LoopLog|Write-State|Set-Content|Out-File' -Context 2,8" in D:\ai-apps\planpilot-local
+ succeeded in 2871ms:
 
-??臾몄꽌??PlanPilot Local?먯꽌 Codex CLI瑜?AI Dev Loop??援ы쁽?먯? 由щ럭?대줈 ?ъ슜???뚯쓽 ?먮룞??踰붿쐞? 以묐떒 湲곗????뺣━
-?쒕떎. 紐⑹쟻? 濡쒖뺄 ?곗꽑 媛쒕컻 ?먮쫫???좎??섎㈃?? ??踰덉뿉 ?섎굹??task瑜??덉쟾?섍쾶 泥섎━?섎뒗 寃껋씠??
+> scripts\ai-dev-autopilot.ps1:30:function Test-HasValue {
+  scripts\ai-dev-autopilot.ps1:31:    param([object]$Value)
+  scripts\ai-dev-autopilot.ps1:32:
+  scripts\ai-dev-autopilot.ps1:33:    if ($null -eq $Value) {
+  scripts\ai-dev-autopilot.ps1:34:        return $false
+  scripts\ai-dev-autopilot.ps1:35:    }
+  scripts\ai-dev-autopilot.ps1:36:
+  scripts\ai-dev-autopilot.ps1:37:    if ($Value -is [string]) {
+  scripts\ai-dev-autopilot.ps1:38:        return -not [string]::IsNullOrWhiteSpace($Value)
+  scripts\ai-dev-autopilot.ps1:39:    }
+  scripts\ai-dev-autopilot.ps1:40:
+  scripts\ai-dev-autopilot.ps1:41:    return $true
+  scripts\ai-dev-autopilot.ps1:42:}
+  scripts\ai-dev-autopilot.ps1:43:
+> scripts\ai-dev-autopilot.ps1:44:function Read-JsonFile {
+  scripts\ai-dev-autopilot.ps1:45:    param(
+  scripts\ai-dev-autopilot.ps1:46:        [string]$Path,
+  scripts\ai-dev-autopilot.ps1:47:        [string]$RelativePath
+  scripts\ai-dev-autopilot.ps1:48:    )
+  scripts\ai-dev-autopilot.ps1:49:
+  scripts\ai-dev-autopilot.ps1:50:    try {
+  scripts\ai-dev-autopilot.ps1:51:        return Get-Content -Raw -Encoding UTF8 -LiteralPath $Path 
+| ConvertFrom-Json
+  scripts\ai-dev-autopilot.ps1:52:    } catch {
+  scripts\ai-dev-autopilot.ps1:53:        throw "Failed to parse JSON file $($RelativePath): $($_.Ex
+ception.Message)"
+  scripts\ai-dev-autopilot.ps1:54:    }
+  scripts\ai-dev-autopilot.ps1:55:}
+  scripts\ai-dev-autopilot.ps1:56:
+  scripts\ai-dev-autopilot.ps1:57:function Write-JsonFile {
+  scripts\ai-dev-autopilot.ps1:58:    param(
+  scripts\ai-dev-autopilot.ps1:59:        [string]$Path,
+  scripts\ai-dev-autopilot.ps1:60:        [object]$Value
+  scripts\ai-dev-autopilot.ps1:61:    )
+  scripts\ai-dev-autopilot.ps1:62:
+  scripts\ai-dev-autopilot.ps1:63:    $json = $Value | ConvertTo-Json -Depth 20
+  scripts\ai-dev-autopilot.ps1:64:    [System.IO.File]::WriteAllText($Path, $json, $utf8WithBom)
+  scripts\ai-dev-autopilot.ps1:65:}
+  scripts\ai-dev-autopilot.ps1:66:
+  scripts\ai-dev-autopilot.ps1:67:function Set-ObjectProperty {
+  scripts\ai-dev-autopilot.ps1:68:    param(
+  scripts\ai-dev-autopilot.ps1:69:        [object]$InputObject,
+  scripts\ai-dev-autopilot.ps1:70:        [string]$Name,
+  scripts\ai-dev-autopilot.ps1:71:        [object]$Value
+  scripts\ai-dev-autopilot.ps1:72:    )
+  scripts\ai-dev-autopilot.ps1:73:
+  scripts\ai-dev-autopilot.ps1:74:    if ($InputObject.PSObject.Properties.Name -contains $Name) {
+  scripts\ai-dev-autopilot.ps1:75:        $InputObject.$Name = $Value
+  scripts\ai-dev-autopilot.ps1:76:    } else {
+  scripts\ai-dev-autopilot.ps1:77:        $InputObject | Add-Member -NotePropertyName $Name -NotePro
+pertyValue $Value
+  scripts\ai-dev-autopilot.ps1:78:    }
+  scripts\ai-dev-autopilot.ps1:79:}
+  scripts\ai-dev-autopilot.ps1:80:
+  scripts\ai-dev-autopilot.ps1:81:function Add-LoopLogEntry {
+  scripts\ai-dev-autopilot.ps1:82:    param(
+  scripts\ai-dev-autopilot.ps1:83:        [string]$Title,
+  scripts\ai-dev-autopilot.ps1:84:        [string[]]$Lines
+> scripts\ai-dev-autopilot.ps1:183:function New-StepResult {
+  scripts\ai-dev-autopilot.ps1:184:    param(
+  scripts\ai-dev-autopilot.ps1:185:        [int]$Step,
+  scripts\ai-dev-autopilot.ps1:186:        [string]$Name,
+  scripts\ai-dev-autopilot.ps1:187:        [bool]$Executed,
+  scripts\ai-dev-autopilot.ps1:188:        [bool]$Skipped,
+  scripts\ai-dev-autopilot.ps1:189:        [int]$ExitCode,
+  scripts\ai-dev-autopilot.ps1:190:        [string]$Message,
+  scripts\ai-dev-autopilot.ps1:191:        [object]$GoalCandidate = $null
+  scripts\ai-dev-autopilot.ps1:192:    )
+  scripts\ai-dev-autopilot.ps1:193:
+  scripts\ai-dev-autopilot.ps1:194:    return [PSCustomObject][ordered]@{
+  scripts\ai-dev-autopilot.ps1:195:        step = $Step
+  scripts\ai-dev-autopilot.ps1:196:        name = $Name
+  scripts\ai-dev-autopilot.ps1:197:        executed = $Executed
+  scripts\ai-dev-autopilot.ps1:198:        skipped = $Skipped
+  scripts\ai-dev-autopilot.ps1:199:        exitCode = $ExitCode
+  scripts\ai-dev-autopilot.ps1:200:        message = $Message
+  scripts\ai-dev-autopilot.ps1:201:        goalCandidate = $GoalCandidate
+  scripts\ai-dev-autopilot.ps1:202:    }
+  scripts\ai-dev-autopilot.ps1:203:}
+  scripts\ai-dev-autopilot.ps1:204:
+  scripts\ai-dev-autopilot.ps1:205:function New-AutopilotResult {
+  scripts\ai-dev-autopilot.ps1:206:    param(
+  scripts\ai-dev-autopilot.ps1:207:        [object[]]$Steps,
+  scripts\ai-dev-autopilot.ps1:208:        [string]$StoppedReason,
+  scripts\ai-dev-autopilot.ps1:209:        [bool]$Completed,
+  scripts\ai-dev-autopilot.ps1:210:        [int]$ExitCode,
+  scripts\ai-dev-autopilot.ps1:211:        [int]$PreparedGoals
+  scripts\ai-dev-autopilot.ps1:212:    )
+  scripts\ai-dev-autopilot.ps1:213:
+  scripts\ai-dev-autopilot.ps1:214:    return [PSCustomObject][ordered]@{
+  scripts\ai-dev-autopilot.ps1:215:        steps = @($Steps)
+  scripts\ai-dev-autopilot.ps1:216:        stoppedReason = $StoppedReason
+  scripts\ai-dev-autopilot.ps1:217:        completed = $Completed
+  scripts\ai-dev-autopilot.ps1:218:        exitCode = $ExitCode
+  scripts\ai-dev-autopilot.ps1:219:        maxGoals = $MaxGoals
+  scripts\ai-dev-autopilot.ps1:220:        preparedGoals = $PreparedGoals
+  scripts\ai-dev-autopilot.ps1:221:    }
+  scripts\ai-dev-autopilot.ps1:222:}
+  scripts\ai-dev-autopilot.ps1:223:
+> scripts\ai-dev-autopilot.ps1:250:function Stop-Autopilot {
+  scripts\ai-dev-autopilot.ps1:251:    param(
+  scripts\ai-dev-autopilot.ps1:252:        [object[]]$Steps,
+  scripts\ai-dev-autopilot.ps1:253:        [string]$StoppedReason,
+  scripts\ai-dev-autopilot.ps1:254:        [bool]$Completed,
+  scripts\ai-dev-autopilot.ps1:255:        [int]$ExitCode,
+  scripts\ai-dev-autopilot.ps1:256:        [int]$PreparedGoals,
+  scripts\ai-dev-autopilot.ps1:257:        [string]$FailureMessage = ""
+  scripts\ai-dev-autopilot.ps1:258:    )
+  scripts\ai-dev-autopilot.ps1:259:
+  scripts\ai-dev-autopilot.ps1:260:    if ($ExitCode -ne 0 -and (Test-HasValue $FailureMessage)) {
+  scripts\ai-dev-autopilot.ps1:261:        Save-AutopilotFailureState $StoppedReason $FailureMessage
+  scripts\ai-dev-autopilot.ps1:262:        Add-LoopLogEntry "Autopilot stopped" @(
+  scripts\ai-dev-autopilot.ps1:263:            "- Reason: $StoppedReason",
+  scripts\ai-dev-autopilot.ps1:264:            "- Result: $FailureMessage",
+  scripts\ai-dev-autopilot.ps1:265:            "- Prepared goals: $PreparedGoals/$MaxGoals"
+  scripts\ai-dev-autopilot.ps1:266:        )
+  scripts\ai-dev-autopilot.ps1:267:    }
+  scripts\ai-dev-autopilot.ps1:268:
+  scripts\ai-dev-autopilot.ps1:269:    $result = New-AutopilotResult $Steps $StoppedReason $Complete
+d $ExitCode $Prepar
+edGoals
+  scripts\ai-dev-autopilot.ps1:270:    Write-AutopilotResult $result
+  scripts\ai-dev-autopilot.ps1:271:    exit $ExitCode
+  scripts\ai-dev-autopilot.ps1:272:}
+  scripts\ai-dev-autopilot.ps1:273:
+  scripts\ai-dev-autopilot.ps1:274:function Get-CurrentGoalGate {
+  scripts\ai-dev-autopilot.ps1:275:    $queue = Read-JsonFile $queuePath $queueRelativePath
+  scripts\ai-dev-autopilot.ps1:276:    $state = Read-JsonFile $statePath $stateRelativePath
+  scripts\ai-dev-autopilot.ps1:277:    $tasks = @($queue.tasks)
+  scripts\ai-dev-autopilot.ps1:278:    $openTasks = @($tasks | Where-Object { @("pending", "in_progr
+ess", "review_requi
+red", "failed", "blocked") -contains ([string]$_.status) })
+  scripts\ai-dev-autopilot.ps1:279:    $goalStatus = if (Test-HasValue $state.goalStatus) { [string]
+$state.goalStatus }
+ else { "" }
+  scripts\ai-dev-autopilot.ps1:280:    $currentTaskId = if (Test-HasValue $state.currentTaskId) { [s
+tring]$state.curren
+tTaskId } elseif (Test-HasValue $queue.currentTaskId) { [string]$queue.currentTaskId } else { "" }
+  scripts\ai-dev-autopilot.ps1:281:
+  scripts\ai-dev-autopilot.ps1:282:    return [PSCustomObject][ordered]@{
+  scripts\ai-dev-autopilot.ps1:283:        passed = ($goalStatus -eq "completed" -and -not (Test-Has
+Value $currentTaskI
+d) -and $openTasks.Count -eq 0)
+  scripts\ai-dev-autopilot.ps1:284:        goalTitle = if (Test-HasValue $queue.goalTitle) { [string
+]$queue.goalTitle }
+ else { "" }
+  scripts\ai-dev-autopilot.ps1:285:        goalStatus = $goalStatus
+  scripts\ai-dev-autopilot.ps1:286:        currentTaskId = $currentTaskId
+  scripts\ai-dev-autopilot.ps1:287:        openTaskCount = $openTasks.Count
+  scripts\ai-dev-autopilot.ps1:288:    }
+  scripts\ai-dev-autopilot.ps1:289:}
+  scripts\ai-dev-autopilot.ps1:290:
+> scripts\ai-dev-autopilot.ps1:426:function Get-BacklogCandidates {
+  scripts\ai-dev-autopilot.ps1:427:    if (-not (Test-Path -LiteralPath $backlogPath -PathType Leaf)
+) {
+  scripts\ai-dev-autopilot.ps1:428:        throw "Required backlog file is missing: $backlogRelative
+Path"
+  scripts\ai-dev-autopilot.ps1:429:    }
+  scripts\ai-dev-autopilot.ps1:430:
+  scripts\ai-dev-autopilot.ps1:431:    $lines = @(Get-Content -Encoding UTF8 -LiteralPath $backlogPa
+th)
+  scripts\ai-dev-autopilot.ps1:432:    $readableCandidates = @()
+  scripts\ai-dev-autopilot.ps1:433:    $usableCandidates = @()
+  scripts\ai-dev-autopilot.ps1:434:    $suspiciousTitleReasons = @()
+  scripts\ai-dev-autopilot.ps1:435:    $readItemCount = 0
+  scripts\ai-dev-autopilot.ps1:436:    $filteredItemCount = 0
+  scripts\ai-dev-autopilot.ps1:437:    $priority = ""
+  scripts\ai-dev-autopilot.ps1:438:    $isBacklogPrioritySection = $false
+  scripts\ai-dev-autopilot.ps1:439:
+  scripts\ai-dev-autopilot.ps1:440:    foreach ($line in $lines) {
+  scripts\ai-dev-autopilot.ps1:441:        if ($line -match '^##\s*(P[0-2])\s*$') {
+  scripts\ai-dev-autopilot.ps1:442:            $priority = $Matches[1]
+  scripts\ai-dev-autopilot.ps1:443:            $isBacklogPrioritySection = $true
+  scripts\ai-dev-autopilot.ps1:444:            continue
+  scripts\ai-dev-autopilot.ps1:445:        }
+  scripts\ai-dev-autopilot.ps1:446:
+  scripts\ai-dev-autopilot.ps1:447:        if ($line -match '^##\s+') {
+  scripts\ai-dev-autopilot.ps1:448:            $priority = ""
+  scripts\ai-dev-autopilot.ps1:449:            $isBacklogPrioritySection = $false
+  scripts\ai-dev-autopilot.ps1:450:            continue
+  scripts\ai-dev-autopilot.ps1:451:        }
+  scripts\ai-dev-autopilot.ps1:452:
+  scripts\ai-dev-autopilot.ps1:453:        if (-not $isBacklogPrioritySection) {
+  scripts\ai-dev-autopilot.ps1:454:            continue
+  scripts\ai-dev-autopilot.ps1:455:        }
+  scripts\ai-dev-autopilot.ps1:456:
+  scripts\ai-dev-autopilot.ps1:457:        if ($line -notmatch '^\s*-\s+(.+)$') {
+  scripts\ai-dev-autopilot.ps1:458:            continue
+  scripts\ai-dev-autopilot.ps1:459:        }
+  scripts\ai-dev-autopilot.ps1:460:
+  scripts\ai-dev-autopilot.ps1:461:        $title = $Matches[1].Trim()
+  scripts\ai-dev-autopilot.ps1:462:        $readItemCount++
+  scripts\ai-dev-autopilot.ps1:463:
+  scripts\ai-dev-autopilot.ps1:464:        if (-not (Test-IsUsableBacklogText $title)) {
+  scripts\ai-dev-autopilot.ps1:465:            $filteredItemCount++
+  scripts\ai-dev-autopilot.ps1:466:            continue
 
-??臾몄꽌???뺤콉 珥덉븞?대ŉ ??湲곕뒫, ?고????숈옉, ?곗씠???ㅽ궎留? 諛고룷 ?먮룞?붾? 蹂寃쏀븯吏 ?딅뒗??
 
-## 湲곕낯 ?먯튃
 
-- ?먮룞?붾뒗 ?꾩옱 task prompt??紐낆떆??踰붿쐞 ?덉뿉?쒕쭔 ?섑뻾?쒕떎.
-- ??踰덉뿉 ?섎굹??task留?泥섎━?쒕떎.
-- ??μ냼??`AGENTS.md`, ?ъ슜??吏?? 蹂댁븞 洹쒖튃? ?먮룞???몄쓽蹂대떎 ?곗꽑?쒕떎.
-- 濡쒖뺄 ?뚯씪怨?濡쒖뺄 紐낅졊留??ъ슜?섎ŉ ?쒕쾭 API, 濡쒓렇?? ?대씪?곕뱶 ?숆린?? ?몃? 諛고룷瑜?異붽??섏? ?딅뒗??
-- ?ъ슜???곗씠????젣, 珥덇린?? 蹂듭썝, ??뼱?곌린, 留덉씠洹몃젅?댁뀡 ?꾪뿕???덉쑝硫??먮룞 吏꾪뻾?섏? ?딅뒗??
-- ?ㅽ뻾?섏? ?딆? build, test, lint, review???듦낵濡?湲곕줉?섏? ?딅뒗??
+ succeeded in 2919ms:
+        $title = $Matches[1].Trim()
+        $readItemCount++
 
-## ?먮룞?붽? ?섑뻾?????덈뒗 踰붿쐞
+        if (-not (Test-IsUsableBacklogText $title)) {
+            $filteredItemCount++
+            continue
+        }
 
-Codex CLI ?먮룞?붾뒗 紐낆떆??task 踰붿쐞? ?덉쟾 議곌굔??留뚯”?????ㅼ쓬 ?묒뾽???섑뻾?????덈떎.
+        $suspiciousTitleReason = Get-BacklogTitleSuspicionReason $title
 
-- ?꾩옱 task prompt ?쎄린? ?붽뎄?ы빆 ?뺣━
-- ?덉슜???뚯씪 ?덉쓽 臾몄꽌 ?먮뒗 肄붾뱶 ?섏젙
-- ?꾩옱 task???꾩슂???묒? 踰붿쐞???ㅻ쪟 ?섏젙
-- 濡쒖뺄 寃利?紐낅졊 ?ㅽ뻾 ?꾨낫 ?덈궡 ?먮뒗 ?덉슜??寃利??ㅽ뻾
-- diff ??? 由щ럭 prompt ?앹꽦, 由щ럭 寃곌낵 ???媛숈? AI Dev Loop 蹂댁“ ?곗텧臾??앹꽦
-- Codex CLI 湲곕컲 援ы쁽 ?ㅽ뻾
-- Codex CLI 湲곕컲 由щ럭 ?ㅽ뻾
-- 由щ럭 寃곌낵媛 `pass`?닿퀬 紐⑤뱺 寃뚯씠?몃? ?듦낵??寃쎌슦 task ?꾨즺 泥섎━ ?꾨낫 ?쒖븞
+        if (Test-HasValue $suspiciousTitleReason) {
+            $usableCandidates += New-UnreadableBacklogCandidate $title $priority $suspiciousTitleRea
+son
+            $suspiciousTitleReasons += $suspiciousTitleReason
+            $filteredItemCount++
+            continue
+        }
 
-珥덇린 ?댁쁺?먯꽌??臾몄꽌 ?뺣━, ?묒? ?좏떥 ?뺣━, ?섎룞 ?뚯뒪??泥댄겕由ъ뒪??蹂닿컯泥섎읆 ?섎룎由ш린 ?ъ슫 ?묒뾽???곗꽑?쒕떎. DB schema 蹂寃?
- ?洹쒕え 由ы뙥?곕쭅, ?⑦궎吏 蹂寃? 諛고룷 ?먮룞?붾뒗 蹂꾨룄 task濡?遺꾨━?섍퀬 ?먮룞 吏꾪뻾?섏? ?딅뒗??
+        $candidate = New-ReadableBacklogCandidate $title $priority
+        $usableCandidates += $candidate
+        $readableCandidates += $candidate
+    }
 
-## ?ъ슜???뺤씤???꾩슂???곹솴
+    if ($readableCandidates.Count -gt 0) {
+        return @($readableCandidates)
+    }
 
-?ㅼ쓬 ?곹솴?먯꽌???먮룞?붽? 硫덉텛怨??ъ슜?먯쓽 ?먮떒?대굹 紐낆떆???덉슜??諛쏆븘???쒕떎.
+    $joinedSuspiciousTitleReasons = Join-UniqueReasons $suspiciousTitleReasons
 
-- task 紐⑺몴, ?꾨즺 湲곗?, ?덉슜 ?뚯씪??遺덈챸?뺥븳 寃쎌슦
-- ?꾩옱 task 踰붿쐞 諛??뚯씪 ?섏젙???꾩슂??寃쎌슦
-- `package.json`, `package-lock.json`, lock file 蹂寃쎌씠 ?꾩슂??寃쎌슦
-- ???⑦궎吏 ?ㅼ튂 ?먮뒗 ?⑦궎吏 ???援먯껜媛 ?꾩슂??寃쎌슦
-- DB schema 蹂寃? ?곗씠??留덉씠洹몃젅?댁뀡, ?곗씠????젣 ?먮뒗 蹂듭썝???꾩슂??寃쎌슦
-- ?몃? ?ㅽ듃?뚰겕, ?쒕쾭 API, ?몄쬆 ?뺣낫, API Key媛 ?꾩슂??寃쎌슦
-- GitHub PR, push, 諛고룷, ?먭꺽 釉뚮옖移??묒뾽???꾩슂??寃쎌슦
-- ?덉긽?섏? 紐삵븳 ?ъ슜??蹂寃쎌씠 ?묒뾽 ?몃━???덈뒗 寃쎌슦
-- 由щ럭 寃곌낵媛 `revise` ?먮뒗 `blocked`?닿퀬 ?섏젙 踰붿쐞媛 紐낇솗?섏? ?딆? 寃쎌슦
-- 誘쇨컧 ?뺣낫媛 diff, prompt, review ?곗텧臾쇱뿉 ?ы븿??寃껋쑝濡??섏떖?섎뒗 寃쎌슦
+    if ($usableCandidates.Count -gt 0) {
+        $fallbackWhy = "the backlog items were usable but no clean, readable title was available for
+ a generated goal title."
+        $fallback = New-FallbackBacklogCandidate $readItemCount $filteredItemCount $readableCandidat
+es.Count $usableCandidates.Count $fallbackWhy $joinedSuspiciousTitleReasons
+        return @($fallback)
+    }
 
-?ъ슜???뺤씤???꾩슂???곹솴?먯꽌???ㅼ쓬 ?됰룞, ?꾪뿕, ?꾩슂??寃곗젙??吏㏐쾶 湲곕줉?섍퀬 ?꾩쓽濡?踰붿쐞瑜??볧엳吏 ?딅뒗??
+    $fallbackReason = if ($readItemCount -eq 0) {
+        "the backlog priority sections did not contain bullet items."
+    } else {
+        "all backlog bullet items were empty, too short, or did not contain letters or numbers."
+    }
 
-## ?먮룞 而ㅻ컠 寃뚯씠??
-?먮룞 而ㅻ컠? ??μ냼 ?뺤콉怨??ъ슜??吏?쒓? ?덉슜?섍퀬, ?꾨옒 議곌굔??紐⑤몢 留뚯”???뚮쭔 媛?ν븯??
+    $fallbackCandidate = New-FallbackBacklogCandidate $readItemCount $filteredItemCount $readableCan
+didates.Count $usableCandidates.Count $fallbackReason $joinedSuspiciousTitleReasons
+    return @($fallbackCandidate)
+}
 
-- 而ㅻ컠 ?ㅽ뻾??紐낆떆?곸쑝濡??덉슜?섏뼱 ?덈떎.
-- ?꾩옱 task ?꾨즺 湲곗???異⑹”?섏뼱 ?덈떎.
-- ?섏젙 ?뚯씪???꾩옱 task 踰붿쐞 ?덉뿉 ?덈떎.
-- ?덉긽?섏? 紐삵븳 ?ъ슜??蹂寃쎌씠 ?녿떎.
-- ?꾩슂??寃利앹씠 ?깃났?덇퀬, ?ㅽ뻾?섏? 紐삵븳 ?꾩닔 寃利앹씠 ?녿떎.
-- Codex 由щ럭 ?먮뒗 吏?뺣맂 由щ럭媛 `pass`?대떎.
-- `package.json`, `package-lock.json`, lock file??蹂寃쎈릺吏 ?딆븯??
-- DB schema, ?ъ슜???곗씠?? 蹂댁븞 愿???꾪뿕???덈줈 ?앷린吏 ?딆븯??
+function Add-UniqueTitle {
+    param(
+        [string[]]$Titles,
+        [string]$Title
+    )
 
-??議곌굔 以??섎굹?쇰룄 留뚯”?섏? ?딆쑝硫?而ㅻ컠?섏? ?딄퀬 寃곌낵? ?ъ쑀留?蹂닿퀬?쒕떎. `git add .`, `git push`, `git reset`, `
-git clean`, destructive `git checkout`? ?먮룞??踰붿쐞???ы븿?섏? ?딅뒗??
+    if (-not (Test-HasValue $Title)) {
+        return @($Titles)
+    }
 
-## 以묐떒 湲곗?
+    $trimmedTitle = $Title.Trim()
 
-?ㅼ쓬 議곌굔??諛쒖깮?섎㈃ Codex CLI ?먮룞?붾뒗 利됱떆 以묐떒?쒕떎.
+    if ($Titles -contains $trimmedTitle) {
+        return @($Titles)
+    }
 
-- ??μ냼 洹쒖튃怨?task ?붽뎄?ы빆??異⑸룎?쒕떎.
-- ?꾩옱 task 踰붿쐞瑜?踰쀬뼱?섏빞留??닿껐?????덈떎.
-- 媛숈? ?ㅻ쪟媛 諛섎났?섏뼱 ?덉쟾?섍쾶 ?닿껐?????녿떎.
-- 寃利??ㅽ뙣 ?먯씤???꾩옱 task ?덉뿉???섏젙 媛?ν븯吏 ?딅떎.
-- 由щ럭 寃곌낵媛 `pass`媛 ?꾨땲??
-- Codex ?ㅽ뻾 寃곌낵媛 ?ㅽ뙣?덇굅??異쒕젰??鍮꾩뼱 ?덈떎.
-- 由щ럭 JSON???뚯떛?????녿떎.
-- package ?뚯씪 蹂寃? DB schema 蹂寃? ?곗씠???먯긽 媛?μ꽦??媛먯??쒕떎.
-- 沅뚰븳 ?쒗븳, sandbox ?쒗븳, ?ㅽ듃?뚰겕 ?쒗븳?쇰줈 ?덉쟾?섍쾶 怨꾩냽?????녿떎.
-- ?ъ슜?먯쓽 湲곗〈 蹂寃쎌쓣 ?섎룎?ㅼ빞留?吏꾪뻾?????덈떎.
+    return @($Titles + $trimmedTitle)
+}
 
-以묐떒 ?쒖뿉???ㅽ뙣瑜?由щ럭 寃곌낵濡??ㅼ씤?섏? ?딅뒗?? 湲곗〈 ?꾨즺 ?곹깭???ъ슜??蹂寃쎌쓣 ??뼱?곗? ?딄퀬, 以묐떒 ?ъ쑀? ?ㅼ쓬???꾩슂??寃곗젙?
-?蹂닿퀬?쒕떎.
+function Get-PreparedGoalTitlesFromLoopLog {
+    if (-not (Test-Path -LiteralPath $loopLogPath -PathType Leaf)) {
+        return @()
+    }
 
-## 湲곕줉 湲곗?
+    $titles = @()
+    $isAutopilotPreparedEntry = $false
+    $lines = @(Get-Content -Encoding UTF8 -LiteralPath $loopLogPath)
 
-?먮룞??寃곌낵???щ엺???꾩냽 ?먮떒???????덉쓣 ?뺣룄濡쒕쭔 湲곕줉?쒕떎.
+    foreach ($line in $lines) {
+        if ($line -match '^##\s+.+\s+-\s+(.+)$') {
+            $isAutopilotPreparedEntry = ($Matches[1].Trim() -eq "Autopilot goal prepared")
+            continue
+        }
 
-- ?섏젙???뚯씪 紐⑸줉
-- ?섑뻾???묒뾽 ?붿빟
-- ?ㅽ뻾??寃利앷낵 寃곌낵
-- ?ㅽ뻾?섏? 紐삵븳 寃利앷낵 ?ъ쑀
-- 由щ럭 寃곌낵 ?먮뒗 由щ럭 誘몄닔???ъ쑀
-- 以묐떒 ?ъ쑀? ?꾩슂???ъ슜??寃곗젙
+        if (-not $isAutopilotPreparedEntry) {
+            continue
+        }
 
-誘쇨컧 ?뺣낫, API Key, 媛쒖씤?뺣낫, 諛깆뾽 ?곗씠?? ???diff??濡쒓렇??由щ럭 ?곗텧臾쇱뿉 ?ы븿?섏? ?딅뒗?? ?꾩슂??寃쎌슦 ?곗텧臾??앹꽦 ?꾩뿉
- 踰붿쐞瑜?以꾩씠怨??ъ슜???뺤씤??諛쏅뒗??
+        if ($line -match '^\s*-\s+Goal:\s+(.+)$') {
+            $titles = @(Add-UniqueTitle $titles $Matches[1])
+        }
+    }
+
+    return @($titles)
+}
+
+function Get-CompletedCurrentGoalTitleFromQueueState {
+    $queue = Read-JsonFile $queuePath $queueRelativePath
+    $state = Read-JsonFile $statePath $stateRelativePath
+    $goalStatus = if (Test-HasValue $state.goalStatus) { [string]$state.goalStatus } else { "" }
+
+    if ($goalStatus -ne "completed") {
+        return @()
+    }
+
+    if (-not (Test-HasValue $queue.goalTitle)) {
+        return @()
+    }
+
+    return @([string]$queue.goalTitle)
+}
+
+function Get-HistoricalGoalTitles {
+    $titles = @()
+
+    foreach ($title in @(Get-PreparedGoalTitlesFromLoopLog)) {
+        $titles = @(Add-UniqueTitle $titles $title)
+    }
+
+    foreach ($title in @(Get-CompletedCurrentGoalTitleFromQueueState)) {
+        $titles = @(Add-UniqueTitle $titles $title)
+    }
+
+    return @($titles)
+}
+
+function Get-ExcludedGoalTitles {
+    param(
+        [string[]]$UsedTitles,
+        [object]$Gate
+    )
+
+    $titles = @()
+
+    foreach ($title in @($UsedTitles)) {
+        $titles = @(Add-UniqueTitle $titles $title)
+    }
+
+    if ($null -ne $Gate -and (Test-HasValue $Gate.goalTitle)) {
+        $titles = @(Add-UniqueTitle $titles ([string]$Gate.goalTitle))
+    }
+
+    foreach ($title in @(Get-HistoricalGoalTitles)) {
+        $titles = @(Add-UniqueTitle $titles $title)
+    }
+
+    return @($titles)
+}
+
+function Format-ExcludedGoalTitles {
+    param([string[]]$Titles)
+
+    $filteredTitles = @($Titles | Where-Object { Test-HasValue $_ } | Select-Object -Unique)
+
+    if ($filteredTitles.Count -eq 0) {
+        return "none"
+    }
+
+    return ($filteredTitles -join "; ")
+}
+
+function Invoke-AutoGoal {
+    param(
+        [object]$Candidate,
+        [int]$StepNumber
+    )
+
+    $autoGoalPath = Join-Path $PSScriptRoot "ai-dev-auto-goal.ps1"
+
+    if (-not (Test-Path -LiteralPath $autoGoalPath -PathType Leaf)) {
+        throw "Required script is missing: scripts/ai-dev-auto-goal.ps1"
+    }
+
+    $arguments = @(
+        "-GoalTitle", [string]$Candidate.title,
+        "-GoalDescription", [string]$Candidate.description,
+        "-MaxTasks", [string]$MaxTasks,
+        "-MaxSteps", [string]$MaxSteps
+    )
+
+    if ($DryRun) {
+        $arguments += "-DryRun"
+    }
+
+    if ($Json) {
+        $arguments += "-Json"
+    }
+
+    if ($AllowRun) {
+        $arguments += "-AllowRun"
+    }
+
+    if ($AllowCodex) {
+        $arguments += "-AllowCodex"
+    }
+
+    if ($AllowReviewCodex) {
+        $arguments += "-AllowReviewCodex"
+    }
+
+    if ($AllowCommit) {
+        $arguments += "-AllowCommit"
+    }
+
+    if ($AllowDirty) {
+        $arguments += "-AllowDirty"
+    }
+
+    if ($null -ne $CommitFiles -and $CommitFiles.Count -gt 0) {
+        $normalizedFiles = @($CommitFiles | ForEach-Object { $_ -split "," } | Where-Object { Test-H
+asValue $_ })
+
+        if ($normalizedFiles.Count -gt 0) {
+            $arguments += "-CommitFiles"
+            $arguments += ($normalizedFiles -join ",")
+        }
+    }
+
+    $output = & powershell -ExecutionPolicy Bypass -File $autoGoalPath @arguments 2>&1 | Out-String
+    $exitCode = $LASTEXITCODE
+    $message = $output.Trim()
+
+    if (-not (Test-HasValue $message)) {
+        $message = "ai-dev-auto-goal.ps1 completed without output."
+    }
+
+    return New-StepResult $StepNumber "auto-goal" $true $false $exitCode $message $Candidate
+}
+
+Set-Location $repoRoot
+
+$steps = @()
+$preparedGoals = 0
+$usedTitles = @()
+
+if ($MaxGoals -lt 1) {
+    $message = "MaxGoals must be at least 1."
+    $steps += New-StepResult 0 "validate-input" $false $false 1 $message
+    Stop-Autopilot $steps "max_goals_must_be_at_least_1" $false 1 $preparedGoals $message
+}
+
+if ($MaxTasks -lt 1) {
+    $message = "MaxTasks must be at least 1."
+    $steps += New-StepResult 0 "validate-input" $false $false 1 $message
+    Stop-Autopilot $steps "max_tasks_must_be_at_least_1" $false 1 $preparedGoals $message
+}
+
+if ($MaxSteps -lt 1) {
+    $message = "MaxSteps must be at least 1."
+    $steps += New-StepResult 0 "validate-input" $false $false 1 $message
+    Stop-Autopilot $steps "max_steps_must_be_at_least_1" $false 1 $preparedGoals $message
+}
+
+foreach ($requiredPath in @($goalPath, $queuePath, $statePath, $backlogPath)) {
+    if (-not (Test-Path -LiteralPath $requiredPath -PathType Leaf)) {
+        $message = "Required file is missing: $requiredPath"
+        $steps += New-StepResult 0 "prepare" $false $false 1 $message
+        Stop-Autopilot $steps "required_file_missing" $false 1 $preparedGoals $message
+    }
+}
+
+$steps += New-StepResult 1 "validate-input" $false $false 0 "Autopilot input validation completed. M
+axGoals=$MaxGoals, MaxTasks=$MaxTasks, MaxSteps=$MaxSteps"
+
+for ($goalIndex = 1; $goalIndex -le $MaxGoals; $goalIndex++) {
+    try {
+        $gate = Get-CurrentGoalGate
+    } catch {
+        $message = $_.Exception.Message
+        $steps += New-StepResult ($steps.Count + 1) "current-goal-gate" $false $false 1 $message
+        Stop-Autopilot $steps "current_goal_gate_failed" $false 1 $preparedGoals $message
+    }
+
+    if (-not $gate.passed) {
+        $message = "Current goal is not completed, so autopilot will not create the next goal. goalS
+tatus=$($gate.goalStatus), currentTaskId=$($gate.currentTaskId), openTaskCount=$($gate.openTaskCount
+)"
+        $steps += New-StepResult ($steps.Count + 1) "current-goal-gate" $false $true 1 $message
+        Stop-Autopilot $steps "current_goal_not_completed" $false 1 $preparedGoals $message
+    }
+
+    $steps += New-StepResult ($steps.Count + 1) "current-goal-gate" $false $false 0 "Current goal is
+ completed. Previous goal: $($gate.goalTitle)"
+
+    try {
+        $excludedTitles = @(Get-ExcludedGoalTitles $usedTitles $gate)
+        $allCandidates = @(Get-BacklogCandidates)
+        $candidates = @($allCandidates | Where-Object { $excludedTitles -notcontains ([string]$_.tit
+le) })
+    } catch {
+        $message = $_.Exception.Message
+        $steps += New-StepResult ($steps.Count + 1) "generate-goal-candidate" $false $false 1 $messa
+ge
+        Stop-Autopilot $steps "goal_candidate_generation_failed" $false 1 $preparedGoals $message
+    }
+
+    if ($candidates.Count -eq 0) {
+        $excludedTitleSummary = Format-ExcludedGoalTitles $excludedTitles
+        $candidateTitles = @($allCandidates | ForEach-Object { [string]$_.title } | Where-Object { T
+est-HasValue $_ } | Select-Object -Unique)
+        $candidateTitleSummary = Format-ExcludedGoalTitles $candidateTitles
+
+        if ($allCandidates.Count -gt 0) {
+            $message = "All backlog goal candidates were already completed or prepared, so autopilot
+ will not create a duplicate goal. Excluded goal titles: $excludedTitleSummary. Candidate goal title
+s: $candidateTitleSummary."
+            $steps += New-StepResult ($steps.Count + 1) "generate-goal-candidate" $false $true 1 $me
+ssage
+            Stop-Autopilot $steps "all_goal_candidates_excluded" $false 1 $preparedGoals $message
+        }
+
+        $message = "No actionable next goal candidate was found in the backlog after excluding curre
+nt, prepared, or completed goal titles. Excluded goal titles: $excludedTitleSummary. Check backlog e
+ncoding, empty items, completed or deferred sections, and duplicate backlog titles."
+        $steps += New-StepResult ($steps.Count + 1) "generate-goal-candidate" $false $true 1 $messag
+e
+        Stop-Autopilot $steps "goal_candidate_not_found" $false 1 $preparedGoals $message
+    }
+
+    $candidate = $candidates | Select-Object -First 1
+    $usedTitles += [string]$candidate.title
+    $candidateMessage = "Next goal candidate generated from $($candidate.source) priority $($candida
+te.priority)."
+
+    if (Test-HasValue $candidate.fallbackReason) {
+        $candidateMessage = "$candidateMessage $($candidate.fallbackReason)"
+    }
+
+    $steps += New-StepResult ($steps.Count + 1) "generate-goal-candidate" $false $false 0 $candidate
+Message $candidate
+
+    try {
+        $autoGoalStep = Invoke-AutoGoal $candidate ($steps.Count + 1)
+    } catch {
+        $message = "Auto-goal failed before completion: $($_.Exception.Message)"
+        $steps += New-StepResult ($steps.Count + 1) "auto-goal" $false $false 1 $message $candidate
+        Stop-Autopilot $steps "auto_goal_failed" $false 1 $preparedGoals $message
+    }
+
+    $steps += $autoGoalStep
+
+    if ($autoGoalStep.exitCode -ne 0) {
+        $failureMessage = "Auto-goal failed with exit code $($autoGoalStep.exitCode): $($autoGoalSte
+p.message)"
+
+        if (Test-HasValue $candidate.fallbackReason) {
+            $failureMessage = "$failureMessage Fallback context: $($candidate.fallbackReason)"
+        }
+
+        Stop-Autopilot $steps "auto_goal_failed" $false 1 $preparedGoals $failureMessage
+    }
+
+    $preparedGoals++
+
+ succeeded in 3036ms:
+
+  scripts\ai-dev-autopilot.ps1:3:    [int]$MaxTasks = 1,
+  scripts\ai-dev-autopilot.ps1:4:    [int]$MaxSteps = 22,
+> scripts\ai-dev-autopilot.ps1:5:    [switch]$DryRun,
+  scripts\ai-dev-autopilot.ps1:6:    [switch]$Json,
+  scripts\ai-dev-autopilot.ps1:7:    [switch]$AllowRun,
+  scripts\ai-dev-autopilot.ps1:8:    [switch]$AllowCodex,
+  scripts\ai-dev-autopilot.ps1:9:    [switch]$AllowReviewCodex,
+  scripts\ai-dev-autopilot.ps1:10:    [switch]$AllowCommit,
+  scripts\ai-dev-autopilot.ps1:11:    [switch]$AllowDirty,
+  scripts\ai-dev-autopilot.ps1:12:    [string[]]$CommitFiles
+  scripts\ai-dev-autopilot.ps1:13:)
+  scripts\ai-dev-autopilot.ps1:85:    )
+  scripts\ai-dev-autopilot.ps1:86:
+> scripts\ai-dev-autopilot.ps1:87:    if ($DryRun) {
+  scripts\ai-dev-autopilot.ps1:88:        return
+  scripts\ai-dev-autopilot.ps1:89:    }
+  scripts\ai-dev-autopilot.ps1:90:
+  scripts\ai-dev-autopilot.ps1:91:    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+  scripts\ai-dev-autopilot.ps1:92:    $entryLines = @("", "## $timestamp - $Title", "")
+  scripts\ai-dev-autopilot.ps1:93:    $entryLines += @($Lines)
+  scripts\ai-dev-autopilot.ps1:94:    $entryLines += ""
+  scripts\ai-dev-autopilot.ps1:95:    [System.IO.File]::AppendAllText($loopLogPath, ($entryLines -jo
+in "`r`n"), $utf8Wi
+thBom)
+  scripts\ai-dev-autopilot.ps1:99:    param([int]$StepNumber)
+  scripts\ai-dev-autopilot.ps1:100:
+> scripts\ai-dev-autopilot.ps1:101:    if ($DryRun) {
+> scripts\ai-dev-autopilot.ps1:102:        return New-StepResult $StepNumber "autopilot-meta-commit"
+ $false $true 0 "Dr
+yRun: autopilot loop-log meta commit was not executed."
+  scripts\ai-dev-autopilot.ps1:103:    }
+  scripts\ai-dev-autopilot.ps1:104:
+  scripts\ai-dev-autopilot.ps1:105:    if (-not $AllowCommit) {
+  scripts\ai-dev-autopilot.ps1:106:        return New-StepResult $StepNumber "autopilot-meta-commit"
+ $false $true 0 "Al
+lowCommit is not set, so autopilot loop-log meta commit was not executed."
+  scripts\ai-dev-autopilot.ps1:107:    }
+  scripts\ai-dev-autopilot.ps1:108:
+  scripts\ai-dev-autopilot.ps1:109:    $statusOutput = & git status --short -- $loopLogRelativePath 
+2>&1 | Out-String
+  scripts\ai-dev-autopilot.ps1:110:    $statusExitCode = $LASTEXITCODE
+  scripts\ai-dev-autopilot.ps1:154:    )
+  scripts\ai-dev-autopilot.ps1:155:
+> scripts\ai-dev-autopilot.ps1:156:    if ($DryRun) {
+  scripts\ai-dev-autopilot.ps1:157:        return
+  scripts\ai-dev-autopilot.ps1:158:    }
+  scripts\ai-dev-autopilot.ps1:159:
+  scripts\ai-dev-autopilot.ps1:160:    try {
+  scripts\ai-dev-autopilot.ps1:161:        $state = Read-JsonFile $statePath $stateRelativePath
+  scripts\ai-dev-autopilot.ps1:162:        $previousReason = if (Test-HasValue $state.stopReason) { 
+[string]$state.stop
+Reason } else { "" }
+  scripts\ai-dev-autopilot.ps1:163:        $previousRepeatedFailureCount = 0
+  scripts\ai-dev-autopilot.ps1:164:
+  scripts\ai-dev-autopilot.ps1:248:}
+  scripts\ai-dev-autopilot.ps1:249:
+> scripts\ai-dev-autopilot.ps1:250:function Stop-Autopilot {
+  scripts\ai-dev-autopilot.ps1:251:    param(
+  scripts\ai-dev-autopilot.ps1:252:        [object[]]$Steps,
+  scripts\ai-dev-autopilot.ps1:253:        [string]$StoppedReason,
+  scripts\ai-dev-autopilot.ps1:254:        [bool]$Completed,
+  scripts\ai-dev-autopilot.ps1:255:        [int]$ExitCode,
+  scripts\ai-dev-autopilot.ps1:256:        [int]$PreparedGoals,
+  scripts\ai-dev-autopilot.ps1:257:        [string]$FailureMessage = ""
+  scripts\ai-dev-autopilot.ps1:258:    )
+  scripts\ai-dev-autopilot.ps1:633:    )
+  scripts\ai-dev-autopilot.ps1:634:
+> scripts\ai-dev-autopilot.ps1:635:    if ($DryRun) {
+> scripts\ai-dev-autopilot.ps1:636:        $arguments += "-DryRun"
+  scripts\ai-dev-autopilot.ps1:637:    }
+  scripts\ai-dev-autopilot.ps1:638:
+  scripts\ai-dev-autopilot.ps1:639:    if ($Json) {
+  scripts\ai-dev-autopilot.ps1:640:        $arguments += "-Json"
+  scripts\ai-dev-autopilot.ps1:641:    }
+  scripts\ai-dev-autopilot.ps1:642:
+  scripts\ai-dev-autopilot.ps1:643:    if ($AllowRun) {
+  scripts\ai-dev-autopilot.ps1:644:        $arguments += "-AllowRun"
+  scripts\ai-dev-autopilot.ps1:690:    $message = "MaxGoals must be at least 1."
+  scripts\ai-dev-autopilot.ps1:691:    $steps += New-StepResult 0 "validate-input" $false $false 1 $
+message
+> scripts\ai-dev-autopilot.ps1:692:    Stop-Autopilot $steps "max_goals_must_be_at_least_1" $false 1
+ $preparedGoals $me
+ssage
+  scripts\ai-dev-autopilot.ps1:693:}
+  scripts\ai-dev-autopilot.ps1:694:
+  scripts\ai-dev-autopilot.ps1:695:if ($MaxTasks -lt 1) {
+  scripts\ai-dev-autopilot.ps1:696:    $message = "MaxTasks must be at least 1."
+  scripts\ai-dev-autopilot.ps1:697:    $steps += New-StepResult 0 "validate-input" $false $false 1 $
+message
+> scripts\ai-dev-autopilot.ps1:698:    Stop-Autopilot $steps "max_tasks_must_be_at_least_1" $false 1
+ $preparedGoals $me
+ssage
+  scripts\ai-dev-autopilot.ps1:699:}
+  scripts\ai-dev-autopilot.ps1:700:
+  scripts\ai-dev-autopilot.ps1:701:if ($MaxSteps -lt 1) {
+  scripts\ai-dev-autopilot.ps1:702:    $message = "MaxSteps must be at least 1."
+  scripts\ai-dev-autopilot.ps1:703:    $steps += New-StepResult 0 "validate-input" $false $false 1 $
+message
+> scripts\ai-dev-autopilot.ps1:704:    Stop-Autopilot $steps "max_steps_must_be_at_least_1" $false 1
+ $preparedGoals $me
+ssage
+  scripts\ai-dev-autopilot.ps1:705:}
+  scripts\ai-dev-autopilot.ps1:706:
+  scripts\ai-dev-autopilot.ps1:707:foreach ($requiredPath in @($goalPath, $queuePath, $statePath, $b
+acklogPath)) {
+  scripts\ai-dev-autopilot.ps1:708:    if (-not (Test-Path -LiteralPath $requiredPath -PathType Leaf
+)) {
+  scripts\ai-dev-autopilot.ps1:709:        $message = "Required file is missing: $requiredPath"
+  scripts\ai-dev-autopilot.ps1:710:        $steps += New-StepResult 0 "prepare" $false $false 1 $mes
+sage
+> scripts\ai-dev-autopilot.ps1:711:        Stop-Autopilot $steps "required_file_missing" $false 1 $p
+reparedGoals $messa
+ge
+  scripts\ai-dev-autopilot.ps1:712:    }
+  scripts\ai-dev-autopilot.ps1:713:}
+  scripts\ai-dev-autopilot.ps1:714:
+  scripts\ai-dev-autopilot.ps1:715:$steps += New-StepResult 1 "validate-input" $false $false 0 "Auto
+pilot input validat
+ion completed. MaxGoals=$MaxGoals, MaxTasks=$MaxTasks, MaxSteps=$MaxSteps"
+  scripts\ai-dev-autopilot.ps1:716:
+  scripts\ai-dev-autopilot.ps1:717:for ($goalIndex = 1; $goalIndex -le $MaxGoals; $goalIndex++) {
+  scripts\ai-dev-autopilot.ps1:718:    try {
+  scripts\ai-dev-autopilot.ps1:719:        $gate = Get-CurrentGoalGate
+  scripts\ai-dev-autopilot.ps1:721:        $message = $_.Exception.Message
+  scripts\ai-dev-autopilot.ps1:722:        $steps += New-StepResult ($steps.Count + 1) "current-goal
+-gate" $false $fals
+e 1 $message
+> scripts\ai-dev-autopilot.ps1:723:        Stop-Autopilot $steps "current_goal_gate_failed" $false 1
+ $preparedGoals $me
+ssage
+  scripts\ai-dev-autopilot.ps1:724:    }
+  scripts\ai-dev-autopilot.ps1:725:
+  scripts\ai-dev-autopilot.ps1:726:    if (-not $gate.passed) {
+  scripts\ai-dev-autopilot.ps1:727:        $message = "Current goal is not completed, so autopilot w
+ill not create the 
+next goal. goalStatus=$($gate.goalStatus), currentTaskId=$($gate.currentTaskId), openTaskCount=$($ga
+te.openTaskCount)"
+  scripts\ai-dev-autopilot.ps1:728:        $steps += New-StepResult ($steps.Count + 1) "current-goal
+-gate" $false $true
+ 1 $message
+> scripts\ai-dev-autopilot.ps1:729:        Stop-Autopilot $steps "current_goal_not_completed" $false
+ 1 $preparedGoals $
+message
+  scripts\ai-dev-autopilot.ps1:730:    }
+  scripts\ai-dev-autopilot.ps1:731:
+  scripts\ai-dev-autopilot.ps1:732:    $steps += New-StepResult ($steps.Count + 1) "current-goal-gat
+e" $false $false 0 
+"Current goal is completed. Previous goal: $($gate.goalTitle)"
+  scripts\ai-dev-autopilot.ps1:733:
+  scripts\ai-dev-autopilot.ps1:734:    try {
+  scripts\ai-dev-autopilot.ps1:735:        $excludedTitles = @(Get-ExcludedGoalTitles $usedTitles $g
+ate)
+  scripts\ai-dev-autopilot.ps1:736:        $allCandidates = @(Get-BacklogCandidates)
+  scripts\ai-dev-autopilot.ps1:737:        $candidates = @($allCandidates | Where-Object { $excluded
+Titles -notcontains
+ ([string]$_.title) })
+  scripts\ai-dev-autopilot.ps1:739:        $message = $_.Exception.Message
+  scripts\ai-dev-autopilot.ps1:740:        $steps += New-StepResult ($steps.Count + 1) "generate-goa
+l-candidate" $false
+ $false 1 $message
+> scripts\ai-dev-autopilot.ps1:741:        Stop-Autopilot $steps "goal_candidate_generation_failed" 
+$false 1 $preparedG
+oals $message
+  scripts\ai-dev-autopilot.ps1:742:    }
+  scripts\ai-dev-autopilot.ps1:743:
+  scripts\ai-dev-autopilot.ps1:744:    if ($candidates.Count -eq 0) {
+  scripts\ai-dev-autopilot.ps1:745:        $excludedTitleSummary = Format-ExcludedGoalTitles $exclud
+edTitles
+  scripts\ai-dev-autopilot.ps1:746:        $candidateTitles = @($allCandidates | ForEach-Object { [s
+tring]$_.title } | 
+Where-Object { Test-HasValue $_ } | Select-Object -Unique)
+  scripts\ai-dev-autopilot.ps1:747:        $candidateTitleSummary = Format-ExcludedGoalTitles $candi
+dateTitles
+  scripts\ai-dev-autopilot.ps1:748:
+  scripts\ai-dev-autopilot.ps1:749:        if ($allCandidates.Count -gt 0) {
+  scripts\ai-dev-autopilot.ps1:750:            $message = "All backlog goal candidates were already 
+completed or prepar
+ed, so autopilot will not create a duplicate goal. Excluded goal titles: $excludedTitleSummary. Cand
+idate goal titles: 
+$candidateTitleSummary."
+  scripts\ai-dev-autopilot.ps1:751:            $steps += New-StepResult ($steps.Count + 1) "generate
+-goal-candidate" $f
+alse $true 1 $message
+> scripts\ai-dev-autopilot.ps1:752:            Stop-Autopilot $steps "all_goal_candidates_excluded" 
+$false 1 $preparedG
+oals $message
+  scripts\ai-dev-autopilot.ps1:753:        }
+  scripts\ai-dev-autopilot.ps1:754:
+  scripts\ai-dev-autopilot.ps1:755:        $message = "No actionable next goal candidate was found i
+n the backlog after
+ excluding current, prepared, or completed goal titles. Excluded goal titles: $excludedTitleSummary.
+ Check backlog enco
+ding, empty items, completed or deferred sections, and duplicate backlog titles."
+  scripts\ai-dev-autopilot.ps1:756:        $steps += New-StepResult ($steps.Count + 1) "generate-goa
+l-candidate" $false
+ $true 1 $message
+> scripts\ai-dev-autopilot.ps1:757:        Stop-Autopilot $steps "goal_candidate_not_found" $false 1
+ $preparedGoals $me
+ssage
+  scripts\ai-dev-autopilot.ps1:758:    }
+  scripts\ai-dev-autopilot.ps1:759:
+  scripts\ai-dev-autopilot.ps1:760:    $candidate = $candidates | Select-Object -First 1
+  scripts\ai-dev-autopilot.ps1:761:    $usedTitles += [string]$candidate.title
+  scripts\ai-dev-autopilot.ps1:762:    $candidateMessage = "Next goal candidate generated from $($ca
+ndidate.source) pri
+ority $($candidate.priority)."
+  scripts\ai-dev-autopilot.ps1:763:
+  scripts\ai-dev-autopilot.ps1:764:    if (Test-HasValue $candidate.fallbackReason) {
+  scripts\ai-dev-autopilot.ps1:765:        $candidateMessage = "$candidateMessage $($candidate.fallb
+ackReason)"
+  scripts\ai-dev-autopilot.ps1:773:        $message = "Auto-goal failed before completion: $($_.Exce
+ption.Message)"
+  scripts\ai-dev-autopilot.ps1:774:        $steps += New-StepResult ($steps.Count + 1) "auto-goal" $
+false $false 1 $mes
+sage $candidate
+> scripts\ai-dev-autopilot.ps1:775:        Stop-Autopilot $steps "auto_goal_failed" $false 1 $prepar
+edGoals $message
+  scripts\ai-dev-autopilot.ps1:776:    }
+  scripts\ai-dev-autopilot.ps1:777:
+  scripts\ai-dev-autopilot.ps1:778:    $steps += $autoGoalStep
+  scripts\ai-dev-autopilot.ps1:779:
+  scripts\ai-dev-autopilot.ps1:780:    if ($autoGoalStep.exitCode -ne 0) {
+  scripts\ai-dev-autopilot.ps1:781:        $failureMessage = "Auto-goal failed with exit code $($aut
+oGoalStep.exitCode)
+: $($autoGoalStep.message)"
+  scripts\ai-dev-autopilot.ps1:782:
+  scripts\ai-dev-autopilot.ps1:783:        if (Test-HasValue $candidate.fallbackReason) {
+  scripts\ai-dev-autopilot.ps1:785:        }
+  scripts\ai-dev-autopilot.ps1:786:
+> scripts\ai-dev-autopilot.ps1:787:        Stop-Autopilot $steps "auto_goal_failed" $false 1 $prepar
+edGoals $failureMes
+sage
+  scripts\ai-dev-autopilot.ps1:788:    }
+  scripts\ai-dev-autopilot.ps1:789:
+  scripts\ai-dev-autopilot.ps1:790:    $preparedGoals++
+  scripts\ai-dev-autopilot.ps1:791:    $loopLogLines = @(
+  scripts\ai-dev-autopilot.ps1:792:        "- Goal: $($candidate.title)",
+  scripts\ai-dev-autopilot.ps1:793:        "- Source: $($candidate.source) / $($candidate.priority)"
+,
+  scripts\ai-dev-autopilot.ps1:794:        "- Prepared goals: $preparedGoals/$MaxGoals"
+  scripts\ai-dev-autopilot.ps1:795:    )
+  scripts\ai-dev-autopilot.ps1:806:
+  scripts\ai-dev-autopilot.ps1:807:        if ($metaCommitStep.exitCode -ne 0) {
+> scripts\ai-dev-autopilot.ps1:808:            Stop-Autopilot $steps "autopilot_meta_commit_failed" 
+$false 1 $preparedG
+oals $metaCommitStep.message
+  scripts\ai-dev-autopilot.ps1:809:        }
+  scripts\ai-dev-autopilot.ps1:810:    }
+  scripts\ai-dev-autopilot.ps1:811:
+  scripts\ai-dev-autopilot.ps1:812:    if (-not ($AllowRun -or $AllowCodex -or $AllowReviewCodex -or
+ $AllowCommit)) {
+> scripts\ai-dev-autopilot.ps1:813:        Stop-Autopilot $steps "prepared_without_full_cycle" $true
+ 0 $preparedGoals
+  scripts\ai-dev-autopilot.ps1:814:    }
+  scripts\ai-dev-autopilot.ps1:815:}
+  scripts\ai-dev-autopilot.ps1:816:
+> scripts\ai-dev-autopilot.ps1:817:Stop-Autopilot $steps "max_goals_reached" $true 0 $preparedGoals
+
+
 
 codex
-현재 출력은 한글이 깨져 보여서 실제 파일 인코딩 문제인지 PowerShell 표시 문제인지 구분해야 합니다. 같은 파일을 UTF-8로 명시해 다시 읽어 문서 자체 결함인지
- 확인하겠습니다.
+현재 변경은 앱 `src` 범위를 건드리지 않았고, 후보 제외 경로는 새 helper 함수들로 제한되어 있습니다. 다만 종료 시 상태 기록이 DryRun과 어떻게 맞물리는지, 그리
+고 “completed queue/goal 상태” 수집 범위가 요구사항을 충분히 만족하는지 더 좁혀 확인하겠습니다.
 exec
-"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -Encoding
- UTF8 -LiteralPath 'D:\\ai-apps\\planpilot-local\\docs\\codex-cli-automation-policy.md'" in D:\a
-i-apps\planpilot-local
- succeeded in 1697ms:
-# Codex CLI 자동화 정책 초안
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralPath 
+'D:\\ai-apps\\planpilot-local\\scripts\\ai-dev-autopilot.ps1' -Encoding UTF8 | Select-Object -Skip 1
+30 -First 160" in D:\ai-apps\planpilot-local
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Select-String -LiteralPat
+h 'D:\\ai-apps\\planpilot-local\\.ai-dev\\loop-log.md' -Pattern 'Autopilot goal prepared|Goal:' -Con
+text 1,2" in D:\ai-apps\planpilot-local
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralPath 
+'D:\\ai-apps\\planpilot-local\\.ai-dev\\queue.json' -Encoding UTF8" in D:\ai-apps\planpilot-local
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralPath 
+'D:\\ai-apps\\planpilot-local\\.ai-dev\\state.json' -Encoding UTF8" in D:\ai-apps\planpilot-local
+ succeeded in 3207ms:
+{
+    "goalTitle":  "Autopilot completed goal 중복 선택 방지",
+    "goalSource":  ".ai-dev/goal.md",
+    "createdAt":  "2026-07-12T00:00:00+09:00",
+    "updatedAt":  "2026-07-12T00:00:00+09:00",
+    "currentTaskId":  "T001",
+    "tasks":  [
+                  {
+                      "id":  "T001",
+                      "title":  "완료된 Autopilot goal 제외 처리 구현",
+                      "description":  "Autopilot backlog 후보 선택 시 과거에 준비했거나 완료한 goal title을 수집해 중복 후보
+를 제외하고, 남은 후보가 없을 때 읽을 수 있는 중단 사유와 제외 목록을 기록한다.",
+                      "type":  "implementation",
+                      "status":  "in_progress",
+                      "priority":  "P0",
+                      "dependsOn":  [
 
-이 문서는 PlanPilot Local에서 Codex CLI를 AI Dev Loop의 구현자와 리뷰어로 사용할 때의 자동화 범위와 중단 기준을 정리한다. 목적은 로컬 우선 
-개발 흐름을 유지하면서, 한 번에 하나의 task를 안전하게 처리하는 것이다.
+                                    ],
+                      "filesLikelyToChange":  [
+                                                  "scripts/ai-dev-autopilot.ps1"
+                                              ],
+                      "verification":  [
+                                           "DryRun에서 파일 변경이 발생하지 않는지 확인한다.",
+                                           "이전 완료 title이 후보에서 제외되는지 확인한다.",
+                                           "모든 후보가 제외된 경우 중단 사유와 제외 title 목록이 기록되는지 확인한다.",
+                                           "정상 한국어 backlog title과 기존 mojibake fallback 동작이 유지되는지 확인한
+다."
+                                       ],
+                      "commitMessage":  "Avoid duplicate autopilot goals"
+                  }
+              ]
+}
 
-이 문서는 정책 초안이며 앱 기능, 런타임 동작, 데이터 스키마, 배포 자동화를 변경하지 않는다.
+ succeeded in 3394ms:
+    if ($commitExitCode -ne 0) {
+        return New-StepResult $StepNumber "autopilot-meta-commit" $true $false 1 "Autopilot loop-log
+ meta commit failed. exit code: $commitExitCode`n$commitOutput"
+    }
 
-## 기본 원칙
+    $remainingStatus = & git status --short 2>&1 | Out-String
+    $remainingStatusExitCode = $LASTEXITCODE
 
-- 자동화는 현재 task prompt에 명시된 범위 안에서만 수행한다.
-- 한 번에 하나의 task만 처리한다.
-- 저장소의 `AGENTS.md`, 사용자 지시, 보안 규칙은 자동화 편의보다 우선한다.
-- 로컬 파일과 로컬 명령만 사용하며 서버 API, 로그인, 클라우드 동기화, 외부 배포를 추가하지 않는다.
-- 사용자 데이터 삭제, 초기화, 복원, 덮어쓰기, 마이그레이션 위험이 있으면 자동 진행하지 않는다.
-- 실행하지 않은 build, test, lint, review는 통과로 기록하지 않는다.
+    if ($remainingStatusExitCode -ne 0) {
+        return New-StepResult $StepNumber "autopilot-meta-commit" $true $false 1 "Autopilot final cl
+ean verification failed because git status failed. exit code: $remainingStatusExitCode`n$remainingSt
+atus"
+    }
 
-## 자동화가 수행할 수 있는 범위
+    if (Test-HasValue $remainingStatus) {
+        return New-StepResult $StepNumber "autopilot-meta-commit" $true $false 1 "Autopilot final cl
+ean verification failed: git status --short still reports changes after the loop-log meta commit.`n$
+remainingStatus"
+    }
 
-Codex CLI 자동화는 명시된 task 범위와 안전 조건을 만족할 때 다음 작업을 수행할 수 있다.
+    $message = ($commitOutput.Trim(), "Autopilot final clean verification: git status --short return
+ed no changes.") -join "`n"
+    return New-StepResult $StepNumber "autopilot-meta-commit" $true $false 0 $message
+}
 
-- 현재 task prompt 읽기와 요구사항 정리
-- 허용된 파일 안의 문서 또는 코드 수정
-- 현재 task에 필요한 작은 범위의 오류 수정
-- 로컬 검증 명령 실행 후보 안내 또는 허용된 검증 실행
-- diff 저장, 리뷰 prompt 생성, 리뷰 결과 저장 같은 AI Dev Loop 보조 산출물 생성
-- Codex CLI 기반 구현 실행
-- Codex CLI 기반 리뷰 실행
-- 리뷰 결과가 `pass`이고 모든 게이트를 통과한 경우 task 완료 처리 후보 제안
+function Save-AutopilotFailureState {
+    param(
+        [string]$StoppedReason,
+        [string]$Message
+    )
 
-초기 운영에서는 문서 정리, 작은 유틸 정리, 수동 테스트 체크리스트 보강처럼 되돌리기 쉬운 작업을 우선한다. DB schema 변경, 대규모 리팩터링, 패키지 변경, 배포
- 자동화는 별도 task로 분리하고 자동 진행하지 않는다.
+    if ($DryRun) {
+        return
+    }
 
-## 사용자 확인이 필요한 상황
+    try {
+        $state = Read-JsonFile $statePath $stateRelativePath
+        $previousReason = if (Test-HasValue $state.stopReason) { [string]$state.stopReason } else { 
+"" }
+        $previousRepeatedFailureCount = 0
 
-다음 상황에서는 자동화가 멈추고 사용자의 판단이나 명시적 허용을 받아야 한다.
+        if (Test-HasValue $state.repeatedFailureCount) {
+            $previousRepeatedFailureCount = [int]$state.repeatedFailureCount
+        }
 
-- task 목표, 완료 기준, 허용 파일이 불명확한 경우
-- 현재 task 범위 밖 파일 수정이 필요한 경우
-- `package.json`, `package-lock.json`, lock file 변경이 필요한 경우
-- 새 패키지 설치 또는 패키지 대량 교체가 필요한 경우
-- DB schema 변경, 데이터 마이그레이션, 데이터 삭제 또는 복원이 필요한 경우
-- 외부 네트워크, 서버 API, 인증 정보, API Key가 필요한 경우
-- GitHub PR, push, 배포, 원격 브랜치 작업이 필요한 경우
-- 예상하지 못한 사용자 변경이 작업 트리에 있는 경우
-- 리뷰 결과가 `revise` 또는 `blocked`이고 수정 범위가 명확하지 않은 경우
-- 민감 정보가 diff, prompt, review 산출물에 포함된 것으로 의심되는 경우
+        $nextRepeatedFailureCount = if ($previousReason -eq $StoppedReason) { $previousRepeatedFailu
+reCount + 1 } else { 1 }
 
-사용자 확인이 필요한 상황에서는 다음 행동, 위험, 필요한 결정을 짧게 기록하고 임의로 범위를 넓히지 않는다.
+        Set-ObjectProperty $state "lastCommand" "autopilot"
+        Set-ObjectProperty $state "lastCommandStatus" "failed"
+        Set-ObjectProperty $state "lastErrorSummary" $Message
+        Set-ObjectProperty $state "repeatedFailureCount" $nextRepeatedFailureCount
+        Set-ObjectProperty $state "stopReason" $StoppedReason
+        Set-ObjectProperty $state "updatedAt" ([DateTimeOffset]::UtcNow.ToString("o"))
+        Write-JsonFile $statePath $state
+    } catch {
+        Write-Warning "Failed to record autopilot failure state: $($_.Exception.Message)"
+    }
+}
 
-## 자동 커밋 게이트
+function New-StepResult {
+    param(
+        [int]$Step,
+        [string]$Name,
+        [bool]$Executed,
+        [bool]$Skipped,
+        [int]$ExitCode,
+        [string]$Message,
+        [object]$GoalCandidate = $null
+    )
 
-자동 커밋은 저장소 정책과 사용자 지시가 허용하고, 아래 조건을 모두 만족할 때만 가능하다.
+    return [PSCustomObject][ordered]@{
+        step = $Step
+        name = $Name
+        executed = $Executed
+        skipped = $Skipped
+        exitCode = $ExitCode
+        message = $Message
+        goalCandidate = $GoalCandidate
+    }
+}
 
-- 커밋 실행이 명시적으로 허용되어 있다.
-- 현재 task 완료 기준이 충족되어 있다.
-- 수정 파일이 현재 task 범위 안에 있다.
-- 예상하지 못한 사용자 변경이 없다.
-- 필요한 검증이 성공했고, 실행하지 못한 필수 검증이 없다.
-- Codex 리뷰 또는 지정된 리뷰가 `pass`이다.
-- `package.json`, `package-lock.json`, lock file이 변경되지 않았다.
-- DB schema, 사용자 데이터, 보안 관련 위험이 새로 생기지 않았다.
+function New-AutopilotResult {
+    param(
+        [object[]]$Steps,
+        [string]$StoppedReason,
+        [bool]$Completed,
+        [int]$ExitCode,
+        [int]$PreparedGoals
+    )
 
-이 조건 중 하나라도 만족하지 않으면 커밋하지 않고 결과와 사유만 보고한다. `git add .`, `git push`, `git reset`, `git clean`, de
-structive `git checkout`은 자동화 범위에 포함하지 않는다.
+    return [PSCustomObject][ordered]@{
+        steps = @($Steps)
+        stoppedReason = $StoppedReason
+        completed = $Completed
+        exitCode = $ExitCode
+        maxGoals = $MaxGoals
+        preparedGoals = $PreparedGoals
+    }
+}
 
-## 중단 기준
+function Write-AutopilotResult {
+    param([object]$Result)
 
-다음 조건이 발생하면 Codex CLI 자동화는 즉시 중단한다.
+    if ($Json) {
+        $Result | ConvertTo-Json -Depth 30
+        return
+    }
 
-- 저장소 규칙과 task 요구사항이 충돌한다.
-- 현재 task 범위를 벗어나야만 해결할 수 있다.
-- 같은 오류가 반복되어 안전하게 해결할 수 없다.
-- 검증 실패 원인이 현재 task 안에서 수정 가능하지 않다.
-- 리뷰 결과가 `pass`가 아니다.
-- Codex 실행 결과가 실패했거나 출력이 비어 있다.
-- 리뷰 JSON을 파싱할 수 없다.
-- package 파일 변경, DB schema 변경, 데이터 손상 가능성이 감지된다.
-- 권한 제한, sandbox 제한, 네트워크 제한으로 안전하게 계속할 수 없다.
-- 사용자의 기존 변경을 되돌려야만 진행할 수 있다.
+    foreach ($step in @($Result.steps)) {
+        Write-Host "Step $($step.step): $($step.name)"
+        Write-Host "  Executed: $($step.executed)"
+        Write-Host "  Skipped: $($step.skipped)"
+        Write-Host "  Exit code: $($step.exitCode)"
+        Write-Host "  Message: $($step.message)"
 
-중단 시에는 실패를 리뷰 결과로 오인하지 않는다. 기존 완료 상태나 사용자 변경을 덮어쓰지 않고, 중단 사유와 다음에 필요한 결정을 보고한다.
+        if ($null -ne $step.goalCandidate) {
+            Write-Host "  Goal candidate: $($step.goalCandidate.title)"
+        }
+    }
 
-## 기록 기준
+    Write-Host "Stopped reason: $($Result.stoppedReason)"
+    Write-Host "Completed: $($Result.completed)"
+    Write-Host "Prepared goals: $($Result.preparedGoals)/$($Result.maxGoals)"
+    Write-Host "Exit code: $($Result.exitCode)"
+}
 
-자동화 결과는 사람이 후속 판단을 할 수 있을 정도로만 기록한다.
+function Stop-Autopilot {
+    param(
+        [object[]]$Steps,
+        [string]$StoppedReason,
+        [bool]$Completed,
+        [int]$ExitCode,
+        [int]$PreparedGoals,
+        [string]$FailureMessage = ""
+    )
 
-- 수정한 파일 목록
-- 수행한 작업 요약
-- 실행한 검증과 결과
-- 실행하지 못한 검증과 사유
-- 리뷰 결과 또는 리뷰 미수행 사유
-- 중단 사유와 필요한 사용자 결정
+    if ($ExitCode -ne 0 -and (Test-HasValue $FailureMessage)) {
+        Save-AutopilotFailureState $StoppedReason $FailureMessage
+        Add-LoopLogEntry "Autopilot stopped" @(
+            "- Reason: $StoppedReason",
+            "- Result: $FailureMessage",
+            "- Prepared goals: $PreparedGoals/$MaxGoals"
+        )
+    }
 
-민감 정보, API Key, 개인정보, 백업 데이터, 대형 diff는 로그나 리뷰 산출물에 포함하지 않는다. 필요한 경우 산출물 생성 전에 범위를 줄이고 사용자 확인을 받는
-다.
+    $result = New-AutopilotResult $Steps $StoppedReason $Completed $ExitCode $PreparedGoals
+    Write-AutopilotResult $result
+    exit $ExitCode
+}
+
+function Get-CurrentGoalGate {
+    $queue = Read-JsonFile $queuePath $queueRelativePath
+    $state = Read-JsonFile $statePath $stateRelativePath
+    $tasks = @($queue.tasks)
+    $openTasks = @($tasks | Where-Object { @("pending", "in_progress", "review_required", "failed", 
+"blocked") -contains ([string]$_.status) })
+    $goalStatus = if (Test-HasValue $state.goalStatus) { [string]$state.goalStatus } else { "" }
+    $currentTaskId = if (Test-HasValue $state.currentTaskId) { [string]$state.currentTaskId } elseif
+ (Test-HasValue $queue.currentTaskId) { [string]$queue.currentTaskId } else { "" }
+
+    return [PSCustomObject][ordered]@{
+        passed = ($goalStatus -eq "completed" -and -not (Test-HasValue $currentTaskId) -and $openTas
+ks.Count -eq 0)
+        goalTitle = if (Test-HasValue $queue.goalTitle) { [string]$queue.goalTitle } else { "" }
+        goalStatus = $goalStatus
+        currentTaskId = $currentTaskId
+        openTaskCount = $openTasks.Count
+    }
+}
+
+
+ succeeded in 3403ms:
+{
+    "goalStatus":  "in_progress",
+    "currentTaskId":  "T001",
+    "currentLoop":  0,
+    "maxLoopsPerTask":  2,
+    "repeatedFailureCount":  0,
+    "lastCommand":  "save-diff",
+    "lastCommandStatus":  "passed",
+    "lastErrorSummary":  "",
+    "lastReviewDecision":  "revise",
+    "lastReviewSeverity":  "low",
+    "lastCommitHash":  null,
+    "startedAt":  "2026-07-12T00:00:00+09:00",
+    "updatedAt":  "2026-07-12T13:55:22.4021377+00:00",
+    "stopReason":  null,
+    "lastReviewNextStep":  "revise_with_codex",
+    "lastReviewSummary":  "앱 변경 로직은 현재 task 요구사항에 대체로 맞지만, 리뷰 입력의 Test Result에\r\n는 핵심 수동 검증 결과가 충분히
+ 남아 있지 않아 완료 판정에는 불확실성이 있습니다.",
+    "lastReviewRequiredChanges":  [
+                                      {
+                                          "file":  ".ai-dev/test-result.md\r\n",
+                                          "reason":  "현재 리뷰 프롬프트의 Test Result는 build/lint 통과와 npm te
+st skipped만 보여 주며, task의 핵심 검증인 DryRun 무변경\r\n, 이전 완료/prepared title 제외, 모든 후보 제외 시 기록, 한국어 title 및 
+mojibake fallback 유지 확인이 명확히 기록되어 있지 않습니다.",
+                                          "s\r\nuggestion":  "해당 시나리오별 검증 결과를 .ai-dev/test-result.md
+에 명시하세요. 실제 상태 때문에 end-to-end 후보 선택까지 도달하지 못했다면 그 \r\n제약과 대체 검증 방식도 함께 기록하세요."
+                                      }
+                                  ]
+}
+
+ succeeded in 3529ms:
+
+  .ai-dev\loop-log.md:4:
+> .ai-dev\loop-log.md:5:- Previous goal: PlanPilot Local 업무 검색/필터 UX 개선
+  .ai-dev\loop-log.md:6:- Previous status: 업무 검색/필터 UX 개선 목표는 진행 중이었으나 Codex CLI 기반 완전 자동화 도입을 위해 잠시
+ 중단함
+> .ai-dev\loop-log.md:7:- New goal: AI Dev Loop Codex CLI 완전 자동화 도입
+  .ai-dev\loop-log.md:8:- Current task: T001 Codex CLI 완전 자동화 정책 문서화
+  .ai-dev\loop-log.md:9:- Scope: Codex CLI를 구현자와 리뷰어로 사용해 AI Dev Loop의 구현, 검증, 리뷰, 커밋, task 완료 처리 자동
+화 초안을 만든다.
+  .ai-dev\loop-log.md:31:
+> .ai-dev\loop-log.md:32:- Goal: AI Dev Loop Codex CLI 완전 자동화 도입
+  .ai-dev\loop-log.md:33:- Change: T001~T006 진행 상태는 유지하고 T007 목표 입력 기반 자동 goal 실행 스크립트 추가 task를 queu
+e에 추가함
+  .ai-dev\loop-log.md:34:- Final target command: `powershell -ExecutionPolicy Bypass -File .\scripts
+\ai-dev-auto-goal.p
+s1 -GoalTitle "업무 검색 결과 하이라이트 추가" -GoalDescription "검색어와 일치하는 업무 제목/메모/프로젝트명을 화면에서 강조 표시한다." -AllowC
+odex -AllowReviewCo
+dex -AllowCommit -MaxTasks 1`
+  .ai-dev\loop-log.md:440:- Next task: 없음
+> .ai-dev\loop-log.md:441:## 2026-07-09 23:03:08 - Autopilot goal prepared
+  .ai-dev\loop-log.md:442:
+> .ai-dev\loop-log.md:443:- Goal: Codex 구현 실행 스크립트 추가
+  .ai-dev\loop-log.md:444:- Source: .ai-dev/backlog.md / P0
+  .ai-dev\loop-log.md:445:- Prepared goals: 1/1
+  .ai-dev\loop-log.md:456:- Next task: 없음
+> .ai-dev\loop-log.md:457:## 2026-07-12 22:00:44 - Autopilot goal prepared
+  .ai-dev\loop-log.md:458:
+> .ai-dev\loop-log.md:459:- Goal: Codex CLI 완전 자동화 정책 문서화
+  .ai-dev\loop-log.md:460:- Source: .ai-dev/backlog.md / P0
+  .ai-dev\loop-log.md:461:- Prepared goals: 1/1
+  .ai-dev\loop-log.md:465:- Task: T001 완료된 Autopilot goal 제외 처리 구현
+> .ai-dev\loop-log.md:466:- Result: `scripts/ai-dev-autopilot.ps1`의 backlog 후보 선택이 현재 goal, 현재 실행 us
+ed title, 과거 `Autop
+ilot goal prepared` 로그의 `- Goal:` title, 완료된 queue/state goal title을 제외 대상으로 사용함을 확인함
+  .ai-dev\loop-log.md:467:- Duplicate handling: 모든 후보가 제외되면 `all_goal_candidates_excluded`로 중단하고 제외 
+title 목록과 후보 title 
+목록을 실패 메시지에 포함해 state/loop-log/output 경로로 남기도록 되어 있음
+  .ai-dev\loop-log.md:468:- Verification: PowerShell AST 문법 검증 통과, DryRun 실행 전후 `.ai-dev/state.json`
+, `.ai-dev/queue.js
+on`, `.ai-dev/loop-log.md` SHA256 불변 확인
+  .ai-dev\loop-log.md:473:- Task: T001 완료된 Autopilot goal 제외 처리 구현
+> .ai-dev\loop-log.md:474:- Result: 완료 title 이력 수집 경로를 `Get-HistoricalGoalTitles`로 명확히 묶고, 완료된 현재 qu
+eue/state의 `goalTit
+le`과 `Autopilot goal prepared` 로그의 `- Goal:`만 제외 대상으로 사용하도록 정리함
+  .ai-dev\loop-log.md:475:- Review fix: `Task completed` 로그의 `- Task:` 값은 완료 goal title로 취급하지 않음을 함수
+ 단위 검증으로 확인함
+  .ai-dev\loop-log.md:476:- Verification: PowerShell AST 문법 검증 통과, DryRun 실행 전후 `.ai-dev/state.json`
+, `.ai-dev/queue.js
+on`, `.ai-dev/loop-log.md` SHA256 불변 확인, 한국어 goal title 수집 확인
+
+
 
 codex
 {
   "decision": "pass",
   "severity": "none",
-  "summary": "Codex CLI 자동화 범위, 사용자 확인 지점, 중단 기준이 한국어로 명확히 정리되어 있으며 현재 문서화 task 범위를 벗어나지 않았다.",
+  "summary": "현재 task 요구사항에 맞게 Autopilot 후보 선택에서 과거 prepared 로그와 완료된 현재 queue/state goal title을 제외하고
+, 모든 후보가 제외된 경우 중단 사유와 title 목록을 기록하도록 구현되어 있습니다.",
   "required_changes": [],
-  "optional_suggestions": [],
+  "optional_suggestions": [
+    {
+      "file": ".ai-dev/test-result.md",
+      "suggestion": "현재 리뷰 프롬프트에는 build/lint 결과만 포함되어 있으므로, 이미 loop-log에 남긴 수동 검증 항목도 test-result에 함
+께 반영하면 다음 리뷰 입력의 추적성이 더 좋아집니다."
+    }
+  ],
   "scope_check": {
     "within_current_task": true,
     "scope_issues": []
@@ -502,20 +1636,25 @@ codex
     "test_passed": true,
     "lint_passed": true,
     "issues": [
-      "package.json에 test script가 없어 npm run test는 skipped로 기록되었으나, 문서 변경 task 기준에서는 차단 사유로 보지 않
-는다."
+      "package.json에 test script가 없어 npm run test는 skipped입니다. 다만 수동 검증 로그에서 DryRun 무변경, 한국어 title 수
+집, completed task title 오인 방지 확인이 기록되어 있습니다."
     ]
   },
   "next_step": "complete_task"
 }
 tokens used
-13,152
+25,897
 {
   "decision": "pass",
   "severity": "none",
-  "summary": "Codex CLI 자동화 범위, 사용자 확인 지점, 중단 기준이 한국어로 명확히 정리되어 있으며 현재 문서화 task 범위를 벗어나지 않았다.",
+  "summary": "현재 task 요구사항에 맞게 Autopilot 후보 선택에서 과거 prepared 로그와 완료된 현재 queue/state goal title을 제외하고, 모든 후보가 제외된 경우 중단 사유와 title 목록을 기록하도록 구현되어 있습니다.",
   "required_changes": [],
-  "optional_suggestions": [],
+  "optional_suggestions": [
+    {
+      "file": ".ai-dev/test-result.md",
+      "suggestion": "현재 리뷰 프롬프트에는 build/lint 결과만 포함되어 있으므로, 이미 loop-log에 남긴 수동 검증 항목도 test-result에 함께 반영하면 다음 리뷰 입력의 추적성이 더 좋아집니다."
+    }
+  ],
   "scope_check": {
     "within_current_task": true,
     "scope_issues": []
@@ -525,7 +1664,7 @@ tokens used
     "test_passed": true,
     "lint_passed": true,
     "issues": [
-      "package.json에 test script가 없어 npm run test는 skipped로 기록되었으나, 문서 변경 task 기준에서는 차단 사유로 보지 않는다."
+      "package.json에 test script가 없어 npm run test는 skipped입니다. 다만 수동 검증 로그에서 DryRun 무변경, 한국어 title 수집, completed task title 오인 방지 확인이 기록되어 있습니다."
     ]
   },
   "next_step": "complete_task"

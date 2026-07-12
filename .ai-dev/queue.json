@@ -1,30 +1,31 @@
 ﻿{
-    "goalTitle":  "Codex CLI 완전 자동화 정책 문서화",
+    "goalTitle":  "Autopilot completed goal 중복 선택 방지",
     "goalSource":  ".ai-dev/goal.md",
     "createdAt":  "2026-07-12T00:00:00+09:00",
-    "updatedAt":  "2026-07-12T13:00:18.9015074+00:00",
+    "updatedAt":  "2026-07-12T13:56:52.3758552+00:00",
     "currentTaskId":  null,
     "tasks":  [
                   {
                       "id":  "T001",
-                      "title":  "Codex CLI 자동화 정책 문서 초안 작성",
-                      "description":  "현재 저장소의 로컬 개발 규칙을 기준으로 Codex CLI가 자동으로 진행할 수 있는 범위, 사용자 확인이 필요한 상황, 중단 기준을 작고 명확한 문서로 정리한다.",
-                      "type":  "documentation",
+                      "title":  "완료된 Autopilot goal 제외 처리 구현",
+                      "description":  "Autopilot backlog 후보 선택 시 과거에 준비했거나 완료한 goal title을 수집해 중복 후보를 제외하고, 남은 후보가 없을 때 읽을 수 있는 중단 사유와 제외 목록을 기록한다.",
+                      "type":  "implementation",
                       "status":  "done",
                       "priority":  "P0",
                       "dependsOn":  [
 
                                     ],
                       "filesLikelyToChange":  [
-                                                  "docs/codex-cli-automation-policy.md"
+                                                  "scripts/ai-dev-autopilot.ps1"
                                               ],
                       "verification":  [
-                                           "문서에 자동화 범위가 한국어로 정리되어 있는지 확인한다.",
-                                           "사용자 확인이 필요한 상황과 중단 기준이 포함되어 있는지 확인한다.",
-                                           "현재 프로젝트 제약사항과 충돌하는 내용이 없는지 확인한다."
+                                           "DryRun에서 파일 변경이 발생하지 않는지 확인한다.",
+                                           "이전 완료 title이 후보에서 제외되는지 확인한다.",
+                                           "모든 후보가 제외된 경우 중단 사유와 제외 title 목록이 기록되는지 확인한다.",
+                                           "정상 한국어 backlog title과 기존 mojibake fallback 동작이 유지되는지 확인한다."
                                        ],
-                      "commitMessage":  "Document Codex CLI automation policy",
-                      "completedAt":  "2026-07-12T13:00:18.9015074+00:00",
+                      "commitMessage":  "Avoid duplicate autopilot goals",
+                      "completedAt":  "2026-07-12T13:56:52.3758552+00:00",
                       "resultSummary":  "자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료"
                   }
               ]

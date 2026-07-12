@@ -459,3 +459,30 @@
 - Goal: Codex CLI 완전 자동화 정책 문서화
 - Source: .ai-dev/backlog.md / P0
 - Prepared goals: 1/1
+
+## 2026-07-12 22:40:00 - Task progress
+
+- Task: T001 완료된 Autopilot goal 제외 처리 구현
+- Result: `scripts/ai-dev-autopilot.ps1`의 backlog 후보 선택이 현재 goal, 현재 실행 used title, 과거 `Autopilot goal prepared` 로그의 `- Goal:` title, 완료된 queue/state goal title을 제외 대상으로 사용함을 확인함
+- Duplicate handling: 모든 후보가 제외되면 `all_goal_candidates_excluded`로 중단하고 제외 title 목록과 후보 title 목록을 실패 메시지에 포함해 state/loop-log/output 경로로 남기도록 되어 있음
+- Verification: PowerShell AST 문법 검증 통과, DryRun 실행 전후 `.ai-dev/state.json`, `.ai-dev/queue.json`, `.ai-dev/loop-log.md` SHA256 불변 확인
+- Not executed: `npm run build`, `npm run lint`, `npm run test`, git 명령은 이번 task 규칙에 따라 실행하지 않음
+
+## 2026-07-12 23:05:00 - Task revise
+
+- Task: T001 완료된 Autopilot goal 제외 처리 구현
+- Result: 완료 title 이력 수집 경로를 `Get-HistoricalGoalTitles`로 명확히 묶고, 완료된 현재 queue/state의 `goalTitle`과 `Autopilot goal prepared` 로그의 `- Goal:`만 제외 대상으로 사용하도록 정리함
+- Review fix: `Task completed` 로그의 `- Task:` 값은 완료 goal title로 취급하지 않음을 함수 단위 검증으로 확인함
+- Verification: PowerShell AST 문법 검증 통과, DryRun 실행 전후 `.ai-dev/state.json`, `.ai-dev/queue.json`, `.ai-dev/loop-log.md` SHA256 불변 확인, 한국어 goal title 수집 확인
+- Not executed: `npm run build`, `npm run lint`, `npm run test`, git 명령은 이번 revise 규칙에 따라 실행하지 않음
+
+## 2026-07-12 22:56:49 - Commit created
+
+- Task: T001 완료된 Autopilot goal 제외 처리 구현
+- Commit: 0faa4737a307e8b821d9fb9ac34f45fde58d0da8
+- Message: Avoid duplicate autopilot goals
+## 2026-07-12 22:56:54 - Task completed
+
+- Task: T001 완료된 Autopilot goal 제외 처리 구현
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
+- Next task: 없음

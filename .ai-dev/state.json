@@ -9,8 +9,17 @@
     "lastErrorSummary":  "",
     "lastReviewDecision":  "pass",
     "lastReviewSeverity":  "none",
-    "lastCommitHash":  "abac2cbd9445bc7374e8f07d31356859b2cab330",
+    "lastCommitHash":  "0faa4737a307e8b821d9fb9ac34f45fde58d0da8",
     "startedAt":  "2026-07-12T00:00:00+09:00",
-    "updatedAt":  "2026-07-12T13:00:18.9015074+00:00",
-    "stopReason":  "all_tasks_completed"
+    "updatedAt":  "2026-07-12T13:56:52.3758552+00:00",
+    "stopReason":  "all_tasks_completed",
+    "lastReviewNextStep":  "revise_with_codex",
+    "lastReviewSummary":  "앱 변경 로직은 현재 task 요구사항에 대체로 맞지만, 리뷰 입력의 Test Result에\r\n는 핵심 수동 검증 결과가 충분히 남아 있지 않아 완료 판정에는 불확실성이 있습니다.",
+    "lastReviewRequiredChanges":  [
+                                      {
+                                          "file":  ".ai-dev/test-result.md\r\n",
+                                          "reason":  "현재 리뷰 프롬프트의 Test Result는 build/lint 통과와 npm test skipped만 보여 주며, task의 핵심 검증인 DryRun 무변경\r\n, 이전 완료/prepared title 제외, 모든 후보 제외 시 기록, 한국어 title 및 mojibake fallback 유지 확인이 명확히 기록되어 있지 않습니다.",
+                                          "s\r\nuggestion":  "해당 시나리오별 검증 결과를 .ai-dev/test-result.md에 명시하세요. 실제 상태 때문에 end-to-end 후보 선택까지 도달하지 못했다면 그 \r\n제약과 대체 검증 방식도 함께 기록하세요."
+                                      }
+                                  ]
 }
