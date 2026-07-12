@@ -15,55 +15,52 @@
 ## Project Goal
 
 # 목표
-Codex 리뷰 실행을 위한 최소 스크립트를 프로젝트에 추가한다.
+full auto-cycle 초안을 추가한다.
 
 ## 배경
-현재 저장소의 P0 백로그 항목인 "Codex 리뷰 실행 스크립트 추가"를 현재 구조에 맞게 작고 안전한 단위로 진행한다. 반복 가능한 리뷰 실행 진입점을 마련해 이후 AI Dev Loop에서 동일한 방식으로 리뷰를 수행할 수 있게 한다.
+현재 저장소의 P0 백로그 항목인 full auto-cycle 초안 추가를 가장 작은 실행 가능한 단위로 진행한다. 자동 개발 루프의 흐름과 책임 범위를 문서 초안으로 정리해 이후 구현 또는 검토의 기준을 만든다.
 
 ## 성공 기준
-- 프로젝트에서 Codex 리뷰를 실행할 수 있는 명확한 스크립트 항목이 추가된다.
-- 기존 앱 동작과 데이터 구조에는 영향을 주지 않는다.
-- 변경 파일은 필요한 최소 범위로 제한된다.
-- 스크립트 이름과 목적이 한눈에 이해된다.
+- full auto-cycle의 목적, 입력, 처리 흐름, 종료 조건이 초안 문서에 정리된다.
+- 기존 로컬 우선 구조와 현재 프로젝트 제약을 벗어나지 않는다.
+- 후속 작업자가 바로 검토하거나 보완할 수 있을 만큼 항목이 구체적이다.
 
 ## 제약사항
-- 한 번에 하나의 기능만 구현한다.
-- 기본적으로 한 파일만 수정한다.
-- 기존 사용자 변경 사항을 되돌리지 않는다.
-- lock file은 수정하지 않는다.
-- `src/App.css`는 수정하지 않는다.
+- 한 번에 하나의 작은 문서 작업만 수행한다.
+- 기존 앱 동작과 저장 구조는 변경하지 않는다.
+- 사용자-facing 문구는 한국어를 기본으로 한다.
+- 기존 파일 구조와 현재 프로젝트 규칙을 따른다.
 
 ## 범위 제외
-- 리뷰 결과 자동 수정 기능은 포함하지 않는다.
-- 별도 UI 추가는 포함하지 않는다.
-- 저장소 전반의 구조 변경은 포함하지 않는다.
-- 추가 검증 파이프라인 구성은 포함하지 않는다.
+- 실제 자동 실행 로직 구현은 포함하지 않는다.
+- UI 변경은 포함하지 않는다.
+- 저장소 구조의 대규모 정리는 포함하지 않는다.
+- 배포, 외부 연동, 계정 기반 기능은 포함하지 않는다.
 
 ## 수동 검증
-- 변경된 스크립트 항목이 의도한 이름으로 추가되었는지 확인한다.
-- 스크립트 명령이 현재 저장소 구조에서 사용할 수 있는 형태인지 확인한다.
-- 불필요한 파일 변경이 없는지 확인한다.
+- 추가된 초안 문서를 열어 섹션 구성이 자연스러운지 확인한다.
+- 성공 기준과 범위 제외가 이번 목표에 맞게 좁게 유지되는지 확인한다.
+- 후속 구현자가 다음 작업을 식별할 수 있는지 확인한다.
 
 ## Current Task
 
 - Task ID: T001
-- Title: Codex 리뷰 실행 스크립트 추가
-- Description: 현재 프로젝트 설정에 맞춰 Codex 리뷰를 실행할 수 있는 최소 스크립트 항목을 추가한다.
-- Type: implementation
+- Title: full auto-cycle 초안 문서 추가
+- Description: full auto-cycle의 목적, 입력, 처리 흐름, 종료 조건을 작은 문서 초안으로 정리한다.
+- Type: documentation
 - Status: in_progress
 - Priority: P0
 - Depends on:
 - 없음
 - Verification:
-- 스크립트 항목이 package.json에 추가되었는지 확인한다.
-- 명령 이름과 실행 대상이 리뷰 목적에 맞는지 확인한다.
-- 불필요한 파일 변경이 없는지 확인한다.
+- 문서에 목적, 입력, 처리 흐름, 종료 조건이 포함되어 있는지 확인한다.
+- 이번 목표의 범위가 문서 초안 추가로 제한되어 있는지 확인한다.
 
 ## Test Result
 
 # AI Dev Test Result
 
-## 2026-07-12 23:19:16
+## 2026-07-12 23:27:16
 
 - Overall result: passed
 - Current task: T001
@@ -92,7 +89,7 @@ dist/index.html                   0.46 kB │ gzip:   0.29 kB
 dist/assets/index-DvjxWt30.css    5.69 kB │ gzip:   1.93 kB
 dist/assets/index-DtLVvPCG.js   317.50 kB │ gzip: 100.16 kB
 
-[32m✓ built in 234ms[39m
+[32m✓ built in 227ms[39m
 ```
 ### npm run test
 
@@ -119,44 +116,35 @@ package.json에 test script가 없습니다.
 
 ## Generated At
 
-2026-07-12 23:19:24
+2026-07-12 23:27:25
 
 ## Git Status
 
 ```text
  M .ai-dev/codex-result.md
- M .ai-dev/codex-review-result.md
  M .ai-dev/current-task-prompt.md
- M .ai-dev/diff.md
  M .ai-dev/goal.md
- M .ai-dev/loop-log.md
  M .ai-dev/queue.json
- M .ai-dev/review-prompt.md
- M .ai-dev/review-response.json
- M .ai-dev/review.md
  M .ai-dev/state.json
  M .ai-dev/test-result.md
- M package.json
+?? .ai-dev/auto-goal-planning-prompt.md
+?? .ai-dev/full-auto-cycle-draft.md
 ```
 
 ## App Change Files
 
-- package.json
+- 없음
 
 ## AI Dev Operational Artifact Files
 
 - .ai-dev/codex-result.md
-- .ai-dev/codex-review-result.md
 - .ai-dev/current-task-prompt.md
-- .ai-dev/diff.md
 - .ai-dev/goal.md
-- .ai-dev/loop-log.md
 - .ai-dev/queue.json
-- .ai-dev/review-prompt.md
-- .ai-dev/review-response.json
-- .ai-dev/review.md
 - .ai-dev/state.json
 - .ai-dev/test-result.md
+- .ai-dev/auto-goal-planning-prompt.md
+- .ai-dev/full-auto-cycle-draft.md
 
 ## Review Diff Scope
 
@@ -165,27 +153,13 @@ package.json에 test script가 없습니다.
 ## Unstaged Diff Stat
 
 ```text
- package.json | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+변경 없음
 ```
 
 ## Unstaged Diff
 
 ```text
-diff --git a/package.json b/package.json
-index a68f50b..85ccae0 100644
---- a/package.json
-+++ b/package.json
-@@ -7,7 +7,8 @@
-     "dev": "vite",
-     "build": "tsc -b && vite build",
-     "lint": "eslint .",
--    "preview": "vite preview"
-+    "preview": "vite preview",
-+    "ai-dev:review": "powershell -ExecutionPolicy Bypass -File ./scripts/ai-dev-run-review-codex.ps1 -AllowDirty -SaveReview"
-   },
-   "dependencies": {
-     "dexie": "^4.4.2",
+변경 없음
 ```
 
 ## Staged Diff Stat

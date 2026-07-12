@@ -1,31 +1,31 @@
 ﻿{
-    "goalTitle":  "Codex 리뷰 실행 스크립트 추가",
+    "goalTitle":  "full auto-cycle 초안 추가",
     "goalSource":  ".ai-dev/goal.md",
     "createdAt":  "2026-07-12T00:00:00+09:00",
-    "updatedAt":  "2026-07-12T14:22:22.2324255+00:00",
+    "updatedAt":  "2026-07-12T14:28:29.6135240+00:00",
     "currentTaskId":  null,
     "tasks":  [
                   {
                       "id":  "T001",
-                      "title":  "Codex 리뷰 실행 스크립트 추가",
-                      "description":  "현재 프로젝트 설정에 맞춰 Codex 리뷰를 실행할 수 있는 최소 스크립트 항목을 추가한다.",
-                      "type":  "implementation",
+                      "title":  "full auto-cycle 초안 문서 추가",
+                      "description":  "full auto-cycle의 목적, 입력, 처리 흐름, 종료 조건을 작은 문서 초안으로 정리한다.",
+                      "type":  "documentation",
                       "status":  "done",
                       "priority":  "P0",
                       "dependsOn":  [
 
                                     ],
                       "filesLikelyToChange":  [
-                                                  "package.json"
+                                                  ".ai-dev/goal.md",
+                                                  ".ai-dev/full-auto-cycle-draft.md"
                                               ],
                       "verification":  [
-                                           "스크립트 항목이 package.json에 추가되었는지 확인한다.",
-                                           "명령 이름과 실행 대상이 리뷰 목적에 맞는지 확인한다.",
-                                           "불필요한 파일 변경이 없는지 확인한다."
+                                           "문서에 목적, 입력, 처리 흐름, 종료 조건이 포함되어 있는지 확인한다.",
+                                           "이번 목표의 범위가 문서 초안 추가로 제한되어 있는지 확인한다."
                                        ],
-                      "commitMessage":  "Add Codex review script",
-                      "completedAt":  "2026-07-12T14:22:22.2324255+00:00",
-                      "resultSummary":  "자동 완료: package.json에 ai-dev:review 스크립트 추가, build/lint 통과, Codex 리뷰 pass"
+                      "commitMessage":  "Add full auto-cycle draft",
+                      "completedAt":  "2026-07-12T14:28:29.6135240+00:00",
+                      "resultSummary":  "자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 구현 커밋 없음, 저장된 리뷰 pass에서 자동 완료"
                   }
               ]
 }
