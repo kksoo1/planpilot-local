@@ -626,3 +626,9 @@ Exit code: 1
 - Goal: full auto-cycle 초안 추가
 - Source: .ai-dev/backlog.md / P0
 - Prepared goals: 1/1
+
+## 2026-07-12 23:47:02 - Task completed
+
+- Task: T001 Codex 리뷰 실행 스크립트 추가
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 구현 커밋 없음, 저장된 리뷰 pass에서 자동 완료
+- Next task: 없음

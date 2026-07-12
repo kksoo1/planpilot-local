@@ -2,7 +2,7 @@
 
 ## Generated At
 
-2026-07-12 23:27:25
+2026-07-12 23:45:27
 
 ## Git Status
 
@@ -14,7 +14,7 @@
  M .ai-dev/state.json
  M .ai-dev/test-result.md
 ?? .ai-dev/auto-goal-planning-prompt.md
-?? .ai-dev/full-auto-cycle-draft.md
+?? .ai-dev/scripts/
 ```
 
 ## App Change Files
@@ -30,7 +30,7 @@
 - .ai-dev/state.json
 - .ai-dev/test-result.md
 - .ai-dev/auto-goal-planning-prompt.md
-- .ai-dev/full-auto-cycle-draft.md
+- .ai-dev/scripts/
 
 ## Review Diff Scope
 

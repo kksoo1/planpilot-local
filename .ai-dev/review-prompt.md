@@ -15,52 +15,54 @@
 ## Project Goal
 
 # 목표
-full auto-cycle 초안을 추가한다.
+Codex 리뷰 실행 스크립트 추가
 
 ## 배경
-현재 저장소의 P0 백로그 항목인 full auto-cycle 초안 추가를 가장 작은 실행 가능한 단위로 진행한다. 자동 개발 루프의 흐름과 책임 범위를 문서 초안으로 정리해 이후 구현 또는 검토의 기준을 만든다.
+현재 저장소에서 AI Dev Loop가 Codex 리뷰를 반복적으로 실행할 수 있도록, 로컬에서 호출 가능한 최소 실행 스크립트가 필요하다. 기존 구조를 해치지 않고 자동화 루프가 사용할 수 있는 작은 단위의 실행 경로를 마련한다.
 
 ## 성공 기준
-- full auto-cycle의 목적, 입력, 처리 흐름, 종료 조건이 초안 문서에 정리된다.
-- 기존 로컬 우선 구조와 현재 프로젝트 제약을 벗어나지 않는다.
-- 후속 작업자가 바로 검토하거나 보완할 수 있을 만큼 항목이 구체적이다.
+- Codex 리뷰 실행을 위한 스크립트 또는 명령 진입점이 추가된다.
+- 기존 프로젝트 구조와 PowerShell 5.1 환경에서 사용할 수 있다.
+- 실행 방법이 저장소 안에서 확인 가능하다.
+- 변경 범위가 리뷰 실행에 필요한 파일로 제한된다.
 
 ## 제약사항
-- 한 번에 하나의 작은 문서 작업만 수행한다.
-- 기존 앱 동작과 저장 구조는 변경하지 않는다.
-- 사용자-facing 문구는 한국어를 기본으로 한다.
-- 기존 파일 구조와 현재 프로젝트 규칙을 따른다.
+- 한 번에 하나의 작은 기능만 구현한다.
+- 기존 사용자 변경 사항을 되돌리지 않는다.
+- lock file은 수정하지 않는다.
+- `src/App.css`는 수정하지 않는다.
+- 로컬 앱의 privacy-first 제약을 유지한다.
 
 ## 범위 제외
-- 실제 자동 실행 로직 구현은 포함하지 않는다.
-- UI 변경은 포함하지 않는다.
-- 저장소 구조의 대규모 정리는 포함하지 않는다.
-- 배포, 외부 연동, 계정 기반 기능은 포함하지 않는다.
+- 앱 기능 UI 변경은 포함하지 않는다.
+- 저장소 전반의 구조 재작성은 포함하지 않는다.
+- 알림, 동기화, 계정 관련 기능은 포함하지 않는다.
 
 ## 수동 검증
-- 추가된 초안 문서를 열어 섹션 구성이 자연스러운지 확인한다.
-- 성공 기준과 범위 제외가 이번 목표에 맞게 좁게 유지되는지 확인한다.
-- 후속 구현자가 다음 작업을 식별할 수 있는지 확인한다.
+- 추가된 스크립트 또는 명령을 PowerShell 5.1 기준으로 검토한다.
+- 실행 명령이 예상 입력과 출력 흐름을 갖는지 확인한다.
+- 변경 파일이 목표 범위 안에 있는지 확인한다.
 
 ## Current Task
 
 - Task ID: T001
-- Title: full auto-cycle 초안 문서 추가
-- Description: full auto-cycle의 목적, 입력, 처리 흐름, 종료 조건을 작은 문서 초안으로 정리한다.
-- Type: documentation
+- Title: Codex 리뷰 실행 스크립트 추가
+- Description: 현재 저장소 구조를 확인한 뒤 AI Dev Loop에서 호출할 수 있는 최소 Codex 리뷰 실행 스크립트 또는 명령 진입점을 추가한다.
+- Type: implementation
 - Status: in_progress
 - Priority: P0
 - Depends on:
 - 없음
 - Verification:
-- 문서에 목적, 입력, 처리 흐름, 종료 조건이 포함되어 있는지 확인한다.
-- 이번 목표의 범위가 문서 초안 추가로 제한되어 있는지 확인한다.
+- PowerShell 5.1에서 스크립트 문법이 유효한지 확인한다.
+- 스크립트가 리뷰 실행에 필요한 입력을 명확히 다루는지 확인한다.
+- 변경 범위가 Codex 리뷰 실행 스크립트 추가에 한정되는지 확인한다.
 
 ## Test Result
 
 # AI Dev Test Result
 
-## 2026-07-12 23:27:16
+## 2026-07-12 23:45:18
 
 - Overall result: passed
 - Current task: T001
@@ -89,7 +91,7 @@ dist/index.html                   0.46 kB │ gzip:   0.29 kB
 dist/assets/index-DvjxWt30.css    5.69 kB │ gzip:   1.93 kB
 dist/assets/index-DtLVvPCG.js   317.50 kB │ gzip: 100.16 kB
 
-[32m✓ built in 227ms[39m
+[32m✓ built in 279ms[39m
 ```
 ### npm run test
 
@@ -116,7 +118,7 @@ package.json에 test script가 없습니다.
 
 ## Generated At
 
-2026-07-12 23:27:25
+2026-07-12 23:45:27
 
 ## Git Status
 
@@ -128,7 +130,7 @@ package.json에 test script가 없습니다.
  M .ai-dev/state.json
  M .ai-dev/test-result.md
 ?? .ai-dev/auto-goal-planning-prompt.md
-?? .ai-dev/full-auto-cycle-draft.md
+?? .ai-dev/scripts/
 ```
 
 ## App Change Files
@@ -144,7 +146,7 @@ package.json에 test script가 없습니다.
 - .ai-dev/state.json
 - .ai-dev/test-result.md
 - .ai-dev/auto-goal-planning-prompt.md
-- .ai-dev/full-auto-cycle-draft.md
+- .ai-dev/scripts/
 
 ## Review Diff Scope
 
