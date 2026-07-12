@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "ai-dev:review": "powershell -ExecutionPolicy Bypass -File ./scripts/ai-dev-run-review-codex.ps1 -AllowDirty -SaveReview"
   },
   "dependencies": {
     "dexie": "^4.4.2",
