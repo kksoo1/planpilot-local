@@ -9,75 +9,82 @@
 
 # 목표
 
-AI Dev Loop Autopilot이 이미 준비했거나 완료한 backlog goal title을 다음 실행에서 다시 선택하지 않도록 개선한다.
+AI Dev Loop Autopilot에 durable goal history를 도입해 이미 선택되었거나 처리된 goal title이 다음 실행에서 다시 후보로 선택되지 않도록 한다.
 
 ## 배경
 
-현재 `scripts/ai-dev-autopilot.ps1`은 현재 goal, 직전 goal, 현재 프로세스의 `usedTitles`만 제외한다. 이 때문에 이전 Autopilot 실행에서 이미 완료한 backlog 항목이 이후 실행에서 다시 후보로 선택될 수 있다.
+현재 Autopilot은 과거 prepared 로그와 현재 queue/state의 completed goalTitle만 제외하기 때문에, 실패 후 수동 완료된 backlog goal이나 prepared 로그에 남지 않은 goal이 다음 실행에서 다시 선택될 수 있다. 실제로 수동 완료한 backlog goal이 다음 Autopilot 실행에서 다시 선택된 사례가 있었다.
 
 ## 성공 기준
 
-- Autopilot은 과거 prepared 로그, 완료된 queue/goal 상태, 또는 별도 history 파일을 기준으로 이미 준비했거나 완료한 goal title을 후보에서 제외한다.
-- 중복 후보를 제외한 뒤 남은 후보가 없으면 중단 사유와 제외된 title 목록을 state, loop-log, 출력 중 적절한 위치에 남긴다.
-- 정상 한국어 backlog title은 계속 후보로 허용된다.
-- 기존 mojibake fallback 로직은 유지된다.
-- DryRun 실행에서는 파일을 수정하지 않는다.
-- AllowCommit이 있는 성공 실행은 작업 종료 상태를 명확히 검증할 수 있다.
+- `scripts/ai-dev-autopilot.ps1`에서 Autopilot이 선택/준비/완료한 goal title을 durable history로 보존한다.
+- history에 저장된 정상적인 한국어 goal title이 깨지지 않는다.
+- 기존 prepared 로그 기반 제외와 현재 completed queue/state goalTitle 제외는 유지한다.
+- task title을 goal title로 잘못 취급하지 않는다.
+- auto-goal 실패 후 해당 goal이 수동 완료되어도 다음 실행에서 같은 goal title이 다시 선택되지 않는다.
+- DryRun 실행은 history, state, loop-log 등 어떤 파일도 수정하지 않는다.
+- 모든 후보가 history 때문에 제외되면 `all_goal_candidates_excluded`로 중단하고 제외 title 목록과 후보 title 목록을 state, loop-log, output에 남긴다.
+- 앱 `src` 파일은 수정하지 않는다.
+- AllowCommit이 있는 성공 실행은 최종 작업 트리가 깨끗한 상태로 끝난다.
 
 ## 제약사항
 
-- 앱 `src` 파일은 수정하지 않는다.
-- 변경 범위는 Autopilot 스크립트와 AI Dev Loop 상태 파일에 한정한다.
-- 기존 backlog 선택 흐름과 fallback 동작을 불필요하게 재작성하지 않는다.
-- 한 번에 하나의 작은 구현 단위로 진행한다.
+- 변경 범위는 Autopilot 스크립트와 AI Dev Loop 상태/기록 파일 처리에 한정한다.
+- 한국어 goal title 보존을 위해 파일 인코딩과 JSON 직렬화 방식을 안전하게 유지한다.
+- 기존 로그 기반 제외 로직과 현재 완료 goal 제외 로직을 제거하지 않는다.
+- DryRun 경로에서는 파일 쓰기 동작을 추가하지 않는다.
 
 ## 범위 제외
 
-- 앱 UI 변경은 하지 않는다.
-- IndexedDB schema 변경은 하지 않는다.
-- 새로운 외부 의존성은 추가하지 않는다.
-- 알림, 계정, 원격 동기화 기능은 다루지 않는다.
+- 앱 화면, React 컴포넌트, Zustand 상태, Dexie 저장 구조 변경은 제외한다.
+- 알림, 동기화, 인증 같은 제품 기능 추가는 제외한다.
+- Autopilot 외 다른 개발 루프 정책의 대규모 재작성은 제외한다.
 
 ## 수동 검증
 
-- 과거 완료 title이 있는 상태에서 Autopilot 후보 선택을 실행해 해당 title이 제외되는지 확인한다.
-- 제외 후 후보가 없을 때 중단 사유와 제외 title 목록이 남는지 확인한다.
-- DryRun에서 상태 파일이 변경되지 않는지 확인한다.
-- 한국어 backlog title과 mojibake fallback 처리가 기존처럼 동작하는지 확인한다.
-
+- history가 없는 상태에서 새 goal을 선택하면 durable history에 goal title이 기록되는지 확인한다.
+- auto-goal 실패 후 같은 title이 다음 실행 후보에서 제외되는지 확인한다.
+- DryRun 실행 전후 관련 파일의 변경이 없는지 확인한다.
+- 모든 후보가 history로 제외되는 경우 state, loop-log, output에 후보 title과 제외 title이 남는지 확인한다.
+- 한국어 goal title이 history 파일에서 깨지지 않는지 확인한다.
 
 ## Current Task
 
 - Task ID: T001
-- Title: 완료된 Autopilot goal 제외 처리 구현
-- Description: Autopilot backlog 후보 선택 시 과거에 준비했거나 완료한 goal title을 수집해 중복 후보를 제외하고, 남은 후보가 없을 때 읽을 수 있는 중단 사유와 제외 목록을 기록한다.
+- Title: Autopilot durable history 구현
+- Description: Autopilot이 선택하거나 준비한 goal title을 별도 durable history에 기록하고, 다음 후보 선택 시 기존 제외 로직과 함께 history 기반 제외를 적용한다. DryRun에서는 어떤 기록 파일도 수정하지 않도록 분기한다.
 - Type: implementation
 - Status: in_progress
 - Priority: P0
 - Verification:
-- DryRun에서 파일 변경이 발생하지 않는지 확인한다.
-- 이전 완료 title이 후보에서 제외되는지 확인한다.
-- 모든 후보가 제외된 경우 중단 사유와 제외 title 목록이 기록되는지 확인한다.
-- 정상 한국어 backlog title과 기존 mojibake fallback 동작이 유지되는지 확인한다.
+- 한국어 goal title이 history에 보존되는지 확인한다.
+- history에 있는 goal title이 다음 후보 선택에서 제외되는지 확인한다.
+- DryRun 실행 전후 history, state, loop-log 파일이 변경되지 않는지 확인한다.
+- task title이 goal title 제외 목록에 섞이지 않는지 확인한다.
 
 ## Review Result
 
 - Decision: revise
-- Severity: low
+- Severity: medium
 - Next step: revise_with_codex
-- Summary: 구현 범위와 코드 흐름은 대체로 현재 task에 맞지만, task 성공 기준에 대한 수동 검증 결과가 기록되지 않았고 npm test도 스크립트 부재로 skipped라서 strict 기준상 보완이 필요하다.
+- Summary: durable history 제외 로직 자체는 추가됐지만, AllowCommit 경로에서 history 파일을 add만 하고 commit pathspec에
+ 포함하지 않아 성공 실행 후 작업 트리가 깨끗하지 않을 수 있습니다.
 
 ## Required Changes
 
-- File: .ai-dev/test-result.md
-  - Reason: 현재 검증은 build/lint 중심이며, DryRun 파일 미변경, 과거 완료 title 제외, 모든 후보 제외 시 중단 사유/제외 목록 기록, 한국어 title 및 mojibake fallback 유지 여부가 실제로 확인됐다는 기록이 없다.
-  - Suggestion: 현재 task의 Verification 항목 4가지를 실행하거나 실행 불가 사유를 구체적으로 기록하고, 각 결과를 test-result 또는 동등한 리뷰 입력 산출물에 남긴다.
+- File: scripts/ai-dev-autopilot.ps1
+  - Reason: 라인 268에서 loop-log와 goal history를 함께 git add하지만, 라인 276의 git commit은 loop-log만 paths
+pec으로 지정합니다. 이 경우 .ai-dev/autopilot-goal-history.json 변경이 커밋되지 않고 staged 상태로 남아 'AllowCommit이 있는 성공 
+실행은 최종 작업 트리가 깨끗한 상태'라는 성공 기준을 위반합니다.
+  - Suggestion: git commit 명령에도 $goalHistoryRelativePath를 포함하고, 관련 실패 메시지도 loop-log/history 기준으
+로 맞추십시오.
 
 ## Optional Suggestions
 
 - optional_suggestions는 참고만 하며 구현하지 않는다.
 - File: scripts/ai-dev-autopilot.ps1
-  - Suggestion: Get-PreparedGoalTitlesFromLoopLog의 헤더 매칭은 현재 로그 형식에는 맞지만, 향후 제목에 하이픈이 포함될 가능성을 줄이려면 날짜 패턴을 더 명확히 고정하는 방식도 고려할 수 있다.
+  - Suggestion: goal history 업데이트와 meta commit 경로에 대한 수동 검증 결과를 남기면 DryRun/AllowCommit 회귀를 더 명확
+히 확인할 수 있습니다.
 
 ## Diff Context
 
@@ -85,22 +92,15 @@ AI Dev Loop Autopilot이 이미 준비했거나 완료한 backlog goal title을 
 
 ## Generated At
 
-2026-07-12 22:50:55
+2026-07-12 23:56:07
 
 ## Git Status
 
 ```text
  M .ai-dev/codex-result.md
- M .ai-dev/codex-review-result.md
  M .ai-dev/current-task-prompt.md
- M .ai-dev/diff.md
  M .ai-dev/goal.md
- M .ai-dev/loop-log.md
  M .ai-dev/queue.json
- M .ai-dev/review-prompt.md
- M .ai-dev/review-response.json
- M .ai-dev/review.md
- M .ai-dev/revise-prompt.md
  M .ai-dev/state.json
  M .ai-dev/test-result.md
  M scripts/ai-dev-autopilot.ps1
@@ -113,16 +113,9 @@ AI Dev Loop Autopilot이 이미 준비했거나 완료한 backlog goal title을 
 ## AI Dev Operational Artifact Files
 
 - .ai-dev/codex-result.md
-- .ai-dev/codex-review-result.md
 - .ai-dev/current-task-prompt.md
-- .ai-dev/diff.md
 - .ai-dev/goal.md
-- .ai-dev/loop-log.md
 - .ai-dev/queue.json
-- .ai-dev/review-prompt.md
-- .ai-dev/review-response.json
-- .ai-dev/review.md
-- .ai-dev/revise-prompt.md
 - .ai-dev/state.json
 - .ai-dev/test-result.md
 
@@ -133,171 +126,306 @@ AI Dev Loop Autopilot이 이미 준비했거나 완료한 backlog goal title을 
 ## Unstaged Diff Stat
 
 ```text
- scripts/ai-dev-autopilot.ps1 | 133 ++++++++++++++++++++++++++++++++++++++++---
- 1 file changed, 125 insertions(+), 8 deletions(-)
+ scripts/ai-dev-autopilot.ps1 | 197 +++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 188 insertions(+), 9 deletions(-)
 ```
 
 ## Unstaged Diff
 
 ```text
 diff --git a/scripts/ai-dev-autopilot.ps1 b/scripts/ai-dev-autopilot.ps1
-index 47d8acc..20d4d35 100644
+index 20d4d35..7c31a90 100644
 --- a/scripts/ai-dev-autopilot.ps1
 +++ b/scripts/ai-dev-autopilot.ps1
-@@ -502,6 +502,117 @@ function Get-BacklogCandidates {
-     return @($fallbackCandidate)
+@@ -20,11 +20,13 @@ $queueRelativePath = ".ai-dev/queue.json"
+ $stateRelativePath = ".ai-dev/state.json"
+ $backlogRelativePath = ".ai-dev/backlog.md"
+ $loopLogRelativePath = ".ai-dev/loop-log.md"
++$goalHistoryRelativePath = ".ai-dev/autopilot-goal-history.json"
+ $goalPath = Join-Path $repoRoot $goalRelativePath
+ $queuePath = Join-Path $repoRoot $queueRelativePath
+ $statePath = Join-Path $repoRoot $stateRelativePath
+ $backlogPath = Join-Path $repoRoot $backlogRelativePath
+ $loopLogPath = Join-Path $repoRoot $loopLogRelativePath
++$goalHistoryPath = Join-Path $repoRoot $goalHistoryRelativePath
+ $utf8WithBom = New-Object System.Text.UTF8Encoding($true)
+ 
+ function Test-HasValue {
+@@ -64,6 +66,152 @@ function Write-JsonFile {
+     [System.IO.File]::WriteAllText($Path, $json, $utf8WithBom)
  }
  
-+function Add-UniqueTitle {
-+    param(
-+        [string[]]$Titles,
-+        [string]$Title
-+    )
++function New-EmptyGoalHistory {
++    return [PSCustomObject][ordered]@{
++        version = 1
++        updatedAt = ""
++        goals = @()
++    }
++}
 +
-+    if (-not (Test-HasValue $Title)) {
-+        return @($Titles)
++function Read-AutopilotGoalHistory {
++    if (-not (Test-Path -LiteralPath $goalHistoryPath -PathType Leaf)) {
++        return New-EmptyGoalHistory
 +    }
 +
++    $history = Read-JsonFile $goalHistoryPath $goalHistoryRelativePath
++
++    if ($null -eq $history) {
++        return New-EmptyGoalHistory
++    }
++
++    if ($history -is [array]) {
++        $normalized = New-EmptyGoalHistory
++        $normalized.goals = @($history)
++        return $normalized
++    }
++
++    if ($history.PSObject.Properties.Name -notcontains "goals" -or $null -eq $history.goals) {
++        Set-ObjectProperty $history "goals" @()
++    }
++
++    if ($history.PSObject.Properties.Name -notcontains "version") {
++        Set-ObjectProperty $history "version" 1
++    }
++
++    if ($history.PSObject.Properties.Name -notcontains "updatedAt") {
++        Set-ObjectProperty $history "updatedAt" ""
++    }
++
++    return $history
++}
++
++function Get-AutopilotGoalHistoryTitles {
++    try {
++        $history = Read-AutopilotGoalHistory
++    } catch {
++        throw "Failed to read durable autopilot goal history: $($_.Exception.Message)"
++    }
++
++    $titles = @()
++
++    foreach ($goal in @($history.goals)) {
++        if ($null -eq $goal) {
++            continue
++        }
++
++        if ($goal -is [string]) {
++            $titles = @(Add-UniqueTitle $titles $goal)
++            continue
++        }
++
++        if ($goal.PSObject.Properties.Name -contains "title") {
++            $titles = @(Add-UniqueTitle $titles ([string]$goal.title))
++        }
++    }
++
++    return @($titles)
++}
++
++function Add-AutopilotGoalHistoryTitle {
++    param(
++        [string]$Title,
++        [string]$Event
++    )
++
++    if ($DryRun -or -not (Test-HasValue $Title)) {
++        return
++    }
++
++    $now = [DateTimeOffset]::UtcNow.ToString("o")
 +    $trimmedTitle = $Title.Trim()
++    $history = Read-AutopilotGoalHistory
++    $goals = @($history.goals)
++    $existingGoal = $null
 +
-+    if ($Titles -contains $trimmedTitle) {
-+        return @($Titles)
-+    }
-+
-+    return @($Titles + $trimmedTitle)
-+}
-+
-+function Get-PreparedGoalTitlesFromLoopLog {
-+    if (-not (Test-Path -LiteralPath $loopLogPath -PathType Leaf)) {
-+        return @()
-+    }
-+
-+    $titles = @()
-+    $isAutopilotPreparedEntry = $false
-+    $lines = @(Get-Content -Encoding UTF8 -LiteralPath $loopLogPath)
-+
-+    foreach ($line in $lines) {
-+        if ($line -match '^##\s+.+\s+-\s+(.+)$') {
-+            $isAutopilotPreparedEntry = ($Matches[1].Trim() -eq "Autopilot goal prepared")
++    foreach ($goal in $goals) {
++        if ($null -eq $goal) {
 +            continue
 +        }
 +
-+        if (-not $isAutopilotPreparedEntry) {
-+            continue
++        $goalTitle = ""
++
++        if ($goal -is [string]) {
++            $goalTitle = [string]$goal
++        } elseif ($goal.PSObject.Properties.Name -contains "title") {
++            $goalTitle = [string]$goal.title
 +        }
 +
-+        if ($line -match '^\s*-\s+Goal:\s+(.+)$') {
-+            $titles = @(Add-UniqueTitle $titles $Matches[1])
++        if ($goalTitle.Trim() -eq $trimmedTitle) {
++            $existingGoal = $goal
++            break
 +        }
 +    }
 +
-+    return @($titles)
++    if ($null -eq $existingGoal -or $existingGoal -is [string]) {
++        $events = @([PSCustomObject][ordered]@{
++            event = $Event
++            at = $now
++        })
++
++        $goalEntry = [PSCustomObject][ordered]@{
++            title = $trimmedTitle
++            firstSeenAt = $now
++            lastSeenAt = $now
++            lastEvent = $Event
++            events = $events
++        }
++
++        $goals = @($goals | Where-Object { -not ($_ -is [string] -and $_.Trim() -eq $trimmedTitle) })
++        $goals += $goalEntry
++    } else {
++        if ($existingGoal.PSObject.Properties.Name -notcontains "firstSeenAt" -or -not (Test-HasValue $existingGoal.firstSeenAt)) {
++            Set-ObjectProperty $existingGoal "firstSeenAt" $now
++        }
++
++        Set-ObjectProperty $existingGoal "lastSeenAt" $now
++        Set-ObjectProperty $existingGoal "lastEvent" $Event
++
++        $events = if ($existingGoal.PSObject.Properties.Name -contains "events" -and $null -ne $existingGoal.events) {
++            @($existingGoal.events)
++        } else {
++            @()
++        }
++
++        $events += [PSCustomObject][ordered]@{
++            event = $Event
++            at = $now
++        }
++
++        Set-ObjectProperty $existingGoal "events" $events
++    }
++
++    Set-ObjectProperty $history "version" 1
++    Set-ObjectProperty $history "updatedAt" $now
++    Set-ObjectProperty $history "goals" @($goals)
++    Write-JsonFile $goalHistoryPath $history
 +}
 +
-+function Get-CompletedCurrentGoalTitleFromQueueState {
-+    $queue = Read-JsonFile $queuePath $queueRelativePath
-+    $state = Read-JsonFile $statePath $stateRelativePath
-+    $goalStatus = if (Test-HasValue $state.goalStatus) { [string]$state.goalStatus } else { "" }
-+
-+    if ($goalStatus -ne "completed") {
-+        return @()
-+    }
-+
-+    if (-not (Test-HasValue $queue.goalTitle)) {
-+        return @()
-+    }
-+
-+    return @([string]$queue.goalTitle)
-+}
-+
-+function Get-HistoricalGoalTitles {
-+    $titles = @()
-+
-+    foreach ($title in @(Get-PreparedGoalTitlesFromLoopLog)) {
-+        $titles = @(Add-UniqueTitle $titles $title)
-+    }
-+
-+    foreach ($title in @(Get-CompletedCurrentGoalTitleFromQueueState)) {
-+        $titles = @(Add-UniqueTitle $titles $title)
-+    }
-+
-+    return @($titles)
-+}
-+
-+function Get-ExcludedGoalTitles {
-+    param(
-+        [string[]]$UsedTitles,
-+        [object]$Gate
-+    )
-+
-+    $titles = @()
-+
-+    foreach ($title in @($UsedTitles)) {
-+        $titles = @(Add-UniqueTitle $titles $title)
-+    }
-+
-+    if ($null -ne $Gate -and (Test-HasValue $Gate.goalTitle)) {
-+        $titles = @(Add-UniqueTitle $titles ([string]$Gate.goalTitle))
-+    }
-+
-+    foreach ($title in @(Get-HistoricalGoalTitles)) {
-+        $titles = @(Add-UniqueTitle $titles $title)
-+    }
-+
-+    return @($titles)
-+}
-+
-+function Format-ExcludedGoalTitles {
-+    param([string[]]$Titles)
-+
-+    $filteredTitles = @($Titles | Where-Object { Test-HasValue $_ } | Select-Object -Unique)
-+
-+    if ($filteredTitles.Count -eq 0) {
-+        return "none"
-+    }
-+
-+    return ($filteredTitles -join "; ")
-+}
-+
- function Invoke-AutoGoal {
+ function Set-ObjectProperty {
      param(
-         [object]$Candidate,
-@@ -621,13 +732,9 @@ for ($goalIndex = 1; $goalIndex -le $MaxGoals; $goalIndex++) {
-     $steps += New-StepResult ($steps.Count + 1) "current-goal-gate" $false $false 0 "Current goal is completed. Previous goal: $($gate.goalTitle)"
+         [object]$InputObject,
+@@ -99,29 +247,29 @@ function Invoke-AutopilotLoopLogMetaCommit {
+     param([int]$StepNumber)
  
-     try {
--        $excludedTitles = @($usedTitles)
--
--        if (Test-HasValue $gate.goalTitle) {
--            $excludedTitles += [string]$gate.goalTitle
--        }
--
--        $candidates = @(Get-BacklogCandidates | Where-Object { $excludedTitles -notcontains ([string]$_.title) })
-+        $excludedTitles = @(Get-ExcludedGoalTitles $usedTitles $gate)
-+        $allCandidates = @(Get-BacklogCandidates)
-+        $candidates = @($allCandidates | Where-Object { $excludedTitles -notcontains ([string]$_.title) })
-     } catch {
-         $message = $_.Exception.Message
-         $steps += New-StepResult ($steps.Count + 1) "generate-goal-candidate" $false $false 1 $message
-@@ -635,7 +742,17 @@ for ($goalIndex = 1; $goalIndex -le $MaxGoals; $goalIndex++) {
+     if ($DryRun) {
+-        return New-StepResult $StepNumber "autopilot-meta-commit" $false $true 0 "DryRun: autopilot loop-log meta commit was not executed."
++        return New-StepResult $StepNumber "autopilot-meta-commit" $false $true 0 "DryRun: autopilot loop-log/history meta commit was not executed."
      }
  
-     if ($candidates.Count -eq 0) {
--        $message = "No actionable next goal candidate was found in the backlog after excluding the current or already prepared goal titles. Check backlog encoding, empty items, completed or deferred sections, and duplicate backlog titles."
-+        $excludedTitleSummary = Format-ExcludedGoalTitles $excludedTitles
-+        $candidateTitles = @($allCandidates | ForEach-Object { [string]$_.title } | Where-Object { Test-HasValue $_ } | Select-Object -Unique)
-+        $candidateTitleSummary = Format-ExcludedGoalTitles $candidateTitles
+     if (-not $AllowCommit) {
+-        return New-StepResult $StepNumber "autopilot-meta-commit" $false $true 0 "AllowCommit is not set, so autopilot loop-log meta commit was not executed."
++        return New-StepResult $StepNumber "autopilot-meta-commit" $false $true 0 "AllowCommit is not set, so autopilot loop-log/history meta commit was not executed."
+     }
+ 
+-    $statusOutput = & git status --short -- $loopLogRelativePath 2>&1 | Out-String
++    $statusOutput = & git status --short -- $loopLogRelativePath $goalHistoryRelativePath 2>&1 | Out-String
+     $statusExitCode = $LASTEXITCODE
+ 
+     if ($statusExitCode -ne 0) {
+-        return New-StepResult $StepNumber "autopilot-meta-commit" $true $false 1 "git status for autopilot loop-log failed. exit code: $statusExitCode`n$statusOutput"
++        return New-StepResult $StepNumber "autopilot-meta-commit" $true $false 1 "git status for autopilot loop-log/history failed. exit code: $statusExitCode`n$statusOutput"
+     }
+ 
+     if (-not (Test-HasValue $statusOutput)) {
+-        return New-StepResult $StepNumber "autopilot-meta-commit" $true $false 0 "Autopilot loop-log had no changes to commit."
++        return New-StepResult $StepNumber "autopilot-meta-commit" $true $false 0 "Autopilot loop-log/history had no changes to commit."
+     }
+ 
+-    $addOutput = & git add -- $loopLogRelativePath 2>&1 | Out-String
++    $addOutput = & git add -- $loopLogRelativePath $goalHistoryRelativePath 2>&1 | Out-String
+     $addExitCode = $LASTEXITCODE
+ 
+     if ($addExitCode -ne 0) {
+-        return New-StepResult $StepNumber "autopilot-meta-commit" $true $false 1 "Autopilot loop-log git add failed. exit code: $addExitCode`n$addOutput"
++        return New-StepResult $StepNumber "autopilot-meta-commit" $true $false 1 "Autopilot loop-log/history git add failed. exit code: $addExitCode`n$addOutput"
+     }
+ 
+     $metaCommitMessage = "chore(ai-dev): record autopilot progress"
+@@ -575,6 +723,10 @@ function Get-HistoricalGoalTitles {
+         $titles = @(Add-UniqueTitle $titles $title)
+     }
+ 
++    foreach ($title in @(Get-AutopilotGoalHistoryTitles)) {
++        $titles = @(Add-UniqueTitle $titles $title)
++    }
 +
-+        if ($allCandidates.Count -gt 0) {
-+            $message = "All backlog goal candidates were already completed or prepared, so autopilot will not create a duplicate goal. Excluded goal titles: $excludedTitleSummary. Candidate goal titles: $candidateTitleSummary."
-+            $steps += New-StepResult ($steps.Count + 1) "generate-goal-candidate" $false $true 1 $message
-+            Stop-Autopilot $steps "all_goal_candidates_excluded" $false 1 $preparedGoals $message
-+        }
+     return @($titles)
+ }
+ 
+@@ -685,6 +837,7 @@ Set-Location $repoRoot
+ $steps = @()
+ $preparedGoals = 0
+ $usedTitles = @()
++$durableHistoryTitles = @()
+ 
+ if ($MaxGoals -lt 1) {
+     $message = "MaxGoals must be at least 1."
+@@ -731,8 +884,17 @@ for ($goalIndex = 1; $goalIndex -le $MaxGoals; $goalIndex++) {
+ 
+     $steps += New-StepResult ($steps.Count + 1) "current-goal-gate" $false $false 0 "Current goal is completed. Previous goal: $($gate.goalTitle)"
+ 
++    try {
++        Add-AutopilotGoalHistoryTitle ([string]$gate.goalTitle) "completed"
++    } catch {
++        $message = $_.Exception.Message
++        $steps += New-StepResult ($steps.Count + 1) "goal-history" $false $false 1 $message
++        Stop-Autopilot $steps "goal_history_update_failed" $false 1 $preparedGoals $message
++    }
 +
-+        $message = "No actionable next goal candidate was found in the backlog after excluding current, prepared, or completed goal titles. Excluded goal titles: $excludedTitleSummary. Check backlog encoding, empty items, completed or deferred sections, and duplicate backlog titles."
+     try {
+         $excludedTitles = @(Get-ExcludedGoalTitles $usedTitles $gate)
++        $durableHistoryTitles = @(Get-AutopilotGoalHistoryTitles)
+         $allCandidates = @(Get-BacklogCandidates)
+         $candidates = @($allCandidates | Where-Object { $excludedTitles -notcontains ([string]$_.title) })
+     } catch {
+@@ -745,14 +907,15 @@ for ($goalIndex = 1; $goalIndex -le $MaxGoals; $goalIndex++) {
+         $excludedTitleSummary = Format-ExcludedGoalTitles $excludedTitles
+         $candidateTitles = @($allCandidates | ForEach-Object { [string]$_.title } | Where-Object { Test-HasValue $_ } | Select-Object -Unique)
+         $candidateTitleSummary = Format-ExcludedGoalTitles $candidateTitles
++        $historyTitleSummary = Format-ExcludedGoalTitles $durableHistoryTitles
+ 
+         if ($allCandidates.Count -gt 0) {
+-            $message = "All backlog goal candidates were already completed or prepared, so autopilot will not create a duplicate goal. Excluded goal titles: $excludedTitleSummary. Candidate goal titles: $candidateTitleSummary."
++            $message = "All backlog goal candidates were already completed, prepared, or recorded in durable history, so autopilot will not create a duplicate goal. Excluded goal titles: $excludedTitleSummary. Candidate goal titles: $candidateTitleSummary. Durable history goal titles: $historyTitleSummary."
+             $steps += New-StepResult ($steps.Count + 1) "generate-goal-candidate" $false $true 1 $message
+             Stop-Autopilot $steps "all_goal_candidates_excluded" $false 1 $preparedGoals $message
+         }
+ 
+-        $message = "No actionable next goal candidate was found in the backlog after excluding current, prepared, or completed goal titles. Excluded goal titles: $excludedTitleSummary. Check backlog encoding, empty items, completed or deferred sections, and duplicate backlog titles."
++        $message = "No actionable next goal candidate was found in the backlog after excluding current, prepared, completed, or durable history goal titles. Excluded goal titles: $excludedTitleSummary. Durable history goal titles: $historyTitleSummary. Check backlog encoding, empty items, completed or deferred sections, and duplicate backlog titles."
          $steps += New-StepResult ($steps.Count + 1) "generate-goal-candidate" $false $true 1 $message
          Stop-Autopilot $steps "goal_candidate_not_found" $false 1 $preparedGoals $message
      }
+@@ -761,6 +924,14 @@ for ($goalIndex = 1; $goalIndex -le $MaxGoals; $goalIndex++) {
+     $usedTitles += [string]$candidate.title
+     $candidateMessage = "Next goal candidate generated from $($candidate.source) priority $($candidate.priority)."
+ 
++    try {
++        Add-AutopilotGoalHistoryTitle ([string]$candidate.title) "selected"
++    } catch {
++        $message = $_.Exception.Message
++        $steps += New-StepResult ($steps.Count + 1) "goal-history" $false $false 1 $message $candidate
++        Stop-Autopilot $steps "goal_history_update_failed" $false 1 $preparedGoals $message
++    }
++
+     if (Test-HasValue $candidate.fallbackReason) {
+         $candidateMessage = "$candidateMessage $($candidate.fallbackReason)"
+     }
+@@ -798,6 +969,14 @@ for ($goalIndex = 1; $goalIndex -le $MaxGoals; $goalIndex++) {
+         $loopLogLines += "- Fallback reason: $($candidate.fallbackReason)"
+     }
+ 
++    try {
++        Add-AutopilotGoalHistoryTitle ([string]$candidate.title) "prepared"
++    } catch {
++        $message = $_.Exception.Message
++        $steps += New-StepResult ($steps.Count + 1) "goal-history" $false $false 1 $message $candidate
++        Stop-Autopilot $steps "goal_history_update_failed" $false 1 $preparedGoals $message
++    }
++
+     Add-LoopLogEntry "Autopilot goal prepared" $loopLogLines
+ 
+     if ($AllowCommit) {
 ```
 
 ## Staged Diff Stat
@@ -316,7 +444,7 @@ index 47d8acc..20d4d35 100644
 
 # AI Dev Test Result
 
-## 2026-07-12 22:50:46
+## 2026-07-12 23:55:58
 
 - Overall result: passed
 - Current task: T001
@@ -345,7 +473,7 @@ dist/index.html                   0.46 kB │ gzip:   0.29 kB
 dist/assets/index-DvjxWt30.css    5.69 kB │ gzip:   1.93 kB
 dist/assets/index-DtLVvPCG.js   317.50 kB │ gzip: 100.16 kB
 
-[32m✓ built in 279ms[39m
+[32m✓ built in 256ms[39m
 ```
 ### npm run test
 

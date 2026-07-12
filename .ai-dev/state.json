@@ -1,6 +1,6 @@
 ﻿{
-    "goalStatus":  "completed",
-    "currentTaskId":  null,
+    "goalStatus":  "in_progress",
+    "currentTaskId":  "T002",
     "currentLoop":  0,
     "maxLoopsPerTask":  2,
     "repeatedFailureCount":  0,
@@ -9,8 +9,17 @@
     "lastErrorSummary":  "",
     "lastReviewDecision":  "pass",
     "lastReviewSeverity":  "none",
-    "lastCommitHash":  null,
+    "lastCommitHash":  "740de4aabe92d75b21571706b453521d2734c8e7",
     "startedAt":  "2026-07-12T00:00:00+09:00",
-    "updatedAt":  "2026-07-12T14:47:02.0633843+00:00",
-    "stopReason":  "all_tasks_completed"
+    "updatedAt":  "2026-07-12T15:31:44.0616554+00:00",
+    "stopReason":  null,
+    "lastReviewNextStep":  "revise_with_codex",
+    "lastReviewSummary":  "구현 방향은 현재 task 범위와 대체로 일치하지만, durable history 핵심 동작에 대한 수동 검증 결과가 없고 test가 skipped라 St\r\nrict Criteria상 pass로 보기 어렵다.",
+    "lastReviewRequiredChanges":  [
+                                      {
+                                          "file":  ".ai-dev/test-result.md",
+                                          "reason":  "현재 검증은 build/lint만 통과했고 npm test는 스크립트 부재로 skipped다. 이번 변경의 핵심은 PowerShell Autopilo\r\nt history 동작이라 build/lint만으로는 history 기록, 후보 제외, DryRun 무수정, 한국어 보존을 검증하지 못한다.",
+                                          "suggestion":  "프롬프트의 수동 검증 항목 중 최소한 history 생성/기록, history 기반 후보 제외, DryRun 전후 파일 무변경, 한국어 goa\r\nl title 보존, task title 미혼입 여부를 실행하고 결과를 test-result에 남긴다."
+                                      }
+                                  ]
 }

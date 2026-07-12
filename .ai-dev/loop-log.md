@@ -637,3 +637,14 @@ Exit code: 1
 - Goal: Codex 리뷰 실행 스크립트 추가
 - Source: .ai-dev/backlog.md / P0
 - Prepared goals: 1/1
+
+## 2026-07-13 00:31:41 - Commit created
+
+- Task: T001 Autopilot durable history 구현
+- Commit: 740de4aabe92d75b21571706b453521d2734c8e7
+- Message: Add durable autopilot goal history
+## 2026-07-13 00:31:46 - Task completed
+
+- Task: T001 Autopilot durable history 구현
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
+- Next task: T002 전체 후보 제외 상태 처리 검증

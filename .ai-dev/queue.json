@@ -1,14 +1,14 @@
 ﻿{
-    "goalTitle":  "Codex 리뷰 실행 스크립트 추가",
+    "goalTitle":  "Autopilot durable goal history 도입",
     "goalSource":  ".ai-dev/goal.md",
     "createdAt":  "2026-07-12T00:00:00+09:00",
-    "updatedAt":  "2026-07-12T14:47:02.0633843+00:00",
-    "currentTaskId":  null,
+    "updatedAt":  "2026-07-12T15:31:44.0616554+00:00",
+    "currentTaskId":  "T002",
     "tasks":  [
                   {
                       "id":  "T001",
-                      "title":  "Codex 리뷰 실행 스크립트 추가",
-                      "description":  "현재 저장소 구조를 확인한 뒤 AI Dev Loop에서 호출할 수 있는 최소 Codex 리뷰 실행 스크립트 또는 명령 진입점을 추가한다.",
+                      "title":  "Autopilot durable history 구현",
+                      "description":  "Autopilot이 선택하거나 준비한 goal title을 별도 durable history에 기록하고, 다음 후보 선택 시 기존 제외 로직과 함께 history 기반 제외를 적용한다. DryRun에서는 어떤 기록 파일도 수정하지 않도록 분기한다.",
                       "type":  "implementation",
                       "status":  "done",
                       "priority":  "P0",
@@ -16,19 +16,38 @@
 
                                     ],
                       "filesLikelyToChange":  [
-                                                  ".ai-dev/goal.md",
-                                                  ".ai-dev/queue.json",
-                                                  ".ai-dev/state.json",
-                                                  ".ai-dev/scripts/run-codex-review.ps1"
+                                                  "scripts/ai-dev-autopilot.ps1",
+                                                  ".ai-dev/autopilot-goal-history.json"
                                               ],
                       "verification":  [
-                                           "PowerShell 5.1에서 스크립트 문법이 유효한지 확인한다.",
-                                           "스크립트가 리뷰 실행에 필요한 입력을 명확히 다루는지 확인한다.",
-                                           "변경 범위가 Codex 리뷰 실행 스크립트 추가에 한정되는지 확인한다."
+                                           "한국어 goal title이 history에 보존되는지 확인한다.",
+                                           "history에 있는 goal title이 다음 후보 선택에서 제외되는지 확인한다.",
+                                           "DryRun 실행 전후 history, state, loop-log 파일이 변경되지 않는지 확인한다.",
+                                           "task title이 goal title 제외 목록에 섞이지 않는지 확인한다."
                                        ],
-                      "commitMessage":  "Add Codex review script",
-                      "completedAt":  "2026-07-12T14:47:02.0633843+00:00",
-                      "resultSummary":  "자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 구현 커밋 없음, 저장된 리뷰 pass에서 자동 완료"
+                      "commitMessage":  "Add durable autopilot goal history",
+                      "completedAt":  "2026-07-12T15:31:44.0616554+00:00",
+                      "resultSummary":  "자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료"
+                  },
+                  {
+                      "id":  "T002",
+                      "title":  "전체 후보 제외 상태 처리 검증",
+                      "description":  "모든 후보가 durable history 때문에 제외될 때 `all_goal_candidates_excluded`로 중단하고 후보 title과 제외 title이 state, loop-log, output에 남도록 확인한다.",
+                      "type":  "verification",
+                      "status":  "in_progress",
+                      "priority":  "P1",
+                      "dependsOn":  [
+                                        "T001"
+                                    ],
+                      "filesLikelyToChange":  [
+                                                  "scripts/ai-dev-autopilot.ps1"
+                                              ],
+                      "verification":  [
+                                           "모든 후보가 제외되는 입력에서 stopReason이 `all_goal_candidates_excluded`인지 확인한다.",
+                                           "state, loop-log, output에 후보 title 목록과 제외 title 목록이 남는지 확인한다.",
+                                           "AllowCommit 성공 경로가 최종 작업 트리 정리 상태로 끝나는지 확인한다."
+                                       ],
+                      "commitMessage":  "Handle exhausted autopilot goal candidates"
                   }
               ]
 }
