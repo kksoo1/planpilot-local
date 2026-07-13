@@ -2,8 +2,8 @@
     "goalTitle":  "Autopilot durable goal history 도입",
     "goalSource":  ".ai-dev/goal.md",
     "createdAt":  "2026-07-12T00:00:00+09:00",
-    "updatedAt":  "2026-07-12T15:31:44.0616554+00:00",
-    "currentTaskId":  "T002",
+    "updatedAt":  "2026-07-13T06:13:25.4916741+00:00",
+    "currentTaskId":  null,
     "tasks":  [
                   {
                       "id":  "T001",
@@ -34,7 +34,7 @@
                       "title":  "전체 후보 제외 상태 처리 검증",
                       "description":  "모든 후보가 durable history 때문에 제외될 때 `all_goal_candidates_excluded`로 중단하고 후보 title과 제외 title이 state, loop-log, output에 남도록 확인한다.",
                       "type":  "verification",
-                      "status":  "in_progress",
+                      "status":  "done",
                       "priority":  "P1",
                       "dependsOn":  [
                                         "T001"
@@ -47,7 +47,9 @@
                                            "state, loop-log, output에 후보 title 목록과 제외 title 목록이 남는지 확인한다.",
                                            "AllowCommit 성공 경로가 최종 작업 트리 정리 상태로 끝나는지 확인한다."
                                        ],
-                      "commitMessage":  "Handle exhausted autopilot goal candidates"
+                      "commitMessage":  "Handle exhausted autopilot goal candidates",
+                      "completedAt":  "2026-07-13T06:13:25.4916741+00:00",
+                      "resultSummary":  "자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 구현 커밋 없음, 저장된 리뷰 pass에서 자동 완료"
                   }
               ]
 }
