@@ -7,48 +7,41 @@
 ## Goal
 
 # 목표
-
-Verification task revise 자동 처리 문제를 수정한다.
+full auto-cycle 로그 구조를 현재 저장소 상태에 맞춰 작고 안전하게 개선한다.
 
 ## 배경
-
-auto-cycle-full이 verification task에서 review decision=revise, next_step=revise_with_codex를 받는 경우, 실제로는 Codex 수정 루프로 이어져야 하지만 현재 non_implementation_revise로 중단되는 문제가 있다.
+현재 AI Dev Loop의 full auto-cycle 진행 기록은 후속 점검과 실패 원인 파악에 필요한 정보가 충분히 구조화되어 있지 않을 수 있다. 이번 목표는 기존 동작을 크게 바꾸지 않고, 로그가 어떤 단계에서 어떤 결과를 남겼는지 더 명확히 확인할 수 있도록 최소 범위로 정리하는 것이다.
 
 ## 성공 기준
-
-- verification task에서 revise_with_codex가 반환되어도 자동 수정 흐름이 중단되지 않는다.
-- implementation task가 아닌 verification task에서도 의도된 수정 경로가 선택된다.
-- 기존 중단 조건은 필요한 경우에만 유지된다.
-- 변경 범위는 자동 루프의 분기 처리에 한정된다.
+- full auto-cycle 실행 흐름에서 남기는 로그 항목의 구조가 더 일관되게 정리된다.
+- 기존 로그 사용 지점과 충돌하지 않는다.
+- 변경 범위가 관련 파일에 한정된다.
+- 검증 방법이 명확히 기록된다.
 
 ## 제약사항
-
-- 기존 작업 큐와 상태 파일 형식을 유지한다.
-- 현재 자동 루프의 기존 decision 및 next_step 의미를 보존한다.
-- 불필요한 구조 변경은 하지 않는다.
-- 한 번에 하나의 작은 수정으로 처리한다.
+- 한 번에 하나의 작은 구현 단위만 진행한다.
+- 기존 저장 방식과 타입 구조를 우선 확인한 뒤 필요한 최소 변경만 적용한다.
+- 사용자 변경 사항을 되돌리지 않는다.
+- 사용자 허용 없이 빌드, 테스트, lint, git 명령을 실행하지 않는다.
 
 ## 범위 제외
-
-- 자동 루프 전체 구조 재설계
-- 새로운 작업 유형 추가
-- UI 변경
-- 저장소 구조 변경
+- full auto-cycle 전체 흐름 재작성은 제외한다.
+- UI 화면 추가나 대규모 컴포넌트 분리는 제외한다.
+- 저장소 전반의 로그 체계 재설계는 제외한다.
 
 ## 수동 검증
-
-- verification task에서 review decision=revise, next_step=revise_with_codex가 발생하는 흐름을 재현한다.
-- 해당 흐름이 non_implementation_revise로 중단되지 않는지 확인한다.
-- 정상적인 중단 조건이 기존처럼 동작하는지 확인한다.
+- 관련 로그 생성 코드를 확인해 변경된 구조가 의도대로 기록되는지 검토한다.
+- 타입 오류 가능성이 있는 변경 지점을 정적으로 확인한다.
+- 허용된 경우에만 빌드 또는 lint로 최종 검증한다.
 
 ## Current Task
 
 - Task ID: T001
-- Title: verification revise 분기 수정
-- Description: auto-cycle-full에서 verification task가 revise_with_codex를 받은 경우 non_implementation_revise로 중단하지 않고 수정 루프로 이어지도록 분기 조건을 조정한다.
+- Title: full auto-cycle 로그 구조 확인 및 최소 개선
+- Description: 현재 full auto-cycle 로그가 생성되고 소비되는 위치를 확인한 뒤, 후속 분석에 필요한 필드가 일관되게 남도록 최소 범위로 구조를 개선한다.
 - Type: implementation
 - Status: in_progress
-- Priority: P0
+- Priority: P1
 - Depends on:
 - 없음
 
@@ -61,12 +54,13 @@ auto-cycle-full이 verification task에서 review decision=revise, next_step=rev
 
 ## Likely Files
 
-- .ai-dev/scripts/auto-cycle-full.ps1
+- .ai-dev 관련 로그 처리 파일
+- full auto-cycle 실행 관련 파일
 
 ## Verification
 
-- verification task에서 revise_with_codex 응답 시 중단 사유가 non_implementation_revise로 설정되지 않는지 확인한다.
-- 기존 구현 작업의 revise 흐름이 유지되는지 확인한다.
+- 변경된 로그 구조가 기존 사용 지점과 충돌하지 않는지 확인한다.
+- 허용된 경우 빌드 또는 lint를 실행해 정적 오류를 확인한다.
 
 - 필요한 경우 `npm run build`는 사람이 별도로 실행한다.
 - 이 프롬프트는 자동으로 build, test, lint를 실행하라고 지시하지 않는다.

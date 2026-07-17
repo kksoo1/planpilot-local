@@ -3,23 +3,23 @@
     "currentTaskId":  null,
     "currentLoop":  0,
     "maxLoopsPerTask":  2,
-    "repeatedFailureCount":  0,
+    "repeatedFailureCount":  1,
     "lastCommand":  "complete-task",
     "lastCommandStatus":  "passed",
     "lastErrorSummary":  "",
     "lastReviewDecision":  "pass",
     "lastReviewSeverity":  "none",
-    "lastCommitHash":  "189d3e0b8ba8f67cb15bab54d8f26f5aca42ba3c",
+    "lastCommitHash":  "f543591bb770aa4c6793ce4f2e7446f8a5a77b28",
     "startedAt":  "2026-07-17T00:00:00+09:00",
-    "updatedAt":  "2026-07-17T10:29:38.4642271+00:00",
+    "updatedAt":  "2026-07-17T11:13:06.0126942+00:00",
     "stopReason":  "all_tasks_completed",
     "lastReviewNextStep":  "revise_with_codex",
-    "lastReviewSummary":  "verification + revise_with_codex에서 non_implementation_revise는 피하지만, 같은 gate의 missing_im\r\nplementation 또는 stale_review_required_file_missing 조건으로 여전히 자동 수정 흐름이 중단될 수 있습니다.",
+    "lastReviewSummary":  "complete-task 성공 후 final-status 실패 시 완료된 task 컨텍스트가 로그에 남지 않는 불일치가 있습니다.",
     "lastReviewRequiredChanges":  [
                                       {
                                           "file":  "scripts/ai-dev-auto-cycle-full.ps1",
-                                          "reason":  "현재 변경은 non_implementation_revise 조건만 예외 처리합니다. 그러나 verification task에서 review decisi\r\non=revise, next_step=revise_with_codex이고 required_changes가 있거나 현재 diff와 맞지 않으면 바로 아래 requiredFiles/ch\r\nangedFiles 검증에서 중단될 수 있어 성공 기준인 자동 수정 흐름 지속을 충분히 보장하지 못합니다.",
-                                          "suggestion":  "verification task의 revise_with_codex 케이스는 Get-ReviewImplementationGate에서 구현 완료 검\r\n증용 missing_implementation/stale_review_required_file_missing 검사까지 지나가지 않도록 명시적으로 passed 처리하거나, 해당 검사들\r\n이 완료/pass 경로에만 적용되도록 분기 범위를 조정하세요."
+                                          "reason":  "현재는 complete-task 실행이 성공한 뒤 final-status까지 성공해야만 $script:completedTask와 $script:comp\r\nletedTaskCount가 갱신됩니다. final-status가 실패하면 실제로 task는 완료됐는데 cycle result context에는 completedTask=null, \r\ncompletedTaskCount=0으로 기록될 수 있어 로그 구조 개선 목표와 충돌합니다.",
+                                          "suggestion":  "complete-task Invoke-CycleCommand가 성공한 직후에 completedTask/completedTaskCount 및 가능\r\n하면 currentTask/nextTask 컨텍스트를 갱신하고, 그 다음 final-status를 실행하도록 순서를 조정하세요."
                                       }
                                   ]
 }

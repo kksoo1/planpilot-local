@@ -15,59 +15,52 @@
 ## Project Goal
 
 # 목표
-
-Verification task revise 자동 처리 문제를 수정한다.
+full auto-cycle 로그 구조를 현재 저장소 상태에 맞춰 작고 안전하게 개선한다.
 
 ## 배경
-
-auto-cycle-full이 verification task에서 review decision=revise, next_step=revise_with_codex를 받는 경우, 실제로는 Codex 수정 루프로 이어져야 하지만 현재 non_implementation_revise로 중단되는 문제가 있다.
+현재 AI Dev Loop의 full auto-cycle 진행 기록은 후속 점검과 실패 원인 파악에 필요한 정보가 충분히 구조화되어 있지 않을 수 있다. 이번 목표는 기존 동작을 크게 바꾸지 않고, 로그가 어떤 단계에서 어떤 결과를 남겼는지 더 명확히 확인할 수 있도록 최소 범위로 정리하는 것이다.
 
 ## 성공 기준
-
-- verification task에서 revise_with_codex가 반환되어도 자동 수정 흐름이 중단되지 않는다.
-- implementation task가 아닌 verification task에서도 의도된 수정 경로가 선택된다.
-- 기존 중단 조건은 필요한 경우에만 유지된다.
-- 변경 범위는 자동 루프의 분기 처리에 한정된다.
+- full auto-cycle 실행 흐름에서 남기는 로그 항목의 구조가 더 일관되게 정리된다.
+- 기존 로그 사용 지점과 충돌하지 않는다.
+- 변경 범위가 관련 파일에 한정된다.
+- 검증 방법이 명확히 기록된다.
 
 ## 제약사항
-
-- 기존 작업 큐와 상태 파일 형식을 유지한다.
-- 현재 자동 루프의 기존 decision 및 next_step 의미를 보존한다.
-- 불필요한 구조 변경은 하지 않는다.
-- 한 번에 하나의 작은 수정으로 처리한다.
+- 한 번에 하나의 작은 구현 단위만 진행한다.
+- 기존 저장 방식과 타입 구조를 우선 확인한 뒤 필요한 최소 변경만 적용한다.
+- 사용자 변경 사항을 되돌리지 않는다.
+- 사용자 허용 없이 빌드, 테스트, lint, git 명령을 실행하지 않는다.
 
 ## 범위 제외
-
-- 자동 루프 전체 구조 재설계
-- 새로운 작업 유형 추가
-- UI 변경
-- 저장소 구조 변경
+- full auto-cycle 전체 흐름 재작성은 제외한다.
+- UI 화면 추가나 대규모 컴포넌트 분리는 제외한다.
+- 저장소 전반의 로그 체계 재설계는 제외한다.
 
 ## 수동 검증
-
-- verification task에서 review decision=revise, next_step=revise_with_codex가 발생하는 흐름을 재현한다.
-- 해당 흐름이 non_implementation_revise로 중단되지 않는지 확인한다.
-- 정상적인 중단 조건이 기존처럼 동작하는지 확인한다.
+- 관련 로그 생성 코드를 확인해 변경된 구조가 의도대로 기록되는지 검토한다.
+- 타입 오류 가능성이 있는 변경 지점을 정적으로 확인한다.
+- 허용된 경우에만 빌드 또는 lint로 최종 검증한다.
 
 ## Current Task
 
 - Task ID: T001
-- Title: verification revise 분기 수정
-- Description: auto-cycle-full에서 verification task가 revise_with_codex를 받은 경우 non_implementation_revise로 중단하지 않고 수정 루프로 이어지도록 분기 조건을 조정한다.
+- Title: full auto-cycle 로그 구조 확인 및 최소 개선
+- Description: 현재 full auto-cycle 로그가 생성되고 소비되는 위치를 확인한 뒤, 후속 분석에 필요한 필드가 일관되게 남도록 최소 범위로 구조를 개선한다.
 - Type: implementation
 - Status: in_progress
-- Priority: P0
+- Priority: P1
 - Depends on:
 - 없음
 - Verification:
-- verification task에서 revise_with_codex 응답 시 중단 사유가 non_implementation_revise로 설정되지 않는지 확인한다.
-- 기존 구현 작업의 revise 흐름이 유지되는지 확인한다.
+- 변경된 로그 구조가 기존 사용 지점과 충돌하지 않는지 확인한다.
+- 허용된 경우 빌드 또는 lint를 실행해 정적 오류를 확인한다.
 
 ## Test Result
 
 # AI Dev Test Result
 
-## 2026-07-17 19:28:24
+## 2026-07-17 20:11:42
 
 - Overall result: passed
 - Current task: T001
@@ -96,7 +89,7 @@ dist/index.html                   0.46 kB │ gzip:   0.29 kB
 dist/assets/index-DvjxWt30.css    5.69 kB │ gzip:   1.93 kB
 dist/assets/index-DtLVvPCG.js   317.50 kB │ gzip: 100.16 kB
 
-[32m✓ built in 206ms[39m
+[32m✓ built in 185ms[39m
 ```
 ### npm run test
 
@@ -123,7 +116,7 @@ package.json에 test script가 없습니다.
 
 ## Generated At
 
-2026-07-17 19:28:31
+2026-07-17 20:11:49
 
 ## Git Status
 
@@ -133,6 +126,7 @@ package.json에 test script가 없습니다.
  M .ai-dev/current-task-prompt.md
  M .ai-dev/diff.md
  M .ai-dev/goal.md
+ M .ai-dev/loop-log.md
  M .ai-dev/queue.json
  M .ai-dev/review-prompt.md
  M .ai-dev/review-response.json
@@ -141,7 +135,9 @@ package.json에 test script가 없습니다.
  M .ai-dev/state.json
  M .ai-dev/test-result.md
  M scripts/ai-dev-auto-cycle-full.ps1
-?? .ai-dev/verification-review-gate-fix-prompt.md
+?? .ai-dev/completed-task-context-before-final-status-prompt.md
+?? .ai-dev/cycle-completed-task-context-fix-prompt.md
+?? .ai-dev/required-file-path-match-fix-prompt.md
 ```
 
 ## App Change Files
@@ -155,6 +151,7 @@ package.json에 test script가 없습니다.
 - .ai-dev/current-task-prompt.md
 - .ai-dev/diff.md
 - .ai-dev/goal.md
+- .ai-dev/loop-log.md
 - .ai-dev/queue.json
 - .ai-dev/review-prompt.md
 - .ai-dev/review-response.json
@@ -162,7 +159,9 @@ package.json에 test script가 없습니다.
 - .ai-dev/revise-prompt.md
 - .ai-dev/state.json
 - .ai-dev/test-result.md
-- .ai-dev/verification-review-gate-fix-prompt.md
+- .ai-dev/completed-task-context-before-final-status-prompt.md
+- .ai-dev/cycle-completed-task-context-fix-prompt.md
+- .ai-dev/required-file-path-match-fix-prompt.md
 
 ## Review Diff Scope
 
@@ -171,47 +170,305 @@ package.json에 test script가 없습니다.
 ## Unstaged Diff Stat
 
 ```text
- scripts/ai-dev-auto-cycle-full.ps1 | 11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ scripts/ai-dev-auto-cycle-full.ps1 | 183 ++++++++++++++++++++++++++++++++++---
+ 1 file changed, 169 insertions(+), 14 deletions(-)
 ```
 
 ## Unstaged Diff
 
 ```text
 diff --git a/scripts/ai-dev-auto-cycle-full.ps1 b/scripts/ai-dev-auto-cycle-full.ps1
-index 53eba04..2e8c83a 100644
+index 2e8c83a..5d3fa84 100644
 --- a/scripts/ai-dev-auto-cycle-full.ps1
 +++ b/scripts/ai-dev-auto-cycle-full.ps1
-@@ -496,12 +496,13 @@ function Get-ReviewImplementationGate {
-     $taskType = if ($null -ne $CurrentTask -and (Test-HasValue $CurrentTask.type)) { [string]$CurrentTask.type } else { "" }
-     $requiredFiles = @($ReviewGate.requiredChangeFiles)
-     $changedFiles = @(Get-ChangedNonAiDevFiles)
-+    $isVerificationReviseWithCodex = $taskType -eq "verification" -and $ReviewGate.decision -eq "revise" -and $ReviewGate.normalizedNextStep -eq "revise_with_codex"
-     $missingRequiredFiles = @(
-         $requiredFiles |
-             Where-Object { -not (Test-ReviewRequiredFileIsChanged $_ $changedFiles) }
-     )
+@@ -150,6 +150,91 @@ function Get-CurrentTask {
+     return $tasks | Where-Object { $_.id -eq $currentTaskId } | Select-Object -First 1
+ }
  
--    if ($ReviewGate.decision -eq "revise" -and $taskType -ne "implementation") {
-+    if ($ReviewGate.decision -eq "revise" -and $taskType -ne "implementation" -and -not $isVerificationReviseWithCodex) {
-         return [PSCustomObject][ordered]@{
-             passed = $false
-             reason = "non_implementation_revise"
-@@ -509,6 +510,14 @@ function Get-ReviewImplementationGate {
-         }
-     }
- 
-+    if ($isVerificationReviseWithCodex) {
-+        return [PSCustomObject][ordered]@{
-+            passed = $true
-+            reason = "verification_revise_with_codex"
-+            message = "verification task의 revise + revise_with_codex는 구현 파일 변경이 없는 검증 산출물 보강 흐름일 수 있으므로 implementation 전용 required files 검사를 건너뜁니다. requiredFiles=$($requiredFiles -join ', '), changedFiles=$($changedFiles -join ', ')"
++function Get-NextTask {
++    param(
++        [object]$Queue,
++        [object]$State,
++        [object]$CompletedTask
++    )
++
++    $currentTask = Get-CurrentTask $Queue $State
++    $completedTaskId = if ($null -ne $CompletedTask -and (Test-HasValue $CompletedTask.id)) { [string]$CompletedTask.id } else { $null }
++
++    if ($null -ne $currentTask -and $currentTask.status -ne "done" -and $currentTask.id -ne $completedTaskId) {
++        return $currentTask
++    }
++
++    return @($Queue.tasks) |
++        Where-Object { $_.status -in @("in_progress", "pending") -and $_.id -ne $completedTaskId } |
++        Select-Object -First 1
++}
++
++function Update-PostCompleteTaskContext {
++    param(
++        [object]$CompletedTask
++    )
++
++    $completedTaskForContext = $null
++    $completedTaskId = $null
++
++    if ($null -ne $CompletedTask) {
++        $completedTaskId = if (Test-HasValue $CompletedTask.id) { [string]$CompletedTask.id } else { $null }
++        $completedTaskForContext = [PSCustomObject][ordered]@{
++            id = [string]$CompletedTask.id
++            title = [string]$CompletedTask.title
++            status = "done"
++            type = [string]$CompletedTask.type
 +        }
 +    }
 +
-     if ($requiredFiles.Count -gt 0 -and $changedFiles.Count -eq 0) {
-         return [PSCustomObject][ordered]@{
-             passed = $false
++    $script:completedTask = $completedTaskForContext
++    $script:completedTaskCount++
++    $script:currentTask = $null
++    $script:nextTask = $null
++
++    try {
++        $queueAfterComplete = Read-JsonFile $queuePath $queueRelativePath
++        $stateAfterComplete = Read-JsonFile $statePath $stateRelativePath
++
++        if (Test-HasValue $completedTaskId) {
++            $refreshedCompletedTask = @($queueAfterComplete.tasks) |
++                Where-Object { $_.id -eq $completedTaskId } |
++                Select-Object -First 1
++
++            if ($null -ne $refreshedCompletedTask) {
++                $script:completedTask = $refreshedCompletedTask
++            }
++        }
++
++        $currentTaskAfterComplete = Get-CurrentTask $queueAfterComplete $stateAfterComplete
++
++        if ($null -ne $currentTaskAfterComplete -and $currentTaskAfterComplete.status -ne "done" -and $currentTaskAfterComplete.id -ne $completedTaskId) {
++            $script:currentTask = $currentTaskAfterComplete
++        }
++
++        $script:nextTask = Get-NextTask $queueAfterComplete $stateAfterComplete $script:completedTask
++    } catch {
++        Write-Warning "complete-task 이후 task context를 최신 queue/state로 갱신하지 못했습니다: $($_.Exception.Message)"
++    }
++}
++
++function ConvertTo-TaskContext {
++    param(
++        [object]$Task
++    )
++
++    if ($null -eq $Task) {
++        return $null
++    }
++
++    return [PSCustomObject][ordered]@{
++        id = [string]$Task.id
++        title = [string]$Task.title
++        status = [string]$Task.status
++        type = [string]$Task.type
++    }
++}
++
+ function New-StepResult {
+     param(
+         [int]$Step,
+@@ -180,11 +265,46 @@ function New-CycleResult {
+         [int]$ExitCode
+     )
+ 
++    $lastStep = @($Steps) | Select-Object -Last 1
++    $currentTask = $script:currentTask
++    $completedTask = $script:completedTask
++    $nextTask = $script:nextTask
++    $currentTaskContext = ConvertTo-TaskContext $currentTask
++    $completedTaskContext = ConvertTo-TaskContext $completedTask
++    $nextTaskContext = ConvertTo-TaskContext $nextTask
++    $taskContext = $currentTaskContext
++    $lastStepContext = $null
++
++    if ($null -eq $taskContext -and $null -ne $completedTaskContext) {
++        $taskContext = $completedTaskContext
++    }
++
++    if ($null -ne $lastStep) {
++        $lastStepContext = [PSCustomObject][ordered]@{
++            step = $lastStep.step
++            name = $lastStep.name
++            executed = $lastStep.executed
++            skipped = $lastStep.skipped
++            exitCode = $lastStep.exitCode
++        }
++    }
++
+     return [PSCustomObject][ordered]@{
+         steps = @($Steps)
+         stoppedReason = $StoppedReason
+         completed = $Completed
+         exitCode = $ExitCode
++        context = [PSCustomObject][ordered]@{
++            task = $taskContext
++            completedTask = $completedTaskContext
++            currentTask = $currentTaskContext
++            nextTask = $nextTaskContext
++            completedTaskCount = $script:completedTaskCount
++            maxTasks = $MaxTasks
++            maxSteps = $MaxSteps
++            stepCount = @($Steps).Count
++            lastStep = $lastStepContext
++        }
+     }
+ }
+ 
+@@ -210,6 +330,35 @@ function Write-CycleResult {
+     Write-Host "Stopped reason: $($Result.stoppedReason)"
+     Write-Host "Completed: $($Result.completed)"
+     Write-Host "Exit code: $($Result.exitCode)"
++    Write-Host "Context:"
++    if ($null -ne $Result.context.task) {
++        Write-Host "  Task: $($Result.context.task.id) $($Result.context.task.title)"
++        Write-Host "  Task status: $($Result.context.task.status)"
++    } else {
++        Write-Host "  Task: none"
++    }
++    if ($null -ne $Result.context.completedTask) {
++        Write-Host "  Completed task: $($Result.context.completedTask.id) $($Result.context.completedTask.title)"
++    } else {
++        Write-Host "  Completed task: none"
++    }
++    if ($null -ne $Result.context.currentTask) {
++        Write-Host "  Current task: $($Result.context.currentTask.id) $($Result.context.currentTask.title)"
++    } else {
++        Write-Host "  Current task: none"
++    }
++    if ($null -ne $Result.context.nextTask) {
++        Write-Host "  Next task: $($Result.context.nextTask.id) $($Result.context.nextTask.title)"
++    } else {
++        Write-Host "  Next task: none"
++    }
++    Write-Host "  Completed tasks: $($Result.context.completedTaskCount) / $($Result.context.maxTasks)"
++    Write-Host "  Steps recorded: $($Result.context.stepCount) / $($Result.context.maxSteps)"
++    if ($null -ne $Result.context.lastStep) {
++        Write-Host "  Last step: $($Result.context.lastStep.step) $($Result.context.lastStep.name) exit=$($Result.context.lastStep.exitCode)"
++    } else {
++        Write-Host "  Last step: none"
++    }
+ 
+ }
+ 
+@@ -755,6 +904,10 @@ function Get-CommitGate {
+ Set-Location $repoRoot
+ 
+ $script:steps = @()
++$script:currentTask = $null
++$script:completedTask = $null
++$script:nextTask = $null
++$script:completedTaskCount = 0
+ $script:protectedBaselineDirtyPaths = @(Get-ProtectedBaselineDirtyPaths)
+ 
+ if ($script:protectedBaselineDirtyPaths.Count -gt 0) {
+@@ -787,13 +940,13 @@ try {
+         Stop-Cycle $script:steps "no_task" $false 0
+     }
+ 
+-    $currentTask = Get-CurrentTask $queue $state
++    $script:currentTask = Get-CurrentTask $queue $state
+ 
+-    if ($null -eq $currentTask) {
++    if ($null -eq $script:currentTask) {
+         Stop-Cycle $script:steps "no_task" $false 0
+     }
+ 
+-    if ($currentTask.status -eq "done") {
++    if ($script:currentTask.status -eq "done") {
+         Complete-Cycle $script:steps "current_task_done" 0
+     }
+ 
+@@ -844,13 +997,12 @@ if ($plannedSteps.Count -gt $MaxSteps) {
+ }
+ 
+ $stepNumber = 1
+-$completedTaskCount = 0
+ 
+-while ($completedTaskCount -lt $MaxTasks) {
++while ($script:completedTaskCount -lt $MaxTasks) {
+     try {
+         $queue = Read-JsonFile $queuePath $queueRelativePath
+         $state = Read-JsonFile $statePath $stateRelativePath
+-        $currentTask = Get-CurrentTask $queue $state
++        $script:currentTask = Get-CurrentTask $queue $state
+     } catch {
+         $script:steps += New-StepResult $stepNumber "load-task" "state/queue 확인" $false $false 1 $_.Exception.Message
+         Stop-Cycle $script:steps "load_task_failed" $false 1
+@@ -860,15 +1012,15 @@ while ($completedTaskCount -lt $MaxTasks) {
+         Complete-Cycle $script:steps "goal_completed" $stepNumber
+     }
+ 
+-    if ($null -eq $currentTask) {
++    if ($null -eq $script:currentTask) {
+         Stop-Cycle $script:steps "no_task" $false 0
+     }
+ 
+-    if ($currentTask.status -eq "done") {
++    if ($script:currentTask.status -eq "done") {
+         Complete-Cycle $script:steps "current_task_done" $stepNumber
+     }
+ 
+-    $taskLabel = "$($currentTask.id) $($currentTask.title)"
++    $taskLabel = "$($script:currentTask.id) $($script:currentTask.title)"
+     $script:steps += New-StepResult $stepNumber "task-start" "MaxTasks=$MaxTasks" $false $false 0 "현재 task 실행 시작: $taskLabel"
+     $stepNumber++
+ 
+@@ -883,7 +1035,7 @@ while ($completedTaskCount -lt $MaxTasks) {
+         }
+ 
+         if (Test-IsSavedReviewPassReady $resumeReviewGate) {
+-            $resumeImplementationGate = Get-ReviewImplementationGate $currentTask $resumeReviewGate
++            $resumeImplementationGate = Get-ReviewImplementationGate $script:currentTask $resumeReviewGate
+ 
+             if (-not $resumeImplementationGate.passed) {
+                 Save-CycleFailureState "resume-review-gate" $resumeImplementationGate.message $resumeReviewGate
+@@ -1009,7 +1161,7 @@ while ($completedTaskCount -lt $MaxTasks) {
+     }
+ 
+     if (Test-IsReviewReviseWithCodex $reviewGate) {
+-        $implementationGate = Get-ReviewImplementationGate $currentTask $reviewGate
++        $implementationGate = Get-ReviewImplementationGate $script:currentTask $reviewGate
+ 
+         if (-not $implementationGate.passed) {
+             Save-CycleFailureState "review-gate" $implementationGate.message $reviewGate
+@@ -1119,7 +1271,7 @@ while ($completedTaskCount -lt $MaxTasks) {
+         Stop-Cycle $script:steps "review_next_step_not_complete_task" $false 1
+     }
+ 
+-    $implementationGate = Get-ReviewImplementationGate $currentTask $reviewGate
++    $implementationGate = Get-ReviewImplementationGate $script:currentTask $reviewGate
+ 
+     if (-not $implementationGate.passed) {
+         Save-CycleFailureState "review-gate" $implementationGate.message $reviewGate
+@@ -1233,17 +1385,20 @@ while ($completedTaskCount -lt $MaxTasks) {
+         $completeTaskCommand = "$completeTaskCommand -CommitHash $commitHashForComplete"
+     }
+ 
++    $completedTaskForContext = $script:currentTask
++
+     Invoke-CycleCommand $stepNumber "complete-task" $completeTaskCommand $scriptPaths.completeTask $completeTaskArguments
+     $stepNumber++
+ 
++    Update-PostCompleteTaskContext $completedTaskForContext
++
+     Invoke-DirectMetaCommit $stepNumber
+     $stepNumber++
+ 
+     Invoke-CycleCommand $stepNumber "final-status" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-status.ps1" $scriptPaths.status @()
+     $stepNumber++
+ 
+-    $completedTaskCount++
+-
++    $queueAfterComplete = Read-JsonFile $queuePath $queueRelativePath
+     $stateAfterComplete = Read-JsonFile $statePath $stateRelativePath
+ 
+     if ($stateAfterComplete.goalStatus -eq "completed") {
 ```
 
 ## Staged Diff Stat

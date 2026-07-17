@@ -1,29 +1,30 @@
 ﻿{
-    "goalTitle":  "Verification task revise 자동 처리",
+    "goalTitle":  "full auto-cycle 로그 구조 개선",
     "goalSource":  ".ai-dev/goal.md",
     "createdAt":  "2026-07-17T00:00:00+09:00",
-    "updatedAt":  "2026-07-17T10:29:38.4642271+00:00",
+    "updatedAt":  "2026-07-17T11:13:06.0126942+00:00",
     "currentTaskId":  null,
     "tasks":  [
                   {
                       "id":  "T001",
-                      "title":  "verification revise 분기 수정",
-                      "description":  "auto-cycle-full에서 verification task가 revise_with_codex를 받은 경우 non_implementation_revise로 중단하지 않고 수정 루프로 이어지도록 분기 조건을 조정한다.",
+                      "title":  "full auto-cycle 로그 구조 확인 및 최소 개선",
+                      "description":  "현재 full auto-cycle 로그가 생성되고 소비되는 위치를 확인한 뒤, 후속 분석에 필요한 필드가 일관되게 남도록 최소 범위로 구조를 개선한다.",
                       "type":  "implementation",
                       "status":  "done",
-                      "priority":  "P0",
+                      "priority":  "P1",
                       "dependsOn":  [
 
                                     ],
                       "filesLikelyToChange":  [
-                                                  ".ai-dev/scripts/auto-cycle-full.ps1"
+                                                  ".ai-dev 관련 로그 처리 파일",
+                                                  "full auto-cycle 실행 관련 파일"
                                               ],
                       "verification":  [
-                                           "verification task에서 revise_with_codex 응답 시 중단 사유가 non_implementation_revise로 설정되지 않는지 확인한다.",
-                                           "기존 구현 작업의 revise 흐름이 유지되는지 확인한다."
+                                           "변경된 로그 구조가 기존 사용 지점과 충돌하지 않는지 확인한다.",
+                                           "허용된 경우 빌드 또는 lint를 실행해 정적 오류를 확인한다."
                                        ],
-                      "commitMessage":  "Handle verification revise flow",
-                      "completedAt":  "2026-07-17T10:29:38.4642271+00:00",
+                      "commitMessage":  "Improve full auto-cycle log structure",
+                      "completedAt":  "2026-07-17T11:13:06.0126942+00:00",
                       "resultSummary":  "자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료"
                   }
               ]
