@@ -1,6 +1,6 @@
 ﻿{
     "version":  1,
-    "updatedAt":  "2026-07-17T11:17:11.7105482+00:00",
+    "updatedAt":  "2026-07-17T11:21:13.8483109+00:00",
     "goals":  [
                   {
                       "title":  "Autopilot DryRun codex-result dirty 방지",
@@ -81,12 +81,16 @@
                   {
                       "title":  "package 변경 감지 메시지 개선",
                       "firstSeenAt":  "2026-07-17T11:17:11.7105482+00:00",
-                      "lastSeenAt":  "2026-07-17T11:17:11.7105482+00:00",
-                      "lastEvent":  "selected",
+                      "lastSeenAt":  "2026-07-17T11:21:13.8483109+00:00",
+                      "lastEvent":  "prepared",
                       "events":  [
                                      {
                                          "event":  "selected",
                                          "at":  "2026-07-17T11:17:11.7105482+00:00"
+                                     },
+                                     {
+                                         "event":  "prepared",
+                                         "at":  "2026-07-17T11:21:13.8483109+00:00"
                                      }
                                  ]
                   }
