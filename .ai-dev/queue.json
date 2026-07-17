@@ -1,30 +1,30 @@
 ﻿{
-    "goalTitle":  "MaxTasks 1 end-to-end 검증",
+    "goalTitle":  "Verification task revise 자동 처리",
     "goalSource":  ".ai-dev/goal.md",
     "createdAt":  "2026-07-17T00:00:00+09:00",
-    "updatedAt":  "2026-07-17T00:00:00+09:00",
-    "currentTaskId":  "T001",
+    "updatedAt":  "2026-07-17T10:29:38.4642271+00:00",
+    "currentTaskId":  null,
     "tasks":  [
                   {
                       "id":  "T001",
-                      "title":  "MaxTasks 1 흐름 검증",
-                      "description":  "현재 구현에서 MaxTasks 1 조건이 업무 생성, 표시, 상태 변경, 새로고침 후 유지 흐름에서 일관되게 적용되는지 확인하고 결과를 정리한다.",
-                      "type":  "verification",
-                      "status":  "in_progress",
+                      "title":  "verification revise 분기 수정",
+                      "description":  "auto-cycle-full에서 verification task가 revise_with_codex를 받은 경우 non_implementation_revise로 중단하지 않고 수정 루프로 이어지도록 분기 조건을 조정한다.",
+                      "type":  "implementation",
+                      "status":  "done",
                       "priority":  "P0",
                       "dependsOn":  [
 
                                     ],
                       "filesLikelyToChange":  [
-
+                                                  ".ai-dev/scripts/auto-cycle-full.ps1"
                                               ],
                       "verification":  [
-                                           "MaxTasks 1 조건에서 업무 1개 생성 흐름을 확인한다.",
-                                           "업무가 1개인 상태에서 추가 생성 시도를 확인한다.",
-                                           "업무 완료 또는 미완료 전환 후 제한 동작을 확인한다.",
-                                           "새로고침 후 제한 상태가 유지되는지 확인한다."
+                                           "verification task에서 revise_with_codex 응답 시 중단 사유가 non_implementation_revise로 설정되지 않는지 확인한다.",
+                                           "기존 구현 작업의 revise 흐름이 유지되는지 확인한다."
                                        ],
-                      "commitMessage":  null
+                      "commitMessage":  "Handle verification revise flow",
+                      "completedAt":  "2026-07-17T10:29:38.4642271+00:00",
+                      "resultSummary":  "자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료"
                   }
               ]
 }

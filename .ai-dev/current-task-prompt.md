@@ -7,42 +7,46 @@
 ## Goal
 
 # 목표
-MaxTasks 1 기능이 현재 로컬 앱에서 끝까지 정상 동작하는지 가장 작은 범위로 검증한다.
+
+Verification task revise 자동 처리 문제를 수정한다.
 
 ## 배경
-P0 백로그 항목인 "MaxTasks 1 end-to-end 검증"은 기능 추가보다 현재 구현의 실제 사용자 흐름 확인이 우선이다. 기존 저장 구조와 화면 흐름을 유지하면서, MaxTasks 1 설정 또는 제한이 업무 생성 및 표시 흐름에서 일관되게 적용되는지 확인한다.
+
+auto-cycle-full이 verification task에서 review decision=revise, next_step=revise_with_codex를 받는 경우, 실제로는 Codex 수정 루프로 이어져야 하지만 현재 non_implementation_revise로 중단되는 문제가 있다.
 
 ## 성공 기준
-- MaxTasks 1 관련 현재 구현 위치와 사용자 흐름을 확인한다.
-- 업무가 1개로 제한되어야 하는 상황에서 추가 생성, 표시, 상태 변경 흐름이 일관되게 동작하는지 확인한다.
-- 제한 초과 시 사용자에게 보이는 결과가 혼란스럽지 않은지 확인한다.
-- 검증 결과와 발견된 문제를 간단히 기록한다.
+
+- verification task에서 revise_with_codex가 반환되어도 자동 수정 흐름이 중단되지 않는다.
+- implementation task가 아닌 verification task에서도 의도된 수정 경로가 선택된다.
+- 기존 중단 조건은 필요한 경우에만 유지된다.
+- 변경 범위는 자동 루프의 분기 처리에 한정된다.
 
 ## 제약사항
-- 한 번에 하나의 작은 검증 작업만 수행한다.
-- 기존 React, Vite, TypeScript, Zustand, Dexie 구조를 유지한다.
-- 사용자-facing 문구는 한국어를 기준으로 확인한다.
-- 기존 사용자 데이터를 깨뜨리는 방식은 사용하지 않는다.
-- src/App.css는 수정하지 않는다.
+
+- 기존 작업 큐와 상태 파일 형식을 유지한다.
+- 현재 자동 루프의 기존 decision 및 next_step 의미를 보존한다.
+- 불필요한 구조 변경은 하지 않는다.
+- 한 번에 하나의 작은 수정으로 처리한다.
 
 ## 범위 제외
-- 새 기능 추가는 포함하지 않는다.
-- 대규모 구조 변경은 포함하지 않는다.
-- 알림, 동기화, 계정 관련 기능은 포함하지 않는다.
-- 저장소 스키마 변경은 포함하지 않는다.
+
+- 자동 루프 전체 구조 재설계
+- 새로운 작업 유형 추가
+- UI 변경
+- 저장소 구조 변경
 
 ## 수동 검증
-- 현재 앱에서 MaxTasks 1 조건을 만들 수 있는지 확인한다.
-- 업무 1개가 존재하는 상태에서 추가 업무 생성 시도를 확인한다.
-- 업무 완료, 미완료 전환 후 제한 동작이 유지되는지 확인한다.
-- 새로고침 후에도 동일한 제한 상태가 유지되는지 확인한다.
+
+- verification task에서 review decision=revise, next_step=revise_with_codex가 발생하는 흐름을 재현한다.
+- 해당 흐름이 non_implementation_revise로 중단되지 않는지 확인한다.
+- 정상적인 중단 조건이 기존처럼 동작하는지 확인한다.
 
 ## Current Task
 
 - Task ID: T001
-- Title: MaxTasks 1 흐름 검증
-- Description: 현재 구현에서 MaxTasks 1 조건이 업무 생성, 표시, 상태 변경, 새로고침 후 유지 흐름에서 일관되게 적용되는지 확인하고 결과를 정리한다.
-- Type: verification
+- Title: verification revise 분기 수정
+- Description: auto-cycle-full에서 verification task가 revise_with_codex를 받은 경우 non_implementation_revise로 중단하지 않고 수정 루프로 이어지도록 분기 조건을 조정한다.
+- Type: implementation
 - Status: in_progress
 - Priority: P0
 - Depends on:
@@ -57,14 +61,12 @@ P0 백로그 항목인 "MaxTasks 1 end-to-end 검증"은 기능 추가보다 현
 
 ## Likely Files
 
-- 없음
+- .ai-dev/scripts/auto-cycle-full.ps1
 
 ## Verification
 
-- MaxTasks 1 조건에서 업무 1개 생성 흐름을 확인한다.
-- 업무가 1개인 상태에서 추가 생성 시도를 확인한다.
-- 업무 완료 또는 미완료 전환 후 제한 동작을 확인한다.
-- 새로고침 후 제한 상태가 유지되는지 확인한다.
+- verification task에서 revise_with_codex 응답 시 중단 사유가 non_implementation_revise로 설정되지 않는지 확인한다.
+- 기존 구현 작업의 revise 흐름이 유지되는지 확인한다.
 
 - 필요한 경우 `npm run build`는 사람이 별도로 실행한다.
 - 이 프롬프트는 자동으로 build, test, lint를 실행하라고 지시하지 않는다.

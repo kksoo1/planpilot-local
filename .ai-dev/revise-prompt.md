@@ -8,74 +8,66 @@
 ## Goal
 
 # 목표
-Autopilot durable history 기록 이후 nested auto-goal dirty-worktree-gate가 `.ai-dev/autopilot-goal-history.json` 때문에 중단되는 문제를 수정한다.
+
+Verification task revise 자동 처리 문제를 수정한다.
 
 ## 배경
-현재 Autopilot 연속 실행 중 selected/prepared/completed durable history가 기록된 직후 nested `ai-dev-auto-goal.ps1` 호출에서 작업 트리가 dirty로 판단되어 `auto_goal_failed`로 중단된다. 특히 `.ai-dev/autopilot-goal-history.json`이 새로 생성되거나 변경된 상태가 dirty gate에 걸린다.
+
+auto-cycle-full이 verification task에서 review decision=revise, next_step=revise_with_codex를 받는 경우, 실제로는 Codex 수정 루프로 이어져야 하지만 현재 non_implementation_revise로 중단되는 문제가 있다.
 
 ## 성공 기준
-- Autopilot이 durable history를 기록해도 nested auto-goal dirty gate가 자기 자신의 history 파일만으로 실패하지 않는다.
-- `AllowRun + AllowCommit` 경로에서 history/loop-log가 필요한 시점에 안전하게 meta commit되거나 nested auto-goal 호출 전 작업 트리가 깨끗하게 유지된다.
-- DryRun에서는 파일 변경이 발생하지 않는다.
-- durable history 중복 방지 기능이 유지된다.
-- `.ai-dev/autopilot-goal-history.json`이 장기 추적 대상이면 자동화 commit 대상에 포함된다.
-- 실제 Autopilot 연속 실행 명령이 최소 1개 goal을 준비/실행 단계로 넘길 수 있다.
-- 앱 `src` 파일은 수정하지 않는다.
-- build/lint 검증을 통과한다.
+
+- verification task에서 revise_with_codex가 반환되어도 자동 수정 흐름이 중단되지 않는다.
+- implementation task가 아닌 verification task에서도 의도된 수정 경로가 선택된다.
+- 기존 중단 조건은 필요한 경우에만 유지된다.
+- 변경 범위는 자동 루프의 분기 처리에 한정된다.
 
 ## 제약사항
-- 변경은 Autopilot/auto-goal 스크립트와 `.ai-dev` 자동화 상태 파일 범위로 제한한다.
-- 기존 durable history 중복 방지 로직을 제거하지 않는다.
-- DryRun 경로는 어떤 파일도 쓰지 않도록 유지한다.
-- 앱 UI와 `src` 파일은 변경하지 않는다.
+
+- 기존 작업 큐와 상태 파일 형식을 유지한다.
+- 현재 자동 루프의 기존 decision 및 next_step 의미를 보존한다.
+- 불필요한 구조 변경은 하지 않는다.
+- 한 번에 하나의 작은 수정으로 처리한다.
 
 ## 범위 제외
-- 앱 기능 변경
-- 대규모 스크립트 재작성
+
+- 자동 루프 전체 구조 재설계
+- 새로운 작업 유형 추가
+- UI 변경
 - 저장소 구조 변경
-- 알림 또는 외부 연동 추가
 
 ## 수동 검증
-- DryRun 실행 후 파일 변경이 없는지 확인한다.
-- `AllowRun + AllowCommit` Autopilot 연속 실행이 최소 1개 goal을 준비/실행 단계로 넘기는지 확인한다.
-- build와 lint를 실행해 통과 여부를 확인한다.
+
+- verification task에서 review decision=revise, next_step=revise_with_codex가 발생하는 흐름을 재현한다.
+- 해당 흐름이 non_implementation_revise로 중단되지 않는지 확인한다.
+- 정상적인 중단 조건이 기존처럼 동작하는지 확인한다.
 
 ## Current Task
 
 - Task ID: T001
-- Title: Autopilot history dirty gate 흐름 수정
-- Description: Autopilot durable history 기록 후 nested auto-goal 호출 전에 history/loop-log 변경이 dirty gate에 걸리지 않도록 작은 범위로 수정하고, DryRun 무변경 및 history 중복 방지 동작을 유지한다.
+- Title: verification revise 분기 수정
+- Description: auto-cycle-full에서 verification task가 revise_with_codex를 받은 경우 non_implementation_revise로 중단하지 않고 수정 루프로 이어지도록 분기 조건을 조정한다.
 - Type: implementation
 - Status: in_progress
 - Priority: P0
 - Verification:
-- DryRun 실행 후 파일 변경이 발생하지 않는지 확인
-- AllowRun + AllowCommit Autopilot 연속 실행이 최소 1개 goal을 준비/실행 단계로 넘기는지 확인
-- durable history 중복 방지 동작이 유지되는지 확인
-- npm run build 실행
-- npm run lint 실행
+- verification task에서 revise_with_codex 응답 시 중단 사유가 non_implementation_revise로 설정되지 않는지 확인한다.
+- 기존 구현 작업의 revise 흐름이 유지되는지 확인한다.
 
 ## Review Result
 
 - Decision: revise
-- Severity: medium
+- Severity: low
 - Next step: revise_with_codex
-- Summary: nested auto-goal 전 meta commit 추가 방향은 맞지만, commit 대상은 loop-log/history로 제한하면서 최종 검증은 전체
- 작업 트리에 걸려 현재 자동화 산출물 변경이 남으면 auto-goal 진입 전에 실패할 수 있다. 수동 검증도 프롬프트 성공 기준을 충분히 입증하지 못했다.
+- Summary: 분기 수정 자체는 목표에 맞지만, 성공 기준의 핵심 흐름을 직접 재현한 검증 결과가 없습니다.
 
 ## Required Changes
 
-- File: scripts/ai-dev-autopilot.ps1
-  - Reason: Invoke-AutopilotLoopLogMetaCommit는 .ai-dev/loop-log.md와 .ai-dev/autopilot-goal-histo
-ry.json만 add/commit한 뒤 282-290행에서 전체 git status를 검사한다. 현재 리뷰 입력에도 .ai-dev 운영 산출물 변경이 남아 있어 이 경로가 auto
-pilot_meta_commit_failed로 중단될 수 있으며, nested auto-goal을 준비/실행 단계로 넘긴다는 성공 기준에 불확실성이 있다.
-  - Suggestion: nested auto-goal 직전 dirty gate 목적에 맞게 전체 clean 검증 전에 자동화 산출물 처리 정책을 명확히 하라. 최소 수
-정으로는 AllowCommit 경로에서 nested 호출 전에 dirty로 남을 수 있는 자동화 메타 파일을 함께 안전하게 처리하거나, 이 함수의 최종 검증 범위를 dirty gat
-e에서 허용/처리되는 자동화 파일 정책과 일치시키고 실제 AllowRun + AllowCommit 연속 실행으로 확인하라.
-- File: unknown
-  - Reason: 성공 기준의 수동 검증인 DryRun 무변경, AllowRun + AllowCommit 연속 실행 최소 1개 goal 준비/실행, durable his
-tory 중복 방지 유지가 결과에 명확히 기록되어 있지 않다. test script도 없어 npm run test는 skipped 상태다.
-  - Suggestion: 프롬프트에 명시된 수동 검증 결과를 실행/기록하고, 테스트 스크립트가 없는 점은 잔여 리스크로 명시하라.
+- File: .ai-dev/test-result.md
+  - Reason: 현재 검증은 build/lint 통과만 기록되어 있고, task가 요구한 verification task의 revise + revise_with_cod
+ex 흐름이 non_implementation_revise로 중단되지 않는지 직접 확인한 결과가 없습니다.
+  - Suggestion: verification task + decision=revise + next_step=revise_with_codex 조건을 재현한 수동 검증 
+결과를 추가하고, 해당 흐름이 revise 자동 재시도 단계로 이어졌는지 기록하세요.
 
 ## Optional Suggestions
 
@@ -88,32 +80,46 @@ tory 중복 방지 유지가 결과에 명확히 기록되어 있지 않다. tes
 
 ## Generated At
 
-2026-07-17 18:04:01
+2026-07-17 19:25:29
 
 ## Git Status
 
 ```text
  M .ai-dev/codex-result.md
+ M .ai-dev/codex-review-result.md
  M .ai-dev/current-task-prompt.md
+ M .ai-dev/diff.md
  M .ai-dev/goal.md
  M .ai-dev/queue.json
+ M .ai-dev/review-prompt.md
+ M .ai-dev/review-response.json
+ M .ai-dev/review.md
+ M .ai-dev/revise-prompt.md
  M .ai-dev/state.json
  M .ai-dev/test-result.md
- M scripts/ai-dev-autopilot.ps1
+ M scripts/ai-dev-auto-cycle-full.ps1
+?? .ai-dev/verification-review-gate-fix-prompt.md
 ```
 
 ## App Change Files
 
-- scripts/ai-dev-autopilot.ps1
+- scripts/ai-dev-auto-cycle-full.ps1
 
 ## AI Dev Operational Artifact Files
 
 - .ai-dev/codex-result.md
+- .ai-dev/codex-review-result.md
 - .ai-dev/current-task-prompt.md
+- .ai-dev/diff.md
 - .ai-dev/goal.md
 - .ai-dev/queue.json
+- .ai-dev/review-prompt.md
+- .ai-dev/review-response.json
+- .ai-dev/review.md
+- .ai-dev/revise-prompt.md
 - .ai-dev/state.json
 - .ai-dev/test-result.md
+- .ai-dev/verification-review-gate-fix-prompt.md
 
 ## Review Diff Scope
 
@@ -122,33 +128,47 @@ tory 중복 방지 유지가 결과에 명확히 기록되어 있지 않다. tes
 ## Unstaged Diff Stat
 
 ```text
- scripts/ai-dev-autopilot.ps1 | 9 +++++++++
- 1 file changed, 9 insertions(+)
+ scripts/ai-dev-auto-cycle-full.ps1 | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 ```
 
 ## Unstaged Diff
 
 ```text
-diff --git a/scripts/ai-dev-autopilot.ps1 b/scripts/ai-dev-autopilot.ps1
-index 1468b7b..0b9945e 100644
---- a/scripts/ai-dev-autopilot.ps1
-+++ b/scripts/ai-dev-autopilot.ps1
-@@ -937,6 +937,15 @@ for ($goalIndex = 1; $goalIndex -le $MaxGoals; $goalIndex++) {
+diff --git a/scripts/ai-dev-auto-cycle-full.ps1 b/scripts/ai-dev-auto-cycle-full.ps1
+index 53eba04..2e8c83a 100644
+--- a/scripts/ai-dev-auto-cycle-full.ps1
++++ b/scripts/ai-dev-auto-cycle-full.ps1
+@@ -496,12 +496,13 @@ function Get-ReviewImplementationGate {
+     $taskType = if ($null -ne $CurrentTask -and (Test-HasValue $CurrentTask.type)) { [string]$CurrentTask.type } else { "" }
+     $requiredFiles = @($ReviewGate.requiredChangeFiles)
+     $changedFiles = @(Get-ChangedNonAiDevFiles)
++    $isVerificationReviseWithCodex = $taskType -eq "verification" -and $ReviewGate.decision -eq "revise" -and $ReviewGate.normalizedNextStep -eq "revise_with_codex"
+     $missingRequiredFiles = @(
+         $requiredFiles |
+             Where-Object { -not (Test-ReviewRequiredFileIsChanged $_ $changedFiles) }
+     )
  
-     $steps += New-StepResult ($steps.Count + 1) "generate-goal-candidate" $false $false 0 $candidateMessage $candidate
+-    if ($ReviewGate.decision -eq "revise" -and $taskType -ne "implementation") {
++    if ($ReviewGate.decision -eq "revise" -and $taskType -ne "implementation" -and -not $isVerificationReviseWithCodex) {
+         return [PSCustomObject][ordered]@{
+             passed = $false
+             reason = "non_implementation_revise"
+@@ -509,6 +510,14 @@ function Get-ReviewImplementationGate {
+         }
+     }
  
-+    if ($AllowCommit) {
-+        $metaCommitStep = Invoke-AutopilotLoopLogMetaCommit ($steps.Count + 1)
-+        $steps += $metaCommitStep
-+
-+        if ($metaCommitStep.exitCode -ne 0) {
-+            Stop-Autopilot $steps "autopilot_meta_commit_failed" $false 1 $preparedGoals $metaCommitStep.message
++    if ($isVerificationReviseWithCodex) {
++        return [PSCustomObject][ordered]@{
++            passed = $true
++            reason = "verification_revise_with_codex"
++            message = "verification task의 revise + revise_with_codex는 구현 파일 변경이 없는 검증 산출물 보강 흐름일 수 있으므로 implementation 전용 required files 검사를 건너뜁니다. requiredFiles=$($requiredFiles -join ', '), changedFiles=$($changedFiles -join ', ')"
 +        }
 +    }
 +
-     try {
-         $autoGoalStep = Invoke-AutoGoal $candidate ($steps.Count + 1)
-     } catch {
+     if ($requiredFiles.Count -gt 0 -and $changedFiles.Count -eq 0) {
+         return [PSCustomObject][ordered]@{
+             passed = $false
 ```
 
 ## Staged Diff Stat
@@ -167,7 +187,7 @@ index 1468b7b..0b9945e 100644
 
 # AI Dev Test Result
 
-## 2026-07-17 18:03:54
+## 2026-07-17 19:25:23
 
 - Overall result: passed
 - Current task: T001
@@ -196,7 +216,7 @@ dist/index.html                   0.46 kB │ gzip:   0.29 kB
 dist/assets/index-DvjxWt30.css    5.69 kB │ gzip:   1.93 kB
 dist/assets/index-DtLVvPCG.js   317.50 kB │ gzip: 100.16 kB
 
-[32m✓ built in 212ms[39m
+[32m✓ built in 225ms[39m
 ```
 ### npm run test
 
