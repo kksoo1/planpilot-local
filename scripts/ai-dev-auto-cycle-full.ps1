@@ -496,16 +496,25 @@ function Get-ReviewImplementationGate {
     $taskType = if ($null -ne $CurrentTask -and (Test-HasValue $CurrentTask.type)) { [string]$CurrentTask.type } else { "" }
     $requiredFiles = @($ReviewGate.requiredChangeFiles)
     $changedFiles = @(Get-ChangedNonAiDevFiles)
+    $isVerificationReviseWithCodex = $taskType -eq "verification" -and $ReviewGate.decision -eq "revise" -and $ReviewGate.normalizedNextStep -eq "revise_with_codex"
     $missingRequiredFiles = @(
         $requiredFiles |
             Where-Object { -not (Test-ReviewRequiredFileIsChanged $_ $changedFiles) }
     )
 
-    if ($ReviewGate.decision -eq "revise" -and $taskType -ne "implementation") {
+    if ($ReviewGate.decision -eq "revise" -and $taskType -ne "implementation" -and -not $isVerificationReviseWithCodex) {
         return [PSCustomObject][ordered]@{
             passed = $false
             reason = "non_implementation_revise"
             message = "현재 task type이 implementation이 아닌데 review decision=revise입니다. 구현 없는 revise 반복을 성공 처리하지 않도록 중단합니다. taskType='$taskType', requiredFiles=$($requiredFiles -join ', '), changedFiles=$($changedFiles -join ', ')"
+        }
+    }
+
+    if ($isVerificationReviseWithCodex) {
+        return [PSCustomObject][ordered]@{
+            passed = $true
+            reason = "verification_revise_with_codex"
+            message = "verification task의 revise + revise_with_codex는 구현 파일 변경이 없는 검증 산출물 보강 흐름일 수 있으므로 implementation 전용 required files 검사를 건너뜁니다. requiredFiles=$($requiredFiles -join ', '), changedFiles=$($changedFiles -join ', ')"
         }
     }
 
