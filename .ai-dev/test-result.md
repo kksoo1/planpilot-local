@@ -1,9 +1,9 @@
 ﻿# AI Dev Test Result
 
-## 2026-07-13 00:34:32
+## 2026-07-17 16:55:02
 
 - Overall result: passed
-- Current task: T002
+- Current task: T001
 - Mode: BuildOnly (build + lint when available)
 - Commands:
   - npm run build: passed
@@ -29,7 +29,7 @@ dist/index.html                   0.46 kB │ gzip:   0.29 kB
 dist/assets/index-DvjxWt30.css    5.69 kB │ gzip:   1.93 kB
 dist/assets/index-DtLVvPCG.js   317.50 kB │ gzip: 100.16 kB
 
-[32m✓ built in 226ms[39m
+[32m✓ built in 220ms[39m
 ```
 ### npm run test
 
@@ -49,66 +49,64 @@ package.json에 test script가 없습니다.
 > planpilot-local@0.0.0 lint
 > eslint .
 ```
-## 2026-07-13 00:45:00 - All candidates excluded verification
+## 2026-07-17 17:05:00 - DryRun clean worktree verification
 
 - Overall result: passed
-- Current task: T002 전체 후보 제외 상태 처리 검증
-- Mode: PowerShell targeted verification using actual functions extracted from scripts/ai-dev-autopilot.ps1
+- Current task: T001 DryRun 결과 저장 흐름 분석 및 수정
+- Mode: Temporary repository verification using current working copy scripts
 
-### Executed checks
+### Executed command
 
-- Actual candidate input: passed
-  - Created two concrete backlog-like candidate objects.
-  - Recorded both candidate titles into the temporary durable history file.
+`powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\ai-dev-autopilot.ps1 -DryRun -Json -MaxGoals 2 -MaxTasks 3
+`",
+  ",
+  
 
-- All candidates excluded: passed
-  - Executed Get-ExcludedGoalTitles with temporary history, queue/state, and loop-log inputs.
-  - Applied the same candidate filtering expression used by Autopilot.
-  - Verified remaining candidate count is 0.
+- DryRun command executed in a temporary git repository.
+- DryRun output was captured in memory, not written to dryrun-output.json.
+- git status was captured in memory, not written to dryrun-status.txt.
+- git diff --exit-code --quiet exit code after DryRun: 0
+- git status --short after DryRun:
 
-- Exclusion sources: passed
-  - Verified durable history titles exclude candidates.
-  - Verified completed queue/state goalTitle is included.
-  - Verified Autopilot goal prepared / - Goal title is included.
+`	ext
+`",
+  ",
+  
 
-- Task title safety: passed
-  - Temporary loop-log included Task completed / - Task: task title should not exclude.
-  - Verified that task title was not included in excluded goal titles.
+`	ext
+{
+    "steps":  [
+                  {
+                      "step":  1,
+                      "name":  "validate-input",
+                      "executed":  false,
+                      "skipped":  false,
+                      "exitCode":  0,
+                      "message":  "Autopilot input validation completed. MaxGoals=2, MaxTasks=3, MaxSteps=22",
+                      "goalCandidate":  null
+                  },
+                  {
+                      "step":  2,
+                      "name":  "current-goal-gate",
+                      "executed":  false,
+                      "skipped":  true,
+                      "exitCode":  1,
+                      "message":  "Current goal is not completed, so autopilot will not create the next goal. goalStatus=in_progress, currentTaskId=T001, openTaskCount=2",
+                      "goalCandidate":  null
+                  }
+              ],
+    "stoppedReason":  "current_goal_not_completed",
+    "completed":  false,
+    "exitCode":  1,
+    "maxGoals":  2,
+    "preparedGoals":  0
+}
+`",
+  ",
+  
 
-- Stop reason and reporting support: passed
-  - Verified script contains all_goal_candidates_excluded.
-  - Verified script reports Durable history goal titles.
-  - Verified excluded, candidate, and durable history title summaries are non-empty.
-
-### Build, test, lint
-
-- npm run build: passed in the current BuildOnly verification.
-- npm run lint: passed in the current BuildOnly verification.
-- npm run test: skipped because package.json has no test script.
-
-## 2026-07-13 00:55:00 - AllowCommit clean worktree verification
-
-- Overall result: passed
-- Current task: T002 전체 후보 제외 상태 처리 검증
-- Mode: Temporary git repo verification using actual Invoke-AutopilotLoopLogMetaCommit from scripts/ai-dev-autopilot.ps1
-
-### Executed checks
-
-- AllowCommit success path: passed
-  - Created a temporary git repository.
-  - Created dirty .ai-dev/loop-log.md and .ai-dev/autopilot-goal-history.json files.
-  - Executed Invoke-AutopilotLoopLogMetaCommit with AllowCommit enabled.
-  - Verified the function committed loop-log/history changes.
-  - Verified git status --short returned clean after the meta commit.
-  - Last temporary commit: cf07ad1 chore(ai-dev): record autopilot progress
-
-- Scope safety: passed
-  - Verification ran in a temporary repository, not the working project repo.
-  - No app src files were modified.
-
-### Build, test, lint
-
-- npm run build: passed in the current BuildOnly verification.
-- npm run lint: passed in the current BuildOnly verification.
-- npm run test: skipped because package.json has no test script.
-- PowerShell targeted verification covers the T002 behavior that npm test cannot cover.
+- DryRun result file write prevention is verified in a clean temporary repository.
+- No verification output files were created inside the temporary git repository before checking git status.
+- The verification used the current modified scripts copied from the working project.
+- No app src files were modified by this verification.

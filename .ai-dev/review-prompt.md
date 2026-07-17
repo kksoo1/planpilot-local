@@ -16,68 +16,70 @@
 
 # 목표
 
-AI Dev Loop Autopilot에 durable goal history를 도입해 이미 선택되었거나 처리된 goal title이 다음 실행에서 다시 후보로 선택되지 않도록 한다.
+Autopilot DryRun 실행 후 `.ai-dev/codex-result.md`가 dirty로 남지 않도록 수정한다.
 
 ## 배경
 
-현재 Autopilot은 과거 prepared 로그와 현재 queue/state의 completed goalTitle만 제외하기 때문에, 실패 후 수동 완료된 backlog goal이나 prepared 로그에 남지 않은 goal이 다음 실행에서 다시 선택될 수 있다. 실제로 수동 완료한 backlog goal이 다음 Autopilot 실행에서 다시 선택된 사례가 있었다.
+현재 다음 DryRun 명령 실행 후 `.ai-dev/codex-result.md`가 수정된 상태로 남는다.
+
+`powershell -ExecutionPolicy Bypass -File .\scripts\ai-dev-autopilot.ps1 -DryRun -Json -MaxGoals 2 -MaxTasks 3`
+
+DryRun은 실제 실행이 아니므로 운영 산출물을 포함해 어떤 파일도 변경하지 않아야 한다. 단, `-Json` 출력은 기존처럼 유지되어야 한다.
 
 ## 성공 기준
 
-- `scripts/ai-dev-autopilot.ps1`에서 Autopilot이 선택/준비/완료한 goal title을 durable history로 보존한다.
-- history에 저장된 정상적인 한국어 goal title이 깨지지 않는다.
-- 기존 prepared 로그 기반 제외와 현재 completed queue/state goalTitle 제외는 유지한다.
-- task title을 goal title로 잘못 취급하지 않는다.
-- auto-goal 실패 후 해당 goal이 수동 완료되어도 다음 실행에서 같은 goal title이 다시 선택되지 않는다.
-- DryRun 실행은 history, state, loop-log 등 어떤 파일도 수정하지 않는다.
-- 모든 후보가 history 때문에 제외되면 `all_goal_candidates_excluded`로 중단하고 제외 title 목록과 후보 title 목록을 state, loop-log, output에 남긴다.
+- DryRun 실행 중 `.ai-dev/codex-result.md`를 포함한 어떤 파일도 수정되지 않는다.
+- DryRun `-Json` 출력은 유지된다.
+- auto-goal DryRun 내부 호출 결과가 운영 산출물 파일에 저장되지 않는다.
+- 실제 실행 모드의 Codex 결과 저장 동작은 유지된다.
+- 동일 DryRun 명령 실행 후 `git status --short` 결과가 비어 있다.
 - 앱 `src` 파일은 수정하지 않는다.
-- AllowCommit이 있는 성공 실행은 최종 작업 트리가 깨끗한 상태로 끝난다.
+- 허용된 검증에서 build/lint를 통과한다.
 
 ## 제약사항
 
-- 변경 범위는 Autopilot 스크립트와 AI Dev Loop 상태/기록 파일 처리에 한정한다.
-- 한국어 goal title 보존을 위해 파일 인코딩과 JSON 직렬화 방식을 안전하게 유지한다.
-- 기존 로그 기반 제외 로직과 현재 완료 goal 제외 로직을 제거하지 않는다.
-- DryRun 경로에서는 파일 쓰기 동작을 추가하지 않는다.
+- 변경 범위는 Autopilot DryRun과 Codex 결과 저장 흐름에 한정한다.
+- 앱 `src` 파일은 수정하지 않는다.
+- DryRun과 실제 실행 모드의 동작 차이를 명확히 유지한다.
+- 불필요한 구조 변경이나 대규모 재작성은 하지 않는다.
 
 ## 범위 제외
 
-- 앱 화면, React 컴포넌트, Zustand 상태, Dexie 저장 구조 변경은 제외한다.
-- 알림, 동기화, 인증 같은 제품 기능 추가는 제외한다.
-- Autopilot 외 다른 개발 루프 정책의 대규모 재작성은 제외한다.
+- UI 변경
+- 앱 기능 변경
+- 데이터 저장 구조 변경
+- Autopilot 전체 동작 재설계
 
 ## 수동 검증
 
-- history가 없는 상태에서 새 goal을 선택하면 durable history에 goal title이 기록되는지 확인한다.
-- auto-goal 실패 후 같은 title이 다음 실행 후보에서 제외되는지 확인한다.
-- DryRun 실행 전후 관련 파일의 변경이 없는지 확인한다.
-- 모든 후보가 history로 제외되는 경우 state, loop-log, output에 후보 title과 제외 title이 남는지 확인한다.
-- 한국어 goal title이 history 파일에서 깨지지 않는지 확인한다.
+- `powershell -ExecutionPolicy Bypass -File .\scripts\ai-dev-autopilot.ps1 -DryRun -Json -MaxGoals 2 -MaxTasks 3` 실행
+- 실행 후 `git status --short`가 비어 있는지 확인
+- 실제 실행 모드에서 Codex 결과 저장 동작이 유지되는지 관련 경로 확인
+- 허용된 경우 build/lint 실행
 
 ## Current Task
 
-- Task ID: T002
-- Title: 전체 후보 제외 상태 처리 검증
-- Description: 모든 후보가 durable history 때문에 제외될 때 `all_goal_candidates_excluded`로 중단하고 후보 title과 제외 title이 state, loop-log, output에 남도록 확인한다.
-- Type: verification
+- Task ID: T001
+- Title: DryRun 결과 저장 흐름 분석 및 수정
+- Description: Autopilot DryRun에서 Codex 내부 호출 결과가 `.ai-dev/codex-result.md` 같은 운영 산출물에 저장되는 경로를 확인하고, DryRun일 때 파일 쓰기를 건너뛰도록 최소 범위로 수정한다.
+- Type: implementation
 - Status: in_progress
-- Priority: P1
+- Priority: P0
 - Depends on:
-- T001
+- 없음
 - Verification:
-- 모든 후보가 제외되는 입력에서 stopReason이 `all_goal_candidates_excluded`인지 확인한다.
-- state, loop-log, output에 후보 title 목록과 제외 title 목록이 남는지 확인한다.
-- AllowCommit 성공 경로가 최종 작업 트리 정리 상태로 끝나는지 확인한다.
+- DryRun 명령의 `-Json` 출력이 유지되는지 확인한다.
+- DryRun 실행 후 `.ai-dev/codex-result.md`가 수정되지 않는지 확인한다.
+- 실제 실행 모드의 결과 저장 분기가 유지되는지 코드 흐름을 확인한다.
 
 ## Test Result
 
 # AI Dev Test Result
 
-## 2026-07-13 00:34:32
+## 2026-07-17 16:55:02
 
 - Overall result: passed
-- Current task: T002
+- Current task: T001
 - Mode: BuildOnly (build + lint when available)
 - Commands:
   - npm run build: passed
@@ -103,7 +105,7 @@ dist/index.html                   0.46 kB │ gzip:   0.29 kB
 dist/assets/index-DvjxWt30.css    5.69 kB │ gzip:   1.93 kB
 dist/assets/index-DtLVvPCG.js   317.50 kB │ gzip: 100.16 kB
 
-[32m✓ built in 226ms[39m
+[32m✓ built in 220ms[39m
 ```
 ### npm run test
 
@@ -123,69 +125,67 @@ package.json에 test script가 없습니다.
 > planpilot-local@0.0.0 lint
 > eslint .
 ```
-## 2026-07-13 00:45:00 - All candidates excluded verification
+## 2026-07-17 17:05:00 - DryRun clean worktree verification
 
 - Overall result: passed
-- Current task: T002 전체 후보 제외 상태 처리 검증
-- Mode: PowerShell targeted verification using actual functions extracted from scripts/ai-dev-autopilot.ps1
+- Current task: T001 DryRun 결과 저장 흐름 분석 및 수정
+- Mode: Temporary repository verification using current working copy scripts
 
-### Executed checks
+### Executed command
 
-- Actual candidate input: passed
-  - Created two concrete backlog-like candidate objects.
-  - Recorded both candidate titles into the temporary durable history file.
+`powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\ai-dev-autopilot.ps1 -DryRun -Json -MaxGoals 2 -MaxTasks 3
+`",
+  ",
+  
 
-- All candidates excluded: passed
-  - Executed Get-ExcludedGoalTitles with temporary history, queue/state, and loop-log inputs.
-  - Applied the same candidate filtering expression used by Autopilot.
-  - Verified remaining candidate count is 0.
+- DryRun command executed in a temporary git repository.
+- DryRun output was captured in memory, not written to dryrun-output.json.
+- git status was captured in memory, not written to dryrun-status.txt.
+- git diff --exit-code --quiet exit code after DryRun: 0
+- git status --short after DryRun:
 
-- Exclusion sources: passed
-  - Verified durable history titles exclude candidates.
-  - Verified completed queue/state goalTitle is included.
-  - Verified Autopilot goal prepared / - Goal title is included.
+`	ext
+`",
+  ",
+  
 
-- Task title safety: passed
-  - Temporary loop-log included Task completed / - Task: task title should not exclude.
-  - Verified that task title was not included in excluded goal titles.
+`	ext
+{
+    "steps":  [
+                  {
+                      "step":  1,
+                      "name":  "validate-input",
+                      "executed":  false,
+                      "skipped":  false,
+                      "exitCode":  0,
+                      "message":  "Autopilot input validation completed. MaxGoals=2, MaxTasks=3, MaxSteps=22",
+                      "goalCandidate":  null
+                  },
+                  {
+                      "step":  2,
+                      "name":  "current-goal-gate",
+                      "executed":  false,
+                      "skipped":  true,
+                      "exitCode":  1,
+                      "message":  "Current goal is not completed, so autopilot will not create the next goal. goalStatus=in_progress, currentTaskId=T001, openTaskCount=2",
+                      "goalCandidate":  null
+                  }
+              ],
+    "stoppedReason":  "current_goal_not_completed",
+    "completed":  false,
+    "exitCode":  1,
+    "maxGoals":  2,
+    "preparedGoals":  0
+}
+`",
+  ",
+  
 
-- Stop reason and reporting support: passed
-  - Verified script contains all_goal_candidates_excluded.
-  - Verified script reports Durable history goal titles.
-  - Verified excluded, candidate, and durable history title summaries are non-empty.
-
-### Build, test, lint
-
-- npm run build: passed in the current BuildOnly verification.
-- npm run lint: passed in the current BuildOnly verification.
-- npm run test: skipped because package.json has no test script.
-
-## 2026-07-13 00:55:00 - AllowCommit clean worktree verification
-
-- Overall result: passed
-- Current task: T002 전체 후보 제외 상태 처리 검증
-- Mode: Temporary git repo verification using actual Invoke-AutopilotLoopLogMetaCommit from scripts/ai-dev-autopilot.ps1
-
-### Executed checks
-
-- AllowCommit success path: passed
-  - Created a temporary git repository.
-  - Created dirty .ai-dev/loop-log.md and .ai-dev/autopilot-goal-history.json files.
-  - Executed Invoke-AutopilotLoopLogMetaCommit with AllowCommit enabled.
-  - Verified the function committed loop-log/history changes.
-  - Verified git status --short returned clean after the meta commit.
-  - Last temporary commit: cf07ad1 chore(ai-dev): record autopilot progress
-
-- Scope safety: passed
-  - Verification ran in a temporary repository, not the working project repo.
-  - No app src files were modified.
-
-### Build, test, lint
-
-- npm run build: passed in the current BuildOnly verification.
-- npm run lint: passed in the current BuildOnly verification.
-- npm run test: skipped because package.json has no test script.
-- PowerShell targeted verification covers the T002 behavior that npm test cannot cover.
+- DryRun result file write prevention is verified in a clean temporary repository.
+- No verification output files were created inside the temporary git repository before checking git status.
+- The verification used the current modified scripts copied from the working project.
+- No app src files were modified by this verification.
 
 
 ## Diff To Review
@@ -194,7 +194,7 @@ package.json에 test script가 없습니다.
 
 ## Generated At
 
-2026-07-13 15:06:19
+2026-07-17 17:08:57
 
 ## Git Status
 
@@ -203,16 +203,20 @@ package.json에 test script가 없습니다.
  M .ai-dev/codex-review-result.md
  M .ai-dev/current-task-prompt.md
  M .ai-dev/diff.md
+ M .ai-dev/goal.md
+ M .ai-dev/queue.json
  M .ai-dev/review-prompt.md
  M .ai-dev/review-response.json
  M .ai-dev/review.md
+ M .ai-dev/revise-prompt.md
  M .ai-dev/state.json
  M .ai-dev/test-result.md
+ M scripts/ai-dev-auto-goal.ps1
 ```
 
 ## App Change Files
 
-- 없음
+- scripts/ai-dev-auto-goal.ps1
 
 ## AI Dev Operational Artifact Files
 
@@ -220,9 +224,12 @@ package.json에 test script가 없습니다.
 - .ai-dev/codex-review-result.md
 - .ai-dev/current-task-prompt.md
 - .ai-dev/diff.md
+- .ai-dev/goal.md
+- .ai-dev/queue.json
 - .ai-dev/review-prompt.md
 - .ai-dev/review-response.json
 - .ai-dev/review.md
+- .ai-dev/revise-prompt.md
 - .ai-dev/state.json
 - .ai-dev/test-result.md
 
@@ -233,13 +240,31 @@ package.json에 test script가 없습니다.
 ## Unstaged Diff Stat
 
 ```text
-변경 없음
+ scripts/ai-dev-auto-goal.ps1 | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 ```
 
 ## Unstaged Diff
 
 ```text
-변경 없음
+diff --git a/scripts/ai-dev-auto-goal.ps1 b/scripts/ai-dev-auto-goal.ps1
+index 594d429..be59b8d 100644
+--- a/scripts/ai-dev-auto-goal.ps1
++++ b/scripts/ai-dev-auto-goal.ps1
+@@ -220,8 +220,11 @@ function Stop-AutoGoal {
+         [int]$ExitCode
+     )
+ 
+-    Clear-AutoGoalTempArtifacts
+-    if (-not $Completed -or $ExitCode -ne 0) {
++    if (-not $DryRun) {
++        Clear-AutoGoalTempArtifacts
++    }
++
++    if (-not $DryRun -and (-not $Completed -or $ExitCode -ne 0)) {
+         if ($script:autoGoalCanWriteResultFile) {
+             Save-AutoGoalResultFile $StoppedReason $false $ExitCode
+         }
 ```
 
 ## Staged Diff Stat

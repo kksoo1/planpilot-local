@@ -8,55 +8,57 @@
 
 # 목표
 
-AI Dev Loop Autopilot에 durable goal history를 도입해 이미 선택되었거나 처리된 goal title이 다음 실행에서 다시 후보로 선택되지 않도록 한다.
+Autopilot DryRun 실행 후 `.ai-dev/codex-result.md`가 dirty로 남지 않도록 수정한다.
 
 ## 배경
 
-현재 Autopilot은 과거 prepared 로그와 현재 queue/state의 completed goalTitle만 제외하기 때문에, 실패 후 수동 완료된 backlog goal이나 prepared 로그에 남지 않은 goal이 다음 실행에서 다시 선택될 수 있다. 실제로 수동 완료한 backlog goal이 다음 Autopilot 실행에서 다시 선택된 사례가 있었다.
+현재 다음 DryRun 명령 실행 후 `.ai-dev/codex-result.md`가 수정된 상태로 남는다.
+
+`powershell -ExecutionPolicy Bypass -File .\scripts\ai-dev-autopilot.ps1 -DryRun -Json -MaxGoals 2 -MaxTasks 3`
+
+DryRun은 실제 실행이 아니므로 운영 산출물을 포함해 어떤 파일도 변경하지 않아야 한다. 단, `-Json` 출력은 기존처럼 유지되어야 한다.
 
 ## 성공 기준
 
-- `scripts/ai-dev-autopilot.ps1`에서 Autopilot이 선택/준비/완료한 goal title을 durable history로 보존한다.
-- history에 저장된 정상적인 한국어 goal title이 깨지지 않는다.
-- 기존 prepared 로그 기반 제외와 현재 completed queue/state goalTitle 제외는 유지한다.
-- task title을 goal title로 잘못 취급하지 않는다.
-- auto-goal 실패 후 해당 goal이 수동 완료되어도 다음 실행에서 같은 goal title이 다시 선택되지 않는다.
-- DryRun 실행은 history, state, loop-log 등 어떤 파일도 수정하지 않는다.
-- 모든 후보가 history 때문에 제외되면 `all_goal_candidates_excluded`로 중단하고 제외 title 목록과 후보 title 목록을 state, loop-log, output에 남긴다.
+- DryRun 실행 중 `.ai-dev/codex-result.md`를 포함한 어떤 파일도 수정되지 않는다.
+- DryRun `-Json` 출력은 유지된다.
+- auto-goal DryRun 내부 호출 결과가 운영 산출물 파일에 저장되지 않는다.
+- 실제 실행 모드의 Codex 결과 저장 동작은 유지된다.
+- 동일 DryRun 명령 실행 후 `git status --short` 결과가 비어 있다.
 - 앱 `src` 파일은 수정하지 않는다.
-- AllowCommit이 있는 성공 실행은 최종 작업 트리가 깨끗한 상태로 끝난다.
+- 허용된 검증에서 build/lint를 통과한다.
 
 ## 제약사항
 
-- 변경 범위는 Autopilot 스크립트와 AI Dev Loop 상태/기록 파일 처리에 한정한다.
-- 한국어 goal title 보존을 위해 파일 인코딩과 JSON 직렬화 방식을 안전하게 유지한다.
-- 기존 로그 기반 제외 로직과 현재 완료 goal 제외 로직을 제거하지 않는다.
-- DryRun 경로에서는 파일 쓰기 동작을 추가하지 않는다.
+- 변경 범위는 Autopilot DryRun과 Codex 결과 저장 흐름에 한정한다.
+- 앱 `src` 파일은 수정하지 않는다.
+- DryRun과 실제 실행 모드의 동작 차이를 명확히 유지한다.
+- 불필요한 구조 변경이나 대규모 재작성은 하지 않는다.
 
 ## 범위 제외
 
-- 앱 화면, React 컴포넌트, Zustand 상태, Dexie 저장 구조 변경은 제외한다.
-- 알림, 동기화, 인증 같은 제품 기능 추가는 제외한다.
-- Autopilot 외 다른 개발 루프 정책의 대규모 재작성은 제외한다.
+- UI 변경
+- 앱 기능 변경
+- 데이터 저장 구조 변경
+- Autopilot 전체 동작 재설계
 
 ## 수동 검증
 
-- history가 없는 상태에서 새 goal을 선택하면 durable history에 goal title이 기록되는지 확인한다.
-- auto-goal 실패 후 같은 title이 다음 실행 후보에서 제외되는지 확인한다.
-- DryRun 실행 전후 관련 파일의 변경이 없는지 확인한다.
-- 모든 후보가 history로 제외되는 경우 state, loop-log, output에 후보 title과 제외 title이 남는지 확인한다.
-- 한국어 goal title이 history 파일에서 깨지지 않는지 확인한다.
+- `powershell -ExecutionPolicy Bypass -File .\scripts\ai-dev-autopilot.ps1 -DryRun -Json -MaxGoals 2 -MaxTasks 3` 실행
+- 실행 후 `git status --short`가 비어 있는지 확인
+- 실제 실행 모드에서 Codex 결과 저장 동작이 유지되는지 관련 경로 확인
+- 허용된 경우 build/lint 실행
 
 ## Current Task
 
-- Task ID: T002
-- Title: 전체 후보 제외 상태 처리 검증
-- Description: 모든 후보가 durable history 때문에 제외될 때 `all_goal_candidates_excluded`로 중단하고 후보 title과 제외 title이 state, loop-log, output에 남도록 확인한다.
-- Type: verification
+- Task ID: T001
+- Title: DryRun 결과 저장 흐름 분석 및 수정
+- Description: Autopilot DryRun에서 Codex 내부 호출 결과가 `.ai-dev/codex-result.md` 같은 운영 산출물에 저장되는 경로를 확인하고, DryRun일 때 파일 쓰기를 건너뛰도록 최소 범위로 수정한다.
+- Type: implementation
 - Status: in_progress
-- Priority: P1
+- Priority: P0
 - Depends on:
-- T001
+- 없음
 
 ## Task Scope
 
@@ -71,9 +73,9 @@ AI Dev Loop Autopilot에 durable goal history를 도입해 이미 선택되었�
 
 ## Verification
 
-- 모든 후보가 제외되는 입력에서 stopReason이 `all_goal_candidates_excluded`인지 확인한다.
-- state, loop-log, output에 후보 title 목록과 제외 title 목록이 남는지 확인한다.
-- AllowCommit 성공 경로가 최종 작업 트리 정리 상태로 끝나는지 확인한다.
+- DryRun 명령의 `-Json` 출력이 유지되는지 확인한다.
+- DryRun 실행 후 `.ai-dev/codex-result.md`가 수정되지 않는지 확인한다.
+- 실제 실행 모드의 결과 저장 분기가 유지되는지 코드 흐름을 확인한다.
 
 - 필요한 경우 `npm run build`는 사람이 별도로 실행한다.
 - 이 프롬프트는 자동으로 build, test, lint를 실행하라고 지시하지 않는다.

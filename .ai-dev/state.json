@@ -1,6 +1,6 @@
 ﻿{
-    "goalStatus":  "completed",
-    "currentTaskId":  null,
+    "goalStatus":  "in_progress",
+    "currentTaskId":  "T002",
     "currentLoop":  0,
     "maxLoopsPerTask":  2,
     "repeatedFailureCount":  0,
@@ -9,22 +9,17 @@
     "lastErrorSummary":  "",
     "lastReviewDecision":  "pass",
     "lastReviewSeverity":  "none",
-    "lastCommitHash":  "740de4aabe92d75b21571706b453521d2734c8e7",
-    "startedAt":  "2026-07-12T00:00:00+09:00",
-    "updatedAt":  "2026-07-13T06:13:25.4916741+00:00",
-    "stopReason":  "all_tasks_completed",
+    "lastCommitHash":  "2dbdd02b68757b586b9bf3d7322e675ae3bf593d",
+    "startedAt":  "2026-07-17T16:36:01.2951898+09:00",
+    "updatedAt":  "2026-07-17T08:10:38.3434061+00:00",
+    "stopReason":  null,
     "lastReviewNextStep":  "revise_with_codex",
-    "lastReviewSummary":  "앱 변경은 없고 범위 이탈은 없지만, T002의 핵심 검증이 실제 입력으로 수행되지 않아 pass로 판단할 수 없다.",
+    "lastReviewSummary":  "변경 방향은 DryRun 결과 파일 저장을 막는 최소 수정으로 보이나, 성공 기준의 핵심 수동 검증 결과가 제공되지 않아 pass로 확정할 수 없다.",
     "lastReviewRequiredChanges":  [
                                       {
-                                          "file":  ".ai-dev/test-result.md",
-                                          "reason":  "현재 결과는 build/lint 통과와 npm test skipped만 기록되어 있으며, 모든 후보가 durable history로 제외되는 입력에서\r\n stopReason, state, loop-log, output을 실제 확인한 결과가 없다.",
-                                          "suggestion":  "격리된 테스트 상태나 안전한 재현 절차로 모든 후보 제외 케이스를 실행하고, stopReason이 all_goal_candidates_excl\r\nuded인지와 후보 title/제외 title이 state, loop-log, output에 남는지 기록한다."
-                                      },
-                                      {
-                                          "file":  ".ai-dev/test-result.md",
-                                          "reason":  "Current Task의 Verification 항목인 AllowCommit 성공 경로의 최종 작업 트리 정리 상태가 검증되지 않았다.",
-                                          "suggestion":  "AllowCommit 성공 경로를 실제로 검증했는지, 또는 현재 작업 규칙상 검증 불가라면 그 사유와 잔여 위험을 명확히 남긴다."
+                                          "file":  "unknown",
+                                          "reason":  "성공 기준은 동일 DryRun 명령 실행 후 git status --short가 비어 있어야 한다고 요구하지만, 제공된 Test Result에는 npm\r\n build/lint만 있고 DryRun 명령 및 이후 git status 검증 결과가 없다.",
+                                          "suggestion":  "허용된 수동 검증으로 `powershell -ExecutionPolicy Bypass -File .\\scripts\\ai-dev-autopil\r\not.ps1 -DryRun -Json -MaxGoals 2 -MaxTasks 3` 실행 결과와 실행 후 `git status --short`가 비어 있음을 검증 결과에 추가한다."
                                       }
                                   ]
 }
