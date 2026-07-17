@@ -2,8 +2,8 @@
     "goalTitle":  "Autopilot DryRun codex-result dirty 방지",
     "goalSource":  ".ai-dev/goal.md",
     "createdAt":  "2026-07-17T16:36:01.2951898+09:00",
-    "updatedAt":  "2026-07-17T08:10:38.3434061+00:00",
-    "currentTaskId":  "T002",
+    "updatedAt":  "2026-07-17T08:55:16.0159979+00:00",
+    "currentTaskId":  null,
     "tasks":  [
                   {
                       "id":  "T001",
@@ -32,7 +32,7 @@
                       "title":  "DryRun 무변경 상태 검증",
                       "description":  "동일 DryRun 명령을 실행한 뒤 작업 트리에 변경이 남지 않는지 확인하고, 허용된 경우 build/lint를 실행해 회귀 여부를 확인한다.",
                       "type":  "verification",
-                      "status":  "in_progress",
+                      "status":  "done",
                       "priority":  "P1",
                       "dependsOn":  [
                                         "T001"
@@ -44,7 +44,9 @@
                                            "`powershell -ExecutionPolicy Bypass -File .\\scripts\\ai-dev-autopilot.ps1 -DryRun -Json -MaxGoals 2 -MaxTasks 3` 실행 후 `git status --short`가 비어 있는지 확인한다.",
                                            "허용된 경우 build/lint를 실행해 통과 여부를 확인한다."
                                        ],
-                      "commitMessage":  null
+                      "commitMessage":  null,
+                      "completedAt":  "2026-07-17T08:55:16.0159979+00:00",
+                      "resultSummary":  "자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 구현 커밋 없음, 저장된 리뷰 pass에서 자동 완료"
                   }
               ]
 }

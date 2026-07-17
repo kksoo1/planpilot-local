@@ -51,14 +51,14 @@ DryRun은 실제 실행이 아니므로 운영 산출물을 포함해 어떤 파
 
 ## Current Task
 
-- Task ID: T001
-- Title: DryRun 결과 저장 흐름 분석 및 수정
-- Description: Autopilot DryRun에서 Codex 내부 호출 결과가 `.ai-dev/codex-result.md` 같은 운영 산출물에 저장되는 경로를 확인하고, DryRun일 때 파일 쓰기를 건너뛰도록 최소 범위로 수정한다.
-- Type: implementation
+- Task ID: T002
+- Title: DryRun 무변경 상태 검증
+- Description: 동일 DryRun 명령을 실행한 뒤 작업 트리에 변경이 남지 않는지 확인하고, 허용된 경우 build/lint를 실행해 회귀 여부를 확인한다.
+- Type: verification
 - Status: in_progress
-- Priority: P0
+- Priority: P1
 - Depends on:
-- 없음
+- T001
 
 ## Task Scope
 
@@ -69,13 +69,12 @@ DryRun은 실제 실행이 아니므로 운영 산출물을 포함해 어떤 파
 
 ## Likely Files
 
-- scripts/ai-dev-autopilot.ps1
+- 없음
 
 ## Verification
 
-- DryRun 명령의 `-Json` 출력이 유지되는지 확인한다.
-- DryRun 실행 후 `.ai-dev/codex-result.md`가 수정되지 않는지 확인한다.
-- 실제 실행 모드의 결과 저장 분기가 유지되는지 코드 흐름을 확인한다.
+- `powershell -ExecutionPolicy Bypass -File .\scripts\ai-dev-autopilot.ps1 -DryRun -Json -MaxGoals 2 -MaxTasks 3` 실행 후 `git status --short`가 비어 있는지 확인한다.
+- 허용된 경우 build/lint를 실행해 통과 여부를 확인한다.
 
 - 필요한 경우 `npm run build`는 사람이 별도로 실행한다.
 - 이 프롬프트는 자동으로 build, test, lint를 실행하라고 지시하지 않는다.
