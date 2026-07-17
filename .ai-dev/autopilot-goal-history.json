@@ -1,6 +1,6 @@
 ﻿{
     "version":  1,
-    "updatedAt":  "2026-07-17T09:19:46.4360369+00:00",
+    "updatedAt":  "2026-07-17T10:32:35.4276128+00:00",
     "goals":  [
                   {
                       "title":  "Autopilot DryRun codex-result dirty 방지",
@@ -47,6 +47,30 @@
                                      {
                                          "event":  "selected",
                                          "at":  "2026-07-17T09:19:46.4360369+00:00"
+                                     }
+                                 ]
+                  },
+                  {
+                      "title":  "Verification task revise 자동 처리",
+                      "firstSeenAt":  "2026-07-17T10:32:35.3279386+00:00",
+                      "lastSeenAt":  "2026-07-17T10:32:35.3279386+00:00",
+                      "lastEvent":  "completed",
+                      "events":  [
+                                     {
+                                         "event":  "completed",
+                                         "at":  "2026-07-17T10:32:35.3279386+00:00"
+                                     }
+                                 ]
+                  },
+                  {
+                      "title":  "full auto-cycle 로그 구조 개선",
+                      "firstSeenAt":  "2026-07-17T10:32:35.4276128+00:00",
+                      "lastSeenAt":  "2026-07-17T10:32:35.4276128+00:00",
+                      "lastEvent":  "selected",
+                      "events":  [
+                                     {
+                                         "event":  "selected",
+                                         "at":  "2026-07-17T10:32:35.4276128+00:00"
                                      }
                                  ]
                   }
