@@ -668,3 +668,24 @@ Exit code: 1
 - Task: T002 DryRun 무변경 상태 검증
 - Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 구현 커밋 없음, 저장된 리뷰 pass에서 자동 완료
 - Next task: 없음
+## 2026-07-17 17:57:20 - Autopilot stopped
+
+- Reason: auto_goal_failed
+- Result: Auto-goal failed with exit code 1: Step 1: validate-input
+  Command: check GoalTitle/GoalDescription
+  Executed: False
+  Skipped: False
+  Exit code: 0
+  Message: Input validation completed: 자동 커밋과 task 완료 연결
+Step 2: dirty-worktree-gate
+  Command: git status --porcelain
+  Executed: False
+  Skipped: True
+  Exit code: 1
+  Message: Baseline dirty count: 1
+Worktree is dirty. Use -AllowDirty only when this is intentional.
+?? .ai-dev/autopilot-goal-history.json
+Stopped reason: dirty_worktree
+Completed: False
+Exit code: 1
+- Prepared goals: 0/2

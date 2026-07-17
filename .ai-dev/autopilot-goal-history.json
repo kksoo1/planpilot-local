@@ -1,0 +1,30 @@
+﻿{
+    "version":  1,
+    "updatedAt":  "2026-07-17T08:57:18.0845923+00:00",
+    "goals":  [
+                  {
+                      "title":  "Autopilot DryRun codex-result dirty 방지",
+                      "firstSeenAt":  "2026-07-17T08:57:18.0129916+00:00",
+                      "lastSeenAt":  "2026-07-17T08:57:18.0129916+00:00",
+                      "lastEvent":  "completed",
+                      "events":  [
+                                     {
+                                         "event":  "completed",
+                                         "at":  "2026-07-17T08:57:18.0129916+00:00"
+                                     }
+                                 ]
+                  },
+                  {
+                      "title":  "자동 커밋과 task 완료 연결",
+                      "firstSeenAt":  "2026-07-17T08:57:18.0845923+00:00",
+                      "lastSeenAt":  "2026-07-17T08:57:18.0845923+00:00",
+                      "lastEvent":  "selected",
+                      "events":  [
+                                     {
+                                         "event":  "selected",
+                                         "at":  "2026-07-17T08:57:18.0845923+00:00"
+                                     }
+                                 ]
+                  }
+              ]
+}
