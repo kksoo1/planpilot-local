@@ -1057,3 +1057,13 @@ Exit code: 1
 - Task: T001 full auto-cycle 로그 구조 확인 및 최소 개선
 - Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
 - Next task: 없음
+## 2026-07-17 20:20:51 - Commit created
+
+- Task: T001 package 변경 감지 메시지 문구 개선
+- Commit: d19bd1932cd36ae8986e3191dd6ab309899df4a1
+- Message: Improve package change notice
+## 2026-07-17 20:20:55 - Task completed
+
+- Task: T001 package 변경 감지 메시지 문구 개선
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
+- Next task: 없음

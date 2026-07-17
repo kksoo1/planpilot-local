@@ -1,15 +1,12 @@
 ﻿{
     "decision":  "pass",
     "severity":  "none",
-    "summary":  "full auto-cycle 결과 로그에 task context, completed/current/next task, step 요약을 추가하는 변경이며 현재\r\n task 범위와 일치한다.",
+    "summary":  "package 변경 감지 조건과 흐름은 유지하면서 사용자-facing 한국어 안내 문구만 더 구체적으로 개선했다.",
     "required_changes":  [
 
                          ],
     "optional_suggestions":  [
-                                 {
-                                     "file":  "scripts/ai-dev-auto-cycle-full.ps1",
-                                     "suggestion":  "추후 로그 소비 지점이 늘어나면 context 필드 구조를 별도 문서나 샘플 JSON으로 고정해도 좋다."
-                                 }
+
                              ],
     "scope_check":  {
                         "within_current_task":  true,
@@ -22,7 +19,7 @@
                        "test_passed":  false,
                        "lint_passed":  true,
                        "issues":  [
-                                      "npm run test는 package.json에 test script가 없어 skipped 처리되었다."
+                                      "npm run test는 package.json에 test script가 없어 skipped로 기록되었다."
                                   ]
                    },
     "next_step":  "complete_task"

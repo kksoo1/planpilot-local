@@ -1,14 +1,14 @@
 ﻿{
-    "goalTitle":  "full auto-cycle 로그 구조 개선",
+    "goalTitle":  "package 변경 감지 메시지 개선",
     "goalSource":  ".ai-dev/goal.md",
     "createdAt":  "2026-07-17T00:00:00+09:00",
-    "updatedAt":  "2026-07-17T11:13:06.0126942+00:00",
+    "updatedAt":  "2026-07-17T11:20:53.4369100+00:00",
     "currentTaskId":  null,
     "tasks":  [
                   {
                       "id":  "T001",
-                      "title":  "full auto-cycle 로그 구조 확인 및 최소 개선",
-                      "description":  "현재 full auto-cycle 로그가 생성되고 소비되는 위치를 확인한 뒤, 후속 분석에 필요한 필드가 일관되게 남도록 최소 범위로 구조를 개선한다.",
+                      "title":  "package 변경 감지 메시지 문구 개선",
+                      "description":  "현재 package 변경 감지 메시지가 정의된 위치를 확인하고, 감지 조건은 유지한 채 사용자-facing 한국어 안내 문구만 더 명확하게 조정한다.",
                       "type":  "implementation",
                       "status":  "done",
                       "priority":  "P1",
@@ -16,15 +16,15 @@
 
                                     ],
                       "filesLikelyToChange":  [
-                                                  ".ai-dev 관련 로그 처리 파일",
-                                                  "full auto-cycle 실행 관련 파일"
+                                                  "src/App.tsx"
                                               ],
                       "verification":  [
-                                           "변경된 로그 구조가 기존 사용 지점과 충돌하지 않는지 확인한다.",
-                                           "허용된 경우 빌드 또는 lint를 실행해 정적 오류를 확인한다."
+                                           "관련 메시지 표시 위치를 확인한다.",
+                                           "문구 변경 후 JSX 구조 중복이 없는지 확인한다.",
+                                           "필요 시 사용자가 허용하면 빌드 검증을 실행한다."
                                        ],
-                      "commitMessage":  "Improve full auto-cycle log structure",
-                      "completedAt":  "2026-07-17T11:13:06.0126942+00:00",
+                      "commitMessage":  "Improve package change notice",
+                      "completedAt":  "2026-07-17T11:20:53.4369100+00:00",
                       "resultSummary":  "자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료"
                   }
               ]

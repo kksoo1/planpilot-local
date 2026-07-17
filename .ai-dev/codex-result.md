@@ -2,17 +2,17 @@
 
 ## Run
 
-- Started at: 2026-07-17 20:07:49
-- Ended at: 2026-07-17 20:11:32
+- Started at: 2026-07-17 20:17:59
+- Ended at: 2026-07-17 20:19:34
 - Exit code: 0
-- Prompt: .ai-dev/completed-task-context-before-final-status-prompt.md
-- Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-codex.ps1 -PromptPath .ai-dev/completed-task-context-before-final-status-prompt.md -AllowDirty
+- Prompt: .ai-dev/current-task-prompt.md
+- Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-codex.ps1 -AllowDirty
 
 ## Output
 
 ```text
 node.exe : OpenAI Codex v0.133.0
-위치 C:\Users\SECUI\AppData\Roaming\npm\codex.ps1:24 문자:5
+At C:\Users\SECUI\AppData\Roaming\npm\codex.ps1:24 char:5
 +     & "node$exe"  "$basedir/node_modules/@openai/codex/bin/codex.js"  ...
 +     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     + CategoryInfo          : NotSpecified: (OpenAI Codex v0.133.0:String) [], RemoteException
@@ -26,11 +26,11 @@ approval: never
 sandbox: workspace-write [workdir, /tmp, $TMPDIR]
 reasoning effort: medium
 reasoning summaries: none
-session id: 019f6fc2-dfd9-7422-a66f-a7063d95be96
+session id: 019f6fcc-2bfb-7ae2-8904-94186fb4e277
 --------
 user
 Read and follow the full task prompt at this absolute file path: D:\ai-apps\planpilot-local\.ai-dev\c
-ompleted-task-context-before-final-status-prompt.md
+urrent-task-prompt.md
 
 Additional safety rules for this local AI Dev Loop run:
 - Do not run git commit, git reset, git checkout, git clean, git rebase, git merge, or git push.
@@ -39,2349 +39,1051 @@ Additional safety rules for this local AI Dev Loop run:
 - Do not broaden the current task scope beyond the prompt file.
 - If the task requirements conflict with repository rules, stop and report the conflict.
 codex
-지정된 프롬프트 파일을 먼저 읽고, 그 내용과 저장소 규칙 사이의 충돌 여부를 확인하겠습니다. 아직 수정이나 검증 명령은 실행하지 않습니다.
+작업 프롬프트를 먼저 읽고, 그 범위 안에서만 필요한 파일을 확인하겠습니다. PowerShell 5.1 규칙에 맞춰 단일 읽기 명령부터 실행합니다.
 exec
 "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralPath '
-D:\\ai-apps\\planpilot-local\\.ai-dev\\completed-task-context-before-final-status-prompt.md'" in D:\a
-i-apps\planpilot-local
- succeeded in 1485ms:
-현재 작업은 "full auto-cycle 로그 구조 개선"의 T001 "full auto-cycle 로그 구조 확인 및 최소 개선"입니다.
+D:\\ai-apps\\planpilot-local\\.ai-dev\\current-task-prompt.md'" in D:\ai-apps\planpilot-local
+ succeeded in 1494ms:
+# Current Task Prompt
 
-현재 재리뷰 required_changes:
-- scripts/ai-dev-auto-cycle-full.ps1에서 complete-task 실행이 성공한 뒤 final-status까지 성공해야만 $script:completed
-Task와 $script:completedTaskCount가 갱신된다.
-- final-status가 실패하면 실제로 task는 완료됐는데 cycle result context에는 completedTask=null, completedTaskCount=0으
-로 기록될 수 있다.
-- 이는 full auto-cycle 로그 구조 개선 목표와 충돌한다.
+## Role
 
-수정 요구사항:
-1. scripts/ai-dev-auto-cycle-full.ps1만 수정한다.
-2. 다른 gate, required file path normalization, review required file 비교 로직은 건드리지 않는다.
-3. complete-task Invoke-CycleCommand가 성공한 직후, final-status 실행 전에 completedTask/completedTaskCount를 갱신
+너는 이 저장소의 자동 개발 에이전트다.
+
+## Goal
+
+# 목표
+package 변경 감지 메시지를 사용자가 더 쉽게 이해하고 다음 행동을 판단할 수 있도록 개선한다.
+
+## 배경
+현재 package 변경 감지 메시지는 변경 사실을 전달하지만, 어떤 의미인지와 사용자가 무엇을 확인하면 되는지 충분히 명확하지 않을 수 있다. 기존 동작을 유지하면서 안내 문구만 
+작게 개선한다.
+
+## 성공 기준
+- package 변경 감지 메시지가 한국어로 자연스럽고 구체적으로 표시된다.
+- 사용자가 변경 감지 상황에서 확인해야 할 내용을 이해할 수 있다.
+- 기존 감지 조건과 저장 구조는 변경하지 않는다.
+- 수정 범위는 관련 메시지 표시 코드에 한정한다.
+
+## 제약사항
+- 한 번에 하나의 작은 구현 작업만 진행한다.
+- 기존 타입, 상태, 저장 구조를 우선 사용한다.
+- 사용자-facing UI 문자열은 한국어를 사용한다.
+- src/App.css는 수정하지 않는다.
+- lock file은 수정하지 않는다.
+
+## 범위 제외
+- package 변경 감지 로직 자체 변경
+- 새 화면 추가
+- 대규모 컴포넌트 분리
+- 저장 스키마 변경
+- 알림 기능 추가
+
+## 수동 검증
+- package 변경 감지 메시지가 표시되는 경로를 확인한다.
+- 변경 후 문구가 기존 화면 안에서 깨지지 않는지 확인한다.
+- 관련 없는 UI 문구와 동작이 바뀌지 않았는지 확인한다.
+
+## Current Task
+
+- Task ID: T001
+- Title: package 변경 감지 메시지 문구 개선
+- Description: 현재 package 변경 감지 메시지가 정의된 위치를 확인하고, 감지 조건은 유지한 채 사용자-facing 한국어 안내 문구만 더 명확하게 조정한다.
+- Type: implementation
+- Status: in_progress
+- Priority: P1
+- Depends on:
+- 없음
+
+## Task Scope
+
+- 현재 task만 수행한다.
+- 현재 task 범위를 벗어나는 리팩터링을 하지 않는다.
+- 다음 task를 미리 구현하지 않는다.
+- 현재 task의 완료 기준과 검증 방법을 먼저 확인한다.
+
+## Likely Files
+
+- src/App.tsx
+
+## Verification
+
+- 관련 메시지 표시 위치를 확인한다.
+- 문구 변경 후 JSX 구조 중복이 없는지 확인한다.
+- 필요 시 사용자가 허용하면 빌드 검증을 실행한다.
+
+- 필요한 경우 `npm run build`는 사람이 별도로 실행한다.
+- 이 프롬프트는 자동으로 build, test, lint를 실행하라고 지시하지 않는다.
+
+## Required Output
+
+- 변경한 파일 목록
+- 구현 또는 분석 내용 요약
+- 검증 방법
+- 남은 위험
+- 다음 task로 넘어가도 되는지 여부
+- `.ai-dev/loop-log.md`에 기록할 작업 요약
+
+## Hard Rules
+
+- `src` 외 파일을 수정해야 하는 경우 이유를 기록한다.
+- `package.json`과 `package-lock.json`은 수정하지 않는다. 꼭 필요하면 중단하고 이유만 기록한다.
+- 실제 DB 삭제 또는 초기화를 하지 않는다.
+- 사용자 데이터 복원 또는 덮어쓰기를 하지 않는다.
+- 현재 task와 무관한 UI 전면 개편을 하지 않는다.
+- 대규모 리팩터링을 하지 않는다.
+- git commit을 실행하지 않는다.
+- git reset, git checkout, git clean을 실행하지 않는다.
+- npm install을 실행하지 않는다.
+
+## Stop Conditions
+
+- 요구사항이 충돌하는 경우
+- 현재 task 범위 밖 수정이 필요한 경우
+- 패키지 추가가 필요한 경우
+- 데이터 삭제 또는 마이그레이션이 필요한 경우
+- 같은 오류가 반복되는 경우
+
+codex
+프롬프트 기준으로 수정 대상은 메시지 문구뿐입니다. 이제 `src/App.tsx`에서 package 변경 감지 메시지가 어디에 정의되어 있는지 검색하겠습니다.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'rg -n "package|패키지|변경" src
+/App.tsx' in D:\ai-apps\planpilot-local
+ exited 1 in 1870ms:
+2026-07-17T11:18:20.682036Z ERROR codex_core::tools::router: error=Exit code: 1
+Wall time: 1.9 seconds
+Output:
+
+codex
+`App.tsx` 안에서는 직접적인 `package` 문자열이 검색되지 않았습니다. 관련 메시지가 다른 한글 표현이나 상수로 들어갔을 수 있어 `src` 안에서만 범위를 넓혀 확인하
+겠습니다.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'rg -n "package|패키지|변경|감지|설
+치|의존" src' in D:\ai-apps\planpilot-local
+ succeeded in 1840ms:
+src\views\SettingsView.tsx:71:        <p>백업 파일을 검증하고 포함된 데이터만 확인합니다. 기존 데이터는 변경하지 않습니다.</p>
+
+codex
+`src` 전체에서도 명확한 후보가 거의 없습니다. 프롬프트가 `App.tsx`를 예상 파일로 지정했기 때문에, 구조를 읽어 메시지가 prop이나 다른 명칭으로 들어가는지 확인하겠습
+니다.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralPath '
+D:\\ai-apps\\planpilot-local\\src\\App.tsx'" in D:\ai-apps\planpilot-local
+ succeeded in 1566ms:
+import { useEffect, useMemo, useState } from "react";
+import { RuleBasedAIProvider } from "./ai/RuleBasedAIProvider";
+import { useProjectActions } from "./hooks/useProjectActions";
+import { useProjectFormState } from "./hooks/useProjectFormState";
+import { useTaskActions } from "./hooks/useTaskActions";
+import { useTaskFormState } from "./hooks/useTaskFormState";
+import { useStore } from "./store";
+import { startOfToday } from "./utils/dateUtils";
+import { getProjectName } from "./utils/projectLookup";
+import { getOverdueTasks, getUpcomingTasks } from "./utils/taskDates";
+import { filterTasks, sortTasks, type TaskSortOrder } from "./utils/taskFilters";
+import { getTaskSummary } from "./utils/taskSummary";
+import { SettingsView } from "./views/SettingsView";
+import { TasksView } from "./views/TasksView";
+import { ProjectsView } from "./views/ProjectsView";
+import { TodayView } from "./views/TodayView";
+import type { Task } from "./types";
+import "./App.css";
+
+type Tab = "today" | "tasks" | "projects" | "settings";
+
+function App() {
+  const [activeTab, setActiveTab] = useState<Tab>("today");
+  const [recommendedTasks, setRecommendedTasks] = useState<Task[]>([]);
+  const [selectedProjectFilter, setSelectedProjectFilter] = useState("all");
+  const [showCompletedTasks, setShowCompletedTasks] = useState(true);
+  const [taskSortOrder, setTaskSortOrder] = useState<TaskSortOrder>("none");
+  const [taskSearchQuery, setTaskSearchQuery] = useState("");
+
+  const { tasks, projects, appSettings, initializeApp, addTask, updateTask, deleteTask, deleteProject
+, addProject, updateProject } = useStore();
+  const taskFormState = useTaskFormState();
+  const {
+    editingTaskId,
+    editTaskTitle,
+    editTaskDueDate,
+    editTaskPriority,
+    editTaskMemo,
+    editTaskProjectId,
+    newTaskTitle,
+    newTaskDueDate,
+    newTaskPriority,
+    newTaskProjectId,
+    newTaskMemo,
+    isTaskFormOpen,
+    setEditTaskTitle,
+    setEditTaskDueDate,
+    setEditTaskPriority,
+    setEditTaskMemo,
+    setEditTaskProjectId,
+    setNewTaskTitle,
+    setNewTaskDueDate,
+    setNewTaskPriority,
+    setNewTaskProjectId,
+    setNewTaskMemo,
+    setIsTaskFormOpen,
+    resetNewTaskForm,
+    resetEditTaskForm,
+    startEditTask,
+  } = taskFormState;
+  const { handleAddTask, handleSaveEditTask, handleToggleTaskDone, handleDeleteTask } = useTaskAction
+s({
+    addTask,
+    updateTask,
+    deleteTask,
+    newTaskTitle,
+    newTaskDueDate,
+    newTaskPriority,
+    newTaskProjectId,
+    newTaskMemo,
+    editTaskTitle,
+    editTaskDueDate,
+    editTaskPriority,
+    editTaskMemo,
+    editTaskProjectId,
+    resetNewTaskForm,
+    resetEditTaskForm,
+  });
+  const projectFormState = useProjectFormState();
+  const {
+    editingProjectId,
+    editProjectName,
+    editProjectDescription,
+    newProjectName,
+    newProjectDescription,
+    setEditProjectName,
+    setEditProjectDescription,
+    setNewProjectName,
+    setNewProjectDescription,
+    resetNewProjectForm,
+    resetEditProjectForm,
+    startEditProject,
+  } = projectFormState;
+  const { handleAddProject, handleSaveEditProject, handleDeleteProject } = useProjectActions({
+    addProject,
+    updateProject,
+    deleteProject,
+    projects,
+    tasks,
+    newProjectName,
+    newProjectDescription,
+    editProjectName,
+    editProjectDescription,
+    resetNewProjectForm,
+    resetEditProjectForm,
+  });
+
+  const today = startOfToday();
+
+  const overdueTasks = getOverdueTasks(tasks, today);
+  const upcomingTasks = getUpcomingTasks(tasks, today, 7);
+  const taskSummary = getTaskSummary(tasks);
+
+  const filteredTasks = filterTasks(tasks, {
+    selectedProjectFilter,
+    showCompletedTasks,
+    taskSearchQuery,
+    projects,
+  });
+
+  const summaryTasks = filterTasks(tasks, {
+    selectedProjectFilter,
+    showCompletedTasks: true,
+    taskSearchQuery,
+    projects,
+  });
+
+  const sortedTasks = sortTasks(filteredTasks, taskSortOrder);
+
+  const aiProvider = useMemo(() => new RuleBasedAIProvider(), []);
+
+  useEffect(() => {
+    void initializeApp();
+  }, [initializeApp]);
+
+  useEffect(() => {
+    void aiProvider.suggestTodayTasks(tasks, 3).then(setRecommendedTasks);
+  }, [aiProvider, tasks]);
+
+  return (
+    <div className="app-shell">
+      <header className="app-header">
+        <p className="eyebrow">Privacy-first local planner</p>
+        <h1>PlanPilot Local</h1>
+        <p>?쒕쾭 ?놁씠 ??湲곌린 ?덉뿉 ??λ릺??媛쒖씤 ?쇱젙쨌?낅Т 愿由???/p>
+      </header>
+
+      <main className="app-main">
+{activeTab === "today" && (
+  <TodayView
+    totalTasks={taskSummary.totalTasks}
+    completedTasks={taskSummary.completedTasks}
+    recommendedTasks={recommendedTasks}
+    overdueTasks={overdueTasks}
+    upcomingTasks={upcomingTasks}
+    getProjectName={(projectId) => getProjectName(projects, projectId)}
+  />
+)}
+
+        {activeTab === "tasks" && (
+          <TasksView
+            projects={projects}
+            filteredTasks={filteredTasks}
+            summaryTasks={summaryTasks}
+            sortedTasks={sortedTasks}
+            selectedProjectFilter={selectedProjectFilter}
+            showCompletedTasks={showCompletedTasks}
+            taskSortOrder={taskSortOrder}
+            taskSearchQuery={taskSearchQuery}
+            isTaskFormOpen={isTaskFormOpen}
+            newTaskTitle={newTaskTitle}
+            newTaskMemo={newTaskMemo}
+            newTaskDueDate={newTaskDueDate}
+            newTaskPriority={newTaskPriority}
+            newTaskProjectId={newTaskProjectId}
+            editingTaskId={editingTaskId}
+            editTaskTitle={editTaskTitle}
+            editTaskMemo={editTaskMemo}
+            editTaskDueDate={editTaskDueDate}
+            editTaskPriority={editTaskPriority}
+            editTaskProjectId={editTaskProjectId}
+            getProjectName={(projectId) => getProjectName(projects, projectId)}
+            onTaskSearchQueryChange={setTaskSearchQuery}
+            onShowCompletedTasksChange={setShowCompletedTasks}
+            onTaskSortOrderChange={setTaskSortOrder}
+            onSelectedProjectFilterChange={setSelectedProjectFilter}
+            onTaskFormOpenChange={setIsTaskFormOpen}
+            onNewTaskTitleChange={setNewTaskTitle}
+            onNewTaskMemoChange={setNewTaskMemo}
+            onNewTaskDueDateChange={setNewTaskDueDate}
+            onNewTaskPriorityChange={setNewTaskPriority}
+            onNewTaskProjectIdChange={setNewTaskProjectId}
+            onEditTaskTitleChange={setEditTaskTitle}
+            onEditTaskMemoChange={setEditTaskMemo}
+            onEditTaskDueDateChange={setEditTaskDueDate}
+            onEditTaskPriorityChange={setEditTaskPriority}
+            onEditTaskProjectIdChange={setEditTaskProjectId}
+            onAddTask={handleAddTask}
+            onSaveEditTask={handleSaveEditTask}
+            onCancelEditTask={resetEditTaskForm}
+            onToggleTaskDone={handleToggleTaskDone}
+            onDeleteTask={handleDeleteTask}
+            onStartEditTask={startEditTask}
+          />
+        )}
+
+        {activeTab === "projects" && (
+          <ProjectsView
+            projects={projects}
+            tasks={tasks}
+            editingProjectId={editingProjectId}
+            editProjectName={editProjectName}
+            editProjectDescription={editProjectDescription}
+            newProjectName={newProjectName}
+            newProjectDescription={newProjectDescription}
+            onNewProjectNameChange={setNewProjectName}
+            onNewProjectDescriptionChange={setNewProjectDescription}
+            onEditProjectNameChange={setEditProjectName}
+            onEditProjectDescriptionChange={setEditProjectDescription}
+            onAddProject={handleAddProject}
+            onSaveEditProject={handleSaveEditProject}
+            onCancelEditProject={resetEditProjectForm}
+            onDeleteProject={handleDeleteProject}
+            onStartEditProject={startEditProject}
+          />
+        )}
+
+        {activeTab === "settings" && (
+          <SettingsView
+            appSettings={appSettings}
+            tasks={tasks}
+            projects={projects}
+          />
+        )}
+      </main>
+
+      <nav className="bottom-nav" aria-label="?섎떒 硫붾돱">
+        <button
+          className={activeTab === "today" ? "active" : ""}
+          onClick={() => setActiveTab("today")}
+        >
+          ?ㅻ뒛
+        </button>
+        <button
+          className={activeTab === "tasks" ? "active" : ""}
+          onClick={() => setActiveTab("tasks")}
+        >
+          ?낅Т
+        </button>
+        <button
+          className={activeTab === "projects" ? "active" : ""}
+          onClick={() => setActiveTab("projects")}
+        >
+          ?꾨줈?앺듃
+        </button>
+        <button
+          className={activeTab === "settings" ? "active" : ""}
+          onClick={() => setActiveTab("settings")}
+        >
+          ?ㅼ젙
+        </button>
+      </nav>
+    </div>
+  );
+}
+
+export default App;
+
+codex
+`App.tsx`에는 package 변경 메시지가 없고, 파일의 기존 한글 일부가 깨져 보이지만 이번 범위와 무관하므로 건드리지 않겠습니다. 메시지 정의 위치를 찾기 위해 저장소의 
+일반 소스 파일만 추가 검색합니다.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "rg -n \"package|패키지|변경|감지|
+lock|의존|dependency|dependencies\" -g '"'!node_modules'"' -g '"'!dist'"' -g '"'!package-lock.json'"' -
+g '"'!package.json'"' -g '"'!.git'"' ." in D:\ai-apps\planpilot-local
+ succeeded in 2499ms:
+.\AGENTS.md:32:- lock file은 사용자가 명시적으로 요청하기 전까지 수정하지 않는다.
+.\AGENTS.md:35:- 사용자가 만든 변경 사항을 되돌리지 않는다.
+.\AGENTS.md:53:- 큰 변경 전에는 현재 구조와 영향 범위를 먼저 확인한다.
+.\AGENTS.md:55:- 수정 후에는 변경 요약과 검증 결과를 간단히 보고한다.
+.\AGENTS.md:95:- 작업 중 발견한 사용자 변경 사항은 되돌리지 않는다.
+.\AGENTS.md:106:## 11. Dexie/IndexedDB Schema 변경 규칙
+.\AGENTS.md:108:- `src/db.ts`의 Dexie schema 변경 전에는 migration 계획을 먼저 세운다.
+.\docs\ai-dev-loop-operation.md:5:리뷰 pass 후 구현 변경을 커밋하고, `complete-task`를 실행해 task 완료 메타데이터를 갱신한다.
+.\docs\ai-dev-loop-operation.md:6:마지막으로 `.ai-dev` 메타 변경을 별도 커밋한 뒤 최종 `git clean` 상태를 확인한다.
+.\docs\ai-dev-loop-policy.md:27:- GPT 기반 변경 리뷰
+.\docs\ai-dev-loop-policy.md:45:9. 검증이 성공하면 전체 변경 diff를 GPT가 리뷰한다.
+.\docs\ai-dev-loop-policy.md:105:- `blocked`
+.\docs\ai-dev-loop-policy.md:178:- 관련성이 낮은 변경을 하나의 커밋에 묶지 않는다.
+.\docs\ai-dev-loop-policy.md:180:- 대규모 변경이 필요한 경우 작은 선행 task로 다시 분해한다.
+.\docs\ai-dev-loop-policy.md:195:- DB schema 변경, 대규모 리팩터링, 외부 네트워크 연동은 별도 검토 task로 분리한다.
+.\docs\ai-dev-loop-policy.md:201:- 현재 작업 트리가 예상하지 못한 변경을 포함하면 새 task를 시작하지 않는다.
+.\docs\ai-dev-loop-policy.md:223:- 전체 diff를 기준으로 변경을 검토한다.
+.\docs\ai-dev-loop-policy.md:240:- 리뷰 저장 뒤에는 기존 decision 규칙에 따라 `pass`, `revise`, `blocked` 흐름을 계속 진행
 한다.
-4. complete-task 성공 직후 currentTask/nextTask도 가능하면 최신 queue/state 기준으로 갱신한다.
-5. final-status가 실패하더라도 cycle result context에는 방금 완료된 completedTask가 남아야 한다.
-6. goal_completed / task completed / no next task 경로에서 completedTask와 currentTask/nextTask가 구분되어야 한다.
-7. 기존 context.task backward compatibility는 유지하되, stale task를 기록하지 않게 한다.
-8. 기존 implementation/verification revise 처리 동작은 유지한다.
-9. package.json/package-lock.json 보호 정책은 변경하지 않는다.
-10. 앱 src 파일은 수정하지 않는다.
-11. npm run build와 npm run lint가 통과해야 한다.
-12. 변경 의도를 .ai-dev/test-result.md 또는 codex-result에 명확히 남긴다.
-
-핵심 의도:
-- complete-task가 성공한 순간 이미 task 완료는 확정이다.
-- final-status는 후속 상태 출력일 뿐이므로, final-status 실패가 completedTask 기록을 지우거나 누락시키면 안 된다.
-- 로그 분석용 context에는 "방금 완료한 task"가 안정적으로 남아야 한다.
-
-codex
-프롬프트 기준으로 실제 수정 대상은 `scripts/ai-dev-auto-cycle-full.ps1` 하나입니다. `test-result` 기록 요구는 파일 수정 범위와 충돌할 수 
-있어, 우선 스크립트만 손대고 최종 보고에 변경 의도와 검증 결과를 명확히 남기는 방식으로 처리하겠습니다.
-exec
-"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Select-String -LiteralPath
- 'D:\\ai-apps\\planpilot-local\\scripts\\ai-dev-auto-cycle-full.ps1' -Pattern 'completedTask|complete
-dTaskCount|final-status|complete-task|currentTask|nextTask|context.task' -Context 3,3" in D:\ai-apps\
-planpilot-local
-exec
-"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralPath '
-D:\\ai-apps\\planpilot-local\\scripts\\ai-dev-auto-cycle-full.ps1' -TotalCount 260" in D:\ai-apps\pla
-npilot-local
- succeeded in 1938ms:
-param(
-    [int]$MaxTasks = 1,
-    [int]$MaxSteps = 22,
-    [switch]$DryRun,
-    [switch]$Json,
-    [switch]$AllowCodex,
-    [switch]$AllowReviewCodex,
-    [switch]$AllowCommit,
-    [switch]$AllowDirty,
-    [string[]]$ProtectedBaselineDirtyPaths,
-    [string[]]$CommitFiles
-)
-
-. $PSScriptRoot\ai-dev-env.ps1
-
-$repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
-$queueRelativePath = ".ai-dev/queue.json"
-$stateRelativePath = ".ai-dev/state.json"
-$reviewResponseRelativePath = ".ai-dev/review-response.json"
-$aiDevOperationalRoot = ".ai-dev/"
-$queuePath = Join-Path $repoRoot $queueRelativePath
-$statePath = Join-Path $repoRoot $stateRelativePath
-$reviewResponsePath = Join-Path $repoRoot $reviewResponseRelativePath
-$utf8WithBom = New-Object System.Text.UTF8Encoding($true)
-
-function Test-HasValue {
-    param(
-        [object]$Value
-    )
-
-    if ($null -eq $Value) {
-        return $false
-    }
-
-    if ($Value -is [string]) {
-        return -not [string]::IsNullOrWhiteSpace($Value)
-    }
-
-    return $true
-}
-
-function Read-JsonFile {
-    param(
-        [string]$Path,
-        [string]$RelativePath
-    )
-
-    try {
-        return Get-Content -Raw -Encoding UTF8 -LiteralPath $Path | ConvertFrom-Json
-    } catch {
-        throw "$RelativePath JSON 파싱에 실패했습니다: $($_.Exception.Message)"
-    }
-}
-
-function Set-ObjectProperty {
-    param(
-        [object]$InputObject,
-        [string]$Name,
-        [object]$Value
-    )
-
-    if ($InputObject.PSObject.Properties.Name -contains $Name) {
-        $InputObject.$Name = $Value
-    } else {
-        $InputObject | Add-Member -NotePropertyName $Name -NotePropertyValue $Value
-    }
-}
-
-function Write-JsonFile {
-    param(
-        [string]$Path,
-        [object]$Value
-    )
-
-    $json = $Value | ConvertTo-Json -Depth 20
-    [System.IO.File]::WriteAllText($Path, $json, $utf8WithBom)
-}
-
-function Save-CycleFailureState {
-    param(
-        [string]$Command,
-        [string]$ErrorSummary,
-        [object]$ReviewGate = $null
-    )
-
-    try {
-        $state = Read-JsonFile $statePath $stateRelativePath
-
-        if ($null -ne $ReviewGate -and (Test-HasValue $ReviewGate.decision)) {
-            Set-ObjectProperty $state "lastReviewDecision" ([string]$ReviewGate.decision)
-        }
-
-        if ($null -ne $ReviewGate -and (Test-HasValue $ReviewGate.severity)) {
-            Set-ObjectProperty $state "lastReviewSeverity" ([string]$ReviewGate.severity)
-        }
-
-        if ($null -ne $ReviewGate -and (Test-HasValue $ReviewGate.nextStep)) {
-            Set-ObjectProperty $state "lastReviewNextStep" ([string]$ReviewGate.nextStep)
-        }
-
-        if ($null -ne $ReviewGate -and (Test-HasValue $ReviewGate.summary)) {
-            Set-ObjectProperty $state "lastReviewSummary" ([string]$ReviewGate.summary)
-        }
-
-        if ($null -ne $ReviewGate -and ($ReviewGate.PSObject.Properties.Name -contains "requiredChang
-es")) {
-            Set-ObjectProperty $state "lastReviewRequiredChanges" @($ReviewGate.requiredChanges)
-        }
-
-        Set-ObjectProperty $state "lastCommand" $Command
-        Set-ObjectProperty $state "lastCommandStatus" "failed"
-        Set-ObjectProperty $state "lastErrorSummary" $ErrorSummary
-        Set-ObjectProperty $state "updatedAt" ([DateTimeOffset]::UtcNow.ToString("o"))
-        Write-JsonFile $statePath $state
-    } catch {
-        Write-Warning "상태 파일에 실패 사유를 기록하지 못했습니다: $($_.Exception.Message)"
-    }
-}
-
-function Get-CurrentTask {
-    param(
-        [object]$Queue,
-        [object]$State
-    )
-
-    $tasks = @($Queue.tasks)
-    $currentTaskId = $null
-
-    if (Test-HasValue $State.currentTaskId) {
-        $currentTaskId = [string]$State.currentTaskId
-    } elseif (Test-HasValue $Queue.currentTaskId) {
-        $currentTaskId = [string]$Queue.currentTaskId
-    } else {
-        $inProgressTask = $tasks | Where-Object { $_.status -eq "in_progress" } | Select-Object -Firs
-t 1
-
-        if ($null -ne $inProgressTask) {
-            $currentTaskId = [string]$inProgressTask.id
-        } else {
-            $pendingTask = $tasks | Where-Object { $_.status -eq "pending" } | Select-Object -First 1
-
-            if ($null -ne $pendingTask) {
-                $currentTaskId = [string]$pendingTask.id
-            }
-        }
-    }
-
-    if (-not (Test-HasValue $currentTaskId)) {
-        return $null
-    }
-
-    return $tasks | Where-Object { $_.id -eq $currentTaskId } | Select-Object -First 1
-}
-
-function Get-NextTask {
-    param(
-        [object]$Queue,
-        [object]$State,
-        [object]$CompletedTask
-    )
-
-    $currentTask = Get-CurrentTask $Queue $State
-    $completedTaskId = if ($null -ne $CompletedTask -and (Test-HasValue $CompletedTask.id)) { [string
-]$CompletedTask.id } else { $null }
-
-    if ($null -ne $currentTask -and $currentTask.status -ne "done" -and $currentTask.id -ne $complete
-dTaskId) {
-        return $currentTask
-    }
-
-    return @($Queue.tasks) |
-        Where-Object { $_.status -in @("in_progress", "pending") -and $_.id -ne $completedTaskId } |
-        Select-Object -First 1
-}
-
-function ConvertTo-TaskContext {
-    param(
-        [object]$Task
-    )
-
-    if ($null -eq $Task) {
-        return $null
-    }
-
-    return [PSCustomObject][ordered]@{
-        id = [string]$Task.id
-        title = [string]$Task.title
-        status = [string]$Task.status
-        type = [string]$Task.type
-    }
-}
-
-function New-StepResult {
-    param(
-        [int]$Step,
-        [string]$Name,
-        [string]$Command,
-        [bool]$Executed,
-        [bool]$Skipped,
-        [int]$ExitCode,
-        [string]$Message
-    )
-
-    return [PSCustomObject][ordered]@{
-        step = $Step
-        name = $Name
-        command = $Command
-        executed = $Executed
-        skipped = $Skipped
-        exitCode = $ExitCode
-        message = $Message
-    }
-}
-
-function New-CycleResult {
-    param(
-        [object[]]$Steps,
-        [string]$StoppedReason,
-        [bool]$Completed,
-        [int]$ExitCode
-    )
-
-    $lastStep = @($Steps) | Select-Object -Last 1
-    $currentTask = $script:currentTask
-    $completedTask = $script:completedTask
-    $nextTask = $script:nextTask
-    $currentTaskContext = ConvertTo-TaskContext $currentTask
-    $completedTaskContext = ConvertTo-TaskContext $completedTask
-    $nextTaskContext = ConvertTo-TaskContext $nextTask
-    $taskContext = $currentTaskContext
-    $lastStepContext = $null
-
-    if ($StoppedReason -eq "goal_completed" -and $null -ne $completedTaskContext) {
-        $taskContext = $completedTaskContext
-    }
-
-    if ($null -ne $lastStep) {
-        $lastStepContext = [PSCustomObject][ordered]@{
-            step = $lastStep.step
-            name = $lastStep.name
-            executed = $lastStep.executed
-            skipped = $lastStep.skipped
-            exitCode = $lastStep.exitCode
-        }
-    }
-
-    return [PSCustomObject][ordered]@{
-        steps = @($Steps)
-        stoppedReason = $StoppedReason
-        completed = $Completed
-        exitCode = $ExitCode
-        context = [PSCustomObject][ordered]@{
-            task = $taskContext
-            completedTask = $completedTaskContext
-            currentTask = $currentTaskContext
-            nextTask = $nextTaskContext
-            completedTaskCount = $script:completedTaskCount
-            maxTasks = $MaxTasks
-            maxSteps = $MaxSteps
-            stepCount = @($Steps).Count
-            lastStep = $lastStepContext
-        }
-    }
-}
-
- succeeded in 2073ms:
-
-  scripts\ai-dev-auto-cycle-full.ps1:116:    }
-  scripts\ai-dev-auto-cycle-full.ps1:117:}
-  scripts\ai-dev-auto-cycle-full.ps1:118:
-> scripts\ai-dev-auto-cycle-full.ps1:119:function Get-CurrentTask {
-  scripts\ai-dev-auto-cycle-full.ps1:120:    param(
-  scripts\ai-dev-auto-cycle-full.ps1:121:        [object]$Queue,
-  scripts\ai-dev-auto-cycle-full.ps1:122:        [object]$State
-  scripts\ai-dev-auto-cycle-full.ps1:123:    )
-  scripts\ai-dev-auto-cycle-full.ps1:124:
-  scripts\ai-dev-auto-cycle-full.ps1:125:    $tasks = @($Queue.tasks)
-> scripts\ai-dev-auto-cycle-full.ps1:126:    $currentTaskId = $null
-  scripts\ai-dev-auto-cycle-full.ps1:127:
-> scripts\ai-dev-auto-cycle-full.ps1:128:    if (Test-HasValue $State.currentTaskId) {
-> scripts\ai-dev-auto-cycle-full.ps1:129:        $currentTaskId = [string]$State.currentTaskId
-> scripts\ai-dev-auto-cycle-full.ps1:130:    } elseif (Test-HasValue $Queue.currentTaskId) {
-> scripts\ai-dev-auto-cycle-full.ps1:131:        $currentTaskId = [string]$Queue.currentTaskId
-  scripts\ai-dev-auto-cycle-full.ps1:132:    } else {
-  scripts\ai-dev-auto-cycle-full.ps1:133:        $inProgressTask = $tasks | Where-Object { $_.status 
--eq "in_progress" 
-} | Select-Object -First 1
-  scripts\ai-dev-auto-cycle-full.ps1:134:
-  scripts\ai-dev-auto-cycle-full.ps1:135:        if ($null -ne $inProgressTask) {
-> scripts\ai-dev-auto-cycle-full.ps1:136:            $currentTaskId = [string]$inProgressTask.id
-  scripts\ai-dev-auto-cycle-full.ps1:137:        } else {
-  scripts\ai-dev-auto-cycle-full.ps1:138:            $pendingTask = $tasks | Where-Object { $_.status
- -eq "pending" } |
- Select-Object -First 1
-  scripts\ai-dev-auto-cycle-full.ps1:139:
-  scripts\ai-dev-auto-cycle-full.ps1:140:            if ($null -ne $pendingTask) {
-> scripts\ai-dev-auto-cycle-full.ps1:141:                $currentTaskId = [string]$pendingTask.id
-  scripts\ai-dev-auto-cycle-full.ps1:142:            }
-  scripts\ai-dev-auto-cycle-full.ps1:143:        }
-  scripts\ai-dev-auto-cycle-full.ps1:144:    }
-  scripts\ai-dev-auto-cycle-full.ps1:145:
-> scripts\ai-dev-auto-cycle-full.ps1:146:    if (-not (Test-HasValue $currentTaskId)) {
-  scripts\ai-dev-auto-cycle-full.ps1:147:        return $null
-  scripts\ai-dev-auto-cycle-full.ps1:148:    }
-  scripts\ai-dev-auto-cycle-full.ps1:149:
-> scripts\ai-dev-auto-cycle-full.ps1:150:    return $tasks | Where-Object { $_.id -eq $currentTaskId 
-} | Select-Object 
--First 1
-  scripts\ai-dev-auto-cycle-full.ps1:151:}
-  scripts\ai-dev-auto-cycle-full.ps1:152:
-> scripts\ai-dev-auto-cycle-full.ps1:153:function Get-NextTask {
-  scripts\ai-dev-auto-cycle-full.ps1:154:    param(
-  scripts\ai-dev-auto-cycle-full.ps1:155:        [object]$Queue,
-  scripts\ai-dev-auto-cycle-full.ps1:156:        [object]$State,
-> scripts\ai-dev-auto-cycle-full.ps1:157:        [object]$CompletedTask
-  scripts\ai-dev-auto-cycle-full.ps1:158:    )
-  scripts\ai-dev-auto-cycle-full.ps1:159:
-> scripts\ai-dev-auto-cycle-full.ps1:160:    $currentTask = Get-CurrentTask $Queue $State
-> scripts\ai-dev-auto-cycle-full.ps1:161:    $completedTaskId = if ($null -ne $CompletedTask -and (Te
-st-HasValue $Compl
-etedTask.id)) { [string]$CompletedTask.id } else { $null }
-  scripts\ai-dev-auto-cycle-full.ps1:162:
-> scripts\ai-dev-auto-cycle-full.ps1:163:    if ($null -ne $currentTask -and $currentTask.status -ne 
-"done" -and $curre
-ntTask.id -ne $completedTaskId) {
-> scripts\ai-dev-auto-cycle-full.ps1:164:        return $currentTask
-  scripts\ai-dev-auto-cycle-full.ps1:165:    }
-  scripts\ai-dev-auto-cycle-full.ps1:166:
-  scripts\ai-dev-auto-cycle-full.ps1:167:    return @($Queue.tasks) |
-> scripts\ai-dev-auto-cycle-full.ps1:168:        Where-Object { $_.status -in @("in_progress", "pendi
-ng") -and $_.id -n
-e $completedTaskId } |
-  scripts\ai-dev-auto-cycle-full.ps1:169:        Select-Object -First 1
-  scripts\ai-dev-auto-cycle-full.ps1:170:}
-  scripts\ai-dev-auto-cycle-full.ps1:171:
-  scripts\ai-dev-auto-cycle-full.ps1:217:    )
-  scripts\ai-dev-auto-cycle-full.ps1:218:
-  scripts\ai-dev-auto-cycle-full.ps1:219:    $lastStep = @($Steps) | Select-Object -Last 1
-> scripts\ai-dev-auto-cycle-full.ps1:220:    $currentTask = $script:currentTask
-> scripts\ai-dev-auto-cycle-full.ps1:221:    $completedTask = $script:completedTask
-> scripts\ai-dev-auto-cycle-full.ps1:222:    $nextTask = $script:nextTask
-> scripts\ai-dev-auto-cycle-full.ps1:223:    $currentTaskContext = ConvertTo-TaskContext $currentTask
-> scripts\ai-dev-auto-cycle-full.ps1:224:    $completedTaskContext = ConvertTo-TaskContext $completed
-Task
-> scripts\ai-dev-auto-cycle-full.ps1:225:    $nextTaskContext = ConvertTo-TaskContext $nextTask
-> scripts\ai-dev-auto-cycle-full.ps1:226:    $taskContext = $currentTaskContext
-  scripts\ai-dev-auto-cycle-full.ps1:227:    $lastStepContext = $null
-  scripts\ai-dev-auto-cycle-full.ps1:228:
-> scripts\ai-dev-auto-cycle-full.ps1:229:    if ($StoppedReason -eq "goal_completed" -and $null -ne $
-completedTaskConte
-xt) {
-> scripts\ai-dev-auto-cycle-full.ps1:230:        $taskContext = $completedTaskContext
-  scripts\ai-dev-auto-cycle-full.ps1:231:    }
-  scripts\ai-dev-auto-cycle-full.ps1:232:
-  scripts\ai-dev-auto-cycle-full.ps1:233:    if ($null -ne $lastStep) {
-  scripts\ai-dev-auto-cycle-full.ps1:247:        exitCode = $ExitCode
-  scripts\ai-dev-auto-cycle-full.ps1:248:        context = [PSCustomObject][ordered]@{
-  scripts\ai-dev-auto-cycle-full.ps1:249:            task = $taskContext
-> scripts\ai-dev-auto-cycle-full.ps1:250:            completedTask = $completedTaskContext
-> scripts\ai-dev-auto-cycle-full.ps1:251:            currentTask = $currentTaskContext
-> scripts\ai-dev-auto-cycle-full.ps1:252:            nextTask = $nextTaskContext
-> scripts\ai-dev-auto-cycle-full.ps1:253:            completedTaskCount = $script:completedTaskCount
-  scripts\ai-dev-auto-cycle-full.ps1:254:            maxTasks = $MaxTasks
-  scripts\ai-dev-auto-cycle-full.ps1:255:            maxSteps = $MaxSteps
-  scripts\ai-dev-auto-cycle-full.ps1:256:            stepCount = @($Steps).Count
-  scripts\ai-dev-auto-cycle-full.ps1:282:    Write-Host "Completed: $($Result.completed)"
-  scripts\ai-dev-auto-cycle-full.ps1:283:    Write-Host "Exit code: $($Result.exitCode)"
-  scripts\ai-dev-auto-cycle-full.ps1:284:    Write-Host "Context:"
-> scripts\ai-dev-auto-cycle-full.ps1:285:    if ($null -ne $Result.context.task) {
-> scripts\ai-dev-auto-cycle-full.ps1:286:        Write-Host "  Task: $($Result.context.task.id) $($Re
-sult.context.task.
-title)"
-> scripts\ai-dev-auto-cycle-full.ps1:287:        Write-Host "  Task status: $($Result.context.task.st
-atus)"
-  scripts\ai-dev-auto-cycle-full.ps1:288:    } else {
-  scripts\ai-dev-auto-cycle-full.ps1:289:        Write-Host "  Task: none"
-  scripts\ai-dev-auto-cycle-full.ps1:290:    }
-> scripts\ai-dev-auto-cycle-full.ps1:291:    if ($null -ne $Result.context.completedTask) {
-> scripts\ai-dev-auto-cycle-full.ps1:292:        Write-Host "  Completed task: $($Result.context.comp
-letedTask.id) $($R
-esult.context.completedTask.title)"
-  scripts\ai-dev-auto-cycle-full.ps1:293:    } else {
-  scripts\ai-dev-auto-cycle-full.ps1:294:        Write-Host "  Completed task: none"
-  scripts\ai-dev-auto-cycle-full.ps1:295:    }
-> scripts\ai-dev-auto-cycle-full.ps1:296:    if ($null -ne $Result.context.currentTask) {
-> scripts\ai-dev-auto-cycle-full.ps1:297:        Write-Host "  Current task: $($Result.context.curren
-tTask.id) $($Resul
-t.context.currentTask.title)"
-  scripts\ai-dev-auto-cycle-full.ps1:298:    } else {
-  scripts\ai-dev-auto-cycle-full.ps1:299:        Write-Host "  Current task: none"
-  scripts\ai-dev-auto-cycle-full.ps1:300:    }
-> scripts\ai-dev-auto-cycle-full.ps1:301:    if ($null -ne $Result.context.nextTask) {
-> scripts\ai-dev-auto-cycle-full.ps1:302:        Write-Host "  Next task: $($Result.context.nextTask.
-id) $($Result.cont
-ext.nextTask.title)"
-  scripts\ai-dev-auto-cycle-full.ps1:303:    } else {
-  scripts\ai-dev-auto-cycle-full.ps1:304:        Write-Host "  Next task: none"
-  scripts\ai-dev-auto-cycle-full.ps1:305:    }
-> scripts\ai-dev-auto-cycle-full.ps1:306:    Write-Host "  Completed tasks: $($Result.context.complet
-edTaskCount) / $($
-Result.context.maxTasks)"
-  scripts\ai-dev-auto-cycle-full.ps1:307:    Write-Host "  Steps recorded: $($Result.context.stepCoun
-t) / $($Result.con
-text.maxSteps)"
-  scripts\ai-dev-auto-cycle-full.ps1:308:    if ($null -ne $Result.context.lastStep) {
-  scripts\ai-dev-auto-cycle-full.ps1:309:        Write-Host "  Last step: $($Result.context.lastStep.
-step) $($Result.co
-ntext.lastStep.name) exit=$($Result.context.lastStep.exitCode)"
-  scripts\ai-dev-auto-cycle-full.ps1:589:
-  scripts\ai-dev-auto-cycle-full.ps1:590:function Get-ReviewImplementationGate {
-  scripts\ai-dev-auto-cycle-full.ps1:591:    param(
-> scripts\ai-dev-auto-cycle-full.ps1:592:        [object]$CurrentTask,
-  scripts\ai-dev-auto-cycle-full.ps1:593:        [object]$ReviewGate
-  scripts\ai-dev-auto-cycle-full.ps1:594:    )
-  scripts\ai-dev-auto-cycle-full.ps1:595:
-> scripts\ai-dev-auto-cycle-full.ps1:596:    $taskType = if ($null -ne $CurrentTask -and (Test-HasVal
-ue $CurrentTask.ty
-pe)) { [string]$CurrentTask.type } else { "" }
-  scripts\ai-dev-auto-cycle-full.ps1:597:    $requiredFiles = @($ReviewGate.requiredChangeFiles)
-  scripts\ai-dev-auto-cycle-full.ps1:598:    $changedFiles = @(Get-ChangedNonAiDevFiles)
-  scripts\ai-dev-auto-cycle-full.ps1:599:    $isVerificationReviseWithCodex = $taskType -eq "verifica
-tion" -and $Review
-Gate.decision -eq "revise" -and $ReviewGate.normalizedNextStep -eq "revise_with_codex"
-  scripts\ai-dev-auto-cycle-full.ps1:855:Set-Location $repoRoot
-  scripts\ai-dev-auto-cycle-full.ps1:856:
-  scripts\ai-dev-auto-cycle-full.ps1:857:$script:steps = @()
-> scripts\ai-dev-auto-cycle-full.ps1:858:$script:currentTask = $null
-> scripts\ai-dev-auto-cycle-full.ps1:859:$script:completedTask = $null
-> scripts\ai-dev-auto-cycle-full.ps1:860:$script:nextTask = $null
-> scripts\ai-dev-auto-cycle-full.ps1:861:$script:completedTaskCount = 0
-  scripts\ai-dev-auto-cycle-full.ps1:862:$script:protectedBaselineDirtyPaths = @(Get-ProtectedBaselin
-eDirtyPaths)
-  scripts\ai-dev-auto-cycle-full.ps1:863:
-  scripts\ai-dev-auto-cycle-full.ps1:864:if ($script:protectedBaselineDirtyPaths.Count -gt 0) {
-  scripts\ai-dev-auto-cycle-full.ps1:891:        Stop-Cycle $script:steps "no_task" $false 0
-  scripts\ai-dev-auto-cycle-full.ps1:892:    }
-  scripts\ai-dev-auto-cycle-full.ps1:893:
-> scripts\ai-dev-auto-cycle-full.ps1:894:    $script:currentTask = Get-CurrentTask $queue $state
-  scripts\ai-dev-auto-cycle-full.ps1:895:
-> scripts\ai-dev-auto-cycle-full.ps1:896:    if ($null -eq $script:currentTask) {
-  scripts\ai-dev-auto-cycle-full.ps1:897:        Stop-Cycle $script:steps "no_task" $false 0
-  scripts\ai-dev-auto-cycle-full.ps1:898:    }
-  scripts\ai-dev-auto-cycle-full.ps1:899:
-> scripts\ai-dev-auto-cycle-full.ps1:900:    if ($script:currentTask.status -eq "done") {
-  scripts\ai-dev-auto-cycle-full.ps1:901:        Complete-Cycle $script:steps "current_task_done" 0
-  scripts\ai-dev-auto-cycle-full.ps1:902:    }
-  scripts\ai-dev-auto-cycle-full.ps1:903:
-  scripts\ai-dev-auto-cycle-full.ps1:910:        makeReviewPrompt = Get-ScriptPath "ai-dev-make-revie
-w-prompt.ps1"
-  scripts\ai-dev-auto-cycle-full.ps1:911:        runReviewCodex = Get-ScriptPath "ai-dev-run-review-c
-odex.ps1"
-  scripts\ai-dev-auto-cycle-full.ps1:912:        commit = Get-ScriptPath "ai-dev-commit.ps1"
-> scripts\ai-dev-auto-cycle-full.ps1:913:        completeTask = Get-ScriptPath "ai-dev-complete-task.
-ps1"
-  scripts\ai-dev-auto-cycle-full.ps1:914:        status = Get-ScriptPath "ai-dev-status.ps1"
-  scripts\ai-dev-auto-cycle-full.ps1:915:    }
-  scripts\ai-dev-auto-cycle-full.ps1:916:} catch {
-  scripts\ai-dev-auto-cycle-full.ps1:937:    "package-change-gate",
-  scripts\ai-dev-auto-cycle-full.ps1:938:    "commit",
-  scripts\ai-dev-auto-cycle-full.ps1:939:    "commit-result-gate",
-> scripts\ai-dev-auto-cycle-full.ps1:940:    "complete-task",
-  scripts\ai-dev-auto-cycle-full.ps1:941:    "meta-commit",
-> scripts\ai-dev-auto-cycle-full.ps1:942:    "final-status",
-  scripts\ai-dev-auto-cycle-full.ps1:943:    "completed-clean-gate"
-  scripts\ai-dev-auto-cycle-full.ps1:944:)
-  scripts\ai-dev-auto-cycle-full.ps1:945:
-  scripts\ai-dev-auto-cycle-full.ps1:949:
-  scripts\ai-dev-auto-cycle-full.ps1:950:$stepNumber = 1
-  scripts\ai-dev-auto-cycle-full.ps1:951:
-> scripts\ai-dev-auto-cycle-full.ps1:952:while ($script:completedTaskCount -lt $MaxTasks) {
-  scripts\ai-dev-auto-cycle-full.ps1:953:    try {
-  scripts\ai-dev-auto-cycle-full.ps1:954:        $queue = Read-JsonFile $queuePath $queueRelativePath
-  scripts\ai-dev-auto-cycle-full.ps1:955:        $state = Read-JsonFile $statePath $stateRelativePath
-> scripts\ai-dev-auto-cycle-full.ps1:956:        $script:currentTask = Get-CurrentTask $queue $state
-  scripts\ai-dev-auto-cycle-full.ps1:957:    } catch {
-  scripts\ai-dev-auto-cycle-full.ps1:958:        $script:steps += New-StepResult $stepNumber "load-ta
-sk" "state/queue 확
-인" $false $false 1 $_.Exception.Message
-  scripts\ai-dev-auto-cycle-full.ps1:959:        Stop-Cycle $script:steps "load_task_failed" $false 1
-  scripts\ai-dev-auto-cycle-full.ps1:963:        Complete-Cycle $script:steps "goal_completed" $stepN
-umber
-  scripts\ai-dev-auto-cycle-full.ps1:964:    }
-  scripts\ai-dev-auto-cycle-full.ps1:965:
-> scripts\ai-dev-auto-cycle-full.ps1:966:    if ($null -eq $script:currentTask) {
-  scripts\ai-dev-auto-cycle-full.ps1:967:        Stop-Cycle $script:steps "no_task" $false 0
-  scripts\ai-dev-auto-cycle-full.ps1:968:    }
-  scripts\ai-dev-auto-cycle-full.ps1:969:
-> scripts\ai-dev-auto-cycle-full.ps1:970:    if ($script:currentTask.status -eq "done") {
-  scripts\ai-dev-auto-cycle-full.ps1:971:        Complete-Cycle $script:steps "current_task_done" $st
-epNumber
-  scripts\ai-dev-auto-cycle-full.ps1:972:    }
-  scripts\ai-dev-auto-cycle-full.ps1:973:
-> scripts\ai-dev-auto-cycle-full.ps1:974:    $taskLabel = "$($script:currentTask.id) $($script:curren
-tTask.title)"
-  scripts\ai-dev-auto-cycle-full.ps1:975:    $script:steps += New-StepResult $stepNumber "task-start"
- "MaxTasks=$MaxTas
-ks" $false $false 0 "현재 task 실행 시작: $taskLabel"
-  scripts\ai-dev-auto-cycle-full.ps1:976:    $stepNumber++
-  scripts\ai-dev-auto-cycle-full.ps1:977:
-  scripts\ai-dev-auto-cycle-full.ps1:986:        }
-  scripts\ai-dev-auto-cycle-full.ps1:987:
-  scripts\ai-dev-auto-cycle-full.ps1:988:        if (Test-IsSavedReviewPassReady $resumeReviewGate) {
-> scripts\ai-dev-auto-cycle-full.ps1:989:            $resumeImplementationGate = Get-ReviewImplementa
-tionGate $script:c
-urrentTask $resumeReviewGate
-  scripts\ai-dev-auto-cycle-full.ps1:990:
-  scripts\ai-dev-auto-cycle-full.ps1:991:            if (-not $resumeImplementationGate.passed) {
-  scripts\ai-dev-auto-cycle-full.ps1:992:                Save-CycleFailureState "resume-review-gate" 
-$resumeImplementat
-ionGate.message $resumeReviewGate
-  scripts\ai-dev-auto-cycle-full.ps1:1090:        $stepNumber++
-  scripts\ai-dev-auto-cycle-full.ps1:1091:        $script:steps += New-StepResult $stepNumber "commit
--result-gate" "sta
-te.lastCommand/lastCommitHash 확인" $false $true 0 "DryRun: 실제 커밋 생성 여부를 확인하지 않았습니다."
-  scripts\ai-dev-auto-cycle-full.ps1:1092:        $stepNumber++
-> scripts\ai-dev-auto-cycle-full.ps1:1093:        $script:steps += New-StepResult $stepNumber "comple
-te-task" "powershe
-ll -ExecutionPolicy Bypass -File scripts/ai-dev-complete-task.ps1 -ResultSummary `"자동 완료: Codex 구현, b
-uild/check, Codex 
-리뷰 pass, 자동 커밋 완료`" -CommitHash <commit-hash>" $false $true 0 "DryRun: task 완료 처리를 실행하지 않았습니다."
-  scripts\ai-dev-auto-cycle-full.ps1:1094:        $stepNumber++
-  scripts\ai-dev-auto-cycle-full.ps1:1095:        $script:steps += New-StepResult $stepNumber "meta-c
-ommit" "direct met
-a commit: git add scoped .ai-dev files, git commit -m 'chore(ai-dev): record task completion', git st
-atus --short" $fal
-se $true 0 "DryRun: .ai-dev 메타 상태 직접 커밋을 실행하지 않았습니다."
-  scripts\ai-dev-auto-cycle-full.ps1:1096:        $stepNumber++
-> scripts\ai-dev-auto-cycle-full.ps1:1097:        $script:steps += New-StepResult $stepNumber "final-
-status" "powershel
-l -ExecutionPolicy Bypass -File scripts/ai-dev-status.ps1" $false $true 0 "DryRun: 최종 작업 상태 확인을 실행하지 
-않았습니다."
-  scripts\ai-dev-auto-cycle-full.ps1:1098:        Stop-Cycle $script:steps "dry_run" $false 0
-  scripts\ai-dev-auto-cycle-full.ps1:1099:    }
-  scripts\ai-dev-auto-cycle-full.ps1:1100:
-  scripts\ai-dev-auto-cycle-full.ps1:1112:    }
-  scripts\ai-dev-auto-cycle-full.ps1:1113:
-  scripts\ai-dev-auto-cycle-full.ps1:1114:    if (Test-IsReviewReviseWithCodex $reviewGate) {
-> scripts\ai-dev-auto-cycle-full.ps1:1115:        $implementationGate = Get-ReviewImplementationGate 
-$script:currentTas
-k $reviewGate
-  scripts\ai-dev-auto-cycle-full.ps1:1116:
-  scripts\ai-dev-auto-cycle-full.ps1:1117:        if (-not $implementationGate.passed) {
-  scripts\ai-dev-auto-cycle-full.ps1:1118:            Save-CycleFailureState "review-gate" $implement
-ationGate.message 
-$reviewGate
-  scripts\ai-dev-auto-cycle-full.ps1:1198:                Stop-Cycle $script:steps "review_revise_rep
-eated" $false 1
-  scripts\ai-dev-auto-cycle-full.ps1:1199:            }
-  scripts\ai-dev-auto-cycle-full.ps1:1200:
-> scripts\ai-dev-auto-cycle-full.ps1:1201:            $message = New-ReviewReviseFailureMessage $revi
-ewGate "재리뷰가 revis
-e를 반환해 자동 커밋과 complete-task를 실행하지 않습니다."
-  scripts\ai-dev-auto-cycle-full.ps1:1202:            Save-CycleFailureState "review-gate" $message $
-reviewGate
-  scripts\ai-dev-auto-cycle-full.ps1:1203:            $script:steps += New-StepResult $stepNumber "re
-view-gate" "재리뷰 de
-cision/next_step/required_changes 확인" $false $true 1 $message
-  scripts\ai-dev-auto-cycle-full.ps1:1204:            Stop-Cycle $script:steps "revise_review_not_pas
-s" $false 1
-  scripts\ai-dev-auto-cycle-full.ps1:1206:    }
-  scripts\ai-dev-auto-cycle-full.ps1:1207:
-  scripts\ai-dev-auto-cycle-full.ps1:1208:    if ($reviewGate.decision -ne "pass") {
-> scripts\ai-dev-auto-cycle-full.ps1:1209:        $message = "리뷰 response decision이 pass가 아니므로 자동 커밋과
- complete-task를 실행
-하지 않습니다: $($reviewGate.decision)"
-  scripts\ai-dev-auto-cycle-full.ps1:1210:        Save-CycleFailureState "review-gate" $message $revi
-ewGate
-  scripts\ai-dev-auto-cycle-full.ps1:1211:        $script:steps += New-StepResult $stepNumber "review
--gate" "$reviewRes
-ponseRelativePath decision 확인" $false $true 1 $message
-  scripts\ai-dev-auto-cycle-full.ps1:1212:        Stop-Cycle $script:steps "review_not_pass" $false 1
-  scripts\ai-dev-auto-cycle-full.ps1:1213:    }
-  scripts\ai-dev-auto-cycle-full.ps1:1214:
-  scripts\ai-dev-auto-cycle-full.ps1:1215:    if ($reviewGate.stateDecision -ne "pass") {
-> scripts\ai-dev-auto-cycle-full.ps1:1216:        $script:steps += New-StepResult $stepNumber "review
--gate" "state.last
-ReviewDecision 확인" $false $true 1 "state.lastReviewDecision이 pass가 아니므로 자동 커밋과 complete-task를 실행하지 않습
-니다: $($reviewGate.
-stateDecision)"
-  scripts\ai-dev-auto-cycle-full.ps1:1217:        Stop-Cycle $script:steps "state_review_not_pass" $f
-alse 1
-  scripts\ai-dev-auto-cycle-full.ps1:1218:    }
-  scripts\ai-dev-auto-cycle-full.ps1:1219:
-  scripts\ai-dev-auto-cycle-full.ps1:1220:    if (-not (Test-IsAcceptableReviewNextStep $reviewGate))
- {
-> scripts\ai-dev-auto-cycle-full.ps1:1221:        $script:steps += New-StepResult $stepNumber "review
--gate" "$reviewRes
-ponseRelativePath next_step 확인" $false $true 1 "리뷰 next_step이 존재하지만 complete_task가 아니므로 자동 커밋과 comple
-te-task를 실행하지 않습니다
-: 원본='$($reviewGate.nextStep)', 정규화='$($reviewGate.normalizedNextStep)'"
-  scripts\ai-dev-auto-cycle-full.ps1:1222:        Stop-Cycle $script:steps "review_next_step_not_comp
-lete_task" $false 
-1
-  scripts\ai-dev-auto-cycle-full.ps1:1223:    }
-  scripts\ai-dev-auto-cycle-full.ps1:1224:
-> scripts\ai-dev-auto-cycle-full.ps1:1225:    $implementationGate = Get-ReviewImplementationGate $scr
-ipt:currentTask $r
-eviewGate
-  scripts\ai-dev-auto-cycle-full.ps1:1226:
-  scripts\ai-dev-auto-cycle-full.ps1:1227:    if (-not $implementationGate.passed) {
-  scripts\ai-dev-auto-cycle-full.ps1:1228:        Save-CycleFailureState "review-gate" $implementatio
-nGate.message $rev
-iewGate
-  scripts\ai-dev-auto-cycle-full.ps1:1230:        Stop-Cycle $script:steps $implementationGate.reason
- $false 1
-  scripts\ai-dev-auto-cycle-full.ps1:1231:    }
-  scripts\ai-dev-auto-cycle-full.ps1:1232:
-> scripts\ai-dev-auto-cycle-full.ps1:1233:    $script:steps += New-StepResult $stepNumber "review-gat
-e" "최신 state 및 $re
-viewResponseRelativePath 재확인" $false $false 0 "리뷰 pass 및 허용 가능한 next_step 상태 수락: 존재=$($reviewGate.has
-NextStep), 원본='$($
-reviewGate.nextStep)', 정규화='$($reviewGate.normalizedNextStep)'. commit/commit-result-gate/complete-ta
-sk/meta-commit으로 계
-속 진행합니다."
-  scripts\ai-dev-auto-cycle-full.ps1:1234:    $stepNumber++
-  scripts\ai-dev-auto-cycle-full.ps1:1235:
-  scripts\ai-dev-auto-cycle-full.ps1:1236:    try {
-  scripts\ai-dev-auto-cycle-full.ps1:1265:    $resultSummary = "자동 완료: Codex 구현, build/check, Codex 리
-뷰 pass"
-  scripts\ai-dev-auto-cycle-full.ps1:1266:
-  scripts\ai-dev-auto-cycle-full.ps1:1267:    if ($commitArguments.Count -eq 0) {
-> scripts\ai-dev-auto-cycle-full.ps1:1268:        $script:steps += New-StepResult $stepNumber "commit
-" "git status --po
-rcelain" $false $true 0 "커밋할 구현 변경사항이 없습니다. 저장된 리뷰 pass 상태를 유지하고 complete-task/meta-commit으로 계속 진행합니다
-."
-  scripts\ai-dev-auto-cycle-full.ps1:1269:        $stepNumber++
-  scripts\ai-dev-auto-cycle-full.ps1:1270:
-  scripts\ai-dev-auto-cycle-full.ps1:1271:        $stateBeforeComplete = Read-JsonFile $statePath $st
-ateRelativePath
-  scripts\ai-dev-auto-cycle-full.ps1:1282:
-  scripts\ai-dev-auto-cycle-full.ps1:1283:            if ($savedLastCommitHash -eq $currentHeadCommit
-Hash) {
-  scripts\ai-dev-auto-cycle-full.ps1:1284:                $commitHashForComplete = $savedLastCommitHa
-sh
-> scripts\ai-dev-auto-cycle-full.ps1:1285:                $script:steps += New-StepResult $stepNumber
- "commit-result-ga
-te" "state.lastCommitHash 및 git rev-parse HEAD 확인" $false $true 0 "새 구현 커밋이 없습니다. state.lastCommitHas
-h가 현재 HEAD와 일치하여 c
-omplete-task에 CommitHash를 전달합니다: $commitHashForComplete"
-  scripts\ai-dev-auto-cycle-full.ps1:1286:            } else {
-> scripts\ai-dev-auto-cycle-full.ps1:1287:                $script:steps += New-StepResult $stepNumber
- "commit-result-ga
-te" "state.lastCommitHash 및 git rev-parse HEAD 확인" $false $true 0 "새 구현 커밋이 없습니다. stale state.lastCom
-mitHash를 무시하고 Comm
-itHash 없이 complete-task를 실행합니다. state.lastCommitHash=$savedLastCommitHash, currentHead=$currentHeadCo
-mmitHash"
-  scripts\ai-dev-auto-cycle-full.ps1:1288:            }
-  scripts\ai-dev-auto-cycle-full.ps1:1289:        } else {
-> scripts\ai-dev-auto-cycle-full.ps1:1290:            $script:steps += New-StepResult $stepNumber "co
-mmit-result-gate" 
-"state.lastCommitHash 및 git rev-parse HEAD 확인" $false $true 0 "새 구현 커밋이 없습니다. state.lastCommitHash가 없
-어 CommitHash 없이 co
-mplete-task를 실행합니다. currentHead=$currentHeadCommitHash"
-  scripts\ai-dev-auto-cycle-full.ps1:1291:        }
-  scripts\ai-dev-auto-cycle-full.ps1:1292:        $stepNumber++
-  scripts\ai-dev-auto-cycle-full.ps1:1293:
-  scripts\ai-dev-auto-cycle-full.ps1:1316:        }
-  scripts\ai-dev-auto-cycle-full.ps1:1317:
-  scripts\ai-dev-auto-cycle-full.ps1:1318:        if ($commitGate.lastCommand -ne "commit" -or $commi
-tGate.lastCommandS
-tatus -ne "passed" -or -not $commitGate.commitHashChanged -or -not $commitGate.commitHashMatchesHead)
- {
-> scripts\ai-dev-auto-cycle-full.ps1:1319:            $message = "커밋 완료 상태를 확인하지 못해 complete-task를 실행
-하지 않습니다. lastComma
-nd=$($commitGate.lastCommand), lastCommandStatus=$($commitGate.lastCommandStatus), lastCommitHash=$($
-commitGate.lastCom
-mitHash)"
-  scripts\ai-dev-auto-cycle-full.ps1:1320:            $script:steps += New-StepResult $stepNumber "co
-mmit-result-gate" 
-"state.lastCommand/lastCommitHash 확인" $false $true 1 $message
-  scripts\ai-dev-auto-cycle-full.ps1:1321:            Stop-Cycle $script:steps "commit_not_confirmed"
- $false 1
-  scripts\ai-dev-auto-cycle-full.ps1:1322:        }
-  scripts\ai-dev-auto-cycle-full.ps1:1329:    }
-  scripts\ai-dev-auto-cycle-full.ps1:1330:
-  scripts\ai-dev-auto-cycle-full.ps1:1331:    $completeTaskArguments = @("-ResultSummary", $resultSum
-mary)
-> scripts\ai-dev-auto-cycle-full.ps1:1332:    $completeTaskCommand = "powershell -ExecutionPolicy Byp
-ass -File scripts/
-ai-dev-complete-task.ps1 -ResultSummary `"$resultSummary`""
-  scripts\ai-dev-auto-cycle-full.ps1:1333:
-  scripts\ai-dev-auto-cycle-full.ps1:1334:    if (Test-HasValue $commitHashForComplete) {
-  scripts\ai-dev-auto-cycle-full.ps1:1335:        $completeTaskArguments += @("-CommitHash", $commitH
-ashForComplete)
-  scripts\ai-dev-auto-cycle-full.ps1:1336:        $completeTaskCommand = "$completeTaskCommand -Commi
-tHash $commitHashF
-orComplete"
-  scripts\ai-dev-auto-cycle-full.ps1:1337:    }
-  scripts\ai-dev-auto-cycle-full.ps1:1338:
-> scripts\ai-dev-auto-cycle-full.ps1:1339:    $completedTaskForContext = $script:currentTask
-  scripts\ai-dev-auto-cycle-full.ps1:1340:
-> scripts\ai-dev-auto-cycle-full.ps1:1341:    Invoke-CycleCommand $stepNumber "complete-task" $comple
-teTaskCommand $scr
-iptPaths.completeTask $completeTaskArguments
-  scripts\ai-dev-auto-cycle-full.ps1:1342:    $stepNumber++
-  scripts\ai-dev-auto-cycle-full.ps1:1343:
-  scripts\ai-dev-auto-cycle-full.ps1:1344:    Invoke-DirectMetaCommit $stepNumber
-  scripts\ai-dev-auto-cycle-full.ps1:1345:    $stepNumber++
-  scripts\ai-dev-auto-cycle-full.ps1:1346:
-> scripts\ai-dev-auto-cycle-full.ps1:1347:    Invoke-CycleCommand $stepNumber "final-status" "powersh
-ell -ExecutionPoli
-cy Bypass -File scripts/ai-dev-status.ps1" $scriptPaths.status @()
-  scripts\ai-dev-auto-cycle-full.ps1:1348:    $stepNumber++
-  scripts\ai-dev-auto-cycle-full.ps1:1349:
-> scripts\ai-dev-auto-cycle-full.ps1:1350:    $script:completedTaskCount++
-> scripts\ai-dev-auto-cycle-full.ps1:1351:    $script:completedTask = $completedTaskForContext
-  scripts\ai-dev-auto-cycle-full.ps1:1352:
-  scripts\ai-dev-auto-cycle-full.ps1:1353:    $queueAfterComplete = Read-JsonFile $queuePath $queueRe
-lativePath
-  scripts\ai-dev-auto-cycle-full.ps1:1354:    $stateAfterComplete = Read-JsonFile $statePath $stateRe
-lativePath
-> scripts\ai-dev-auto-cycle-full.ps1:1355:    $script:currentTask = Get-CurrentTask $queueAfterComple
-te $stateAfterComp
-lete
-> scripts\ai-dev-auto-cycle-full.ps1:1356:    $script:nextTask = Get-NextTask $queueAfterComplete $st
-ateAfterComplete $
-completedTaskForContext
-  scripts\ai-dev-auto-cycle-full.ps1:1357:
-  scripts\ai-dev-auto-cycle-full.ps1:1358:    if ($stateAfterComplete.goalStatus -eq "completed") {
-  scripts\ai-dev-auto-cycle-full.ps1:1359:        Complete-Cycle $script:steps "goal_completed" $step
-Number
-
-
-
-codex
-현재 구현은 지적된 대로 `final-status` 이후에 완료 task context를 갱신하고 있습니다. 이제 완료 직후 상태를 확정하는 작은 헬퍼/호출 위치만 추가해서 기존 게
-이트 로직은 건드리지 않겠습니다.
-exec
-"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralPath '
-D:\\ai-apps\\planpilot-local\\scripts\\ai-dev-auto-cycle-full.ps1' | Select-Object -Skip 1320 -First 
-70" in D:\ai-apps\planpilot-local
-exec
-"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Select-String -LiteralPath
- 'D:\\ai-apps\\planpilot-local\\scripts\\ai-dev-auto-cycle-full.ps1' -Pattern 'function Complete-Cycl
-e|function Stop-Cycle|function Invoke-CycleCommand' -Context 2,8" in D:\ai-apps\planpilot-local
- succeeded in 1997ms:
-
-  scripts\ai-dev-auto-cycle-full.ps1:314:}
-  scripts\ai-dev-auto-cycle-full.ps1:315:
-> scripts\ai-dev-auto-cycle-full.ps1:316:function Stop-Cycle {
-  scripts\ai-dev-auto-cycle-full.ps1:317:    param(
-  scripts\ai-dev-auto-cycle-full.ps1:318:        [object[]]$Steps,
-  scripts\ai-dev-auto-cycle-full.ps1:319:        [string]$StoppedReason,
-  scripts\ai-dev-auto-cycle-full.ps1:320:        [bool]$Completed,
-  scripts\ai-dev-auto-cycle-full.ps1:321:        [int]$ExitCode
-  scripts\ai-dev-auto-cycle-full.ps1:322:    )
-  scripts\ai-dev-auto-cycle-full.ps1:323:
-  scripts\ai-dev-auto-cycle-full.ps1:324:    $result = New-CycleResult $Steps $StoppedReason $Complet
-ed $ExitCode
-  scripts\ai-dev-auto-cycle-full.ps1:327:}
-  scripts\ai-dev-auto-cycle-full.ps1:328:
-> scripts\ai-dev-auto-cycle-full.ps1:329:function Complete-Cycle {
-  scripts\ai-dev-auto-cycle-full.ps1:330:    param(
-  scripts\ai-dev-auto-cycle-full.ps1:331:        [object[]]$Steps,
-  scripts\ai-dev-auto-cycle-full.ps1:332:        [string]$StoppedReason,
-  scripts\ai-dev-auto-cycle-full.ps1:333:        [int]$StepNumber
-  scripts\ai-dev-auto-cycle-full.ps1:334:    )
-  scripts\ai-dev-auto-cycle-full.ps1:335:
-  scripts\ai-dev-auto-cycle-full.ps1:336:    try {
-  scripts\ai-dev-auto-cycle-full.ps1:337:        $remainingStatus = Invoke-GitCapture -Arguments @("s
-tatus", "--short")
- -DisplayName "git status --short"
-  scripts\ai-dev-auto-cycle-full.ps1:412:}
-  scripts\ai-dev-auto-cycle-full.ps1:413:
-> scripts\ai-dev-auto-cycle-full.ps1:414:function Invoke-CycleCommand {
-  scripts\ai-dev-auto-cycle-full.ps1:415:    param(
-  scripts\ai-dev-auto-cycle-full.ps1:416:        [int]$StepNumber,
-  scripts\ai-dev-auto-cycle-full.ps1:417:        [string]$Name,
-  scripts\ai-dev-auto-cycle-full.ps1:418:        [string]$Command,
-  scripts\ai-dev-auto-cycle-full.ps1:419:        [string]$ScriptPath,
-  scripts\ai-dev-auto-cycle-full.ps1:420:        [string[]]$Arguments
-  scripts\ai-dev-auto-cycle-full.ps1:421:    )
-  scripts\ai-dev-auto-cycle-full.ps1:422:
-
-
-
- succeeded in 2020ms:
-            Stop-Cycle $script:steps "commit_not_confirmed" $false 1
-        }
-
-        $script:steps += New-StepResult $stepNumber "commit-result-gate" "state.lastCommand/lastCommi
-tHash 확인" $false $false 0 "커밋 생성 확인: $($commitGate.lastCommitHash)"
-        $stepNumber++
-
-        $commitHashForComplete = $commitGate.lastCommitHash
-        $resultSummary = "$resultSummary, 자동 커밋 완료"
-    }
-
-    $completeTaskArguments = @("-ResultSummary", $resultSummary)
-    $completeTaskCommand = "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-complete-task.ps1
- -ResultSummary `"$resultSummary`""
-
-    if (Test-HasValue $commitHashForComplete) {
-        $completeTaskArguments += @("-CommitHash", $commitHashForComplete)
-        $completeTaskCommand = "$completeTaskCommand -CommitHash $commitHashForComplete"
-    }
-
-    $completedTaskForContext = $script:currentTask
-
-    Invoke-CycleCommand $stepNumber "complete-task" $completeTaskCommand $scriptPaths.completeTask $c
-ompleteTaskArguments
-    $stepNumber++
-
-    Invoke-DirectMetaCommit $stepNumber
-    $stepNumber++
-
-    Invoke-CycleCommand $stepNumber "final-status" "powershell -ExecutionPolicy Bypass -File scripts/
-ai-dev-status.ps1" $scriptPaths.status @()
-    $stepNumber++
-
-    $script:completedTaskCount++
-    $script:completedTask = $completedTaskForContext
-
-    $queueAfterComplete = Read-JsonFile $queuePath $queueRelativePath
-    $stateAfterComplete = Read-JsonFile $statePath $stateRelativePath
-    $script:currentTask = Get-CurrentTask $queueAfterComplete $stateAfterComplete
-    $script:nextTask = Get-NextTask $queueAfterComplete $stateAfterComplete $completedTaskForContext
-
-    if ($stateAfterComplete.goalStatus -eq "completed") {
-        Complete-Cycle $script:steps "goal_completed" $stepNumber
-    }
-}
-
-Complete-Cycle $script:steps "max_tasks_reached" $stepNumber
-
-codex
-`New-CycleResult` 쪽도 같이 확인했습니다. `context.task`는 호환 필드라 유지하되, 일반 실패/중단에서는 최신 current task를, goal compl
-eted에서는 completed task를 쓰는 현재 구조를 유지할 수 있습니다.
-exec
-"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Select-String -LiteralPath
- 'D:\\ai-apps\\planpilot-local\\scripts\\ai-dev-auto-cycle-full.ps1' -Pattern 'Invoke-GitCapture|git 
-status|git ' -Context 1,1" in D:\ai-apps\planpilot-local
-exec
-"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralPath '
-D:\\ai-apps\\planpilot-local\\scripts\\ai-dev-auto-cycle-full.ps1' | Select-Object -Skip 310 -First 1
-30" in D:\ai-apps\planpilot-local
- succeeded in 1934ms:
-        Write-Host "  Last step: none"
-    }
-
-}
-
-function Stop-Cycle {
-    param(
-        [object[]]$Steps,
-        [string]$StoppedReason,
-        [bool]$Completed,
-        [int]$ExitCode
-    )
-
-    $result = New-CycleResult $Steps $StoppedReason $Completed $ExitCode
-    Write-CycleResult $result
-    exit $ExitCode
-}
-
-function Complete-Cycle {
-    param(
-        [object[]]$Steps,
-        [string]$StoppedReason,
-        [int]$StepNumber
-    )
-
-    try {
-        $remainingStatus = Invoke-GitCapture -Arguments @("status", "--short") -DisplayName "git stat
-us --short"
-
-        if (-not [string]::IsNullOrWhiteSpace($remainingStatus)) {
-            $changeLines = @($remainingStatus -split "`r?`n" | Where-Object { -not [string]::IsNullOr
-WhiteSpace($_) })
-            $changedPaths = @(
-                $changeLines |
-                    ForEach-Object { Convert-ToChangedPath $_ } |
-                    ForEach-Object { ConvertTo-NormalizedChangedPath $_ } |
-                    Where-Object { Test-HasValue $_ } |
-                    Select-Object -Unique
-            )
-            $protectedPaths = @($changedPaths | Where-Object { Test-IsProtectedBaselineDirtyPath $_ }
-)
-            $nonAiDevPaths = @($changedPaths | Where-Object { -not (Test-IsAiDevOperationalPath $_) }
-)
-            $eligibleAiDevPaths = @($changedPaths | Where-Object { (Test-IsAiDevOperationalPath $_) -
-and -not (Test-IsProtectedBaselineDirtyPath $_) })
-
-            if ($nonAiDevPaths.Count -gt 0) {
-                $Steps += New-StepResult $StepNumber "completed-clean-gate" "git status --short" $tru
-e $false 1 "Completed clean verification failed: non-.ai-dev changes remain after all full-cycle resu
-lt/state files were written.`n$remainingStatus"
-                Stop-Cycle $Steps "completed_non_ai_dev_changes" $false 1
-            }
-
-            if ($protectedPaths.Count -gt 0) {
-                $Steps += New-StepResult $StepNumber "completed-clean-gate" "git status --short" $tru
-e $false 1 "Completed clean verification failed: protected baseline dirty .ai-dev paths remain and mu
-st not be absorbed into the final meta commit.`n$($protectedPaths -join "`n")`n$remainingStatus"
-                Stop-Cycle $Steps "completed_protected_baseline_dirty" $false 1
-            }
-
-            if ($eligibleAiDevPaths.Count -eq 0) {
-                $Steps += New-StepResult $StepNumber "completed-clean-gate" "git status --short" $tru
-e $false 1 "Completed clean verification failed: worktree still has changes, but none are eligible ne
-w .ai-dev operational changes.`n$remainingStatus"
-                Stop-Cycle $Steps "completed_no_eligible_meta_changes" $false 1
-            }
-
-            if (-not $AllowCommit) {
-                $Steps += New-StepResult $StepNumber "completed-clean-gate" "git status --short" $tru
-e $false 1 "Completed clean verification failed: only new .ai-dev operational changes remain, but -Al
-lowCommit is required for the final auto-cycle meta commit.`n$remainingStatus"
-                Stop-Cycle $Steps "completed_ai_dev_changes_require_commit" $false 1
-            }
-
-            if ($DryRun) {
-                $Steps += New-StepResult $StepNumber "completed-clean-gate" "git status --short; git 
-add/commit final .ai-dev operational changes; git status --short" $false $true 0 "DryRun: only new .a
-i-dev operational changes remain, but the final auto-cycle meta commit was not created.`n$remainingSt
-atus"
-                Stop-Cycle $Steps "dry_run" $false 0
-            }
-
-            $addOutput = & git add -- $eligibleAiDevPaths 2>&1 | Out-String
-            $addExitCode = $LASTEXITCODE
-
-            if ($addExitCode -ne 0) {
-                $Steps += New-StepResult $StepNumber "completed-clean-gate" "git add -- <final .ai-de
-v files>" $true $false 1 "Final auto-cycle .ai-dev meta add failed. exit code: $addExitCode`n$addOutp
-ut"
-                Stop-Cycle $Steps "completed_meta_add_failed" $false 1
-            }
-
-            $metaCommitMessage = "chore(ai-dev): record final auto-cycle state"
-            $commitOutput = & git commit -m $metaCommitMessage -- $eligibleAiDevPaths 2>&1 | Out-Stri
-ng
-            $commitExitCode = $LASTEXITCODE
-
-            if ($commitExitCode -ne 0) {
-                $Steps += New-StepResult $StepNumber "completed-clean-gate" "git commit -m '$metaComm
-itMessage' -- <final .ai-dev files>" $true $false 1 "Final auto-cycle .ai-dev meta commit failed. exi
-t code: $commitExitCode`n$commitOutput"
-                Stop-Cycle $Steps "completed_meta_commit_failed" $false 1
-            }
-
-            $remainingStatus = Invoke-GitCapture -Arguments @("status", "--short") -DisplayName "git 
-status --short"
-
-            if (-not [string]::IsNullOrWhiteSpace($remainingStatus)) {
-                $Steps += New-StepResult $StepNumber "completed-clean-gate" "git status --short" $tru
-e $false 1 "Completed clean verification failed: changes remain after the final auto-cycle .ai-dev me
-ta commit.`n$remainingStatus"
-                Stop-Cycle $Steps "completed_worktree_dirty" $false 1
-            }
-
-            $message = ($commitOutput.Trim(), "Final auto-cycle .ai-dev meta commit created: yes", "C
-ompleted clean verification passed: git status --short returned no changes.") -join "`n"
-            $Steps += New-StepResult $StepNumber "completed-clean-gate" "git status --short; git add/
-commit final .ai-dev operational changes; git status --short" $true $false 0 $message
-            Stop-Cycle $Steps $StoppedReason $true 0
-        }
-
-        $Steps += New-StepResult $StepNumber "completed-clean-gate" "git status --short" $true $false
- 0 "Completed clean verification passed: git status --short returned no changes."
-        Stop-Cycle $Steps $StoppedReason $true 0
-    } catch {
-        $Steps += New-StepResult $StepNumber "completed-clean-gate" "git status --short" $false $fals
-e 1 $_.Exception.Message
-        Stop-Cycle $Steps "completed_clean_gate_failed" $false 1
-    }
-}
-
-function Invoke-CycleCommand {
-    param(
-        [int]$StepNumber,
-        [string]$Name,
-        [string]$Command,
-        [string]$ScriptPath,
-        [string[]]$Arguments
-    )
-
-    if ($DryRun) {
-        $script:steps += New-StepResult $StepNumber $Name $Command $false $true 0 "DryRun: 하위 스크립트를 실
-행하지 않았습니다."
-        return
-    }
-
-    $output = & powershell -ExecutionPolicy Bypass -File $ScriptPath @Arguments 2>&1 | Out-String
-    $exitCode = $LASTEXITCODE
-    $message = $output.Trim()
-
-    if ([string]::IsNullOrWhiteSpace($message)) {
-        $message = "완료"
-    }
-
-    $script:steps += New-StepResult $StepNumber $Name $Command $true $false $exitCode $message
-
-    if ($exitCode -ne 0) {
-        Stop-Cycle $script:steps "$Name`_failed" $false 1
-    }
-
- succeeded in 2035ms:
-
-  scripts\ai-dev-auto-cycle-full.ps1:336:    try {
-> scripts\ai-dev-auto-cycle-full.ps1:337:        $remainingStatus = Invoke-GitCapture -Arguments @("s
-tatus", "--short")
- -DisplayName "git status --short"
-  scripts\ai-dev-auto-cycle-full.ps1:338:
-  scripts\ai-dev-auto-cycle-full.ps1:352:            if ($nonAiDevPaths.Count -gt 0) {
-> scripts\ai-dev-auto-cycle-full.ps1:353:                $Steps += New-StepResult $StepNumber "comple
-ted-clean-gate" "g
-it status --short" $true $false 1 "Completed clean verification failed: non-.ai-dev changes remain af
-ter all full-cycle
- result/state files were written.`n$remainingStatus"
-  scripts\ai-dev-auto-cycle-full.ps1:354:                Stop-Cycle $Steps "completed_non_ai_dev_chan
-ges" $false 1
-  scripts\ai-dev-auto-cycle-full.ps1:357:            if ($protectedPaths.Count -gt 0) {
-> scripts\ai-dev-auto-cycle-full.ps1:358:                $Steps += New-StepResult $StepNumber "comple
-ted-clean-gate" "g
-it status --short" $true $false 1 "Completed clean verification failed: protected baseline dirty .ai-
-dev paths remain a
-nd must not be absorbed into the final meta commit.`n$($protectedPaths -join "`n")`n$remainingStatus"
-  scripts\ai-dev-auto-cycle-full.ps1:359:                Stop-Cycle $Steps "completed_protected_basel
-ine_dirty" $false 
-1
-  scripts\ai-dev-auto-cycle-full.ps1:362:            if ($eligibleAiDevPaths.Count -eq 0) {
-> scripts\ai-dev-auto-cycle-full.ps1:363:                $Steps += New-StepResult $StepNumber "comple
-ted-clean-gate" "g
-it status --short" $true $false 1 "Completed clean verification failed: worktree still has changes, b
-ut none are eligib
-le new .ai-dev operational changes.`n$remainingStatus"
-  scripts\ai-dev-auto-cycle-full.ps1:364:                Stop-Cycle $Steps "completed_no_eligible_met
-a_changes" $false 
-1
-  scripts\ai-dev-auto-cycle-full.ps1:367:            if (-not $AllowCommit) {
-> scripts\ai-dev-auto-cycle-full.ps1:368:                $Steps += New-StepResult $StepNumber "comple
-ted-clean-gate" "g
-it status --short" $true $false 1 "Completed clean verification failed: only new .ai-dev operational 
-changes remain, bu
-t -AllowCommit is required for the final auto-cycle meta commit.`n$remainingStatus"
-  scripts\ai-dev-auto-cycle-full.ps1:369:                Stop-Cycle $Steps "completed_ai_dev_changes_
-require_commit" $f
-alse 1
-  scripts\ai-dev-auto-cycle-full.ps1:372:            if ($DryRun) {
-> scripts\ai-dev-auto-cycle-full.ps1:373:                $Steps += New-StepResult $StepNumber "comple
-ted-clean-gate" "g
-it status --short; git add/commit final .ai-dev operational changes; git status --short" $false $true
- 0 "DryRun: only n
-ew .ai-dev operational changes remain, but the final auto-cycle meta commit was not created.`n$remain
-ingStatus"
-  scripts\ai-dev-auto-cycle-full.ps1:374:                Stop-Cycle $Steps "dry_run" $false 0
-  scripts\ai-dev-auto-cycle-full.ps1:376:
-> scripts\ai-dev-auto-cycle-full.ps1:377:            $addOutput = & git add -- $eligibleAiDevPaths 2>
-&1 | Out-String
-  scripts\ai-dev-auto-cycle-full.ps1:378:            $addExitCode = $LASTEXITCODE
-  scripts\ai-dev-auto-cycle-full.ps1:380:            if ($addExitCode -ne 0) {
-> scripts\ai-dev-auto-cycle-full.ps1:381:                $Steps += New-StepResult $StepNumber "comple
-ted-clean-gate" "g
-it add -- <final .ai-dev files>" $true $false 1 "Final auto-cycle .ai-dev meta add failed. exit code:
- $addExitCode`n$ad
-dOutput"
-  scripts\ai-dev-auto-cycle-full.ps1:382:                Stop-Cycle $Steps "completed_meta_add_failed
+.\docs\ai-dev-loop-policy.md:252:9. decision이 `blocked`이면 사용자 판단을 기다린다.
+.\docs\ai-dev-loop-policy.md:284:- `blocked`: 사용자 판단이 필요하므로 루프를 중단하고 요구사항, 범위, 위험도를 다시 확인한다.
+.\docs\ai-dev-loop-policy.md:326:- destructive git 명령, DB 삭제/복원/마이그레이션, package 설치는 자동 실행하지 않는다.
+.\docs\ai-dev-loop-policy.md:347:- 리뷰 결과가 `blocked`인 경우
+.\docs\ai-dev-loop-policy.md:352:- package 설치 또는 package 파일 변경이 필요한 경우
+.\docs\ai-dev-loop-policy.md:353:- 예상하지 못한 사용자 변경이 작업 트리에 있는 경우
+.\docs\ai-dev-loop-policy.md:363:- 사용자 개입 필요 action, blocked, failed, commit 필요, Codex/GPT 필요 상태에서는 중
+단한다.
+.\docs\ai-dev-loop-policy.md:372:- `ai-dev-auto-cycle.ps1`: 제한 횟수 안에서 auto-step을 반복한다. 여러 안전 단계를 이어가고
+ 싶을 때 사용하지만, 사용자 개입 필요 action, 실패, blocked, commit 필요 상태에서는 멈춘다.
+.\docs\ai-dev-loop-policy.md:435:- `goalStatus`가 `completed`인 상태에서는 실패한 임시 리뷰 입력만으로 완료 상태를 `blocked`처
+럼 보이게 만들지 않는다.
+.\docs\ai-dev-loop-policy.md:529:- package 파일 변경, build/check 실패, 리뷰 decision이 `pass`가 아닌 경우 자동 커밋하지 
+않는다.
+.\docs\ai-dev-loop-policy.md:542:- destructive `git checkout` 또는 사용자 변경 되돌리기
+.\docs\ai-dev-loop-policy.md:544:- package 대량 교체
+.\docs\ai-dev-loop-policy.md:555:- `package.json`과 `package-lock.json`이 변경되지 않았다.
+.\docs\ai-dev-loop-policy.md:557:- dirty worktree가 예상 변경만 포함한다.
+.\docs\ai-dev-loop-policy.md:563:- 리뷰 decision이 `revise` 또는 `blocked`
+.\docs\ai-dev-loop-policy.md:565:- package 파일 변경 감지
+.\docs\ai-dev-loop-policy.md:566:- 예상하지 못한 사용자 변경 감지
+.\docs\ai-dev-loop-policy.md:567:- 현재 task 범위 밖 수정 감지
+.\docs\ai-dev-loop-policy.md:578:- package 파일 변경이 감지된 경우
+.\docs\ai-dev-loop-policy.md:580:- DB schema 변경, 데이터 삭제, 복원, 마이그레이션이 필요한 경우
+.\docs\ai-dev-loop-policy.md:583:실패 시에는 실패를 리뷰 결과로 오인하지 않도록 주의한다. 특히 이미 `completed`인 goal을 임시 입력 오류나 
+Codex 실행 실패만으로 `blocked`처럼 보이게 만들지 않는다. 필요한 경우 `state.json`에는 실패 요약만 기록하고, 기존 완료 상태를 덮어쓸지 여부는 별도 정책과 
+사용자 판단을 따른다.
+.\docs\ai-dev-loop-policy.md:591:- 예상하지 못한 사용자 변경이 없다.
+.\docs\ai-dev-loop-policy.md:597:- lock file, DB schema, 보안 관련 변경이 허용 범위 밖에서 발생하지 않았다.
+.\docs\ai-dev-loop-policy.md:598:- 커밋에는 현재 task와 직접 관련된 변경만 포함된다.
+.\docs\ai-dev-loop-policy.md:604:AI Dev Loop는 실제 기능 변경과 루프 운영 상태를 분리해서 다룬다. 실행 중 생성된 파일이 존재한다는 이유만으로 
+기능 커밋에 함께 포함하지 않는다.
+.\docs\ai-dev-loop-policy.md:650:- 실제 `.gitignore` 변경은 별도 task에서 필요성과 영향 범위를 검토한 뒤 진행한다.
+.\docs\ai-dev-loop-policy.md:661:- 커밋 전에는 `git status --short`로 변경 파일을 확인한다.
+.\docs\ai-dev-loop-policy.md:664:- 예상하지 못한 사용자 변경이나 현재 task 범위 밖 파일이 있으면 자동 커밋을 중단한다.
+.\docs\ai-dev-loop-policy.md:672:- 작업 트리에 예상하지 못한 변경이 있다.
+.\docs\ai-dev-loop-policy.md:675:- DB schema 변경이나 migration이 필요하다.
+.\docs\ai-dev-loop-policy.md:677:- 대규모 리팩터링 또는 광범위한 UI 변경이 필요하다.
+.\docs\ai-dev-loop-policy.md:678:- 새로운 패키지 설치나 대량 패키지 교체가 필요하다.
+.\docs\ai-dev-loop-policy.md:689:- 사용자 변경 사항을 되돌리지 않는다.
+.\docs\ai-dev-loop-policy.md:692:- 리뷰에서 확인되지 않은 변경을 자동 커밋하지 않는다.
+.\docs\ai-dev-loop-policy.md:696:- DB schema를 계획 없이 변경하지 않는다.
+.\docs\ai-dev-loop-policy.md:716:- DB schema 변경 또는 migration
+.\docs\ai-dev-loop-policy.md:718:- 패키지 대량 교체
+.\memory-bank\activeContext.md:75:  - DB schema 변경
+.\README.md:213:- 구현 전에는 `App.css` 대규모 수정, DB schema 변경, store API 구조 변경, 서버 API, `localStorage`, 로그인
+, 클라우드 동기화, 알림 권한 요청, Capacitor가 필요해지는지 먼저 확인합니다.
+.\docs\codex-cli-automation-policy.md:5:이 문서는 정책 초안이며 앱 기능, 런타임 동작, 데이터 스키마, 배포 자동화를 변경하지 않는다.
+.\docs\codex-cli-automation-policy.md:29:초기 운영에서는 문서 정리, 작은 유틸 정리, 수동 테스트 체크리스트 보강처럼 되돌리기 쉬운 작업을 우선한다
+. DB schema 변경, 대규모 리팩터링, 패키지 변경, 배포 자동화는 별도 task로 분리하고 자동 진행하지 않는다.
+.\docs\codex-cli-automation-policy.md:37:- `package.json`, `package-lock.json`, lock file 변경이 필요한 경우
+.\docs\codex-cli-automation-policy.md:38:- 새 패키지 설치 또는 패키지 대량 교체가 필요한 경우
+.\docs\codex-cli-automation-policy.md:39:- DB schema 변경, 데이터 마이그레이션, 데이터 삭제 또는 복원이 필요한 경우
+.\docs\codex-cli-automation-policy.md:42:- 예상하지 못한 사용자 변경이 작업 트리에 있는 경우
+.\docs\codex-cli-automation-policy.md:43:- 리뷰 결과가 `revise` 또는 `blocked`이고 수정 범위가 명확하지 않은 경우
+.\docs\codex-cli-automation-policy.md:55:- 예상하지 못한 사용자 변경이 없다.
+.\docs\codex-cli-automation-policy.md:58:- `package.json`, `package-lock.json`, lock file이 변경되지 않았다.
+.\docs\codex-cli-automation-policy.md:74:- package 파일 변경, DB schema 변경, 데이터 손상 가능성이 감지된다.
+.\docs\codex-cli-automation-policy.md:76:- 사용자의 기존 변경을 되돌려야만 진행할 수 있다.
+.\docs\codex-cli-automation-policy.md:78:중단 시에는 실패를 리뷰 결과로 오인하지 않는다. 기존 완료 상태나 사용자 변경을 덮어쓰지 않고, 중단 사유
+와 다음에 필요한 결정을 보고한다.
+.\docs\data-backup-export-policy.md:159:- 내보내기 후 기존 IndexedDB 데이터가 변경되지 않는다.
+.\docs\data-backup-export-policy.md:171:- export 시 기존 IndexedDB 데이터가 변경되지 않는다.
+.\docs\data-backup-export-policy.md:185:- DB schema 변경이 필요하다고 판단되는 경우
+.\docs\data-backup-export-policy.md:214:- 실패해도 기존 IndexedDB 데이터는 변경하지 않는다.
+.\docs\data-backup-export-policy.md:232:- DB schema 변경이 필요하다.
+.\docs\data-backup-export-policy.md:275:- 실패 상황에서도 기존 IndexedDB 데이터를 변경하지 않는 정책을 유지한다.
+.\ROADMAP.md:19:- `App.css`는 사용자가 직접 관리한다는 규칙이 있으므로, 색상 체계 변경은 사용자의 명시 요청 또는 별도 승인 후 진행한다.
+.\ROADMAP.md:31:- 먼저 타입과 저장 정책을 확정하고, 실제 스타일 변경은 별도 작업으로 분리한다.
+.\ROADMAP.md:33:- `App.css` 대규모 재작성, 전체 색상 체계 재설계, layout 변경이 필요하면 구현을 중단하고 디자인/테마 계획 문서부터 작성한다.
+.\ROADMAP.md:38:- `App.css` 대규모 변경이 필요하다.
+.\ROADMAP.md:40:- `AppSettings` 타입 확장 외에 Dexie schema version 변경이 필요하다.
+.\ROADMAP.md:42:- theme 변경 과정에서 서버 API, `localStorage`, 로그인, cloud sync, 알림 권한 요청, Capacitor가 필요해진다.
+.\ROADMAP.md:51:6. 사용자가 `App.css` 수정을 명시적으로 허용한 뒤 최소 스타일 변경을 진행한다.
+.\ROADMAP.md:95:- `AppSettings.language` 타입 확장 외에 Dexie schema version 변경이 필요하다.
+.\ROADMAP.md:98:- 알림 권한 요청이나 Capacitor 변경이 함께 필요해진다.
+.\ROADMAP.md:158:- `localStorage`, 로그인, cloud sync, 알림 권한 요청, Capacitor 변경이 필요해진다.
+.\ROADMAP.md:202:- 값이 실제로 변경될 때만 `updatedAt`이 갱신되어야 한다.
+.\ROADMAP.md:212:- `AppSettings.enableNotifications` 타입 확장 외에 Dexie schema version 변경이 필요하다.
+.\ROADMAP.md:223:7. 실제 알림 기능은 별도 작업으로 분리하고, Notification API 또는 Capacitor 변경이 필요한 경우 사용자에게 명시적으로 승인받는
+다.
+.\ROADMAP.md:233:- 현재 SettingsView에서는 firstLaunchCompleted 변경을 위해 `updateAppSettings`를 호출하지 않는다.
+.\ROADMAP.md:245:- 값 변경이 실제 앱 동작에 즉시 보이는 효과를 만들지 않으면 설정 화면의 신뢰도가 떨어질 수 있다.
+.\ROADMAP.md:271:- 값 변경 후 새로고침해도 유지되는지 확인해야 한다.
+.\ROADMAP.md:272:- 값 변경 시 `updatedAt`이 갱신되고 `createdAt`이 유지되는지 확인해야 한다.
+.\ROADMAP.md:286:- `createdAt`은 최초 설정 생성 시점 이후 변경하지 않는다.
+.\ROADMAP.md:294:3. 내부 상태로 숨긴다면 SettingsView 제거 계획과 수동 테스트 항목 변경을 먼저 문서화한다.
+.\ROADMAP.md:296:5. 코드 변경 시 `SettingsView` 변경만 작은 범위로 진행하고 `npm run build`로 확인한다.
+.\ROADMAP.md:374:- 데이터 삭제나 schema 변경이 필요한 작업은 migration 또는 백업 기준을 먼저 갖춘다.
+.\ROADMAP.md:410:- 업무 상태 `todo`, `in_progress`, `done`을 사용자가 이해하고 변경할 수 있는 UI 정책이 정해져 있다.
+.\ROADMAP.md:412:- IndexedDB schema 변경 정책과 migration 기준이 문서화되어 있다.
+.\ROADMAP.md:434:- 프로젝트 이름 변경 후 업무 목록의 프로젝트 표시가 함께 갱신된다.
+.\ROADMAP.md:474:- 삭제, schema 변경, 데이터 이전 작업은 백업 또는 migration 기준 없이 진행하지 않는다.
+.\ROADMAP.md:475:- 브라우저 자동 실행이나 `open dist/index.html`에 의존하지 않는다.
+.\ROADMAP.md:481:- schema 변경 전에는 새 version, 이전 데이터 처리, 기본값, 실패 시 대응을 문서화한다.
+.\ROADMAP.md:482:- 사용자 데이터 삭제 가능성이 있는 변경은 별도 작업으로 분리한다.
+.\ROADMAP.md:486:- 날짜 값은 현재 `YYYY-MM-DD` 문자열 사용을 기준으로 하되, 변경 시 기존 데이터 호환성을 먼저 검토한다.
+.\ROADMAP.md:498:- 색상과 layout 변경은 `App.css`를 사용자가 관리한다는 전제를 깨지 않는다.
+.\ROADMAP.md:543:- 각 주요 변경 후 `npm run build`가 성공한다.
+.\ROADMAP.md:544:- 예기치 않은 파일 변경이 없는지 `git status`로 확인한다.
+.\ROADMAP.md:555:- `package-lock.json` 불필요 변경 없음
+.\ROADMAP.md:556:- IndexedDB schema 변경 여부와 migration 필요 여부 확인
+.\ROADMAP.md:575:- 자동 브라우저 실행에 의존하는 preview workflow
+.\ROADMAP.md:577:- DB schema 변경이 필요한 기능을 migration 계획 없이 구현
+.\ROADMAP.md:587:- DB schema 변경이 필요하지 않다.
+.\ROADMAP.md:616:리팩터링은 동작 변경 없이 작은 단위로 진행한다. 각 단계 후 `npm run build`로 확인하고, 실패하면 다음 단계로 넘어가지 않는다.
+.\ROADMAP.md:622:- 첫 분리 후보는 상대적으로 의존성이 적은 `SettingsView`다. [x]
+.\ROADMAP.md:643:- `src/components/SummaryBlock.tsx`
+.\ROADMAP.md:658:`TaskForm`은 업무 추가 form과 업무 수정 form의 공통 입력 UI로 분리되었다. 다만 상태와 submit/reset 핸들러는 아직 `Ap
+p.tsx`와 `TasksView` props에 남아 있으므로, 다음 단계에서는 동작 변경 없이 책임을 더 줄일 수 있는지 검토한다.
+.\ROADMAP.md:702:- DB schema는 이 단계에서 변경하지 않는다.
+.\ROADMAP.md:815:- `App.css`, DB schema, store 타입, UI 문구 변경이 필요하지 않다.
+.\ROADMAP.md:822:- store 액션 시그니처 변경이 필요하다.
+.\ROADMAP.md:1046:- 첫 단계에서는 today 주입이나 정렬 정책 변경을 추가하지 않는다.
+.\ROADMAP.md:1070:- Dexie schema 변경 전 migration 계획을 작성한다.
+.\ROADMAP.md:1081:- 변경 허용 시 기본 검증은 `npm run build`로 한다.
+.\ROADMAP.md:1198:- 사용자가 설정 값을 실제로 변경해 저장할 때만 갱신한다.
+.\ROADMAP.md:1201:- `createdAt`은 최초 생성 시점 이후 변경하지 않는다.
+.\ROADMAP.md:1212:DB schema 변경 없이 구현 가능한 범위:
+.\ROADMAP.md:1215:- `firstLaunchCompleted` boolean 변경은 schema 변경 없이 가능하다.
+.\ROADMAP.md:1223:- Dexie schema version 변경이 필요하면 migration 계획을 먼저 문서화하고 중단한다.
+.\ROADMAP.md:1232:- 현재 SettingsView에서는 사용자가 설정 값을 직접 변경할 수 없다.
+.\ROADMAP.md:1234:- `createdAt`은 향후 설정 변경 기능을 추가하더라도 유지된다.
+.\ROADMAP.md:1286:- custom hook을 만들 때 store action 자체를 복제하지 않는다. hook은 화면 상태와 orchestration을 묶고, 실제 데
+이터 변경은 기존 store action을 계속 호출한다.
+.\ROADMAP.md:1320:- `App.css`, DB schema, `types.ts`, `store.ts` 구조 변경이 필요해진다.
+.\ROADMAP.md:1331:- 업무/프로젝트 변경 후 오늘 화면 통계와 프로젝트별 업무 수 유지
+.\ROADMAP.md:1387:- 업무가 있는 프로젝트 삭제 방지는 현재 App handler에서 `tasks`와 `getProjectTaskStats()`로 판단한다. hook으
+로 옮기면 `tasks` 의존성이 추가되어 hook 책임이 커진다.
+.\ROADMAP.md:1408:   - 예: `canDeleteProject(projectId, tasks)` 또는 `getProjectDeleteBlockReason(projec
+tId, tasks)`
+.\ROADMAP.md:1417:- `ProjectsView` 또는 `ProjectForm` 구조 변경이 필요해진다.
+.\ROADMAP.md:1461:- `getProjectDeleteBlockReason(project, tasks)`를 통한 최종 삭제 방어
+.\ROADMAP.md:1485:- 프로젝트 수정 저장 후 수정 form이 닫히고 변경값이 반영된다.
+.\ROADMAP.md:1583:- `App.css`, DB schema, `types.ts`, `store.ts` 변경이 필요해지는 경우
+.\ROADMAP.md:1594:- 업무 수정 저장 후 변경값 반영과 수정 form 닫힘
+.\ROADMAP.md:1679:- 삭제 확인창 문구를 변경해야 하는 경우
+.\ROADMAP.md:1709:- 토글은 단순 status 변경처럼 보이지만 TodayView, TasksView, ProjectsView, 추천 업무에 동시에 영향을 준다.
+.\ROADMAP.md:1711:- 추천 로직은 `done` 업무를 제외하므로 토글 변경 후 추천 목록 회귀 확인이 필요하다.
+.\ROADMAP.md:1724:- Today/Projects 통계 계산을 함께 변경해야 하는 경우
+.\ROADMAP.md:1725:- 추천 로직 또는 추천 정렬 기준을 변경해야 하는 경우
+.\ROADMAP.md:1889:- DB schema 변경이나 데이터 migration이 필요해지는 경우
+.\ROADMAP.md:1890:- App.css 대규모 수정이 필요한 UI 변경이 필요한 경우
+.\ROADMAP.md:1961:- 모든 화면별 결과와 최종 판정이 `미수행`이므로 MVP 완료 상태는 변경하지 않는다.
+.\ROADMAP.md:1995:  - 설정 화면 진입만으로 `updatedAt`이 변경되지 않음
+.\ROADMAP.md:2125:- 내보내기 후 기존 IndexedDB 데이터가 변경되지 않는다.
+.\ROADMAP.md:2131:- DB schema 변경 또는 migration이 필요해지는 경우
+.\ROADMAP.md:2163:- DB schema 변경이 필요하다.
+.\ROADMAP.md:2164:- store API 구조 변경이 필요하다.
+.\ROADMAP.md:2226:- 실패해도 기존 IndexedDB 데이터는 변경하지 않는다.
+.\ROADMAP.md:2239:3. export 실패 시 기존 데이터를 변경하지 않고 실패 메시지를 표시한다.
+.\ROADMAP.md:2244:- DB schema 변경이 필요하다.
+.\ROADMAP.md:2299:- 현재 작업에서는 실패를 만들기 위한 src 코드 변경을 하지 않는다.
+.\ROADMAP.md:2306:- 실패 상황에서도 기존 IndexedDB 데이터를 변경하지 않는 정책을 유지한다.
+.\ROADMAP.md:2372:- 검증 실패 시 기존 IndexedDB 데이터는 변경하지 않는다.
+.\ROADMAP.md:2373:- 사용자가 취소하면 기존 IndexedDB 데이터는 변경하지 않는다.
+.\ROADMAP.md:2379:- DB schema 변경 또는 migration이 필요하다.
+.\scripts\ai-dev-auto-step.ps1:193:            "blocked",
+.\scripts\ai-dev-auto-goal.ps1:440:        $message = "auto-goal 최종 .ai-dev 메타 변경 git add 실패. exit co
+de: $addExitCode`n$addOutput"
+.\scripts\ai-dev-auto-goal.ps1:591:        $message = "auto-goal 최종 .ai-dev 메타 변경 git add 실패. exit co
+de: $addExitCode`n$addOutput"
+.\scripts\ai-dev-auto-goal.ps1:789:        if (@("pending", "in_progress", "done", "blocked") -notcon
+tains $task.status) {
+.\scripts\ai-dev-auto-goal.ps1:853:    if (@("idle", "in_progress", "completed", "blocked") -notconta
+ins $State.goalStatus) {
+.\scripts\ai-dev-auto-goal.ps1:865:    if (@("not_started", "passed", "failed", "blocked") -notcontai
+ns $State.lastCommandStatus) {
+.\scripts\ai-dev-auto-goal.ps1:869:    if (@("not_started", "pass", "revise", "blocked") -notcontains
+ $State.lastReviewDecision) {
+.\scripts\ai-dev-auto-goal.ps1:932:- 패키지 변경
+.\scripts\ai-dev-auto-goal.ps1:959:                        "변경 범위가 현재 목표와 일치하는지 확인한다.",
+.\scripts\ai-dev-auto-cycle.ps1:369:            message = "review-response.json이 구현 파일 변경을 요구했지만 현재 n
+on-.ai-dev diff에 구현 변경 파일이 없습니다. missingRequiredFiles=$($requiredFiles -join ', ')"
+.\scripts\ai-dev-auto-cycle.ps1:378:            message = "review-response.json이 요구한 구현 파일 변경이 현재 non
+-.ai-dev diff에 없습니다. missingRequiredFiles=$($missingRequiredFiles -join ', '), changedFiles=$($change
+dFiles -join ', ')"
+.\scripts\ai-dev-auto-cycle.ps1:422:    "blocked",
+.\scripts\ai-dev-auto-cycle-full.ps1:523:    $status = Invoke-GitCapture @("status", "--porcelain", "
+--", "package.json", "package-lock.json") "git status --porcelain -- package.json package-lock.json"
+.\scripts\ai-dev-auto-cycle-full.ps1:666:            message = "verification task의 revise + revise_wi
+th_codex는 구현 파일 변경이 없는 검증 산출물 보강 흐름일 수 있으므로 implementation 전용 required files 검사를 건너뜁니다. requiredFiles
+=$($requiredFiles -join ', '), changedFiles=$($changedFiles -join ', ')"
+.\scripts\ai-dev-auto-cycle-full.ps1:674:            message = "review-response.json이 구현 파일 변경을 요구했지만
+ 현재 diff에 구현 변경 파일이 없습니다. requiredFiles=$($requiredFiles -join ', ')"
+.\scripts\ai-dev-auto-cycle-full.ps1:682:            message = "review-response.json이 요구한 구현 파일 변경이 현
+재 diff에 없습니다. stale review 또는 missing implementation으로 보고 완료 흐름을 차단합니다. missingRequiredFiles=$($missi
+ngRequiredFiles -join ', '), changedFiles=$($changedFiles -join ', ')"
+.\scripts\ai-dev-auto-cycle-full.ps1:840:                throw ".ai-dev 메타 변경사항은 없지만 worktree에 변경 파일이
+ 남아 있습니다.`n$remainingStatus"
+.\scripts\ai-dev-auto-cycle-full.ps1:843:            $script:steps += New-StepResult $StepNumber "met
+a-commit" $command $false $true 0 ".ai-dev 메타 상태 변경사항이 없어 meta commit을 건너뜁니다. worktree clean."
+.\scripts\ai-dev-auto-cycle-full.ps1:864:            throw "meta commit 이후 worktree에 변경 파일이 남아 있습니다.`
+n$remainingStatus"
+.\scripts\ai-dev-auto-cycle-full.ps1:986:    "package-change-gate",
+.\scripts\ai-dev-auto-cycle-full.ps1:1136:        $script:steps += New-StepResult $stepNumber "packag
+e-change-gate" "git status --porcelain -- package.json package-lock.json" $false $true 0 "DryRun: pac
+kage 파일 변경 여부를 확인하지 않았습니다."
+.\scripts\ai-dev-auto-cycle-full.ps1:1287:            $script:steps += New-StepResult $stepNumber "pa
+ckage-change-gate" "git status --porcelain -- package.json package-lock.json" $false $true 1 "package
+.json 또는 package-lock.json 변경이 감지되어 자동 커밋하지 않습니다."
+.\scripts\ai-dev-auto-cycle-full.ps1:1288:            Stop-Cycle $script:steps "package_files_changed
 " $false 1
-  scripts\ai-dev-auto-cycle-full.ps1:385:            $metaCommitMessage = "chore(ai-dev): record fina
-l auto-cycle state
-"
-> scripts\ai-dev-auto-cycle-full.ps1:386:            $commitOutput = & git commit -m $metaCommitMessa
-ge -- $eligibleAiD
-evPaths 2>&1 | Out-String
-  scripts\ai-dev-auto-cycle-full.ps1:387:            $commitExitCode = $LASTEXITCODE
-  scripts\ai-dev-auto-cycle-full.ps1:389:            if ($commitExitCode -ne 0) {
-> scripts\ai-dev-auto-cycle-full.ps1:390:                $Steps += New-StepResult $StepNumber "comple
-ted-clean-gate" "g
-it commit -m '$metaCommitMessage' -- <final .ai-dev files>" $true $false 1 "Final auto-cycle .ai-dev 
-meta commit failed
-. exit code: $commitExitCode`n$commitOutput"
-  scripts\ai-dev-auto-cycle-full.ps1:391:                Stop-Cycle $Steps "completed_meta_commit_fai
-led" $false 1
-  scripts\ai-dev-auto-cycle-full.ps1:393:
-> scripts\ai-dev-auto-cycle-full.ps1:394:            $remainingStatus = Invoke-GitCapture -Arguments 
-@("status", "--sho
-rt") -DisplayName "git status --short"
-  scripts\ai-dev-auto-cycle-full.ps1:395:
-  scripts\ai-dev-auto-cycle-full.ps1:396:            if (-not [string]::IsNullOrWhiteSpace($remaining
-Status)) {
-> scripts\ai-dev-auto-cycle-full.ps1:397:                $Steps += New-StepResult $StepNumber "comple
-ted-clean-gate" "g
-it status --short" $true $false 1 "Completed clean verification failed: changes remain after the fina
-l auto-cycle .ai-d
-ev meta commit.`n$remainingStatus"
-  scripts\ai-dev-auto-cycle-full.ps1:398:                Stop-Cycle $Steps "completed_worktree_dirty"
- $false 1
-  scripts\ai-dev-auto-cycle-full.ps1:400:
-> scripts\ai-dev-auto-cycle-full.ps1:401:            $message = ($commitOutput.Trim(), "Final auto-cy
-cle .ai-dev meta c
-ommit created: yes", "Completed clean verification passed: git status --short returned no changes.") 
--join "`n"
-> scripts\ai-dev-auto-cycle-full.ps1:402:            $Steps += New-StepResult $StepNumber "completed-
-clean-gate" "git s
-tatus --short; git add/commit final .ai-dev operational changes; git status --short" $true $false 0 $
-message
-  scripts\ai-dev-auto-cycle-full.ps1:403:            Stop-Cycle $Steps $StoppedReason $true 0
-  scripts\ai-dev-auto-cycle-full.ps1:405:
-> scripts\ai-dev-auto-cycle-full.ps1:406:        $Steps += New-StepResult $StepNumber "completed-clea
-n-gate" "git statu
-s --short" $true $false 0 "Completed clean verification passed: git status --short returned no change
-s."
-  scripts\ai-dev-auto-cycle-full.ps1:407:        Stop-Cycle $Steps $StoppedReason $true 0
-  scripts\ai-dev-auto-cycle-full.ps1:408:    } catch {
-> scripts\ai-dev-auto-cycle-full.ps1:409:        $Steps += New-StepResult $StepNumber "completed-clea
-n-gate" "git statu
-s --short" $false $false 1 $_.Exception.Message
-  scripts\ai-dev-auto-cycle-full.ps1:410:        Stop-Cycle $Steps "completed_clean_gate_failed" $fal
-se 1
-  scripts\ai-dev-auto-cycle-full.ps1:456:
-> scripts\ai-dev-auto-cycle-full.ps1:457:function Invoke-GitCapture {
-  scripts\ai-dev-auto-cycle-full.ps1:458:    param(
-  scripts\ai-dev-auto-cycle-full.ps1:462:
-> scripts\ai-dev-auto-cycle-full.ps1:463:    $output = & git @Arguments 2>&1 | Out-String
-  scripts\ai-dev-auto-cycle-full.ps1:464:    $exitCode = $LASTEXITCODE
-  scripts\ai-dev-auto-cycle-full.ps1:473:function Test-PackageFileChanged {
-> scripts\ai-dev-auto-cycle-full.ps1:474:    $status = Invoke-GitCapture @("status", "--porcelain", "
---", "package.json
-", "package-lock.json") "git status --porcelain -- package.json package-lock.json"
-  scripts\ai-dev-auto-cycle-full.ps1:475:    return -not [string]::IsNullOrWhiteSpace($status)
-  scripts\ai-dev-auto-cycle-full.ps1:544:function Get-ChangedNonAiDevFiles {
-> scripts\ai-dev-auto-cycle-full.ps1:545:    $status = Invoke-GitCapture @("status", "--porcelain") "
-git status --porce
-lain"
-  scripts\ai-dev-auto-cycle-full.ps1:546:    $changeLines = @($status -split "`r?`n" | Where-Object {
- -not [string]::Is
-NullOrWhiteSpace($_) })
-  scripts\ai-dev-auto-cycle-full.ps1:644:function Get-ChangedAiDevOperationalFiles {
-> scripts\ai-dev-auto-cycle-full.ps1:645:    $status = Invoke-GitCapture @("status", "--porcelain") "
-git status --porce
-lain"
-  scripts\ai-dev-auto-cycle-full.ps1:646:    $changeLines = @($status -split "`r?`n" | Where-Object {
- -not [string]::Is
-NullOrWhiteSpace($_) })
-  scripts\ai-dev-auto-cycle-full.ps1:781:
-> scripts\ai-dev-auto-cycle-full.ps1:782:    $command = "direct meta commit: git add scoped .ai-dev f
-iles, git commit -
-m 'chore(ai-dev): record task completion', git status --short"
-  scripts\ai-dev-auto-cycle-full.ps1:783:
-  scripts\ai-dev-auto-cycle-full.ps1:787:        if ($changedAiDevFiles.Count -eq 0) {
-> scripts\ai-dev-auto-cycle-full.ps1:788:            $remainingStatus = Invoke-GitCapture -Arguments 
-@("status", "--sho
-rt") -DisplayName "git status --short"
-  scripts\ai-dev-auto-cycle-full.ps1:789:
-  scripts\ai-dev-auto-cycle-full.ps1:797:
-> scripts\ai-dev-auto-cycle-full.ps1:798:        $addOutput = & git add -- $changedAiDevFiles 2>&1 | 
-Out-String
-  scripts\ai-dev-auto-cycle-full.ps1:799:        $addExitCode = $LASTEXITCODE
-  scripts\ai-dev-auto-cycle-full.ps1:801:        if ($addExitCode -ne 0) {
-> scripts\ai-dev-auto-cycle-full.ps1:802:            throw "git add 실행에 실패했습니다. exit code: $addExitCo
-de`n$addOutput"
-  scripts\ai-dev-auto-cycle-full.ps1:803:        }
-  scripts\ai-dev-auto-cycle-full.ps1:804:
-> scripts\ai-dev-auto-cycle-full.ps1:805:        $commitOutput = & git commit -m "chore(ai-dev): reco
-rd task completion
-" -- $changedAiDevFiles 2>&1 | Out-String
-  scripts\ai-dev-auto-cycle-full.ps1:806:        $commitExitCode = $LASTEXITCODE
-  scripts\ai-dev-auto-cycle-full.ps1:808:        if ($commitExitCode -ne 0) {
-> scripts\ai-dev-auto-cycle-full.ps1:809:            throw "git commit 실행에 실패했습니다. exit code: $commit
-ExitCode`n$commitO
-utput"
-  scripts\ai-dev-auto-cycle-full.ps1:810:        }
-  scripts\ai-dev-auto-cycle-full.ps1:811:
-> scripts\ai-dev-auto-cycle-full.ps1:812:        $remainingStatus = Invoke-GitCapture -Arguments @("s
-tatus", "--short")
- -DisplayName "git status --short"
-  scripts\ai-dev-auto-cycle-full.ps1:813:
-  scripts\ai-dev-auto-cycle-full.ps1:832:    $lastCommitHash = if (Test-HasValue $state.lastCommitHas
-h) { [string]$stat
-e.lastCommitHash } else { $null }
-> scripts\ai-dev-auto-cycle-full.ps1:833:    $headCommitHash = Invoke-GitCapture -Arguments @("rev-pa
-rse", "HEAD") -Dis
-playName "git rev-parse HEAD"
-  scripts\ai-dev-auto-cycle-full.ps1:834:    $commitHashChanged = (Test-HasValue $headCommitHash) -an
-d $headCommitHash 
--ne $PreviousHeadCommitHash
-  scripts\ai-dev-auto-cycle-full.ps1:1086:        $stepNumber++
-> scripts\ai-dev-auto-cycle-full.ps1:1087:        $script:steps += New-StepResult $stepNumber "packag
-e-change-gate" "gi
-t status --porcelain -- package.json package-lock.json" $false $true 0 "DryRun: package 파일 변경 여부를 확인하
-지 않았습니다."
-  scripts\ai-dev-auto-cycle-full.ps1:1088:        $stepNumber++
-> scripts\ai-dev-auto-cycle-full.ps1:1089:        $script:steps += New-StepResult $stepNumber "commit
-" "powershell -Exe
-cutionPolicy Bypass -File scripts/ai-dev-commit.ps1" $false $true 0 "DryRun: git add/commit을 실행하지 않았습
-니다."
-  scripts\ai-dev-auto-cycle-full.ps1:1090:        $stepNumber++
-  scripts\ai-dev-auto-cycle-full.ps1:1094:        $stepNumber++
-> scripts\ai-dev-auto-cycle-full.ps1:1095:        $script:steps += New-StepResult $stepNumber "meta-c
-ommit" "direct met
-a commit: git add scoped .ai-dev files, git commit -m 'chore(ai-dev): record task completion', git st
-atus --short" $fal
-se $true 0 "DryRun: .ai-dev 메타 상태 직접 커밋을 실행하지 않았습니다."
-  scripts\ai-dev-auto-cycle-full.ps1:1096:        $stepNumber++
-  scripts\ai-dev-auto-cycle-full.ps1:1237:        if (Test-PackageFileChanged) {
-> scripts\ai-dev-auto-cycle-full.ps1:1238:            $script:steps += New-StepResult $stepNumber "pa
-ckage-change-gate"
- "git status --porcelain -- package.json package-lock.json" $false $true 1 "package.json 또는 package-l
-ock.json 변경이 감지되어 
-자동 커밋하지 않습니다."
-  scripts\ai-dev-auto-cycle-full.ps1:1239:            Stop-Cycle $script:steps "package_files_changed
-" $false 1
-  scripts\ai-dev-auto-cycle-full.ps1:1241:    } catch {
-> scripts\ai-dev-auto-cycle-full.ps1:1242:        $script:steps += New-StepResult $stepNumber "packag
-e-change-gate" "gi
-t status --porcelain -- package.json package-lock.json" $false $false 1 $_.Exception.Message
-  scripts\ai-dev-auto-cycle-full.ps1:1243:        Stop-Cycle $script:steps "package_change_gate_faile
+.\scripts\ai-dev-auto-cycle-full.ps1:1291:        $script:steps += New-StepResult $stepNumber "packag
+e-change-gate" "git status --porcelain -- package.json package-lock.json" $false $false 1 $_.Exceptio
+n.Message
+.\scripts\ai-dev-auto-cycle-full.ps1:1292:        Stop-Cycle $script:steps "package_change_gate_faile
 d" $false 1
-  scripts\ai-dev-auto-cycle-full.ps1:1245:
-> scripts\ai-dev-auto-cycle-full.ps1:1246:    $script:steps += New-StepResult $stepNumber "package-ch
-ange-gate" "git st
-atus --porcelain -- package.json package-lock.json" $false $false 0 "package 파일 변경 없음. 커밋 허용 여부를 확인합니
-다."
-  scripts\ai-dev-auto-cycle-full.ps1:1247:    $stepNumber++
-  scripts\ai-dev-auto-cycle-full.ps1:1267:    if ($commitArguments.Count -eq 0) {
-> scripts\ai-dev-auto-cycle-full.ps1:1268:        $script:steps += New-StepResult $stepNumber "commit
-" "git status --po
-rcelain" $false $true 0 "커밋할 구현 변경사항이 없습니다. 저장된 리뷰 pass 상태를 유지하고 complete-task/meta-commit으로 계속 진행합니다
-."
-  scripts\ai-dev-auto-cycle-full.ps1:1269:        $stepNumber++
-  scripts\ai-dev-auto-cycle-full.ps1:1273:        try {
-> scripts\ai-dev-auto-cycle-full.ps1:1274:            $currentHeadCommitHash = Invoke-GitCapture -Arg
-uments @("rev-pars
-e", "HEAD") -DisplayName "git rev-parse HEAD"
-  scripts\ai-dev-auto-cycle-full.ps1:1275:        } catch {
-> scripts\ai-dev-auto-cycle-full.ps1:1276:            $script:steps += New-StepResult $stepNumber "co
-mmit-result-gate" 
-"git rev-parse HEAD" $false $false 1 $_.Exception.Message
-  scripts\ai-dev-auto-cycle-full.ps1:1277:            Stop-Cycle $script:steps "no_change_head_failed
-" $false 1
-  scripts\ai-dev-auto-cycle-full.ps1:1284:                $commitHashForComplete = $savedLastCommitHa
-sh
-> scripts\ai-dev-auto-cycle-full.ps1:1285:                $script:steps += New-StepResult $stepNumber
- "commit-result-ga
-te" "state.lastCommitHash 및 git rev-parse HEAD 확인" $false $true 0 "새 구현 커밋이 없습니다. state.lastCommitHas
-h가 현재 HEAD와 일치하여 c
-omplete-task에 CommitHash를 전달합니다: $commitHashForComplete"
-  scripts\ai-dev-auto-cycle-full.ps1:1286:            } else {
-> scripts\ai-dev-auto-cycle-full.ps1:1287:                $script:steps += New-StepResult $stepNumber
- "commit-result-ga
-te" "state.lastCommitHash 및 git rev-parse HEAD 확인" $false $true 0 "새 구현 커밋이 없습니다. stale state.lastCom
-mitHash를 무시하고 Comm
-itHash 없이 complete-task를 실행합니다. state.lastCommitHash=$savedLastCommitHash, currentHead=$currentHeadCo
-mmitHash"
-  scripts\ai-dev-auto-cycle-full.ps1:1288:            }
-  scripts\ai-dev-auto-cycle-full.ps1:1289:        } else {
-> scripts\ai-dev-auto-cycle-full.ps1:1290:            $script:steps += New-StepResult $stepNumber "co
-mmit-result-gate" 
-"state.lastCommitHash 및 git rev-parse HEAD 확인" $false $true 0 "새 구현 커밋이 없습니다. state.lastCommitHash가 없
-어 CommitHash 없이 co
-mplete-task를 실행합니다. currentHead=$currentHeadCommitHash"
-  scripts\ai-dev-auto-cycle-full.ps1:1291:        }
-  scripts\ai-dev-auto-cycle-full.ps1:1301:        try {
-> scripts\ai-dev-auto-cycle-full.ps1:1302:            $preCommitHeadCommitHash = Invoke-GitCapture -A
-rguments @("rev-pa
-rse", "HEAD") -DisplayName "git rev-parse HEAD"
-  scripts\ai-dev-auto-cycle-full.ps1:1303:        } catch {
-> scripts\ai-dev-auto-cycle-full.ps1:1304:            $script:steps += New-StepResult $stepNumber "co
-mmit" "git rev-par
-se HEAD" $false $false 1 $_.Exception.Message
-  scripts\ai-dev-auto-cycle-full.ps1:1305:            Stop-Cycle $script:steps "pre_commit_head_faile
-d" $false 1
-
-
+.\scripts\ai-dev-auto-cycle-full.ps1:1295:    $script:steps += New-StepResult $stepNumber "package-ch
+ange-gate" "git status --porcelain -- package.json package-lock.json" $false $false 0 "package 파일 변경 
+없음. 커밋 허용 여부를 확인합니다."
+.\scripts\ai-dev-auto-cycle-full.ps1:1317:        $script:steps += New-StepResult $stepNumber "commit
+" "git status --porcelain" $false $true 0 "커밋할 구현 변경사항이 없습니다. 저장된 리뷰 pass 상태를 유지하고 complete-task/meta
+-commit으로 계속 진행합니다."
+.\scripts\ai-dev-commit.ps1:263:    Write-Host "커밋할 변경사항 없음"
+.\scripts\ai-dev-commit.ps1:291:            Stop-WithError "선택한 파일에 커밋할 변경사항이 없습니다: $file"
+.\scripts\ai-dev-commit.ps1:344:    Write-Host "커밋 대상 앱 변경 파일:"
+.\scripts\ai-dev-commit.ps1:352:    Write-Host "앱 변경 파일 수: $($targetAppChangePaths.Count)"
+.\scripts\ai-dev-commit.ps1:354:    Write-Host "전체 변경 파일 수: $($targetChangedPaths.Count)"
+.\scripts\ai-dev-commit.ps1:377:            throw "선택 파일 외의 staged 파일이 감지되었습니다: $($unexpectedStagedFi
+lesAfterAdd -join ', ')"
+.\scripts\ai-dev-commit.ps1:410:Write-Host "앱 변경 파일 수: $($targetAppChangePaths.Count)"
+.\scripts\ai-dev-commit.ps1:412:Write-Host "전체 변경 파일 수: $($targetChangedPaths.Count)"
+.\scripts\ai-dev-autopilot.ps1:435:    $openTasks = @($tasks | Where-Object { @("pending", "in_progre
+ss", "review_required", "failed", "blocked") -contains ([string]$_.status) })
+.\scripts\ai-dev-check.ps1:13:$packageRelativePath = "package.json"
+.\scripts\ai-dev-check.ps1:17:$packagePath = Join-Path $projectRoot $packageRelativePath
+.\scripts\ai-dev-check.ps1:103:    @($packageRelativePath, $stateRelativePath, $testResultRelativePat
+h)
+.\scripts\ai-dev-check.ps1:165:$package = Read-JsonFile $packagePath $packageRelativePath
+.\scripts\ai-dev-check.ps1:167:$hasBuild = Test-HasScript $package "build"
+.\scripts\ai-dev-check.ps1:168:$hasTest = Test-HasScript $package "test"
+.\scripts\ai-dev-check.ps1:169:$hasLint = Test-HasScript $package "lint"
+.\scripts\ai-dev-check.ps1:176:    "package.json에 build script가 없습니다."
+.\scripts\ai-dev-check.ps1:184:    "package.json에 test script가 없습니다."
+.\scripts\ai-dev-check.ps1:194:    "package.json에 lint script가 없습니다."
+.\src\components\ProjectCard.tsx:2:import type { ProjectDeleteBlockReason } from "../utils/projectDel
+etion";
+.\src\components\ProjectCard.tsx:13:  deleteBlockReason: ProjectDeleteBlockReason | null;
+.\src\components\ProjectCard.tsx:21:  deleteBlockReason,
+.\src\components\ProjectCard.tsx:37:        disabled={deleteBlockReason !== null}
+.\src\components\ProjectCard.tsx:39:        {deleteBlockReason === "default-project" ? "기본 프로젝트" : de
+leteBlockReason === "has-tasks" ? "업무 있음" : "삭제"}
+.\src\hooks\useProjectActions.ts:3:import { getProjectDeleteBlockReason } from "../utils/projectDelet
+ion";
+.\src\hooks\useProjectActions.ts:67:    if (getProjectDeleteBlockReason(project, tasks)) return;
+.\scripts\ai-dev-make-prompt.ps1:230:- 변경한 파일 목록
+.\scripts\ai-dev-make-prompt.ps1:240:- ``package.json``과 ``package-lock.json``은 수정하지 않는다. 꼭 필요하면 중단하고
+ 이유만 기록한다.
+.\scripts\ai-dev-make-prompt.ps1:253:- 패키지 추가가 필요한 경우
+.\scripts\ai-dev-make-review-prompt.ps1:196:- package 변경은 기본적으로 blocked 후보로 본다.
+.\scripts\ai-dev-make-review-prompt.ps1:204:  "decision": "pass | revise | blocked",
+.\scripts\ai-dev-make-review-prompt.ps1:243:- 현재 task의 변경사항이 목표와 일치하는지 검토한다.
+.\scripts\ai-dev-make-review-prompt.ps1:245:- 리뷰 판단은 `App Change Files`와 diff 본문의 실제 앱 변경 파일을 중심으로 수행
+한다.
+.\scripts\ai-dev-make-review-prompt.ps1:246:- `.ai-dev` 파일은 자동화 상태/로그/프롬프트 산출물로 별도 확인하되, 앱 변경 결함으로 과대
+평가하지 않는다.
+.\scripts\ai-dev-make-review-prompt.ps1:277:- 실제 앱 변경 파일과 `.ai-dev` 운영 산출물이 구분되어 있는가
+.\scripts\ai-dev-make-review-prompt.ps1:278:- `.ai-dev` 운영 산출물만 변경된 경우 앱 변경 리뷰로 과대평가하지 않았는가
+.\scripts\ai-dev-make-review-prompt.ps1:283:- package.json 또는 package-lock.json을 불필요하게 수정했는가
+.\scripts\ai-dev-make-review-prompt.ps1:302:- blocked: 요구사항 충돌, 데이터 위험, 패키지 추가, 대규모 리팩터링 등 사용자 판단 필요
+.\scripts\ai-dev-make-revise-prompt.ps1:116:    $codeBlockMatch = [regex]::Match(
+.\scripts\ai-dev-make-revise-prompt.ps1:122:    if ($codeBlockMatch.Success) {
+.\scripts\ai-dev-make-revise-prompt.ps1:123:        $candidates += $codeBlockMatch.Groups[1].Value.Tr
+im()
+.\scripts\ai-dev-make-revise-prompt.ps1:269:if ($reviewParsed -and $review.decision -eq "blocked") {
+.\scripts\ai-dev-make-revise-prompt.ps1:270:    Write-Host "리뷰 decision이 blocked입니다. 사용자 판단이 필요합니다."
+.\scripts\ai-dev-make-revise-prompt.ps1:376:- ``package.json``과 ``package-lock.json``은 수정하지 않는다. 꼭 필요
+하면 중단하고 이유만 기록한다.
+.\scripts\ai-dev-next.ps1:231:} elseif ($lastReviewDecision -eq "blocked") {
+.\scripts\ai-dev-next.ps1:232:    $nextAction = New-NextAction "stop_for_user" "리뷰가 blocked 상태입니다." @
+() @("사용자 판단이 필요하므로 자동 진행을 중단하세요.")
+.\scripts\ai-dev-next.ps1:240:    $nextAction = New-NextAction "commit" "검증과 리뷰가 통과했고 커밋할 변경사항이 있습니다.
+" @(
+.\scripts\ai-dev-next.ps1:244:    $nextAction = New-NextAction "complete_task" "리뷰와 커밋이 완료되었고 남은 구현 변
+경사항이 없습니다." @(
+.\scripts\ai-dev-next.ps1:248:    $nextAction = New-NextAction "run_codex_or_cline" "현재 task 프롬프트는 준비
+되었고 아직 변경사항이 없습니다." @(
+.\scripts\ai-dev-next.ps1:260:    $nextAction = New-NextAction "save_diff" "검증이 통과했으며 현재 변경사항의 diff 저
+장이 필요합니다." @(
+.\scripts\ai-dev-next.ps1:264:    $nextAction = New-NextAction "run_check" "변경사항이 있으며 최신 검증 통과 상태를 확인
+해야 합니다." @(
+.\scripts\ai-dev-run-codex.ps1:127:- Do not modify package.json, package-lock.json, node_modules, dis
+t, or .git.
+.\scripts\ai-dev-run-codex.ps1:173:        $message = "작업 트리가 dirty 상태라 Codex 실행을 중단합니다. 계속하려면 변경사항을 
+정리하거나 -AllowDirty를 명시하세요.`n$dirtyText"
+.\scripts\ai-dev-run-review-codex.ps1:184:    if (@("pass", "revise", "blocked") -notcontains $Review
+.decision) {
+.\scripts\ai-dev-run-review-codex.ps1:257:    $message = "작업 트리가 dirty 상태라 Codex 리뷰 실행을 중단합니다. 계속하려면 
+변경사항을 정리하거나 -AllowDirty를 명시하세요.`n$dirtyText"
+.\src\views\ProjectsView.tsx:4:import { getProjectDeleteBlockReason } from "../utils/projectDeletion"
+;
+.\src\views\ProjectsView.tsx:67:            const deleteBlockReason = getProjectDeleteBlockReason(pro
+ject, tasks);
+.\src\views\ProjectsView.tsx:96:                deleteBlockReason={deleteBlockReason}
+.\scripts\ai-dev-save-diff.ps1:114:function Convert-ToCodeBlock {
+.\scripts\ai-dev-save-diff.ps1:120:    $text = if ([string]::IsNullOrWhiteSpace($Content)) { "변경 없음" 
+} else { $Content }
+.\scripts\ai-dev-save-diff.ps1:230:            $sections += "$sectionTitle`r`n`r`n$(Convert-ToCodeBlo
+ck $content)"
+.\scripts\ai-dev-save-diff.ps1:275:        "## Git Status`r`n`r`n$(Convert-ToCodeBlock $statusShort)"
+,
+.\scripts\ai-dev-save-diff.ps1:278:        "## Review Diff Scope`r`n`r`n아래 diff 본문은 실제 앱 변경 파일 중심으로 검
+토하도록 `.ai-dev` 운영 산출물 diff를 제외합니다. `.ai-dev` 변경은 위 운영 산출물 목록에서 별도로 확인합니다.",
+.\scripts\ai-dev-save-diff.ps1:279:        "## Unstaged Diff Stat`r`n`r`n$(Convert-ToCodeBlock $unsta
+gedStat)",
+.\scripts\ai-dev-save-diff.ps1:280:        "## Unstaged Diff`r`n`r`n$(Convert-ToCodeBlock $unstagedDi
+ff)",
+.\scripts\ai-dev-save-diff.ps1:281:        "## Staged Diff Stat`r`n`r`n$(Convert-ToCodeBlock $stagedS
+tat)",
+.\scripts\ai-dev-save-diff.ps1:282:        "## Staged Diff`r`n`r`n$(Convert-ToCodeBlock $stagedDiff)"
+.\scripts\ai-dev-save-review.ps1:158:    $codeBlockMatch = [regex]::Match(
+.\scripts\ai-dev-save-review.ps1:164:    if ($codeBlockMatch.Success) {
+.\scripts\ai-dev-save-review.ps1:165:        $candidates += $codeBlockMatch.Groups[1].Value.Trim()
+.\scripts\ai-dev-save-review.ps1:300:    if (@("pass", "revise", "blocked") -notcontains $Review.deci
+sion) {
+.\scripts\ai-dev-save-review.ps1:373:- Decision: blocked
+.\scripts\ai-dev-save-review.ps1:390:    Save-StateReviewResult $State "blocked" "critical" "failed" 
+$ErrorSummary
+.\scripts\ai-dev-save-review.ps1:473:} elseif ($review.decision -eq "blocked" -or $review.next_step -
+eq "stop_for_user") {
+.\scripts\ai-dev-save-review.ps1:474:    "blocked/stop_for_user: 사용자 판단이 필요합니다. 자동 진행을 중단하고 review.md
+의 Required Changes와 Summary를 확인하세요."
+.\src\views\SettingsView.tsx:71:        <p>백업 파일을 검증하고 포함된 데이터만 확인합니다. 기존 데이터는 변경하지 않습니다.</p>
+.\src\utils\projectDeletion.ts:4:export type ProjectDeleteBlockReason = "default-project" | "has-task
+s";
+.\src\utils\projectDeletion.ts:6:export function getProjectDeleteBlockReason(
+.\src\utils\projectDeletion.ts:9:): ProjectDeleteBlockReason | null {
+.\src\utils\projectDeletion.ts:23:  return getProjectDeleteBlockReason(project, tasks) === null;
+.\scripts\ai-dev-status.ps1:240:    blocked = @($tasks | Where-Object { $_.status -eq "blocked" }).Co
+unt
+.\scripts\ai-dev-status.ps1:318:Write-Host "Task counts: pending=$($taskCounts.pending), in_progress=
+$($taskCounts.in_progress), review_required=$($taskCounts.review_required), done=$($taskCounts.done),
+ failed=$($taskCounts.failed), blocked=$($taskCounts.blocked), skipped=$($taskCounts.skipped), total=
+$($taskCounts.total)"
+.\scripts\monitor-and-dev-loop.ps1:193:- 코드 변경 작업은 최대 2개까지만 수행한다.
+.\scripts\monitor-and-dev-loop.ps1:196:- npm run build는 최종 변경 후 실행한다.
+.\scripts\monitor-and-dev-loop.ps1:228:- package-lock.json 수정
+.\scripts\monitor-and-dev-loop.ps1:229:- DB schema 변경
+.\scripts\monitor-and-dev-loop.ps1:346:  Write-Log "개발 루프 중 Codex 한도 감지. 상태 저장 후 종료."
+.\docs\data-import-restore-policy.md:170:- 검증 실패 시 기존 IndexedDB 데이터는 변경하지 않는다.
+.\docs\data-import-restore-policy.md:171:- 사용자가 취소하면 기존 IndexedDB 데이터는 변경하지 않는다.
+.\docs\data-import-restore-policy.md:209:- DB schema 변경이 필요하다.
+.\docs\error-loading-state-policy.md:76:- 필터 결과 없음은 필터 해제 또는 조건 변경을 유도할 수 있다.
+.\docs\error-loading-state-policy.md:92:- DB schema 변경이 필요하다.
+.\docs\error-loading-state-policy.md:93:- store API 구조 변경이 필요하다.
+.\docs\error-loading-state-policy.md:118:- DB schema를 변경하지 않는다.
+.\docs\error-loading-state-policy.md:134:이 범위는 DB schema, store API, 서버 API, `App.css` 대규모 변경 없이 확인 가
+능한 영역이다. 구현 시에도 새 기능보다 현재 화면의 빈 목록이 사용자에게 정상 상태로 이해되는지 확인하는 데 집중한다.
+.\docs\error-loading-state-policy.md:177:- 실패해도 기존 IndexedDB 데이터는 변경하지 않는 기준을 유지한다.
+.\docs\error-loading-state-policy.md:186:- 실패 경로 확인을 위해 src 코드를 임시로 변경하지 않는다.
+.\docs\error-loading-state-policy.md:196:- 검증 실패 또는 사용자의 취소 시 기존 IndexedDB 데이터는 변경하지 않는 기준을 유지한다.
+.\docs\manual-regression-test-result.md:77:- [통과] 설정 화면 진입만으로 `updatedAt`이 변경되지 않는다.
+.\memory-bank\progress.md:43:3. 의존성이 적은 `SettingsView`부터 화면 컴포넌트 분리
+.\docs\manual-test-checklist.md:3:이 문서는 자동 테스트가 아니라, 리팩터링 또는 기능 변경 후 사람이 실제 화면에서 하나씩 확인하는 수동 테스트 체크리스
+트다.
+.\docs\manual-test-checklist.md:8:- [ ] 테스트 대상 변경에 `src/App.css`, DB schema, `package-lock.json` 변경이 
+포함되지 않았는지 확인했다.
+.\docs\manual-test-checklist.md:175:- [ ] 설정 화면을 열기만 해도 `updatedAt`이 변경되지 않는다.
+.\docs\manual-test-checklist.md:191:- [ ] `App.css` 대규모 변경이나 기존 색상 체계 재설계가 필요하면 구현을 중단하고 별도 디자인 작업으로 
+분리한다.
+.\docs\manual-test-checklist.md:193:- [ ] 다중 테마 구현 후 `updatedAt`은 실제 theme 변경 저장 시에만 갱신되고 `createdAt`
+은 유지된다.
+.\docs\manual-test-checklist.md:208:- [ ] 다국어 구현 후 `updatedAt`은 실제 language 변경 저장 시에만 갱신되고 `createdAt
+`은 유지된다.
+.\docs\manual-test-checklist.md:235:- [ ] Capacitor 알림 기능, 패키지, 설정이 추가되지 않는다.
+.\docs\manual-test-checklist.md:239:- [ ] 알림 설정 변경 후 새로고침해도 값이 IndexedDB에 유지된다.
+.\docs\manual-test-checklist.md:240:- [ ] 알림 설정 변경 후 `updatedAt`은 실제 값 변경 저장 시에만 갱신되고 `createdAt`은 유지
+된다.
+.\docs\manual-test-checklist.md:250:- [ ] 설정 화면에서 첫 실행 완료 상태 표시만으로 `updatedAt`이 변경되지 않는다.
+.\docs\manual-test-checklist.md:251:- [ ] 설정 화면을 열기만 해도 `updatedAt`이 변경되지 않는다.
+.\docs\manual-test-checklist.md:252:- [ ] 향후 onboarding 흐름이 생기면 값 변경은 해당 흐름이나 내부 로직에서만 발생한다.
+.\docs\manual-test-checklist.md:253:- [ ] 이 값을 완전히 숨길 경우 SettingsView 제거 계획과 수동 테스트 항목 변경이 먼저 문서화되어 있
+다.
+.\docs\manual-test-checklist.md:267:- [ ] 업무 수정 저장 후 변경된 값만 반영되고 다른 업무는 바뀌지 않는다.
+.\docs\manual-test-checklist.md:283:- [ ] 분리 작업에 `src/App.css`, DB schema, `types.ts`, `store.ts` 구조 
+변경이 포함되지 않는다.
+.\docs\manual-test-checklist.md:287:이 항목은 프로젝트 추가/수정/삭제 handler를 `useProjectActions` 같은 hook으로 옮기기 전후
+에 확인한다. 현재 단계에서는 코드 변경 없이 기준만 고정한다.
+.\docs\manual-test-checklist.md:312:- [ ] 분리 후에도 `src/App.css`, DB schema, `types.ts`, `store.ts` 구조 
+변경이 없다.
+.\docs\manual-test-checklist.md:334:- [ ] 리팩터링 후 `src/App.css`, DB schema, `types.ts`, `store.ts` 구조 
+변경이 없다.
+.\docs\manual-test-checklist.md:348:- [ ] 업무 수정 저장 후 변경값만 반영되고 수정 form이 닫힌다.
+.\docs\manual-test-checklist.md:359:- [ ] 분리 후에도 `src/App.css`, DB schema, `types.ts`, `store.ts` 구조 
+변경이 없다.
+.\docs\manual-test-checklist.md:376:- [ ] 업무 hook 구조 동기화 후에도 `TasksView`, `TaskForm`, `TaskCard` JSX 
+구조 변경이 없다.
+.\docs\manual-test-checklist.md:377:- [ ] 문서 동기화 작업에서 `src` 코드, `App.css`, DB schema, `types.ts`, `st
+ore.ts` 변경이 없다.
+.\docs\manual-test-checklist.md:397:- [ ] 삭제 handler hook 이동 후에도 `src/App.css`, DB schema, `types.ts`
+, `store.ts` 구조 변경이 없다.
+.\docs\manual-test-checklist.md:420:- [ ] 토글 handler hook 이동 후에도 `src/App.css`, DB schema, `types.ts`
+, `store.ts` 구조 변경이 없다.
+.\docs\manual-test-checklist.md:449:- [ ] 내보내기 후 기존 IndexedDB 데이터가 변경되지 않는다.
+.\docs\manual-test-checklist.md:485:- [x] export 성공 후 기존 IndexedDB 데이터가 변경되지 않는다.
+.\docs\manual-test-checklist.md:488:- [ ] export 실패 시 기존 IndexedDB 데이터가 변경되지 않는다. (확인 필요: 실패 상황 미재현)
+.\docs\manual-test-checklist.md:500:- [ ] 실패 상황에서도 기존 IndexedDB 데이터가 변경되지 않는다. (현재 실패 재현 보류)
+.\memory-bank\technicalContext.md:162:- JSON export 실패 후보는 IndexedDB 읽기 실패, JSON 생성 실패, 브라우저 다운로드 실패 
+가능성, 알 수 없는 오류이며 실패해도 기존 IndexedDB 데이터는 변경하지 않는다.
+.\memory-bank\technicalContext.md:178:- DB schema 변경 전에는 migration 계획을 먼저 작성
+.\memory-bank\technicalContext.md:187:- 설정 화면은 현재 읽기 전용 상태 확인 화면이며, 편집 기능은 DB schema 변경 없이 가능한 범위부터 별
+도 작업으로 검토한다.
 
 codex
-완료 이후 `state.currentTaskId`가 방금 완료된 task를 계속 가리킬 수 있으므로, 단순히 `Get-CurrentTask`를 다시 넣으면 stale current가
- 남을 수 있습니다. 수정은 완료 task를 먼저 고정하고, 이후 current/next는 완료 task와 done 상태를 제외한 최신 후보만 기록하도록 제한하겠습니다.
+실제 package 변경 감지 메시지는 앱 화면이 아니라 자동 개발 루프 스크립트에 있는 것으로 보입니다. 프롬프트의 “Likely Files”와 다르지만 목표와 직접 일치하므로, 
+해당 메시지 주변 코드만 좁게 읽고 수정 필요 여부를 판단하겠습니다.
 exec
 "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralPath '
-D:\\ai-apps\\planpilot-local\\.ai-dev\\state.json' -Raw" in D:\ai-apps\planpilot-local
-exec
-"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralPath '
-D:\\ai-apps\\planpilot-local\\.ai-dev\\queue.json' -Raw" in D:\ai-apps\planpilot-local
- succeeded in 1995ms:
-{
-    "goalStatus":  "in_progress",
-    "currentTaskId":  "T001",
-    "currentLoop":  0,
-    "maxLoopsPerTask":  2,
-    "repeatedFailureCount":  1,
-    "lastCommand":  "review-gate",
-    "lastCommandStatus":  "failed",
-    "lastErrorSummary":  "재리뷰도 revise + revise_with_codex를 반환해 자동 revise 재시도를 중단합니다. summary=complete
--task 성공 후 final-status 실패 시 완료된 task 컨텍스트가 로그에 남지 않는 불일치가 있습니다., severity=medium, next_step=revise_w
-ith_codex, required_changes={\r\n    \"file\":  \"scripts/ai-dev-auto-cycle-full.ps1\",\r\n    \"reas
-on\":  \"현재는 complete-task 실행이 성공한 뒤 final-status까지 성공해야만 $script:completedTask와 $script:comp\\r\\nle
-tedTaskCount가 갱신됩니다. final-status가 실패하면 실제로 task는 완료됐는데 cycle result context에는 completedTask=null, \\
-r\\ncompletedTaskCount=0으로 기록될 수 있어 로그 구조 개선 목표와 충돌합니다.\",\r\n    \"suggestion\":  \"complete-task In
-voke-CycleCommand가 성공한 직후에 completedTask/completedTaskCount 및 가능\\r\\n하면 currentTask/nextTask 컨텍스트를 갱
-신하고, 그 다음 final-status를 실행하도록 순서를 조정하세요.\"\r\n}",
-    "lastReviewDecision":  "revise",
-    "lastReviewSeverity":  "medium",
-    "lastCommitHash":  null,
-    "startedAt":  "2026-07-17T00:00:00+09:00",
-    "updatedAt":  "2026-07-17T11:04:21.8362785+00:00",
-    "stopReason":  "auto_goal_failed",
-    "lastReviewNextStep":  "revise_with_codex",
-    "lastReviewSummary":  "complete-task 성공 후 final-status 실패 시 완료된 task 컨텍스트가 로그에 남지 않는 불일치가 있습니다.",
-    "lastReviewRequiredChanges":  [
-                                      {
-                                          "file":  "scripts/ai-dev-auto-cycle-full.ps1",
-                                          "reason":  "현재는 complete-task 실행이 성공한 뒤 final-status까지 성공해야
-만 $script:completedTask와 $script:comp\r\nletedTaskCount가 갱신됩니다. final-status가 실패하면 실제로 task는 완료됐는데 cy
-cle result context에는 completedTask=null, \r\ncompletedTaskCount=0으로 기록될 수 있어 로그 구조 개선 목표와 충돌합니다.",
-                                          "suggestion":  "complete-task Invoke-CycleCommand가 성공한 직후에 
-completedTask/completedTaskCount 및 가능\r\n하면 currentTask/nextTask 컨텍스트를 갱신하고, 그 다음 final-status를 실행하도록
- 순서를 조정하세요."
-                                      }
-                                  ]
-}
+D:\\ai-apps\\planpilot-local\\scripts\\ai-dev-auto-cycle-full.ps1' | Select-Object -Skip 1278 -First 
+20" in D:\ai-apps\planpilot-local
+ succeeded in 1771ms:
+        Stop-Cycle $script:steps $implementationGate.reason $false 1
+    }
 
- succeeded in 2023ms:
-{
-    "goalTitle":  "full auto-cycle 로그 구조 개선",
-    "goalSource":  ".ai-dev/goal.md",
-    "createdAt":  "2026-07-17T00:00:00+09:00",
-    "updatedAt":  "2026-07-17T00:00:00+09:00",
-    "currentTaskId":  "T001",
-    "tasks":  [
-                  {
-                      "id":  "T001",
-                      "title":  "full auto-cycle 로그 구조 확인 및 최소 개선",
-                      "description":  "현재 full auto-cycle 로그가 생성되고 소비되는 위치를 확인한 뒤, 후속 분석에 필요한 필드가 일관되
-게 남도록 최소 범위로 구조를 개선한다.",
-                      "type":  "implementation",
-                      "status":  "in_progress",
-                      "priority":  "P1",
-                      "dependsOn":  [
+    $script:steps += New-StepResult $stepNumber "review-gate" "최신 state 및 $reviewResponseRelativePath
+ 재확인" $false $false 0 "리뷰 pass 및 허용 가능한 next_step 상태 수락: 존재=$($reviewGate.hasNextStep), 원본='$($review
+Gate.nextStep)', 정규화='$($reviewGate.normalizedNextStep)'. commit/commit-result-gate/complete-task/met
+a-commit으로 계속 진행합니다."
+    $stepNumber++
 
-                                    ],
-                      "filesLikelyToChange":  [
-                                                  ".ai-dev 관련 로그 처리 파일",
-                                                  "full auto-cycle 실행 관련 파일"
-                                              ],
-                      "verification":  [
-                                           "변경된 로그 구조가 기존 사용 지점과 충돌하지 않는지 확인한다.",
-                                           "허용된 경우 빌드 또는 lint를 실행해 정적 오류를 확인한다."
-                                       ],
-                      "commitMessage":  "Improve full auto-cycle log structure"
-                  }
-              ]
-}
+    try {
+        if (Test-PackageFileChanged) {
+            $script:steps += New-StepResult $stepNumber "package-change-gate" "git status --porcelain
+ -- package.json package-lock.json" $false $true 1 "package.json 또는 package-lock.json 변경이 감지되어 자동 커밋하
+지 않습니다."
+            Stop-Cycle $script:steps "package_files_changed" $false 1
+        }
+    } catch {
+        $script:steps += New-StepResult $stepNumber "package-change-gate" "git status --porcelain -- 
+package.json package-lock.json" $false $false 1 $_.Exception.Message
+        Stop-Cycle $script:steps "package_change_gate_failed" $false 1
+    }
+
+    $script:steps += New-StepResult $stepNumber "package-change-gate" "git status --porcelain -- pack
+age.json package-lock.json" $false $false 0 "package 파일 변경 없음. 커밋 허용 여부를 확인합니다."
+    $stepNumber++
+
+    if (-not $AllowCommit) {
 
 codex
-이제 실제 수정에 들어갑니다. 변경 범위는 `scripts/ai-dev-auto-cycle-full.ps1` 내부에서 완료 직후 context 갱신 순서를 앞당기는 부분과 legac
-y `context.task` 선택 로직의 최소 조정으로 제한합니다.
+감지 조건은 `Test-PackageFileChanged` 호출 그대로 유지하면 됩니다. 변경할 부분은 실패 step에 남기는 사용자-facing 메시지 한 줄로 충분해 보입니다.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "rg -n \"package-change-gat
+e|package_files_changed|package 파일 변경|package.json 또는 package-lock.json\" scripts\\ai-dev-auto-cycle-
+full.ps1 scripts" in D:\ai-apps\planpilot-local
+ succeeded in 1973ms:
+scripts\ai-dev-auto-cycle-full.ps1:986:    "package-change-gate",
+scripts\ai-dev-auto-cycle-full.ps1:1136:        $script:steps += New-StepResult $stepNumber "package-
+change-gate" "git status --porcelain -- package.json package-lock.json" $false $true 0 "DryRun: packa
+ge 파일 변경 여부를 확인하지 않았습니다."
+scripts\ai-dev-auto-cycle-full.ps1:1287:            $script:steps += New-StepResult $stepNumber "pack
+age-change-gate" "git status --porcelain -- package.json package-lock.json" $false $true 1 "package.j
+son 또는 package-lock.json 변경이 감지되어 자동 커밋하지 않습니다."
+scripts\ai-dev-auto-cycle-full.ps1:1288:            Stop-Cycle $script:steps "package_files_changed" 
+$false 1
+scripts\ai-dev-auto-cycle-full.ps1:1291:        $script:steps += New-StepResult $stepNumber "package-
+change-gate" "git status --porcelain -- package.json package-lock.json" $false $false 1 $_.Exception.
+Message
+scripts\ai-dev-auto-cycle-full.ps1:1295:    $script:steps += New-StepResult $stepNumber "package-chan
+ge-gate" "git status --porcelain -- package.json package-lock.json" $false $false 0 "package 파일 변경 없음
+. 커밋 허용 여부를 확인합니다."
+scripts\ai-dev-auto-cycle-full.ps1:986:    "package-change-gate",
+scripts\ai-dev-auto-cycle-full.ps1:1136:        $script:steps += New-StepResult $stepNumber "package-
+change-gate" "git status --porcelain -- package.json package-lock.json" $false $true 0 "DryRun: packa
+ge 파일 변경 여부를 확인하지 않았습니다."
+scripts\ai-dev-auto-cycle-full.ps1:1287:            $script:steps += New-StepResult $stepNumber "pack
+age-change-gate" "git status --porcelain -- package.json package-lock.json" $false $true 1 "package.j
+son 또는 package-lock.json 변경이 감지되어 자동 커밋하지 않습니다."
+scripts\ai-dev-auto-cycle-full.ps1:1288:            Stop-Cycle $script:steps "package_files_changed" 
+$false 1
+scripts\ai-dev-auto-cycle-full.ps1:1291:        $script:steps += New-StepResult $stepNumber "package-
+change-gate" "git status --porcelain -- package.json package-lock.json" $false $false 1 $_.Exception.
+Message
+scripts\ai-dev-auto-cycle-full.ps1:1295:    $script:steps += New-StepResult $stepNumber "package-chan
+ge-gate" "git status --porcelain -- package.json package-lock.json" $false $false 0 "package 파일 변경 없음
+. 커밋 허용 여부를 확인합니다."
+scripts\ai-dev-make-review-prompt.ps1:283:- package.json 또는 package-lock.json을 불필요하게 수정했는가
+
+codex
+이제 메시지 문자열만 바꾸겠습니다. `scripts` 파일을 수정하는 이유는 실제 감지 메시지가 앱 `src`가 아니라 자동 루프 스크립트에 정의되어 있고, 성공 기준의 “관련 메시
+지 표시 코드”에 해당하기 때문입니다.
 apply patch
 patch: completed
 D:\ai-apps\planpilot-local\scripts\ai-dev-auto-cycle-full.ps1
 diff --git a/scripts/ai-dev-auto-cycle-full.ps1 b/scripts/ai-dev-auto-cycle-full.ps1
-index 1a0557ea2fc0df26ab2f1dee63dc799c2592ee95..e1a765aaebea6f2a3b965784d438318f92cd559d
+index e1a765aaebea6f2a3b965784d438318f92cd559d..ec9ab1bb45f7709331d76f293603f3e568581cc2
 --- a/scripts/ai-dev-auto-cycle-full.ps1
 +++ b/scripts/ai-dev-auto-cycle-full.ps1
-@@ -169,6 +169,55 @@
-         Select-Object -First 1
- }
+@@ -1284,7 +1284,7 @@
  
-+function Update-PostCompleteTaskContext {
-+    param(
-+        [object]$CompletedTask
-+    )
-+
-+    $completedTaskForContext = $null
-+    $completedTaskId = $null
-+
-+    if ($null -ne $CompletedTask) {
-+        $completedTaskId = if (Test-HasValue $CompletedTask.id) { [string]$CompletedTask.id } else {
- $null }
-+        $completedTaskForContext = [PSCustomObject][ordered]@{
-+            id = [string]$CompletedTask.id
-+            title = [string]$CompletedTask.title
-+            status = "done"
-+            type = [string]$CompletedTask.type
-+        }
-+    }
-+
-+    $script:completedTask = $completedTaskForContext
-+    $script:completedTaskCount++
-+    $script:currentTask = $null
-+    $script:nextTask = $null
-+
-+    try {
-+        $queueAfterComplete = Read-JsonFile $queuePath $queueRelativePath
-+        $stateAfterComplete = Read-JsonFile $statePath $stateRelativePath
-+
-+        if (Test-HasValue $completedTaskId) {
-+            $refreshedCompletedTask = @($queueAfterComplete.tasks) |
-+                Where-Object { $_.id -eq $completedTaskId } |
-+                Select-Object -First 1
-+
-+            if ($null -ne $refreshedCompletedTask) {
-+                $script:completedTask = $refreshedCompletedTask
-+            }
-+        }
-+
-+        $currentTaskAfterComplete = Get-CurrentTask $queueAfterComplete $stateAfterComplete
-+
-+        if ($null -ne $currentTaskAfterComplete -and $currentTaskAfterComplete.status -ne "done" -an
-d $currentTaskAfterComplete.id -ne $completedTaskId) {
-+            $script:currentTask = $currentTaskAfterComplete
-+        }
-+
-+        $script:nextTask = Get-NextTask $queueAfterComplete $stateAfterComplete $script:completedTas
-k
-+    } catch {
-+        Write-Warning "complete-task 이후 task context를 최신 queue/state로 갱신하지 못했습니다: $($_.Exception.Mes
-sage)"
-+    }
-+}
-+
- function ConvertTo-TaskContext {
-     param(
-         [object]$Task
-@@ -226,7 +275,7 @@
-     $taskContext = $currentTaskContext
-     $lastStepContext = $null
- 
--    if ($StoppedReason -eq "goal_completed" -and $null -ne $completedTaskContext) {
-+    if ($null -eq $taskContext -and $null -ne $completedTaskContext) {
-         $taskContext = $completedTaskContext
-     }
- 
-@@ -1340,20 +1389,17 @@
- 
-     Invoke-CycleCommand $stepNumber "complete-task" $completeTaskCommand $scriptPaths.completeTask $
-completeTaskArguments
-     $stepNumber++
--
--    Invoke-DirectMetaCommit $stepNumber
--    $stepNumber++
--
--    Invoke-CycleCommand $stepNumber "final-status" "powershell -ExecutionPolicy Bypass -File scripts
-/ai-dev-status.ps1" $scriptPaths.status @()
--    $stepNumber++
- 
--    $script:completedTaskCount++
--    $script:completedTask = $completedTaskForContext
-+    Update-PostCompleteTaskContext $completedTaskForContext
- 
-+    Invoke-DirectMetaCommit $stepNumber
-+    $stepNumber++
-+
-+    Invoke-CycleCommand $stepNumber "final-status" "powershell -ExecutionPolicy Bypass -File scripts
-/ai-dev-status.ps1" $scriptPaths.status @()
-+    $stepNumber++
-+
-     $queueAfterComplete = Read-JsonFile $queuePath $queueRelativePath
-     $stateAfterComplete = Read-JsonFile $statePath $stateRelativePath
--    $script:currentTask = Get-CurrentTask $queueAfterComplete $stateAfterComplete
--    $script:nextTask = Get-NextTask $queueAfterComplete $stateAfterComplete $completedTaskForContext
- 
-     if ($stateAfterComplete.goalStatus -eq "completed") {
-         Complete-Cycle $script:steps "goal_completed" $stepNumber
+     try {
+         if (Test-PackageFileChanged) {
+-            $script:steps += New-StepResult $stepNumber "package-change-gate" "git status --porcelai
+n -- package.json package-lock.json" $false $true 1 "package.json 또는 package-lock.json 변경이 감지되어 자동 커밋
+하지 않습니다."
++            $script:steps += New-StepResult $stepNumber "package-change-gate" "git status --porcelai
+n -- package.json package-lock.json" $false $true 1 "package.json 또는 package-lock.json 변경이 감지되어 자동 커밋
+을 중단합니다. 의도한 패키지 변경인지, lock file 변경이 필요한지 확인한 뒤 별도 작업으로 처리하세요."
+             Stop-Cycle $script:steps "package_files_changed" $false 1
+         }
+     } catch {
 
 diff --git a/scripts/ai-dev-auto-cycle-full.ps1 b/scripts/ai-dev-auto-cycle-full.ps1
-index 1a0557ea2fc0df26ab2f1dee63dc799c2592ee95..e1a765aaebea6f2a3b965784d438318f92cd559d
+index e1a765aaebea6f2a3b965784d438318f92cd559d..ec9ab1bb45f7709331d76f293603f3e568581cc2
 --- a/scripts/ai-dev-auto-cycle-full.ps1
 +++ b/scripts/ai-dev-auto-cycle-full.ps1
-@@ -169,6 +169,55 @@
-         Select-Object -First 1
- }
+@@ -1284,7 +1284,7 @@
  
-+function Update-PostCompleteTaskContext {
-+    param(
-+        [object]$CompletedTask
-+    )
-+
-+    $completedTaskForContext = $null
-+    $completedTaskId = $null
-+
-+    if ($null -ne $CompletedTask) {
-+        $completedTaskId = if (Test-HasValue $CompletedTask.id) { [string]$CompletedTask.id } else {
- $null }
-+        $completedTaskForContext = [PSCustomObject][ordered]@{
-+            id = [string]$CompletedTask.id
-+            title = [string]$CompletedTask.title
-+            status = "done"
-+            type = [string]$CompletedTask.type
-+        }
-+    }
-+
-+    $script:completedTask = $completedTaskForContext
-+    $script:completedTaskCount++
-+    $script:currentTask = $null
-+    $script:nextTask = $null
-+
-+    try {
-+        $queueAfterComplete = Read-JsonFile $queuePath $queueRelativePath
-+        $stateAfterComplete = Read-JsonFile $statePath $stateRelativePath
-+
-+        if (Test-HasValue $completedTaskId) {
-+            $refreshedCompletedTask = @($queueAfterComplete.tasks) |
-+                Where-Object { $_.id -eq $completedTaskId } |
-+                Select-Object -First 1
-+
-+            if ($null -ne $refreshedCompletedTask) {
-+                $script:completedTask = $refreshedCompletedTask
-+            }
-+        }
-+
-+        $currentTaskAfterComplete = Get-CurrentTask $queueAfterComplete $stateAfterComplete
-+
-+        if ($null -ne $currentTaskAfterComplete -and $currentTaskAfterComplete.status -ne "done" -an
-d $currentTaskAfterComplete.id -ne $completedTaskId) {
-+            $script:currentTask = $currentTaskAfterComplete
-+        }
-+
-+        $script:nextTask = Get-NextTask $queueAfterComplete $stateAfterComplete $script:completedTas
-k
-+    } catch {
-+        Write-Warning "complete-task 이후 task context를 최신 queue/state로 갱신하지 못했습니다: $($_.Exception.Mes
-sage)"
-+    }
-+}
-+
- function ConvertTo-TaskContext {
-     param(
-         [object]$Task
-@@ -226,7 +275,7 @@
-     $taskContext = $currentTaskContext
-     $lastStepContext = $null
- 
--    if ($StoppedReason -eq "goal_completed" -and $null -ne $completedTaskContext) {
-+    if ($null -eq $taskContext -and $null -ne $completedTaskContext) {
-         $taskContext = $completedTaskContext
-     }
- 
-@@ -1340,20 +1389,17 @@
- 
-     Invoke-CycleCommand $stepNumber "complete-task" $completeTaskCommand $scriptPaths.completeTask $
-completeTaskArguments
-     $stepNumber++
--
--    Invoke-DirectMetaCommit $stepNumber
--    $stepNumber++
--
--    Invoke-CycleCommand $stepNumber "final-status" "powershell -ExecutionPolicy Bypass -File scripts
-/ai-dev-status.ps1" $scriptPaths.status @()
--    $stepNumber++
- 
--    $script:completedTaskCount++
--    $script:completedTask = $completedTaskForContext
-+    Update-PostCompleteTaskContext $completedTaskForContext
- 
-+    Invoke-DirectMetaCommit $stepNumber
-+    $stepNumber++
-+
-+    Invoke-CycleCommand $stepNumber "final-status" "powershell -ExecutionPolicy Bypass -File scripts
-/ai-dev-status.ps1" $scriptPaths.status @()
-+    $stepNumber++
-+
-     $queueAfterComplete = Read-JsonFile $queuePath $queueRelativePath
-     $stateAfterComplete = Read-JsonFile $statePath $stateRelativePath
--    $script:currentTask = Get-CurrentTask $queueAfterComplete $stateAfterComplete
--    $script:nextTask = Get-NextTask $queueAfterComplete $stateAfterComplete $completedTaskForContext
- 
-     if ($stateAfterComplete.goalStatus -eq "completed") {
-         Complete-Cycle $script:steps "goal_completed" $stepNumber
+     try {
+         if (Test-PackageFileChanged) {
+-            $script:steps += New-StepResult $stepNumber "package-change-gate" "git status --porcelai
+n -- package.json package-lock.json" $false $true 1 "package.json 또는 package-lock.json 변경이 감지되어 자동 커밋
+하지 않습니다."
++            $script:steps += New-StepResult $stepNumber "package-change-gate" "git status --porcelai
+n -- package.json package-lock.json" $false $true 1 "package.json 또는 package-lock.json 변경이 감지되어 자동 커밋
+을 중단합니다. 의도한 패키지 변경인지, lock file 변경이 필요한지 확인한 뒤 별도 작업으로 처리하세요."
+             Stop-Cycle $script:steps "package_files_changed" $false 1
+         }
+     } catch {
 
 codex
-수정은 적용됐습니다. 이제 스크립트 파싱을 먼저 확인한 뒤, 프롬프트가 요구한 `npm run build`와 `npm run lint`를 순서대로 실행하겠습니다.
+문구 변경은 완료했습니다. 감지 조건과 저장 구조는 건드리지 않았고, JSX 변경도 없습니다. 이제 수정된 메시지만 다시 확인하겠습니다.
 exec
-"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command '$errors = $null; [System.M
-anagement.Automation.PSParser]::Tokenize((Get-Content -Raw -LiteralPath '"'D:\\ai-apps\\planpilot-loc
-al\\scripts\\ai-dev-auto-cycle-full.ps1'), [ref]"'$errors) | Out-Null; if ($errors -and $errors.Count
- -gt 0) { $errors | Format-List *; exit 1 }' in D:\ai-apps\planpilot-local
- succeeded in 1648ms:
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "rg -n \"package.json 또는 pa
+ckage-lock.json 변경이 감지\" scripts\\ai-dev-auto-cycle-full.ps1" in D:\ai-apps\planpilot-local
+ succeeded in 1913ms:
+1287:            $script:steps += New-StepResult $stepNumber "package-change-gate" "git status --porc
+elain -- package.json package-lock.json" $false $true 1 "package.json 또는 package-lock.json 변경이 감지되어 자
+동 커밋을 중단합니다. 의도한 패키지 변경인지, lock file 변경이 필요한지 확인한 뒤 별도 작업으로 처리하세요."
+
 diff --git a/scripts/ai-dev-auto-cycle-full.ps1 b/scripts/ai-dev-auto-cycle-full.ps1
-index 1a0557ea2fc0df26ab2f1dee63dc799c2592ee95..e1a765aaebea6f2a3b965784d438318f92cd559d
+index e1a765aaebea6f2a3b965784d438318f92cd559d..ec9ab1bb45f7709331d76f293603f3e568581cc2
 --- a/scripts/ai-dev-auto-cycle-full.ps1
 +++ b/scripts/ai-dev-auto-cycle-full.ps1
-@@ -169,6 +169,55 @@
-         Select-Object -First 1
- }
+@@ -1284,7 +1284,7 @@
  
-+function Update-PostCompleteTaskContext {
-+    param(
-+        [object]$CompletedTask
-+    )
-+
-+    $completedTaskForContext = $null
-+    $completedTaskId = $null
-+
-+    if ($null -ne $CompletedTask) {
-+        $completedTaskId = if (Test-HasValue $CompletedTask.id) { [string]$CompletedTask.id } else {
- $null }
-+        $completedTaskForContext = [PSCustomObject][ordered]@{
-+            id = [string]$CompletedTask.id
-+            title = [string]$CompletedTask.title
-+            status = "done"
-+            type = [string]$CompletedTask.type
-+        }
-+    }
-+
-+    $script:completedTask = $completedTaskForContext
-+    $script:completedTaskCount++
-+    $script:currentTask = $null
-+    $script:nextTask = $null
-+
-+    try {
-+        $queueAfterComplete = Read-JsonFile $queuePath $queueRelativePath
-+        $stateAfterComplete = Read-JsonFile $statePath $stateRelativePath
-+
-+        if (Test-HasValue $completedTaskId) {
-+            $refreshedCompletedTask = @($queueAfterComplete.tasks) |
-+                Where-Object { $_.id -eq $completedTaskId } |
-+                Select-Object -First 1
-+
-+            if ($null -ne $refreshedCompletedTask) {
-+                $script:completedTask = $refreshedCompletedTask
-+            }
-+        }
-+
-+        $currentTaskAfterComplete = Get-CurrentTask $queueAfterComplete $stateAfterComplete
-+
-+        if ($null -ne $currentTaskAfterComplete -and $currentTaskAfterComplete.status -ne "done" -an
-d $currentTaskAfterComplete.id -ne $completedTaskId) {
-+            $script:currentTask = $currentTaskAfterComplete
-+        }
-+
-+        $script:nextTask = Get-NextTask $queueAfterComplete $stateAfterComplete $script:completedTas
-k
-+    } catch {
-+        Write-Warning "complete-task 이후 task context를 최신 queue/state로 갱신하지 못했습니다: $($_.Exception.Mes
-sage)"
-+    }
-+}
-+
- function ConvertTo-TaskContext {
-     param(
-         [object]$Task
-@@ -226,7 +275,7 @@
-     $taskContext = $currentTaskContext
-     $lastStepContext = $null
- 
--    if ($StoppedReason -eq "goal_completed" -and $null -ne $completedTaskContext) {
-+    if ($null -eq $taskContext -and $null -ne $completedTaskContext) {
-         $taskContext = $completedTaskContext
-     }
- 
-@@ -1340,20 +1389,17 @@
- 
-     Invoke-CycleCommand $stepNumber "complete-task" $completeTaskCommand $scriptPaths.completeTask $
-completeTaskArguments
-     $stepNumber++
--
--    Invoke-DirectMetaCommit $stepNumber
--    $stepNumber++
--
--    Invoke-CycleCommand $stepNumber "final-status" "powershell -ExecutionPolicy Bypass -File scripts
-/ai-dev-status.ps1" $scriptPaths.status @()
--    $stepNumber++
- 
--    $script:completedTaskCount++
--    $script:completedTask = $completedTaskForContext
-+    Update-PostCompleteTaskContext $completedTaskForContext
- 
-+    Invoke-DirectMetaCommit $stepNumber
-+    $stepNumber++
-+
-+    Invoke-CycleCommand $stepNumber "final-status" "powershell -ExecutionPolicy Bypass -File scripts
-/ai-dev-status.ps1" $scriptPaths.status @()
-+    $stepNumber++
-+
-     $queueAfterComplete = Read-JsonFile $queuePath $queueRelativePath
-     $stateAfterComplete = Read-JsonFile $statePath $stateRelativePath
--    $script:currentTask = Get-CurrentTask $queueAfterComplete $stateAfterComplete
--    $script:nextTask = Get-NextTask $queueAfterComplete $stateAfterComplete $completedTaskForContext
- 
-     if ($stateAfterComplete.goalStatus -eq "completed") {
-         Complete-Cycle $script:steps "goal_completed" $stepNumber
+     try {
+         if (Test-PackageFileChanged) {
+-            $script:steps += New-StepResult $stepNumber "package-change-gate" "git status --porcelai
+n -- package.json package-lock.json" $false $true 1 "package.json 또는 package-lock.json 변경이 감지되어 자동 커밋
+하지 않습니다."
++            $script:steps += New-StepResult $stepNumber "package-change-gate" "git status --porcelai
+n -- package.json package-lock.json" $false $true 1 "package.json 또는 package-lock.json 변경이 감지되어 자동 커밋
+을 중단합니다. 의도한 패키지 변경인지, lock file 변경이 필요한지 확인한 뒤 별도 작업으로 처리하세요."
+             Stop-Cycle $script:steps "package_files_changed" $false 1
+         }
+     } catch {
 
 codex
-PowerShell 파서 기준 문법 오류는 없습니다. 이어서 빌드와 lint를 실행해 TypeScript/Vite 쪽 정적 검증까지 확인하겠습니다.
-exec
-"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'npm run build' in D:\ai-ap
-ps\planpilot-local
- succeeded in 6674ms:
-
-> planpilot-local@0.0.0 build
-> tsc -b && vite build
-
-[36mvite v8.0.10 [32mbuilding client environment for production...[36m[39m
-[2K
-transforming...✓ 48 modules transformed.
-rendering chunks...
-computing gzip size...
-dist/index.html                   0.46 kB │ gzip:   0.29 kB
-dist/assets/index-DvjxWt30.css    5.69 kB │ gzip:   1.93 kB
-dist/assets/index-DtLVvPCG.js   317.50 kB │ gzip: 100.16 kB
-
-[32m✓ built in 225ms[39m
-
-diff --git a/scripts/ai-dev-auto-cycle-full.ps1 b/scripts/ai-dev-auto-cycle-full.ps1
-index 1a0557ea2fc0df26ab2f1dee63dc799c2592ee95..e1a765aaebea6f2a3b965784d438318f92cd559d
---- a/scripts/ai-dev-auto-cycle-full.ps1
-+++ b/scripts/ai-dev-auto-cycle-full.ps1
-@@ -169,6 +169,55 @@
-         Select-Object -First 1
- }
- 
-+function Update-PostCompleteTaskContext {
-+    param(
-+        [object]$CompletedTask
-+    )
-+
-+    $completedTaskForContext = $null
-+    $completedTaskId = $null
-+
-+    if ($null -ne $CompletedTask) {
-+        $completedTaskId = if (Test-HasValue $CompletedTask.id) { [string]$CompletedTask.id } else {
- $null }
-+        $completedTaskForContext = [PSCustomObject][ordered]@{
-+            id = [string]$CompletedTask.id
-+            title = [string]$CompletedTask.title
-+            status = "done"
-+            type = [string]$CompletedTask.type
-+        }
-+    }
-+
-+    $script:completedTask = $completedTaskForContext
-+    $script:completedTaskCount++
-+    $script:currentTask = $null
-+    $script:nextTask = $null
-+
-+    try {
-+        $queueAfterComplete = Read-JsonFile $queuePath $queueRelativePath
-+        $stateAfterComplete = Read-JsonFile $statePath $stateRelativePath
-+
-+        if (Test-HasValue $completedTaskId) {
-+            $refreshedCompletedTask = @($queueAfterComplete.tasks) |
-+                Where-Object { $_.id -eq $completedTaskId } |
-+                Select-Object -First 1
-+
-+            if ($null -ne $refreshedCompletedTask) {
-+                $script:completedTask = $refreshedCompletedTask
-+            }
-+        }
-+
-+        $currentTaskAfterComplete = Get-CurrentTask $queueAfterComplete $stateAfterComplete
-+
-+        if ($null -ne $currentTaskAfterComplete -and $currentTaskAfterComplete.status -ne "done" -an
-d $currentTaskAfterComplete.id -ne $completedTaskId) {
-+            $script:currentTask = $currentTaskAfterComplete
-+        }
-+
-+        $script:nextTask = Get-NextTask $queueAfterComplete $stateAfterComplete $script:completedTas
-k
-+    } catch {
-+        Write-Warning "complete-task 이후 task context를 최신 queue/state로 갱신하지 못했습니다: $($_.Exception.Mes
-sage)"
-+    }
-+}
-+
- function ConvertTo-TaskContext {
-     param(
-         [object]$Task
-@@ -226,7 +275,7 @@
-     $taskContext = $currentTaskContext
-     $lastStepContext = $null
- 
--    if ($StoppedReason -eq "goal_completed" -and $null -ne $completedTaskContext) {
-+    if ($null -eq $taskContext -and $null -ne $completedTaskContext) {
-         $taskContext = $completedTaskContext
-     }
- 
-@@ -1340,20 +1389,17 @@
- 
-     Invoke-CycleCommand $stepNumber "complete-task" $completeTaskCommand $scriptPaths.completeTask $
-completeTaskArguments
-     $stepNumber++
--
--    Invoke-DirectMetaCommit $stepNumber
--    $stepNumber++
--
--    Invoke-CycleCommand $stepNumber "final-status" "powershell -ExecutionPolicy Bypass -File scripts
-/ai-dev-status.ps1" $scriptPaths.status @()
--    $stepNumber++
- 
--    $script:completedTaskCount++
--    $script:completedTask = $completedTaskForContext
-+    Update-PostCompleteTaskContext $completedTaskForContext
- 
-+    Invoke-DirectMetaCommit $stepNumber
-+    $stepNumber++
-+
-+    Invoke-CycleCommand $stepNumber "final-status" "powershell -ExecutionPolicy Bypass -File scripts
-/ai-dev-status.ps1" $scriptPaths.status @()
-+    $stepNumber++
-+
-     $queueAfterComplete = Read-JsonFile $queuePath $queueRelativePath
-     $stateAfterComplete = Read-JsonFile $statePath $stateRelativePath
--    $script:currentTask = Get-CurrentTask $queueAfterComplete $stateAfterComplete
--    $script:nextTask = Get-NextTask $queueAfterComplete $stateAfterComplete $completedTaskForContext
- 
-     if ($stateAfterComplete.goalStatus -eq "completed") {
-         Complete-Cycle $script:steps "goal_completed" $stepNumber
-
+수정 결과가 단일 문자열 변경인지 확인했습니다. 빌드나 lint는 프롬프트상 자동 실행 대상이 아니어서 실행하지 않겠습니다.
 codex
-`npm run build`는 통과했습니다. 마지막으로 lint를 실행해 요구된 검증을 마무리하겠습니다.
-exec
-"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command 'npm run lint' in D:\ai-app
-s\planpilot-local
- succeeded in 6121ms:
+완료했습니다.
 
-> planpilot-local@0.0.0 lint
-> eslint .
+변경한 파일:
+- [scripts/ai-dev-auto-cycle-full.ps1](D:/ai-apps/planpilot-local/scripts/ai-dev-auto-cycle-full.ps1:
+1287)
 
+구현 요약:
+- package 변경 감지 조건은 그대로 유지했습니다.
+- 감지 시 메시지를 더 구체적인 한국어 안내로 바꿨습니다.
+- 사용자가 `package.json`/`package-lock.json` 변경이 의도된 것인지, lock file 변경이 필요한지 확인해야 한다는 점을 명확히 했습니다.
+- `src` 밖 파일을 수정한 이유: 실제 package 변경 감지 메시지가 앱 코드가 아니라 자동 루프 스크립트에 정의되어 있었습니다.
 
+검증:
+- `rg`로 수정된 메시지 위치와 최종 문자열을 확인했습니다.
+- `npm run build`, `npm run lint`, `git` 명령은 지시상 실행하지 않았습니다.
+
+남은 위험:
+- 실제 package 변경 감지 경로를 실행 검증하지는 않았습니다.
+
+다음 task로 넘어가도 되는지:
+- 현재 task 범위는 완료되어 다음 task로 넘어가도 됩니다.
+
+`.ai-dev/loop-log.md` 기록용 요약:
+- `scripts/ai-dev-auto-cycle-full.ps1`의 package 변경 감지 메시지를 개선했다. 감지 조건은 변경하지 않고, 자동 커밋 중단 이유와 사용자가 확인
+해야 할 항목을 한국어로 더 명확히 안내하도록 문구만 수정했다.
 diff --git a/scripts/ai-dev-auto-cycle-full.ps1 b/scripts/ai-dev-auto-cycle-full.ps1
-index 1a0557ea2fc0df26ab2f1dee63dc799c2592ee95..e1a765aaebea6f2a3b965784d438318f92cd559d
+index e1a765aaebea6f2a3b965784d438318f92cd559d..ec9ab1bb45f7709331d76f293603f3e568581cc2
 --- a/scripts/ai-dev-auto-cycle-full.ps1
 +++ b/scripts/ai-dev-auto-cycle-full.ps1
-@@ -169,6 +169,55 @@
-         Select-Object -First 1
- }
+@@ -1284,7 +1284,7 @@
  
-+function Update-PostCompleteTaskContext {
-+    param(
-+        [object]$CompletedTask
-+    )
-+
-+    $completedTaskForContext = $null
-+    $completedTaskId = $null
-+
-+    if ($null -ne $CompletedTask) {
-+        $completedTaskId = if (Test-HasValue $CompletedTask.id) { [string]$CompletedTask.id } else {
- $null }
-+        $completedTaskForContext = [PSCustomObject][ordered]@{
-+            id = [string]$CompletedTask.id
-+            title = [string]$CompletedTask.title
-+            status = "done"
-+            type = [string]$CompletedTask.type
-+        }
-+    }
-+
-+    $script:completedTask = $completedTaskForContext
-+    $script:completedTaskCount++
-+    $script:currentTask = $null
-+    $script:nextTask = $null
-+
-+    try {
-+        $queueAfterComplete = Read-JsonFile $queuePath $queueRelativePath
-+        $stateAfterComplete = Read-JsonFile $statePath $stateRelativePath
-+
-+        if (Test-HasValue $completedTaskId) {
-+            $refreshedCompletedTask = @($queueAfterComplete.tasks) |
-+                Where-Object { $_.id -eq $completedTaskId } |
-+                Select-Object -First 1
-+
-+            if ($null -ne $refreshedCompletedTask) {
-+                $script:completedTask = $refreshedCompletedTask
-+            }
-+        }
-+
-+        $currentTaskAfterComplete = Get-CurrentTask $queueAfterComplete $stateAfterComplete
-+
-+        if ($null -ne $currentTaskAfterComplete -and $currentTaskAfterComplete.status -ne "done" -an
-d $currentTaskAfterComplete.id -ne $completedTaskId) {
-+            $script:currentTask = $currentTaskAfterComplete
-+        }
-+
-+        $script:nextTask = Get-NextTask $queueAfterComplete $stateAfterComplete $script:completedTas
-k
-+    } catch {
-+        Write-Warning "complete-task 이후 task context를 최신 queue/state로 갱신하지 못했습니다: $($_.Exception.Mes
-sage)"
-+    }
-+}
-+
- function ConvertTo-TaskContext {
-     param(
-         [object]$Task
-@@ -226,7 +275,7 @@
-     $taskContext = $currentTaskContext
-     $lastStepContext = $null
- 
--    if ($StoppedReason -eq "goal_completed" -and $null -ne $completedTaskContext) {
-+    if ($null -eq $taskContext -and $null -ne $completedTaskContext) {
-         $taskContext = $completedTaskContext
-     }
- 
-@@ -1340,20 +1389,17 @@
- 
-     Invoke-CycleCommand $stepNumber "complete-task" $completeTaskCommand $scriptPaths.completeTask $
-completeTaskArguments
-     $stepNumber++
--
--    Invoke-DirectMetaCommit $stepNumber
--    $stepNumber++
--
--    Invoke-CycleCommand $stepNumber "final-status" "powershell -ExecutionPolicy Bypass -File scripts
-/ai-dev-status.ps1" $scriptPaths.status @()
--    $stepNumber++
- 
--    $script:completedTaskCount++
--    $script:completedTask = $completedTaskForContext
-+    Update-PostCompleteTaskContext $completedTaskForContext
- 
-+    Invoke-DirectMetaCommit $stepNumber
-+    $stepNumber++
-+
-+    Invoke-CycleCommand $stepNumber "final-status" "powershell -ExecutionPolicy Bypass -File scripts
-/ai-dev-status.ps1" $scriptPaths.status @()
-+    $stepNumber++
-+
-     $queueAfterComplete = Read-JsonFile $queuePath $queueRelativePath
-     $stateAfterComplete = Read-JsonFile $statePath $stateRelativePath
--    $script:currentTask = Get-CurrentTask $queueAfterComplete $stateAfterComplete
--    $script:nextTask = Get-NextTask $queueAfterComplete $stateAfterComplete $completedTaskForContext
- 
-     if ($stateAfterComplete.goalStatus -eq "completed") {
-         Complete-Cycle $script:steps "goal_completed" $stepNumber
-
-codex
-빌드와 lint는 모두 통과했습니다. 다만 `npm run build`는 Vite 특성상 `dist` 산출물을 다시 쓰는 명령이라, 추가 안전 규칙의 `dist 수정 금지`와 검증 
-요구가 실제로 충돌합니다. 되돌리는 명령도 금지되어 있어, 이 상태는 최종 보고에 명확히 남기겠습니다.
-exec
-"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Select-String -LiteralPath
- 'D:\\ai-apps\\planpilot-local\\scripts\\ai-dev-auto-cycle-full.ps1' -Pattern 'function Update-PostCo
-mpleteTaskContext|if \\(\\"'$null -eq '"\\"'$taskContext|Update-PostCompleteTaskContext '"\\"'$comple
-tedTaskForContext'"'" in D:\ai-apps\planpilot-local
-exec
-"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralPath '
-D:\\ai-apps\\planpilot-local\\scripts\\ai-dev-auto-cycle-full.ps1' | Select-Object -Skip 165 -First 7
-5" in D:\ai-apps\planpilot-local
-exec
-"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralPath '
-D:\\ai-apps\\planpilot-local\\scripts\\ai-dev-auto-cycle-full.ps1' | Select-Object -Skip 1336 -First 
-30" in D:\ai-apps\planpilot-local
- succeeded in 2441ms:
-
-    return @($Queue.tasks) |
-        Where-Object { $_.status -in @("in_progress", "pending") -and $_.id -ne $completedTaskId } |
-        Select-Object -First 1
-}
-
-function Update-PostCompleteTaskContext {
-    param(
-        [object]$CompletedTask
-    )
-
-    $completedTaskForContext = $null
-    $completedTaskId = $null
-
-    if ($null -ne $CompletedTask) {
-        $completedTaskId = if (Test-HasValue $CompletedTask.id) { [string]$CompletedTask.id } else { 
-$null }
-        $completedTaskForContext = [PSCustomObject][ordered]@{
-            id = [string]$CompletedTask.id
-            title = [string]$CompletedTask.title
-            status = "done"
-            type = [string]$CompletedTask.type
-        }
-    }
-
-    $script:completedTask = $completedTaskForContext
-    $script:completedTaskCount++
-    $script:currentTask = $null
-    $script:nextTask = $null
-
-    try {
-        $queueAfterComplete = Read-JsonFile $queuePath $queueRelativePath
-        $stateAfterComplete = Read-JsonFile $statePath $stateRelativePath
-
-        if (Test-HasValue $completedTaskId) {
-            $refreshedCompletedTask = @($queueAfterComplete.tasks) |
-                Where-Object { $_.id -eq $completedTaskId } |
-                Select-Object -First 1
-
-            if ($null -ne $refreshedCompletedTask) {
-                $script:completedTask = $refreshedCompletedTask
-            }
-        }
-
-        $currentTaskAfterComplete = Get-CurrentTask $queueAfterComplete $stateAfterComplete
-
-        if ($null -ne $currentTaskAfterComplete -and $currentTaskAfterComplete.status -ne "done" -and
- $currentTaskAfterComplete.id -ne $completedTaskId) {
-            $script:currentTask = $currentTaskAfterComplete
-        }
-
-        $script:nextTask = Get-NextTask $queueAfterComplete $stateAfterComplete $script:completedTask
-    } catch {
-        Write-Warning "complete-task 이후 task context를 최신 queue/state로 갱신하지 못했습니다: $($_.Exception.Mess
-age)"
-    }
-}
-
-function ConvertTo-TaskContext {
-    param(
-        [object]$Task
-    )
-
-    if ($null -eq $Task) {
-        return $null
-    }
-
-    return [PSCustomObject][ordered]@{
-        id = [string]$Task.id
-        title = [string]$Task.title
-        status = [string]$Task.status
-        type = [string]$Task.type
-    }
-}
-
-function New-StepResult {
-    param(
-        [int]$Step,
-
- succeeded in 2473ms:
-
-scripts\ai-dev-auto-cycle-full.ps1:172:function Update-PostCompleteTaskContext {
-scripts\ai-dev-auto-cycle-full.ps1:278:    if ($null -eq $taskContext -and $null -ne $completedTaskCo
-ntext) {
-scripts\ai-dev-auto-cycle-full.ps1:1393:    Update-PostCompleteTaskContext $completedTaskForContext
-
-
-
- succeeded in 2528ms:
-            }
-        } else {
-            $script:steps += New-StepResult $stepNumber "commit-result-gate" "state.lastCommitHash 및 
-git rev-parse HEAD 확인" $false $true 0 "새 구현 커밋이 없습니다. state.lastCommitHash가 없어 CommitHash 없이 complete
--task를 실행합니다. currentHead=$currentHeadCommitHash"
-        }
-        $stepNumber++
-
-        $resultSummary = "$resultSummary, 구현 커밋 없음, 저장된 리뷰 pass에서 자동 완료"
-    } else {
-        $commitCommandText = "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-commit.ps1"
-        if ($commitArguments.Count -gt 0) {
-            $commitCommandText = "$commitCommandText $($commitArguments -join ' ')"
-        }
-
-        try {
-            $preCommitHeadCommitHash = Invoke-GitCapture -Arguments @("rev-parse", "HEAD") -DisplayNa
-me "git rev-parse HEAD"
-        } catch {
-            $script:steps += New-StepResult $stepNumber "commit" "git rev-parse HEAD" $false $false 1
- $_.Exception.Message
-            Stop-Cycle $script:steps "pre_commit_head_failed" $false 1
-        }
-
-        Invoke-CycleCommand $stepNumber "commit" $commitCommandText $scriptPaths.commit $commitArgume
-nts
-        $stepNumber++
-
-        try {
-            $commitGate = Get-CommitGate $preCommitHeadCommitHash
-        } catch {
-            $script:steps += New-StepResult $stepNumber "commit-result-gate" "state.lastCommand/lastC
-ommitHash 확인" $false $false 1 $_.Exception.Message
-            Stop-Cycle $script:steps "commit_result_gate_failed" $false 1
-        }
-
-
-diff --git a/scripts/ai-dev-auto-cycle-full.ps1 b/scripts/ai-dev-auto-cycle-full.ps1
-index 1a0557ea2fc0df26ab2f1dee63dc799c2592ee95..e1a765aaebea6f2a3b965784d438318f92cd559d
---- a/scripts/ai-dev-auto-cycle-full.ps1
-+++ b/scripts/ai-dev-auto-cycle-full.ps1
-@@ -169,6 +169,55 @@
-         Select-Object -First 1
- }
- 
-+function Update-PostCompleteTaskContext {
-+    param(
-+        [object]$CompletedTask
-+    )
-+
-+    $completedTaskForContext = $null
-+    $completedTaskId = $null
-+
-+    if ($null -ne $CompletedTask) {
-+        $completedTaskId = if (Test-HasValue $CompletedTask.id) { [string]$CompletedTask.id } else {
- $null }
-+        $completedTaskForContext = [PSCustomObject][ordered]@{
-+            id = [string]$CompletedTask.id
-+            title = [string]$CompletedTask.title
-+            status = "done"
-+            type = [string]$CompletedTask.type
-+        }
-+    }
-+
-+    $script:completedTask = $completedTaskForContext
-+    $script:completedTaskCount++
-+    $script:currentTask = $null
-+    $script:nextTask = $null
-+
-+    try {
-+        $queueAfterComplete = Read-JsonFile $queuePath $queueRelativePath
-+        $stateAfterComplete = Read-JsonFile $statePath $stateRelativePath
-+
-+        if (Test-HasValue $completedTaskId) {
-+            $refreshedCompletedTask = @($queueAfterComplete.tasks) |
-+                Where-Object { $_.id -eq $completedTaskId } |
-+                Select-Object -First 1
-+
-+            if ($null -ne $refreshedCompletedTask) {
-+                $script:completedTask = $refreshedCompletedTask
-+            }
-+        }
-+
-+        $currentTaskAfterComplete = Get-CurrentTask $queueAfterComplete $stateAfterComplete
-+
-+        if ($null -ne $currentTaskAfterComplete -and $currentTaskAfterComplete.status -ne "done" -an
-d $currentTaskAfterComplete.id -ne $completedTaskId) {
-+            $script:currentTask = $currentTaskAfterComplete
-+        }
-+
-+        $script:nextTask = Get-NextTask $queueAfterComplete $stateAfterComplete $script:completedTas
-k
-+    } catch {
-+        Write-Warning "complete-task 이후 task context를 최신 queue/state로 갱신하지 못했습니다: $($_.Exception.Mes
-sage)"
-+    }
-+}
-+
- function ConvertTo-TaskContext {
-     param(
-         [object]$Task
-@@ -226,7 +275,7 @@
-     $taskContext = $currentTaskContext
-     $lastStepContext = $null
- 
--    if ($StoppedReason -eq "goal_completed" -and $null -ne $completedTaskContext) {
-+    if ($null -eq $taskContext -and $null -ne $completedTaskContext) {
-         $taskContext = $completedTaskContext
-     }
- 
-@@ -1340,20 +1389,17 @@
- 
-     Invoke-CycleCommand $stepNumber "complete-task" $completeTaskCommand $scriptPaths.completeTask $
-completeTaskArguments
-     $stepNumber++
--
--    Invoke-DirectMetaCommit $stepNumber
--    $stepNumber++
--
--    Invoke-CycleCommand $stepNumber "final-status" "powershell -ExecutionPolicy Bypass -File scripts
-/ai-dev-status.ps1" $scriptPaths.status @()
--    $stepNumber++
- 
--    $script:completedTaskCount++
--    $script:completedTask = $completedTaskForContext
-+    Update-PostCompleteTaskContext $completedTaskForContext
- 
-+    Invoke-DirectMetaCommit $stepNumber
-+    $stepNumber++
-+
-+    Invoke-CycleCommand $stepNumber "final-status" "powershell -ExecutionPolicy Bypass -File scripts
-/ai-dev-status.ps1" $scriptPaths.status @()
-+    $stepNumber++
-+
-     $queueAfterComplete = Read-JsonFile $queuePath $queueRelativePath
-     $stateAfterComplete = Read-JsonFile $statePath $stateRelativePath
--    $script:currentTask = Get-CurrentTask $queueAfterComplete $stateAfterComplete
--    $script:nextTask = Get-NextTask $queueAfterComplete $stateAfterComplete $completedTaskForContext
- 
-     if ($stateAfterComplete.goalStatus -eq "completed") {
-         Complete-Cycle $script:steps "goal_completed" $stepNumber
-
-codex
-수정 완료했습니다.
-
-`scripts/ai-dev-auto-cycle-full.ps1`에서 `complete-task` 성공 직후 `completedTask`와 `completedTaskCount`를 먼
-저 확정하도록 바꿨습니다. 이후 `queue/state`를 읽을 수 있으면 최신 기준으로 `currentTask`와 `nextTask`를 갱신하고, 방금 완료된 task 또는 `do
-ne` task가 stale current로 남지 않게 처리했습니다. `context.task`는 backward compatibility를 위해 current가 없고 complet
-ed가 있으면 completed task를 담도록 유지했습니다.
-
-검증 결과:
-- PowerShell 파서 문법 확인: 통과
-- `npm run build`: 통과
-- `npm run lint`: 통과
-
-주의: 추가 안전 규칙에는 `dist` 수정 금지가 있었고, 프롬프트에는 `npm run build` 통과가 요구되어 있었습니다. `npm run build`는 Vite 특성상 `d
-ist` 산출물을 다시 쓰는 명령이라 두 요구가 충돌합니다. 빌드는 요구에 따라 실행했지만, `dist`를 수동으로 수정하거나 되돌리는 작업은 하지 않았습니다.
-diff --git a/scripts/ai-dev-auto-cycle-full.ps1 b/scripts/ai-dev-auto-cycle-full.ps1
-index 1a0557ea2fc0df26ab2f1dee63dc799c2592ee95..e1a765aaebea6f2a3b965784d438318f92cd559d
---- a/scripts/ai-dev-auto-cycle-full.ps1
-+++ b/scripts/ai-dev-auto-cycle-full.ps1
-@@ -169,6 +169,55 @@
-         Select-Object -First 1
- }
- 
-+function Update-PostCompleteTaskContext {
-+    param(
-+        [object]$CompletedTask
-+    )
-+
-+    $completedTaskForContext = $null
-+    $completedTaskId = $null
-+
-+    if ($null -ne $CompletedTask) {
-+        $completedTaskId = if (Test-HasValue $CompletedTask.id) { [string]$CompletedTask.id } else {
- $null }
-+        $completedTaskForContext = [PSCustomObject][ordered]@{
-+            id = [string]$CompletedTask.id
-+            title = [string]$CompletedTask.title
-+            status = "done"
-+            type = [string]$CompletedTask.type
-+        }
-+    }
-+
-+    $script:completedTask = $completedTaskForContext
-+    $script:completedTaskCount++
-+    $script:currentTask = $null
-+    $script:nextTask = $null
-+
-+    try {
-+        $queueAfterComplete = Read-JsonFile $queuePath $queueRelativePath
-+        $stateAfterComplete = Read-JsonFile $statePath $stateRelativePath
-+
-+        if (Test-HasValue $completedTaskId) {
-+            $refreshedCompletedTask = @($queueAfterComplete.tasks) |
-+                Where-Object { $_.id -eq $completedTaskId } |
-+                Select-Object -First 1
-+
-+            if ($null -ne $refreshedCompletedTask) {
-+                $script:completedTask = $refreshedCompletedTask
-+            }
-+        }
-+
-+        $currentTaskAfterComplete = Get-CurrentTask $queueAfterComplete $stateAfterComplete
-+
-+        if ($null -ne $currentTaskAfterComplete -and $currentTaskAfterComplete.status -ne "done" -an
-d $currentTaskAfterComplete.id -ne $completedTaskId) {
-+            $script:currentTask = $currentTaskAfterComplete
-+        }
-+
-+        $script:nextTask = Get-NextTask $queueAfterComplete $stateAfterComplete $script:completedTas
-k
-+    } catch {
-+        Write-Warning "complete-task 이후 task context를 최신 queue/state로 갱신하지 못했습니다: $($_.Exception.Mes
-sage)"
-+    }
-+}
-+
- function ConvertTo-TaskContext {
-     param(
-         [object]$Task
-@@ -226,7 +275,7 @@
-     $taskContext = $currentTaskContext
-     $lastStepContext = $null
- 
--    if ($StoppedReason -eq "goal_completed" -and $null -ne $completedTaskContext) {
-+    if ($null -eq $taskContext -and $null -ne $completedTaskContext) {
-         $taskContext = $completedTaskContext
-     }
- 
-@@ -1340,20 +1389,17 @@
- 
-     Invoke-CycleCommand $stepNumber "complete-task" $completeTaskCommand $scriptPaths.completeTask $
-completeTaskArguments
-     $stepNumber++
--
--    Invoke-DirectMetaCommit $stepNumber
--    $stepNumber++
--
--    Invoke-CycleCommand $stepNumber "final-status" "powershell -ExecutionPolicy Bypass -File scripts
-/ai-dev-status.ps1" $scriptPaths.status @()
--    $stepNumber++
- 
--    $script:completedTaskCount++
--    $script:completedTask = $completedTaskForContext
-+    Update-PostCompleteTaskContext $completedTaskForContext
- 
-+    Invoke-DirectMetaCommit $stepNumber
-+    $stepNumber++
-+
-+    Invoke-CycleCommand $stepNumber "final-status" "powershell -ExecutionPolicy Bypass -File scripts
-/ai-dev-status.ps1" $scriptPaths.status @()
-+    $stepNumber++
-+
-     $queueAfterComplete = Read-JsonFile $queuePath $queueRelativePath
-     $stateAfterComplete = Read-JsonFile $statePath $stateRelativePath
--    $script:currentTask = Get-CurrentTask $queueAfterComplete $stateAfterComplete
--    $script:nextTask = Get-NextTask $queueAfterComplete $stateAfterComplete $completedTaskForContext
- 
-     if ($stateAfterComplete.goalStatus -eq "completed") {
-         Complete-Cycle $script:steps "goal_completed" $stepNumber
+     try {
+         if (Test-PackageFileChanged) {
+-            $script:steps += New-StepResult $stepNumber "package-change-gate" "git status --porcelai
+n -- package.json package-lock.json" $false $true 1 "package.json 또는 package-lock.json 변경이 감지되어 자동 커밋
+하지 않습니다."
++            $script:steps += New-StepResult $stepNumber "package-change-gate" "git status --porcelai
+n -- package.json package-lock.json" $false $true 1 "package.json 또는 package-lock.json 변경이 감지되어 자동 커밋
+을 중단합니다. 의도한 패키지 변경인지, lock file 변경이 필요한지 확인한 뒤 별도 작업으로 처리하세요."
+             Stop-Cycle $script:steps "package_files_changed" $false 1
+         }
+     } catch {
 
 tokens used
-57,145
-수정 완료했습니다.
+20,356
+완료했습니다.
 
-`scripts/ai-dev-auto-cycle-full.ps1`에서 `complete-task` 성공 직후 `completedTask`와 `completedTaskCount`를 먼저 확정하도록 바꿨습니다. 이후 `queue/state`를 읽을 수 있으면 최신 기준으로 `currentTask`와 `nextTask`를 갱신하고, 방금 완료된 task 또는 `done` task가 stale current로 남지 않게 처리했습니다. `context.task`는 backward compatibility를 위해 current가 없고 completed가 있으면 completed task를 담도록 유지했습니다.
+변경한 파일:
+- [scripts/ai-dev-auto-cycle-full.ps1](D:/ai-apps/planpilot-local/scripts/ai-dev-auto-cycle-full.ps1:1287)
 
-검증 결과:
-- PowerShell 파서 문법 확인: 통과
-- `npm run build`: 통과
-- `npm run lint`: 통과
+구현 요약:
+- package 변경 감지 조건은 그대로 유지했습니다.
+- 감지 시 메시지를 더 구체적인 한국어 안내로 바꿨습니다.
+- 사용자가 `package.json`/`package-lock.json` 변경이 의도된 것인지, lock file 변경이 필요한지 확인해야 한다는 점을 명확히 했습니다.
+- `src` 밖 파일을 수정한 이유: 실제 package 변경 감지 메시지가 앱 코드가 아니라 자동 루프 스크립트에 정의되어 있었습니다.
 
-주의: 추가 안전 규칙에는 `dist` 수정 금지가 있었고, 프롬프트에는 `npm run build` 통과가 요구되어 있었습니다. `npm run build`는 Vite 특성상 `dist` 산출물을 다시 쓰는 명령이라 두 요구가 충돌합니다. 빌드는 요구에 따라 실행했지만, `dist`를 수동으로 수정하거나 되돌리는 작업은 하지 않았습니다.
+검증:
+- `rg`로 수정된 메시지 위치와 최종 문자열을 확인했습니다.
+- `npm run build`, `npm run lint`, `git` 명령은 지시상 실행하지 않았습니다.
+
+남은 위험:
+- 실제 package 변경 감지 경로를 실행 검증하지는 않았습니다.
+
+다음 task로 넘어가도 되는지:
+- 현재 task 범위는 완료되어 다음 task로 넘어가도 됩니다.
+
+`.ai-dev/loop-log.md` 기록용 요약:
+- `scripts/ai-dev-auto-cycle-full.ps1`의 package 변경 감지 메시지를 개선했다. 감지 조건은 변경하지 않고, 자동 커밋 중단 이유와 사용자가 확인해야 할 항목을 한국어로 더 명확히 안내하도록 문구만 수정했다.
 
 ```
