@@ -1,37 +1,30 @@
 ﻿{
-    "goalTitle":  "Autopilot history dirty gate 충돌 수정",
+    "goalTitle":  "MaxTasks 1 end-to-end 검증",
     "goalSource":  ".ai-dev/goal.md",
     "createdAt":  "2026-07-17T00:00:00+09:00",
-    "updatedAt":  "2026-07-17T09:10:59.5867393+00:00",
-    "currentTaskId":  null,
+    "updatedAt":  "2026-07-17T00:00:00+09:00",
+    "currentTaskId":  "T001",
     "tasks":  [
                   {
                       "id":  "T001",
-                      "title":  "Autopilot history dirty gate 흐름 수정",
-                      "description":  "Autopilot durable history 기록 후 nested auto-goal 호출 전에 history/loop-log 변경이 dirty gate에 걸리지 않도록 작은 범위로 수정하고, DryRun 무변경 및 history 중복 방지 동작을 유지한다.",
-                      "type":  "implementation",
-                      "status":  "done",
+                      "title":  "MaxTasks 1 흐름 검증",
+                      "description":  "현재 구현에서 MaxTasks 1 조건이 업무 생성, 표시, 상태 변경, 새로고침 후 유지 흐름에서 일관되게 적용되는지 확인하고 결과를 정리한다.",
+                      "type":  "verification",
+                      "status":  "in_progress",
                       "priority":  "P0",
                       "dependsOn":  [
 
                                     ],
                       "filesLikelyToChange":  [
-                                                  "scripts/ai-dev-autopilot.ps1",
-                                                  "scripts/ai-dev-auto-goal.ps1",
-                                                  ".ai-dev/goal.md",
-                                                  ".ai-dev/queue.json",
-                                                  ".ai-dev/state.json"
+
                                               ],
                       "verification":  [
-                                           "DryRun 실행 후 파일 변경이 발생하지 않는지 확인",
-                                           "AllowRun + AllowCommit Autopilot 연속 실행이 최소 1개 goal을 준비/실행 단계로 넘기는지 확인",
-                                           "durable history 중복 방지 동작이 유지되는지 확인",
-                                           "npm run build 실행",
-                                           "npm run lint 실행"
+                                           "MaxTasks 1 조건에서 업무 1개 생성 흐름을 확인한다.",
+                                           "업무가 1개인 상태에서 추가 생성 시도를 확인한다.",
+                                           "업무 완료 또는 미완료 전환 후 제한 동작을 확인한다.",
+                                           "새로고침 후 제한 상태가 유지되는지 확인한다."
                                        ],
-                      "commitMessage":  "Fix autopilot history dirty gate",
-                      "completedAt":  "2026-07-17T09:10:59.5867393+00:00",
-                      "resultSummary":  "자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료"
+                      "commitMessage":  null
                   }
               ]
 }

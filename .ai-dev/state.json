@@ -1,16 +1,25 @@
 ﻿{
-    "goalStatus":  "completed",
-    "currentTaskId":  null,
+    "goalStatus":  "in_progress",
+    "currentTaskId":  "T001",
     "currentLoop":  0,
     "maxLoopsPerTask":  2,
-    "repeatedFailureCount":  0,
-    "lastCommand":  "complete-task",
-    "lastCommandStatus":  "passed",
-    "lastErrorSummary":  "",
-    "lastReviewDecision":  "pass",
-    "lastReviewSeverity":  "none",
-    "lastCommitHash":  "b5ec82fe86ee008d51d64aa7345ef42f9157b899",
+    "repeatedFailureCount":  1,
+    "lastCommand":  "review-gate",
+    "lastCommandStatus":  "failed",
+    "lastErrorSummary":  "현재 task type이 implementation이 아닌데 review decision=revise입니다. 구현 없는 revise 반복을 성공 처리하지 않도록 중단합니다. taskType=\u0027verification\u0027, requiredFiles=, changedFiles=",
+    "lastReviewDecision":  "revise",
+    "lastReviewSeverity":  "medium",
+    "lastCommitHash":  null,
     "startedAt":  "2026-07-17T00:00:00+09:00",
-    "updatedAt":  "2026-07-17T09:10:59.5867393+00:00",
-    "stopReason":  "all_tasks_completed"
+    "updatedAt":  "2026-07-17T09:47:22.7061562+00:00",
+    "stopReason":  "auto_goal_failed",
+    "lastReviewNextStep":  "revise_with_codex",
+    "lastReviewSummary":  "앱 변경은 없고 범위 이탈은 없지만, T001의 요구 검증 항목을 실제 흐름으로 확인하지 못해 완료 판정하기 어렵다.",
+    "lastReviewRequiredChanges":  [
+                                      {
+                                          "file":  ".ai-dev/loop-log.md",
+                                          "reason":  "현재 기록은 정적 검토 결과만 남겼고, 요구된 MaxTasks 1 조건 생성, 1개 상태에서 추가 생\r\n성 시도, 완료/미완료 전환, 새로고침 후 유지 확\r\n인이 실제 실행 결과로 검증되지 않았다.",
+                                          "suggestion":  "허용된 검증 방식으로 해당 4개 흐름을 실제로 확인한 결과를 기록하거나, 실행 검증이 불가능하\r\n면 T001을 완료가 아닌 미완료/차단 상태로 명확\r\n히 기록한다."
+                                      }
+                                  ]
 }

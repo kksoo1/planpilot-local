@@ -1,32 +1,30 @@
 ﻿# 목표
-Autopilot durable history 기록 이후 nested auto-goal dirty-worktree-gate가 `.ai-dev/autopilot-goal-history.json` 때문에 중단되는 문제를 수정한다.
+MaxTasks 1 기능이 현재 로컬 앱에서 끝까지 정상 동작하는지 가장 작은 범위로 검증한다.
 
 ## 배경
-현재 Autopilot 연속 실행 중 selected/prepared/completed durable history가 기록된 직후 nested `ai-dev-auto-goal.ps1` 호출에서 작업 트리가 dirty로 판단되어 `auto_goal_failed`로 중단된다. 특히 `.ai-dev/autopilot-goal-history.json`이 새로 생성되거나 변경된 상태가 dirty gate에 걸린다.
+P0 백로그 항목인 "MaxTasks 1 end-to-end 검증"은 기능 추가보다 현재 구현의 실제 사용자 흐름 확인이 우선이다. 기존 저장 구조와 화면 흐름을 유지하면서, MaxTasks 1 설정 또는 제한이 업무 생성 및 표시 흐름에서 일관되게 적용되는지 확인한다.
 
 ## 성공 기준
-- Autopilot이 durable history를 기록해도 nested auto-goal dirty gate가 자기 자신의 history 파일만으로 실패하지 않는다.
-- `AllowRun + AllowCommit` 경로에서 history/loop-log가 필요한 시점에 안전하게 meta commit되거나 nested auto-goal 호출 전 작업 트리가 깨끗하게 유지된다.
-- DryRun에서는 파일 변경이 발생하지 않는다.
-- durable history 중복 방지 기능이 유지된다.
-- `.ai-dev/autopilot-goal-history.json`이 장기 추적 대상이면 자동화 commit 대상에 포함된다.
-- 실제 Autopilot 연속 실행 명령이 최소 1개 goal을 준비/실행 단계로 넘길 수 있다.
-- 앱 `src` 파일은 수정하지 않는다.
-- build/lint 검증을 통과한다.
+- MaxTasks 1 관련 현재 구현 위치와 사용자 흐름을 확인한다.
+- 업무가 1개로 제한되어야 하는 상황에서 추가 생성, 표시, 상태 변경 흐름이 일관되게 동작하는지 확인한다.
+- 제한 초과 시 사용자에게 보이는 결과가 혼란스럽지 않은지 확인한다.
+- 검증 결과와 발견된 문제를 간단히 기록한다.
 
 ## 제약사항
-- 변경은 Autopilot/auto-goal 스크립트와 `.ai-dev` 자동화 상태 파일 범위로 제한한다.
-- 기존 durable history 중복 방지 로직을 제거하지 않는다.
-- DryRun 경로는 어떤 파일도 쓰지 않도록 유지한다.
-- 앱 UI와 `src` 파일은 변경하지 않는다.
+- 한 번에 하나의 작은 검증 작업만 수행한다.
+- 기존 React, Vite, TypeScript, Zustand, Dexie 구조를 유지한다.
+- 사용자-facing 문구는 한국어를 기준으로 확인한다.
+- 기존 사용자 데이터를 깨뜨리는 방식은 사용하지 않는다.
+- src/App.css는 수정하지 않는다.
 
 ## 범위 제외
-- 앱 기능 변경
-- 대규모 스크립트 재작성
-- 저장소 구조 변경
-- 알림 또는 외부 연동 추가
+- 새 기능 추가는 포함하지 않는다.
+- 대규모 구조 변경은 포함하지 않는다.
+- 알림, 동기화, 계정 관련 기능은 포함하지 않는다.
+- 저장소 스키마 변경은 포함하지 않는다.
 
 ## 수동 검증
-- DryRun 실행 후 파일 변경이 없는지 확인한다.
-- `AllowRun + AllowCommit` Autopilot 연속 실행이 최소 1개 goal을 준비/실행 단계로 넘기는지 확인한다.
-- build와 lint를 실행해 통과 여부를 확인한다.
+- 현재 앱에서 MaxTasks 1 조건을 만들 수 있는지 확인한다.
+- 업무 1개가 존재하는 상태에서 추가 업무 생성 시도를 확인한다.
+- 업무 완료, 미완료 전환 후 제한 동작이 유지되는지 확인한다.
+- 새로고침 후에도 동일한 제한 상태가 유지되는지 확인한다.

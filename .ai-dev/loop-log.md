@@ -705,3 +705,136 @@ Exit code: 1
 - Task: T001 Autopilot history dirty gate 흐름 수정
 - Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
 - Next task: 없음
+
+## 2026-07-17 - Task verification
+
+- Task: T001 MaxTasks 1 흐름 검증
+- Result: 현재 큐는 T001 단일 task로 생성되어 있고, `ai-dev-auto-cycle-full.ps1`는 `MaxTasks` 입력값을 1 이상으로 검증한 뒤 완료 task 수가 `MaxTasks`에 도달하면 `max_tasks_reached`로 종료하는 구조임을 확인했다.
+- Finding: `ai-dev-auto-goal.ps1`의 계획 생성/검증 규칙은 `MaxTasks` 값을 반영하지 않고 queue task를 1~3개까지 허용한다. 현재 상태는 1개라 문제가 드러나지 않지만, `MaxTasks 1` 조건에서 새 goal 생성 단계가 항상 1개 task만 만들도록 강제되지는 않는다.
+- Verification: 코드와 `.ai-dev/queue.json`, `.ai-dev/state.json` 정적 검토로 확인했다. git, build, lint, test, npm install, 브라우저 실행은 수행하지 않았다.
+- Next task: MaxTasks 1 생성 제한을 강제하려면 별도 구현 task가 필요하다.
+
+## 2026-07-17 18:23:54 - Autopilot stopped
+
+- Reason: auto_goal_failed
+- Result: Auto-goal failed with exit code 1: Step 1: validate-input
+  Command: check GoalTitle/GoalDescription
+  Executed: False
+  Skipped: False
+  Exit code: 0
+  Message: Input validation completed: MaxTasks 1 end-to-end 검증
+Step 2: dirty-worktree-gate
+  Command: git status --porcelain
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: Baseline dirty count: 0. Worktree is clean.
+Step 3: plan-goal
+  Command: codex exec <auto-goal planning prompt>
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: Codex goal planning completed. Result: .ai-dev/codex-result.md
+Step 4: validate-generated-json
+  Command: goal/queue/state JSON validation
+  Executed: False
+  Skipped: False
+  Exit code: 0
+  Message: goalMarkdown, queue, and state JSON validation completed. currentTaskId: T001
+Step 5: write-state-files
+  Command: .ai-dev/goal.md, .ai-dev/queue.json, .ai-dev/state.json
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: New goal, queue, and state files were written.
+Step 6: make-prompt
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-prompt.ps1
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: 생성된 프롬프트 파일: .ai-dev/current-task-prompt.md
+Current task id: T001
+Current task title: MaxTasks 1 흐름 검증
+Step 7: auto-cycle-full
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cycle-full.ps1 -MaxTasks 3 -MaxSteps 22 -AllowCodex -AllowReviewCodex -AllowCommit -AllowDirty
+  Executed: True
+  Skipped: False
+  Exit code: 1
+  Message: Step 1: task-start
+  Command: MaxTasks=3
+  Executed: False
+  Skipped: False
+  Exit code: 0
+  Message: 현재 task 실행 시작: T001 MaxTasks 1 흐름 검증
+Step 2: make-prompt
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-prompt.ps1
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: 생성된 프롬프트 파일: .ai-dev/current-task-prompt.md
+Current task id: T001
+Current task title: MaxTasks 1 흐름 검증
+Step 3: run-codex
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-codex.ps1 -AllowDirty
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: Codex 실행이 완료되었습니다. 결과 파일: .ai-dev/codex-result.md
+Step 4: check
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-check.ps1 -BuildOnly
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: 실행 중: npm run build
+실행 중: npm run lint
+검증 결과: passed
+  - npm run build: passed
+  - npm run test: skipped
+  - npm run lint: passed
+기록 완료: .ai-dev/test-result.md
+상태 저장 완료: .ai-dev/state.json
+Step 5: save-diff
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-save-diff.ps1
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: git diff 저장 완료: .ai-dev/diff.md
+상태 저장 완료: .ai-dev/state.json
+untracked 파일 내용이 필요하면 -IncludeUntrackedContent 옵션을 사용하세요.
+Step 6: make-review-prompt
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-review-prompt.ps1 -Strict
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: 생성된 리뷰 프롬프트 파일: .ai-dev/review-prompt.md
+Current task id: T001
+Current task title: MaxTasks 1 흐름 검증
+Strict 사용 여부: True
+Step 7: run-review-codex
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-review-codex.ps1 -AllowDirty -SaveReview
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: Codex 리뷰 실행이 완료되었습니다. 리뷰 JSON: .ai-dev/review-response.json 결과 파일: .ai-dev/codex-review-result.md save-review 흐름까지 실행했습니다.
+Step 8: review-gate
+  Command: task type, .ai-dev/review-response.json required_changes, 현재 diff 확인
+  Executed: False
+  Skipped: True
+  Exit code: 1
+  Message: 현재 task type이 implementation이 아닌데 review decision=revise입니다. 구현 없는 revise 반복을 성공 처리하지 않도록 중단합니다. taskType='verification', requiredFiles=, changedFiles=
+Stopped reason: non_implementation_revise
+Completed: False
+Exit code: 1
+Plan preview:
+  Goal title: MaxTasks 1 end-to-end 검증
+  Current task id: T001
+  Task T001: MaxTasks 1 흐름 검증
+    Type: verification
+    Status: in_progress
+    Priority: P0
+    Likely files: 
+    Verification: MaxTasks 1 조건에서 업무 1개 생성 흐름을 확인한다. / 업무가 1개인 상태에서 추가 생성 시도를 확인한다. / 업무 완료 또는 미완료 전환 후 제한 동작을 확인한다. / 새로고침 후 제한 상태가 유지되는지 확인한다.
+Stopped reason: auto-cycle-full_failed
+Completed: False
+Exit code: 1
+- Prepared goals: 0/2

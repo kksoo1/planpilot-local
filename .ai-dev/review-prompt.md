@@ -15,60 +15,57 @@
 ## Project Goal
 
 # 목표
-Autopilot durable history 기록 이후 nested auto-goal dirty-worktree-gate가 `.ai-dev/autopilot-goal-history.json` 때문에 중단되는 문제를 수정한다.
+MaxTasks 1 기능이 현재 로컬 앱에서 끝까지 정상 동작하는지 가장 작은 범위로 검증한다.
 
 ## 배경
-현재 Autopilot 연속 실행 중 selected/prepared/completed durable history가 기록된 직후 nested `ai-dev-auto-goal.ps1` 호출에서 작업 트리가 dirty로 판단되어 `auto_goal_failed`로 중단된다. 특히 `.ai-dev/autopilot-goal-history.json`이 새로 생성되거나 변경된 상태가 dirty gate에 걸린다.
+P0 백로그 항목인 "MaxTasks 1 end-to-end 검증"은 기능 추가보다 현재 구현의 실제 사용자 흐름 확인이 우선이다. 기존 저장 구조와 화면 흐름을 유지하면서, MaxTasks 1 설정 또는 제한이 업무 생성 및 표시 흐름에서 일관되게 적용되는지 확인한다.
 
 ## 성공 기준
-- Autopilot이 durable history를 기록해도 nested auto-goal dirty gate가 자기 자신의 history 파일만으로 실패하지 않는다.
-- `AllowRun + AllowCommit` 경로에서 history/loop-log가 필요한 시점에 안전하게 meta commit되거나 nested auto-goal 호출 전 작업 트리가 깨끗하게 유지된다.
-- DryRun에서는 파일 변경이 발생하지 않는다.
-- durable history 중복 방지 기능이 유지된다.
-- `.ai-dev/autopilot-goal-history.json`이 장기 추적 대상이면 자동화 commit 대상에 포함된다.
-- 실제 Autopilot 연속 실행 명령이 최소 1개 goal을 준비/실행 단계로 넘길 수 있다.
-- 앱 `src` 파일은 수정하지 않는다.
-- build/lint 검증을 통과한다.
+- MaxTasks 1 관련 현재 구현 위치와 사용자 흐름을 확인한다.
+- 업무가 1개로 제한되어야 하는 상황에서 추가 생성, 표시, 상태 변경 흐름이 일관되게 동작하는지 확인한다.
+- 제한 초과 시 사용자에게 보이는 결과가 혼란스럽지 않은지 확인한다.
+- 검증 결과와 발견된 문제를 간단히 기록한다.
 
 ## 제약사항
-- 변경은 Autopilot/auto-goal 스크립트와 `.ai-dev` 자동화 상태 파일 범위로 제한한다.
-- 기존 durable history 중복 방지 로직을 제거하지 않는다.
-- DryRun 경로는 어떤 파일도 쓰지 않도록 유지한다.
-- 앱 UI와 `src` 파일은 변경하지 않는다.
+- 한 번에 하나의 작은 검증 작업만 수행한다.
+- 기존 React, Vite, TypeScript, Zustand, Dexie 구조를 유지한다.
+- 사용자-facing 문구는 한국어를 기준으로 확인한다.
+- 기존 사용자 데이터를 깨뜨리는 방식은 사용하지 않는다.
+- src/App.css는 수정하지 않는다.
 
 ## 범위 제외
-- 앱 기능 변경
-- 대규모 스크립트 재작성
-- 저장소 구조 변경
-- 알림 또는 외부 연동 추가
+- 새 기능 추가는 포함하지 않는다.
+- 대규모 구조 변경은 포함하지 않는다.
+- 알림, 동기화, 계정 관련 기능은 포함하지 않는다.
+- 저장소 스키마 변경은 포함하지 않는다.
 
 ## 수동 검증
-- DryRun 실행 후 파일 변경이 없는지 확인한다.
-- `AllowRun + AllowCommit` Autopilot 연속 실행이 최소 1개 goal을 준비/실행 단계로 넘기는지 확인한다.
-- build와 lint를 실행해 통과 여부를 확인한다.
+- 현재 앱에서 MaxTasks 1 조건을 만들 수 있는지 확인한다.
+- 업무 1개가 존재하는 상태에서 추가 업무 생성 시도를 확인한다.
+- 업무 완료, 미완료 전환 후 제한 동작이 유지되는지 확인한다.
+- 새로고침 후에도 동일한 제한 상태가 유지되는지 확인한다.
 
 ## Current Task
 
 - Task ID: T001
-- Title: Autopilot history dirty gate 흐름 수정
-- Description: Autopilot durable history 기록 후 nested auto-goal 호출 전에 history/loop-log 변경이 dirty gate에 걸리지 않도록 작은 범위로 수정하고, DryRun 무변경 및 history 중복 방지 동작을 유지한다.
-- Type: implementation
+- Title: MaxTasks 1 흐름 검증
+- Description: 현재 구현에서 MaxTasks 1 조건이 업무 생성, 표시, 상태 변경, 새로고침 후 유지 흐름에서 일관되게 적용되는지 확인하고 결과를 정리한다.
+- Type: verification
 - Status: in_progress
 - Priority: P0
 - Depends on:
 - 없음
 - Verification:
-- DryRun 실행 후 파일 변경이 발생하지 않는지 확인
-- AllowRun + AllowCommit Autopilot 연속 실행이 최소 1개 goal을 준비/실행 단계로 넘기는지 확인
-- durable history 중복 방지 동작이 유지되는지 확인
-- npm run build 실행
-- npm run lint 실행
+- MaxTasks 1 조건에서 업무 1개 생성 흐름을 확인한다.
+- 업무가 1개인 상태에서 추가 생성 시도를 확인한다.
+- 업무 완료 또는 미완료 전환 후 제한 동작을 확인한다.
+- 새로고침 후 제한 상태가 유지되는지 확인한다.
 
 ## Test Result
 
 # AI Dev Test Result
 
-## 2026-07-17 18:09:30
+## 2026-07-17 18:46:19
 
 - Overall result: passed
 - Current task: T001
@@ -124,7 +121,7 @@ package.json에 test script가 없습니다.
 
 ## Generated At
 
-2026-07-17 18:09:37
+2026-07-17 18:46:26
 
 ## Git Status
 
@@ -139,15 +136,14 @@ package.json에 test script가 없습니다.
  M .ai-dev/review-prompt.md
  M .ai-dev/review-response.json
  M .ai-dev/review.md
- M .ai-dev/revise-prompt.md
  M .ai-dev/state.json
  M .ai-dev/test-result.md
- M scripts/ai-dev-autopilot.ps1
+?? .ai-dev/verification-evidence-prompt.md
 ```
 
 ## App Change Files
 
-- scripts/ai-dev-autopilot.ps1
+- 없음
 
 ## AI Dev Operational Artifact Files
 
@@ -161,9 +157,9 @@ package.json에 test script가 없습니다.
 - .ai-dev/review-prompt.md
 - .ai-dev/review-response.json
 - .ai-dev/review.md
-- .ai-dev/revise-prompt.md
 - .ai-dev/state.json
 - .ai-dev/test-result.md
+- .ai-dev/verification-evidence-prompt.md
 
 ## Review Diff Scope
 
@@ -172,106 +168,13 @@ package.json에 test script가 없습니다.
 ## Unstaged Diff Stat
 
 ```text
- scripts/ai-dev-autopilot.ps1 | 41 ++++++++++++++++++++++++++++++-----------
- 1 file changed, 30 insertions(+), 11 deletions(-)
+변경 없음
 ```
 
 ## Unstaged Diff
 
 ```text
-diff --git a/scripts/ai-dev-autopilot.ps1 b/scripts/ai-dev-autopilot.ps1
-index 1468b7b..0f94f17 100644
---- a/scripts/ai-dev-autopilot.ps1
-+++ b/scripts/ai-dev-autopilot.ps1
-@@ -21,6 +21,16 @@ $stateRelativePath = ".ai-dev/state.json"
- $backlogRelativePath = ".ai-dev/backlog.md"
- $loopLogRelativePath = ".ai-dev/loop-log.md"
- $goalHistoryRelativePath = ".ai-dev/autopilot-goal-history.json"
-+$autopilotMetaCommitRelativePaths = @(
-+    ".ai-dev/codex-result.md",
-+    ".ai-dev/current-task-prompt.md",
-+    ".ai-dev/goal.md",
-+    ".ai-dev/queue.json",
-+    ".ai-dev/state.json",
-+    ".ai-dev/test-result.md",
-+    $loopLogRelativePath,
-+    $goalHistoryRelativePath
-+)
- $goalPath = Join-Path $repoRoot $goalRelativePath
- $queuePath = Join-Path $repoRoot $queueRelativePath
- $statePath = Join-Path $repoRoot $stateRelativePath
-@@ -253,44 +263,44 @@ function Invoke-AutopilotLoopLogMetaCommit {
-         return New-StepResult $StepNumber "autopilot-meta-commit" $false $true 0 "AllowCommit is not set, so autopilot loop-log/history meta commit was not executed."
-     }
- 
--    $statusOutput = & git status --short -- $loopLogRelativePath $goalHistoryRelativePath 2>&1 | Out-String
-+    $statusOutput = & git status --short -- $autopilotMetaCommitRelativePaths 2>&1 | Out-String
-     $statusExitCode = $LASTEXITCODE
- 
-     if ($statusExitCode -ne 0) {
--        return New-StepResult $StepNumber "autopilot-meta-commit" $true $false 1 "git status for autopilot loop-log/history failed. exit code: $statusExitCode`n$statusOutput"
-+        return New-StepResult $StepNumber "autopilot-meta-commit" $true $false 1 "git status for autopilot meta files failed. exit code: $statusExitCode`n$statusOutput"
-     }
- 
-     if (-not (Test-HasValue $statusOutput)) {
--        return New-StepResult $StepNumber "autopilot-meta-commit" $true $false 0 "Autopilot loop-log/history had no changes to commit."
-+        return New-StepResult $StepNumber "autopilot-meta-commit" $true $false 0 "Autopilot meta files had no changes to commit."
-     }
- 
--    $addOutput = & git add -- $loopLogRelativePath $goalHistoryRelativePath 2>&1 | Out-String
-+    $addOutput = & git add -- $autopilotMetaCommitRelativePaths 2>&1 | Out-String
-     $addExitCode = $LASTEXITCODE
- 
-     if ($addExitCode -ne 0) {
--        return New-StepResult $StepNumber "autopilot-meta-commit" $true $false 1 "Autopilot loop-log/history git add failed. exit code: $addExitCode`n$addOutput"
-+        return New-StepResult $StepNumber "autopilot-meta-commit" $true $false 1 "Autopilot meta files git add failed. exit code: $addExitCode`n$addOutput"
-     }
- 
-     $metaCommitMessage = "chore(ai-dev): record autopilot progress"
--    $commitOutput = & git commit -m $metaCommitMessage -- $loopLogRelativePath $goalHistoryRelativePath 2>&1 | Out-String
-+    $commitOutput = & git commit -m $metaCommitMessage -- $autopilotMetaCommitRelativePaths 2>&1 | Out-String
-     $commitExitCode = $LASTEXITCODE
- 
-     if ($commitExitCode -ne 0) {
--        return New-StepResult $StepNumber "autopilot-meta-commit" $true $false 1 "Autopilot loop-log/history meta commit failed. exit code: $commitExitCode`n$commitOutput"
-+        return New-StepResult $StepNumber "autopilot-meta-commit" $true $false 1 "Autopilot meta commit failed. exit code: $commitExitCode`n$commitOutput"
-     }
- 
--    $remainingStatus = & git status --short 2>&1 | Out-String
-+    $remainingStatus = & git status --short -- $autopilotMetaCommitRelativePaths 2>&1 | Out-String
-     $remainingStatusExitCode = $LASTEXITCODE
- 
-     if ($remainingStatusExitCode -ne 0) {
--        return New-StepResult $StepNumber "autopilot-meta-commit" $true $false 1 "Autopilot final clean verification failed because git status failed. exit code: $remainingStatusExitCode`n$remainingStatus"
-+        return New-StepResult $StepNumber "autopilot-meta-commit" $true $false 1 "Autopilot meta clean verification failed because git status failed. exit code: $remainingStatusExitCode`n$remainingStatus"
-     }
- 
-     if (Test-HasValue $remainingStatus) {
--        return New-StepResult $StepNumber "autopilot-meta-commit" $true $false 1 "Autopilot final clean verification failed: git status --short still reports changes after the loop-log meta commit.`n$remainingStatus"
-+        return New-StepResult $StepNumber "autopilot-meta-commit" $true $false 1 "Autopilot meta clean verification failed: git status --short still reports meta changes after the autopilot meta commit.`n$remainingStatus"
-     }
- 
--    $message = ($commitOutput.Trim(), "Autopilot final clean verification: git status --short returned no changes.") -join "`n"
-+    $message = ($commitOutput.Trim(), "Autopilot meta clean verification: git status --short returned no autopilot meta changes.") -join "`n"
-     return New-StepResult $StepNumber "autopilot-meta-commit" $true $false 0 $message
- }
- 
-@@ -937,6 +947,15 @@ for ($goalIndex = 1; $goalIndex -le $MaxGoals; $goalIndex++) {
- 
-     $steps += New-StepResult ($steps.Count + 1) "generate-goal-candidate" $false $false 0 $candidateMessage $candidate
- 
-+    if ($AllowCommit) {
-+        $metaCommitStep = Invoke-AutopilotLoopLogMetaCommit ($steps.Count + 1)
-+        $steps += $metaCommitStep
-+
-+        if ($metaCommitStep.exitCode -ne 0) {
-+            Stop-Autopilot $steps "autopilot_meta_commit_failed" $false 1 $preparedGoals $metaCommitStep.message
-+        }
-+    }
-+
-     try {
-         $autoGoalStep = Invoke-AutoGoal $candidate ($steps.Count + 1)
-     } catch {
+변경 없음
 ```
 
 ## Staged Diff Stat
