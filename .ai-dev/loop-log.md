@@ -689,3 +689,19 @@ Stopped reason: dirty_worktree
 Completed: False
 Exit code: 1
 - Prepared goals: 0/2
+## 2026-07-17 18:20:00 - Revise applied
+
+- Task: T001 Autopilot history dirty gate 흐름 수정
+- Result: nested auto-goal 직전 meta commit 정책을 loop-log/history 단독 처리에서 autopilot 자동화 메타 파일 처리로 확장하고, 최종 검증 범위를 같은 meta 파일 목록으로 정렬했다.
+- Verification: build/lint 및 수동 실행 검증은 재수정 후 별도 확인 대상이다.
+
+## 2026-07-17 18:10:57 - Commit created
+
+- Task: T001 Autopilot history dirty gate 흐름 수정
+- Commit: b5ec82fe86ee008d51d64aa7345ef42f9157b899
+- Message: Fix autopilot history dirty gate
+## 2026-07-17 18:11:01 - Task completed
+
+- Task: T001 Autopilot history dirty gate 흐름 수정
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
+- Next task: 없음

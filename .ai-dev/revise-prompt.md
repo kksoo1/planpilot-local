@@ -8,83 +8,79 @@
 ## Goal
 
 # 목표
-
-Autopilot DryRun 실행 후 `.ai-dev/codex-result.md`가 dirty로 남지 않도록 수정한다.
+Autopilot durable history 기록 이후 nested auto-goal dirty-worktree-gate가 `.ai-dev/autopilot-goal-history.json` 때문에 중단되는 문제를 수정한다.
 
 ## 배경
-
-현재 다음 DryRun 명령 실행 후 `.ai-dev/codex-result.md`가 수정된 상태로 남는다.
-
-`powershell -ExecutionPolicy Bypass -File .\scripts\ai-dev-autopilot.ps1 -DryRun -Json -MaxGoals 2 -MaxTasks 3`
-
-DryRun은 실제 실행이 아니므로 운영 산출물을 포함해 어떤 파일도 변경하지 않아야 한다. 단, `-Json` 출력은 기존처럼 유지되어야 한다.
+현재 Autopilot 연속 실행 중 selected/prepared/completed durable history가 기록된 직후 nested `ai-dev-auto-goal.ps1` 호출에서 작업 트리가 dirty로 판단되어 `auto_goal_failed`로 중단된다. 특히 `.ai-dev/autopilot-goal-history.json`이 새로 생성되거나 변경된 상태가 dirty gate에 걸린다.
 
 ## 성공 기준
-
-- DryRun 실행 중 `.ai-dev/codex-result.md`를 포함한 어떤 파일도 수정되지 않는다.
-- DryRun `-Json` 출력은 유지된다.
-- auto-goal DryRun 내부 호출 결과가 운영 산출물 파일에 저장되지 않는다.
-- 실제 실행 모드의 Codex 결과 저장 동작은 유지된다.
-- 동일 DryRun 명령 실행 후 `git status --short` 결과가 비어 있다.
+- Autopilot이 durable history를 기록해도 nested auto-goal dirty gate가 자기 자신의 history 파일만으로 실패하지 않는다.
+- `AllowRun + AllowCommit` 경로에서 history/loop-log가 필요한 시점에 안전하게 meta commit되거나 nested auto-goal 호출 전 작업 트리가 깨끗하게 유지된다.
+- DryRun에서는 파일 변경이 발생하지 않는다.
+- durable history 중복 방지 기능이 유지된다.
+- `.ai-dev/autopilot-goal-history.json`이 장기 추적 대상이면 자동화 commit 대상에 포함된다.
+- 실제 Autopilot 연속 실행 명령이 최소 1개 goal을 준비/실행 단계로 넘길 수 있다.
 - 앱 `src` 파일은 수정하지 않는다.
-- 허용된 검증에서 build/lint를 통과한다.
+- build/lint 검증을 통과한다.
 
 ## 제약사항
-
-- 변경 범위는 Autopilot DryRun과 Codex 결과 저장 흐름에 한정한다.
-- 앱 `src` 파일은 수정하지 않는다.
-- DryRun과 실제 실행 모드의 동작 차이를 명확히 유지한다.
-- 불필요한 구조 변경이나 대규모 재작성은 하지 않는다.
+- 변경은 Autopilot/auto-goal 스크립트와 `.ai-dev` 자동화 상태 파일 범위로 제한한다.
+- 기존 durable history 중복 방지 로직을 제거하지 않는다.
+- DryRun 경로는 어떤 파일도 쓰지 않도록 유지한다.
+- 앱 UI와 `src` 파일은 변경하지 않는다.
 
 ## 범위 제외
-
-- UI 변경
 - 앱 기능 변경
-- 데이터 저장 구조 변경
-- Autopilot 전체 동작 재설계
+- 대규모 스크립트 재작성
+- 저장소 구조 변경
+- 알림 또는 외부 연동 추가
 
 ## 수동 검증
-
-- `powershell -ExecutionPolicy Bypass -File .\scripts\ai-dev-autopilot.ps1 -DryRun -Json -MaxGoals 2 -MaxTasks 3` 실행
-- 실행 후 `git status --short`가 비어 있는지 확인
-- 실제 실행 모드에서 Codex 결과 저장 동작이 유지되는지 관련 경로 확인
-- 허용된 경우 build/lint 실행
+- DryRun 실행 후 파일 변경이 없는지 확인한다.
+- `AllowRun + AllowCommit` Autopilot 연속 실행이 최소 1개 goal을 준비/실행 단계로 넘기는지 확인한다.
+- build와 lint를 실행해 통과 여부를 확인한다.
 
 ## Current Task
 
 - Task ID: T001
-- Title: DryRun 결과 저장 흐름 분석 및 수정
-- Description: Autopilot DryRun에서 Codex 내부 호출 결과가 `.ai-dev/codex-result.md` 같은 운영 산출물에 저장되는 경로를 확인하고, DryRun일 때 파일 쓰기를 건너뛰도록 최소 범위로 수정한다.
+- Title: Autopilot history dirty gate 흐름 수정
+- Description: Autopilot durable history 기록 후 nested auto-goal 호출 전에 history/loop-log 변경이 dirty gate에 걸리지 않도록 작은 범위로 수정하고, DryRun 무변경 및 history 중복 방지 동작을 유지한다.
 - Type: implementation
 - Status: in_progress
 - Priority: P0
 - Verification:
-- DryRun 명령의 `-Json` 출력이 유지되는지 확인한다.
-- DryRun 실행 후 `.ai-dev/codex-result.md`가 수정되지 않는지 확인한다.
-- 실제 실행 모드의 결과 저장 분기가 유지되는지 코드 흐름을 확인한다.
+- DryRun 실행 후 파일 변경이 발생하지 않는지 확인
+- AllowRun + AllowCommit Autopilot 연속 실행이 최소 1개 goal을 준비/실행 단계로 넘기는지 확인
+- durable history 중복 방지 동작이 유지되는지 확인
+- npm run build 실행
+- npm run lint 실행
 
 ## Review Result
 
 - Decision: revise
-- Severity: low
+- Severity: medium
 - Next step: revise_with_codex
-- Summary: 핵심 코드 변경은 DryRun에서 결과 파일 저장과 임시 산출물 삭제를 건너뛰도록 최소 범위로 맞게 되어 있으나, 검증 기록의 git status가 완전히 
-비어 있지 않고 test가 skipped라 Strict Criteria상 pass로 확정하기 어렵다.
+- Summary: nested auto-goal 전 meta commit 추가 방향은 맞지만, commit 대상은 loop-log/history로 제한하면서 최종 검증은 전체
+ 작업 트리에 걸려 현재 자동화 산출물 변경이 남으면 auto-goal 진입 전에 실패할 수 있다. 수동 검증도 프롬프트 성공 기준을 충분히 입증하지 못했다.
 
 ## Required Changes
 
-- File: .ai-dev/test-result.md
-  - Reason: 성공 기준은 동일 DryRun 명령 실행 후 git status --short가 비어 있어야 한다고 명시하지만, 기록에는 검증 산출물 dryrun-ou
-tput.json, dryrun-status.txt가 untracked로 남아 있다.
-  - Suggestion: DryRun 검증 출력 파일을 git 추적 밖 임시 위치에 쓰거나 검증 후 제거한 상태에서 git status --short가 빈 결과임을 다시
- 기록한다.
+- File: scripts/ai-dev-autopilot.ps1
+  - Reason: Invoke-AutopilotLoopLogMetaCommit는 .ai-dev/loop-log.md와 .ai-dev/autopilot-goal-histo
+ry.json만 add/commit한 뒤 282-290행에서 전체 git status를 검사한다. 현재 리뷰 입력에도 .ai-dev 운영 산출물 변경이 남아 있어 이 경로가 auto
+pilot_meta_commit_failed로 중단될 수 있으며, nested auto-goal을 준비/실행 단계로 넘긴다는 성공 기준에 불확실성이 있다.
+  - Suggestion: nested auto-goal 직전 dirty gate 목적에 맞게 전체 clean 검증 전에 자동화 산출물 처리 정책을 명확히 하라. 최소 수
+정으로는 AllowCommit 경로에서 nested 호출 전에 dirty로 남을 수 있는 자동화 메타 파일을 함께 안전하게 처리하거나, 이 함수의 최종 검증 범위를 dirty gat
+e에서 허용/처리되는 자동화 파일 정책과 일치시키고 실제 AllowRun + AllowCommit 연속 실행으로 확인하라.
+- File: unknown
+  - Reason: 성공 기준의 수동 검증인 DryRun 무변경, AllowRun + AllowCommit 연속 실행 최소 1개 goal 준비/실행, durable his
+tory 중복 방지 유지가 결과에 명확히 기록되어 있지 않다. test script도 없어 npm run test는 skipped 상태다.
+  - Suggestion: 프롬프트에 명시된 수동 검증 결과를 실행/기록하고, 테스트 스크립트가 없는 점은 잔여 리스크로 명시하라.
 
 ## Optional Suggestions
 
 - optional_suggestions는 참고만 하며 구현하지 않는다.
-- File: scripts/ai-dev-auto-goal.ps1
-  - Suggestion: 현재 변경은 적절하다. DryRun 분기에서 Save-AutoGoalResultFile 호출이 차단되고 실제 실행 모드의 저장 경로는 유지된다.
-
+- 없음
 
 ## Diff Context
 
@@ -92,42 +88,30 @@ tput.json, dryrun-status.txt가 untracked로 남아 있다.
 
 ## Generated At
 
-2026-07-17 16:51:07
+2026-07-17 18:04:01
 
 ## Git Status
 
 ```text
  M .ai-dev/codex-result.md
- M .ai-dev/codex-review-result.md
  M .ai-dev/current-task-prompt.md
- M .ai-dev/diff.md
  M .ai-dev/goal.md
  M .ai-dev/queue.json
- M .ai-dev/review-prompt.md
- M .ai-dev/review-response.json
- M .ai-dev/review.md
- M .ai-dev/revise-prompt.md
  M .ai-dev/state.json
  M .ai-dev/test-result.md
- M scripts/ai-dev-auto-goal.ps1
+ M scripts/ai-dev-autopilot.ps1
 ```
 
 ## App Change Files
 
-- scripts/ai-dev-auto-goal.ps1
+- scripts/ai-dev-autopilot.ps1
 
 ## AI Dev Operational Artifact Files
 
 - .ai-dev/codex-result.md
-- .ai-dev/codex-review-result.md
 - .ai-dev/current-task-prompt.md
-- .ai-dev/diff.md
 - .ai-dev/goal.md
 - .ai-dev/queue.json
-- .ai-dev/review-prompt.md
-- .ai-dev/review-response.json
-- .ai-dev/review.md
-- .ai-dev/revise-prompt.md
 - .ai-dev/state.json
 - .ai-dev/test-result.md
 
@@ -138,31 +122,33 @@ tput.json, dryrun-status.txt가 untracked로 남아 있다.
 ## Unstaged Diff Stat
 
 ```text
- scripts/ai-dev-auto-goal.ps1 | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ scripts/ai-dev-autopilot.ps1 | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 ```
 
 ## Unstaged Diff
 
 ```text
-diff --git a/scripts/ai-dev-auto-goal.ps1 b/scripts/ai-dev-auto-goal.ps1
-index 594d429..be59b8d 100644
---- a/scripts/ai-dev-auto-goal.ps1
-+++ b/scripts/ai-dev-auto-goal.ps1
-@@ -220,8 +220,11 @@ function Stop-AutoGoal {
-         [int]$ExitCode
-     )
+diff --git a/scripts/ai-dev-autopilot.ps1 b/scripts/ai-dev-autopilot.ps1
+index 1468b7b..0b9945e 100644
+--- a/scripts/ai-dev-autopilot.ps1
++++ b/scripts/ai-dev-autopilot.ps1
+@@ -937,6 +937,15 @@ for ($goalIndex = 1; $goalIndex -le $MaxGoals; $goalIndex++) {
  
--    Clear-AutoGoalTempArtifacts
--    if (-not $Completed -or $ExitCode -ne 0) {
-+    if (-not $DryRun) {
-+        Clear-AutoGoalTempArtifacts
+     $steps += New-StepResult ($steps.Count + 1) "generate-goal-candidate" $false $false 0 $candidateMessage $candidate
+ 
++    if ($AllowCommit) {
++        $metaCommitStep = Invoke-AutopilotLoopLogMetaCommit ($steps.Count + 1)
++        $steps += $metaCommitStep
++
++        if ($metaCommitStep.exitCode -ne 0) {
++            Stop-Autopilot $steps "autopilot_meta_commit_failed" $false 1 $preparedGoals $metaCommitStep.message
++        }
 +    }
 +
-+    if (-not $DryRun -and (-not $Completed -or $ExitCode -ne 0)) {
-         if ($script:autoGoalCanWriteResultFile) {
-             Save-AutoGoalResultFile $StoppedReason $false $ExitCode
-         }
+     try {
+         $autoGoalStep = Invoke-AutoGoal $candidate ($steps.Count + 1)
+     } catch {
 ```
 
 ## Staged Diff Stat
@@ -181,7 +167,7 @@ index 594d429..be59b8d 100644
 
 # AI Dev Test Result
 
-## 2026-07-17 16:46:50
+## 2026-07-17 18:03:54
 
 - Overall result: passed
 - Current task: T001
@@ -210,7 +196,7 @@ dist/index.html                   0.46 kB │ gzip:   0.29 kB
 dist/assets/index-DvjxWt30.css    5.69 kB │ gzip:   1.93 kB
 dist/assets/index-DtLVvPCG.js   317.50 kB │ gzip: 100.16 kB
 
-[32m✓ built in 256ms[39m
+[32m✓ built in 212ms[39m
 ```
 ### npm run test
 
@@ -230,68 +216,6 @@ package.json에 test script가 없습니다.
 > planpilot-local@0.0.0 lint
 > eslint .
 ```
-## 2026-07-17 16:45:00 - DryRun clean worktree verification
-
-- Overall result: passed
-- Current task: T001 DryRun 결과 저장 흐름 분석 및 수정
-- Mode: Temporary repository verification using the current working copy scripts
-
-### Executed command
-
-`powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\ai-dev-autopilot.ps1 -DryRun -Json -MaxGoals 2 -MaxTasks 3
-`",
-  ",
-  
-
-- DryRun command executed in a temporary git repository.
-- git diff --exit-code --quiet exit code after DryRun: 0
-- git status --short after DryRun:
-
-`	ext
-?? dryrun-output.json
-?? dryrun-status.txt
-
-`",
-  ",
-  
-
-`	ext
-{
-    "steps":  [
-                  {
-                      "step":  1,
-                      "name":  "validate-input",
-                      "executed":  false,
-                      "skipped":  false,
-                      "exitCode":  0,
-                      "message":  "Autopilot input validation completed. MaxGoals=2, MaxTasks=3, MaxSteps=22",
-                      "goalCandidate":  null
-                  },
-                  {
-                      "step":  2,
-                      "name":  "current-goal-gate",
-                      "executed":  false,
-                      "skipped":  true,
-                      "exitCode":  1,
-                      "message":  "Current goal is not completed, so autopilot will not create the next goal. goalStatus=in_progress, currentTaskId=T001, openTaskCount=2",
-                      "goalCandidate":  null
-                  }
-              ],
-    "stoppedReason":  "current_goal_not_completed",
-    "completed":  false,
-    "exitCode":  1,
-    "maxGoals":  2,
-    "preparedGoals":  0
-}
-`",
-  ",
-  
-
-- DryRun result file write prevention is verified in a clean temporary repository.
-- The verification used the current modified scripts copied from the working project.
-- No app src files were modified by this verification.
-
 
 ## Allowed Scope
 
