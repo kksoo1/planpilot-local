@@ -1284,7 +1284,7 @@ while ($script:completedTaskCount -lt $MaxTasks) {
 
     try {
         if (Test-PackageFileChanged) {
-            $script:steps += New-StepResult $stepNumber "package-change-gate" "git status --porcelain -- package.json package-lock.json" $false $true 1 "package.json 또는 package-lock.json 변경이 감지되어 자동 커밋하지 않습니다."
+            $script:steps += New-StepResult $stepNumber "package-change-gate" "git status --porcelain -- package.json package-lock.json" $false $true 1 "package.json 또는 package-lock.json 변경이 감지되어 자동 커밋을 중단합니다. 의도한 패키지 변경인지, lock file 변경이 필요한지 확인한 뒤 별도 작업으로 처리하세요."
             Stop-Cycle $script:steps "package_files_changed" $false 1
         }
     } catch {
