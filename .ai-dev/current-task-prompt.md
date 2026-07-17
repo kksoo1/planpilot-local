@@ -7,41 +7,46 @@
 ## Goal
 
 # 목표
-package 변경 감지 메시지를 사용자가 더 쉽게 이해하고 다음 행동을 판단할 수 있도록 개선한다.
+
+build/check 실패 후 revise 흐름 자동 안내를 추가한다.
 
 ## 배경
-현재 package 변경 감지 메시지는 변경 사실을 전달하지만, 어떤 의미인지와 사용자가 무엇을 확인하면 되는지 충분히 명확하지 않을 수 있다. 기존 동작을 유지하면서 안내 문구만 작게 개선한다.
+
+현재 full auto-cycle은 build/check 실패 시 중단되지만, 이후 사용자가 어떤 파일을 확인하고 어떤 revise 흐름으로 이어가야 하는지 안내가 충분히 명확하지 않다. 실패 원인을 확인한 뒤 재수정 프롬프트 생성 또는 Codex 재수정 실행으로 이어질 수 있는 다음 행동을 작고 안전하게 안내해야 한다.
 
 ## 성공 기준
-- package 변경 감지 메시지가 한국어로 자연스럽고 구체적으로 표시된다.
-- 사용자가 변경 감지 상황에서 확인해야 할 내용을 이해할 수 있다.
-- 기존 감지 조건과 저장 구조는 변경하지 않는다.
-- 수정 범위는 관련 메시지 표시 코드에 한정한다.
+
+- build/check 실패 상태에서 다음 행동 안내가 revise 흐름을 명확히 제안한다.
+- 안내에는 `.ai-dev/test-result.md` 확인과 필요한 재수정 프롬프트 생성 흐름이 포함된다.
+- 기존 pass, review revise, commit, complete-task 흐름은 변경하지 않는다.
+- 자동으로 위험한 명령을 실행하지 않고 추천 명령만 제공한다.
 
 ## 제약사항
-- 한 번에 하나의 작은 구현 작업만 진행한다.
-- 기존 타입, 상태, 저장 구조를 우선 사용한다.
-- 사용자-facing UI 문자열은 한국어를 사용한다.
-- src/App.css는 수정하지 않는다.
-- lock file은 수정하지 않는다.
+
+- 한 번에 하나의 작은 구현 변경만 수행한다.
+- 기존 자동화 스크립트 구조를 우선 사용한다.
+- 사용자-facing 안내 문구는 한국어로 작성한다.
+- 서버 API, 로그인, 클라우드 동기화, 대규모 재작성은 포함하지 않는다.
+- 검증 명령은 사용자가 허용한 경우에만 실행한다.
 
 ## 범위 제외
-- package 변경 감지 로직 자체 변경
-- 새 화면 추가
-- 대규모 컴포넌트 분리
-- 저장 스키마 변경
-- 알림 기능 추가
+
+- 실제 build/check 재실행 자동화 확대는 제외한다.
+- 리뷰 JSON 포맷 변경은 제외한다.
+- task queue schema 변경은 제외한다.
+- 앱 화면 UI 변경은 제외한다.
 
 ## 수동 검증
-- package 변경 감지 메시지가 표시되는 경로를 확인한다.
-- 변경 후 문구가 기존 화면 안에서 깨지지 않는지 확인한다.
-- 관련 없는 UI 문구와 동작이 바뀌지 않았는지 확인한다.
+
+- build/check 실패 상태를 가정한 `state.json` 값에서 `scripts/ai-dev-next.ps1 -Json` 출력의 action, reason, recommendedCommands, notes를 확인한다.
+- pass 상태와 review revise 상태의 기존 다음 행동 안내가 유지되는지 확인한다.
+- 사용자가 허용하면 관련 PowerShell 스크립트의 문법 또는 DryRun 검증을 실행한다.
 
 ## Current Task
 
 - Task ID: T001
-- Title: package 변경 감지 메시지 문구 개선
-- Description: 현재 package 변경 감지 메시지가 정의된 위치를 확인하고, 감지 조건은 유지한 채 사용자-facing 한국어 안내 문구만 더 명확하게 조정한다.
+- Title: build/check 실패 후 revise 안내 추가
+- Description: 현재 다음 행동 안내 스크립트의 실패 상태 판정 흐름을 확인하고, build/check 실패 상태에서 사용자가 `.ai-dev/test-result.md`를 확인한 뒤 revise 흐름으로 이어갈 수 있도록 한국어 안내와 추천 명령을 보강한다.
 - Type: implementation
 - Status: in_progress
 - Priority: P1
@@ -57,13 +62,13 @@ package 변경 감지 메시지를 사용자가 더 쉽게 이해하고 다음 �
 
 ## Likely Files
 
-- src/App.tsx
+- scripts/ai-dev-next.ps1
 
 ## Verification
 
-- 관련 메시지 표시 위치를 확인한다.
-- 문구 변경 후 JSX 구조 중복이 없는지 확인한다.
-- 필요 시 사용자가 허용하면 빌드 검증을 실행한다.
+- build/check 실패 상태에서 다음 행동 안내가 test-result 확인과 revise 흐름을 제안하는지 확인한다.
+- 기존 review revise 상태의 make_revise_prompt 안내가 유지되는지 확인한다.
+- 사용자가 허용하면 관련 스크립트 DryRun 또는 문법 검증을 실행한다.
 
 - 필요한 경우 `npm run build`는 사람이 별도로 실행한다.
 - 이 프롬프트는 자동으로 build, test, lint를 실행하라고 지시하지 않는다.

@@ -3,14 +3,23 @@
     "currentTaskId":  null,
     "currentLoop":  0,
     "maxLoopsPerTask":  2,
-    "repeatedFailureCount":  0,
+    "repeatedFailureCount":  1,
     "lastCommand":  "complete-task",
     "lastCommandStatus":  "passed",
     "lastErrorSummary":  "",
     "lastReviewDecision":  "pass",
     "lastReviewSeverity":  "none",
-    "lastCommitHash":  "d19bd1932cd36ae8986e3191dd6ab309899df4a1",
-    "startedAt":  "2026-07-17T00:00:00+09:00",
-    "updatedAt":  "2026-07-17T11:20:53.4369100+00:00",
-    "stopReason":  "all_tasks_completed"
+    "lastCommitHash":  "57ba4f4c382ba46990bfa1daf2b00ad7bc868775",
+    "startedAt":  "2026-07-17T20:22:22.8903897+09:00",
+    "updatedAt":  "2026-07-17T14:03:43.0181533+00:00",
+    "stopReason":  "all_tasks_completed",
+    "lastReviewNextStep":  "revise_with_codex",
+    "lastReviewSummary":  "build/check 실패 안내는 추가됐지만, 실패 직후 recommendedCommands가 아직 생성되지 않은 리뷰 결과 저장과 revise 프롬프트 생\r\n성을 실행 순서처럼 권장해 흐름을 과하게 앞당깁니다.",
+    "lastReviewRequiredChanges":  [
+                                      {
+                                          "file":  "scripts/ai-dev-next.ps1",
+                                          "reason":  "build/check 실패 직후에는 .ai-dev/test-result.md 확인, diff 저장, review prompt 생성까지가 안전한 다음 행\r\n동입니다. 현재 recommendedCommands에 save-review -FromClipboard와 make-revise-prompt가 포함되어 있어 사용자가 리뷰 결과를 받기 \r\n전에도 실행할 명령처럼 노출됩니다.",
+                                          "suggestion":  "prepare_review_after_check_failure의 recommendedCommands는 test-result 확인, save-di\r\nff, make-review-prompt -Strict까지만 남기고, save-review 및 make-revise-prompt는 notes에서 \u0027리뷰 결과를 받은 뒤 revise인\r\n 경우 실행\u0027으로 안내하세요."
+                                      }
+                                  ]
 }

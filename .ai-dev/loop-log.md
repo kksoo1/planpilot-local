@@ -1072,3 +1072,220 @@ Exit code: 1
 - Goal: package 변경 감지 메시지 개선
 - Source: .ai-dev/backlog.md / P1
 - Prepared goals: 1/2
+
+## 2026-07-17 20:29:24 - Autopilot stopped
+
+- Reason: auto_goal_failed
+- Result: Auto-goal failed with exit code 1: Step 1: validate-input
+  Command: check GoalTitle/GoalDescription
+  Executed: False
+  Skipped: False
+  Exit code: 0
+  Message: Input validation completed: build/check 실패 후 revise 흐름 자동 안내
+Step 2: dirty-worktree-gate
+  Command: git status --porcelain
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: Baseline dirty count: 0. Worktree is clean.
+Step 3: plan-goal
+  Command: codex exec <auto-goal planning prompt>
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: Codex goal planning completed. Result: .ai-dev/codex-result.md
+Step 4: validate-generated-json
+  Command: goal/queue/state JSON validation
+  Executed: False
+  Skipped: False
+  Exit code: 0
+  Message: goalMarkdown, queue, and state JSON validation completed. currentTaskId: T001
+Step 5: write-state-files
+  Command: .ai-dev/goal.md, .ai-dev/queue.json, .ai-dev/state.json
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: New goal, queue, and state files were written.
+Step 6: make-prompt
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-prompt.ps1
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: 생성된 프롬프트 파일: .ai-dev/current-task-prompt.md
+Current task id: T001
+Current task title: build/check 실패 후 revise 안내 추가
+Step 7: auto-cycle-full
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cycle-full.ps1 -MaxTasks 3 -MaxSteps 22 -AllowCodex -AllowReviewCodex -AllowCommit -AllowDirty
+  Executed: True
+  Skipped: False
+  Exit code: 1
+  Message: Step 1: task-start
+  Command: MaxTasks=3
+  Executed: False
+  Skipped: False
+  Exit code: 0
+  Message: 현재 task 실행 시작: T001 build/check 실패 후 revise 안내 추가
+Step 2: make-prompt
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-prompt.ps1
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: 생성된 프롬프트 파일: .ai-dev/current-task-prompt.md
+Current task id: T001
+Current task title: build/check 실패 후 revise 안내 추가
+Step 3: run-codex
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-codex.ps1 -AllowDirty
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: Codex 실행이 완료되었습니다. 결과 파일: .ai-dev/codex-result.md
+Step 4: check
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-check.ps1 -BuildOnly
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: 실행 중: npm run build
+실행 중: npm run lint
+검증 결과: passed
+  - npm run build: passed
+  - npm run test: skipped
+  - npm run lint: passed
+기록 완료: .ai-dev/test-result.md
+상태 저장 완료: .ai-dev/state.json
+Step 5: save-diff
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-save-diff.ps1
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: WARNING: git diff --stat 경고: warning: in the working copy of 'scripts/ai-dev-next.ps1', LF will be 
+replaced by CRLF the next time Git touches it
+WARNING: git diff 경고: warning: in the working copy of 'scripts/ai-dev-next.ps1', LF will be replaced 
+by CRLF the next time Git touches it
+git diff 저장 완료: .ai-dev/diff.md
+상태 저장 완료: .ai-dev/state.json
+untracked 파일 내용이 필요하면 -IncludeUntrackedContent 옵션을 사용하세요.
+Step 6: make-review-prompt
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-review-prompt.ps1 -Strict
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: 생성된 리뷰 프롬프트 파일: .ai-dev/review-prompt.md
+Current task id: T001
+Current task title: build/check 실패 후 revise 안내 추가
+Strict 사용 여부: True
+Step 7: run-review-codex
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-review-codex.ps1 -AllowDirty -SaveReview
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: Codex 리뷰 실행이 완료되었습니다. 리뷰 JSON: .ai-dev/review-response.json 결과 파일: .ai-dev/codex-review-result.md save-review 흐름까지 실행했습니다.
+Step 8: review-gate
+  Command: .ai-dev/review-response.json decision/next_step 확인
+  Executed: False
+  Skipped: False
+  Exit code: 0
+  Message: 리뷰 결과가 revise + revise_with_codex입니다. 자동 revise 재시도를 시작합니다. severity=medium, summary=build/check 실패 안내 분기는 추가됐지만, 일반적인 실패 상태에서 추천 명령이 실행 불가능하거나 기존 리뷰 프롬프트 분기에 가려질 수 있습니다.
+Step 9: make-revise-prompt
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-revise-prompt.ps1
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: 생성된 재수정 프롬프트 파일: .ai-dev/revise-prompt.md
+Current task id: T001
+Current task title: build/check 실패 후 revise 안내 추가
+Review decision: revise
+Review severity: medium
+Optional suggestions 허용 여부: False
+Step 10: run-codex-revise
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-codex.ps1 -AllowDirty -PromptPath .ai-dev/revise-prompt.md
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: Codex 실행이 완료되었습니다. 결과 파일: .ai-dev/codex-result.md
+Step 11: check-revise
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-check.ps1 -BuildOnly
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: 실행 중: npm run build
+실행 중: npm run lint
+검증 결과: passed
+  - npm run build: passed
+  - npm run test: skipped
+  - npm run lint: passed
+기록 완료: .ai-dev/test-result.md
+상태 저장 완료: .ai-dev/state.json
+Step 12: save-diff-revise
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-save-diff.ps1
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: WARNING: git diff --stat 경고: warning: in the working copy of 'scripts/ai-dev-next.ps1', LF will be 
+replaced by CRLF the next time Git touches it
+WARNING: git diff 경고: warning: in the working copy of 'scripts/ai-dev-next.ps1', LF will be replaced 
+by CRLF the next time Git touches it
+git diff 저장 완료: .ai-dev/diff.md
+상태 저장 완료: .ai-dev/state.json
+untracked 파일 내용이 필요하면 -IncludeUntrackedContent 옵션을 사용하세요.
+Step 13: make-review-prompt-revise
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-review-prompt.ps1 -Strict
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: 생성된 리뷰 프롬프트 파일: .ai-dev/review-prompt.md
+Current task id: T001
+Current task title: build/check 실패 후 revise 안내 추가
+Strict 사용 여부: True
+Step 14: run-review-codex-revise
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-review-codex.ps1 -AllowDirty -SaveReview
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: Codex 리뷰 실행이 완료되었습니다. 리뷰 JSON: .ai-dev/review-response.json 결과 파일: .ai-dev/codex-review-result.md save-review 흐름까지 실행했습니다.
+Step 15: review-gate
+  Command: 재리뷰 decision/next_step/required_changes 확인
+  Executed: False
+  Skipped: True
+  Exit code: 1
+  Message: 재리뷰도 revise + revise_with_codex를 반환해 자동 revise 재시도를 중단합니다. summary=build/check 실패 안내는 추가됐지만, 실패 직후 일반 상태에서 revise 흐름으로 이어지는 추천 명령이 비어 있어 성공 기준을 안정적으로 충족하지
+ 못합니다., severity=medium, next_step=revise_with_codex, required_changes={
+    "file":  "scripts/ai-dev-next.ps1",
+    "reason":  "build/check 실패 직후에는 보통 .ai-dev/review.md와 .ai-dev/diff.md가 아직 없을 수 있는데, 현재 구현은 이 경우 \r\n.ai-dev/test-result.md 확인만 추천하고 revise 프롬프트 생성 또는 재수정 실행으로 이어질 실질적인 다음 흐름을 추천하지 않습니다.",
+    "suggestion":  "check 실패 분기에서 test-result 확인은 항상 안내하되, review.md/diff.md가 없을 때도 현재 실패 로그를 바탕으로 재\r\n수정으로 이어질 수 있는 안전한 다음 추천 명령이나 명확한 단계 안내를 제공하세요. 기존 ai-dev-make-revise-prompt.ps1가 review.md를 필수로 요구한다면\r\n, 그 전제에 맞춰 필요한 선행 단계까지 안내해야 합니다."
+}
+Stopped reason: review_revise_repeated
+Completed: False
+Exit code: 1
+Context:
+  Task: T001 build/check 실패 후 revise 안내 추가
+  Task status: in_progress
+  Completed task: none
+  Current task: T001 build/check 실패 후 revise 안내 추가
+  Next task: none
+  Completed tasks: 0 / 3
+  Steps recorded: 15 / 22
+  Last step: 15 review-gate exit=1
+Plan preview:
+  Goal title: build/check 실패 후 revise 흐름 자동 안내
+  Current task id: T001
+  Task T001: build/check 실패 후 revise 안내 추가
+    Type: implementation
+    Status: in_progress
+    Priority: P1
+    Likely files: scripts/ai-dev-next.ps1
+    Verification: build/check 실패 상태에서 다음 행동 안내가 test-result 확인과 revise 흐름을 제안하는지 확인한다. / 기존 review revise 상태의 make_revise_prompt 안내가 유지되는지 확인한다. / 사용자가 허용하면 관련 스크립트 DryRun 또는 문법 검증을 실행한다.
+Stopped reason: auto-cycle-full_failed
+Completed: False
+Exit code: 1
+- Prepared goals: 1/2
+
+## 2026-07-17 23:03:40 - Commit created
+
+- Task: T001 build/check 실패 후 revise 안내 추가
+- Commit: 57ba4f4c382ba46990bfa1daf2b00ad7bc868775
+- Message: Guide revise flow after check failure
+## 2026-07-17 23:03:44 - Task completed
+
+- Task: T001 build/check 실패 후 revise 안내 추가
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
+- Next task: 없음

@@ -1,12 +1,15 @@
 ﻿{
     "decision":  "pass",
     "severity":  "none",
-    "summary":  "package 변경 감지 조건과 흐름은 유지하면서 사용자-facing 한국어 안내 문구만 더 구체적으로 개선했다.",
+    "summary":  "build/check 실패 상태에서 test-result 확인, diff 저장, review prompt 생성, 이후 revise 흐름으로 이어지는 안내가 추가되었고 기존 save-review 이후 revise 분기는 유지됩니다.",
     "required_changes":  [
 
                          ],
     "optional_suggestions":  [
-
+                                 {
+                                     "file":  "scripts/ai-dev-next.ps1",
+                                     "suggestion":  "실제 실패 상태 state.json을 둔 `scripts/ai-dev-next.ps1 -Json` 수동 검증 결과를 별도로 남기면 회귀 확인이 더 명확합니다."
+                                 }
                              ],
     "scope_check":  {
                         "within_current_task":  true,
@@ -19,7 +22,8 @@
                        "test_passed":  false,
                        "lint_passed":  true,
                        "issues":  [
-                                      "npm run test는 package.json에 test script가 없어 skipped로 기록되었다."
+                                      "npm run test는 package.json에 test script가 없어 skipped 상태입니다.",
+                                      "프롬프트의 수동 검증 시나리오 결과는 test-result에 포함되어 있지 않습니다."
                                   ]
                    },
     "next_step":  "complete_task"

@@ -1,14 +1,14 @@
 ﻿{
-    "goalTitle":  "package 변경 감지 메시지 개선",
+    "goalTitle":  "build/check 실패 후 revise 흐름 자동 안내",
     "goalSource":  ".ai-dev/goal.md",
-    "createdAt":  "2026-07-17T00:00:00+09:00",
-    "updatedAt":  "2026-07-17T11:20:53.4369100+00:00",
+    "createdAt":  "2026-07-17T20:22:22.8903897+09:00",
+    "updatedAt":  "2026-07-17T14:03:43.0181533+00:00",
     "currentTaskId":  null,
     "tasks":  [
                   {
                       "id":  "T001",
-                      "title":  "package 변경 감지 메시지 문구 개선",
-                      "description":  "현재 package 변경 감지 메시지가 정의된 위치를 확인하고, 감지 조건은 유지한 채 사용자-facing 한국어 안내 문구만 더 명확하게 조정한다.",
+                      "title":  "build/check 실패 후 revise 안내 추가",
+                      "description":  "현재 다음 행동 안내 스크립트의 실패 상태 판정 흐름을 확인하고, build/check 실패 상태에서 사용자가 `.ai-dev/test-result.md`를 확인한 뒤 revise 흐름으로 이어갈 수 있도록 한국어 안내와 추천 명령을 보강한다.",
                       "type":  "implementation",
                       "status":  "done",
                       "priority":  "P1",
@@ -16,15 +16,15 @@
 
                                     ],
                       "filesLikelyToChange":  [
-                                                  "src/App.tsx"
+                                                  "scripts/ai-dev-next.ps1"
                                               ],
                       "verification":  [
-                                           "관련 메시지 표시 위치를 확인한다.",
-                                           "문구 변경 후 JSX 구조 중복이 없는지 확인한다.",
-                                           "필요 시 사용자가 허용하면 빌드 검증을 실행한다."
+                                           "build/check 실패 상태에서 다음 행동 안내가 test-result 확인과 revise 흐름을 제안하는지 확인한다.",
+                                           "기존 review revise 상태의 make_revise_prompt 안내가 유지되는지 확인한다.",
+                                           "사용자가 허용하면 관련 스크립트 DryRun 또는 문법 검증을 실행한다."
                                        ],
-                      "commitMessage":  "Improve package change notice",
-                      "completedAt":  "2026-07-17T11:20:53.4369100+00:00",
+                      "commitMessage":  "Guide revise flow after check failure",
+                      "completedAt":  "2026-07-17T14:03:43.0181533+00:00",
                       "resultSummary":  "자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료"
                   }
               ]

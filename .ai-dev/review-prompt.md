@@ -15,56 +15,61 @@
 ## Project Goal
 
 # 목표
-package 변경 감지 메시지를 사용자가 더 쉽게 이해하고 다음 행동을 판단할 수 있도록 개선한다.
+
+build/check 실패 후 revise 흐름 자동 안내를 추가한다.
 
 ## 배경
-현재 package 변경 감지 메시지는 변경 사실을 전달하지만, 어떤 의미인지와 사용자가 무엇을 확인하면 되는지 충분히 명확하지 않을 수 있다. 기존 동작을 유지하면서 안내 문구만 작게 개선한다.
+
+현재 full auto-cycle은 build/check 실패 시 중단되지만, 이후 사용자가 어떤 파일을 확인하고 어떤 revise 흐름으로 이어가야 하는지 안내가 충분히 명확하지 않다. 실패 원인을 확인한 뒤 재수정 프롬프트 생성 또는 Codex 재수정 실행으로 이어질 수 있는 다음 행동을 작고 안전하게 안내해야 한다.
 
 ## 성공 기준
-- package 변경 감지 메시지가 한국어로 자연스럽고 구체적으로 표시된다.
-- 사용자가 변경 감지 상황에서 확인해야 할 내용을 이해할 수 있다.
-- 기존 감지 조건과 저장 구조는 변경하지 않는다.
-- 수정 범위는 관련 메시지 표시 코드에 한정한다.
+
+- build/check 실패 상태에서 다음 행동 안내가 revise 흐름을 명확히 제안한다.
+- 안내에는 `.ai-dev/test-result.md` 확인과 필요한 재수정 프롬프트 생성 흐름이 포함된다.
+- 기존 pass, review revise, commit, complete-task 흐름은 변경하지 않는다.
+- 자동으로 위험한 명령을 실행하지 않고 추천 명령만 제공한다.
 
 ## 제약사항
-- 한 번에 하나의 작은 구현 작업만 진행한다.
-- 기존 타입, 상태, 저장 구조를 우선 사용한다.
-- 사용자-facing UI 문자열은 한국어를 사용한다.
-- src/App.css는 수정하지 않는다.
-- lock file은 수정하지 않는다.
+
+- 한 번에 하나의 작은 구현 변경만 수행한다.
+- 기존 자동화 스크립트 구조를 우선 사용한다.
+- 사용자-facing 안내 문구는 한국어로 작성한다.
+- 서버 API, 로그인, 클라우드 동기화, 대규모 재작성은 포함하지 않는다.
+- 검증 명령은 사용자가 허용한 경우에만 실행한다.
 
 ## 범위 제외
-- package 변경 감지 로직 자체 변경
-- 새 화면 추가
-- 대규모 컴포넌트 분리
-- 저장 스키마 변경
-- 알림 기능 추가
+
+- 실제 build/check 재실행 자동화 확대는 제외한다.
+- 리뷰 JSON 포맷 변경은 제외한다.
+- task queue schema 변경은 제외한다.
+- 앱 화면 UI 변경은 제외한다.
 
 ## 수동 검증
-- package 변경 감지 메시지가 표시되는 경로를 확인한다.
-- 변경 후 문구가 기존 화면 안에서 깨지지 않는지 확인한다.
-- 관련 없는 UI 문구와 동작이 바뀌지 않았는지 확인한다.
+
+- build/check 실패 상태를 가정한 `state.json` 값에서 `scripts/ai-dev-next.ps1 -Json` 출력의 action, reason, recommendedCommands, notes를 확인한다.
+- pass 상태와 review revise 상태의 기존 다음 행동 안내가 유지되는지 확인한다.
+- 사용자가 허용하면 관련 PowerShell 스크립트의 문법 또는 DryRun 검증을 실행한다.
 
 ## Current Task
 
 - Task ID: T001
-- Title: package 변경 감지 메시지 문구 개선
-- Description: 현재 package 변경 감지 메시지가 정의된 위치를 확인하고, 감지 조건은 유지한 채 사용자-facing 한국어 안내 문구만 더 명확하게 조정한다.
+- Title: build/check 실패 후 revise 안내 추가
+- Description: 현재 다음 행동 안내 스크립트의 실패 상태 판정 흐름을 확인하고, build/check 실패 상태에서 사용자가 `.ai-dev/test-result.md`를 확인한 뒤 revise 흐름으로 이어갈 수 있도록 한국어 안내와 추천 명령을 보강한다.
 - Type: implementation
 - Status: in_progress
 - Priority: P1
 - Depends on:
 - 없음
 - Verification:
-- 관련 메시지 표시 위치를 확인한다.
-- 문구 변경 후 JSX 구조 중복이 없는지 확인한다.
-- 필요 시 사용자가 허용하면 빌드 검증을 실행한다.
+- build/check 실패 상태에서 다음 행동 안내가 test-result 확인과 revise 흐름을 제안하는지 확인한다.
+- 기존 review revise 상태의 make_revise_prompt 안내가 유지되는지 확인한다.
+- 사용자가 허용하면 관련 스크립트 DryRun 또는 문법 검증을 실행한다.
 
 ## Test Result
 
 # AI Dev Test Result
 
-## 2026-07-17 20:19:45
+## 2026-07-17 23:01:20
 
 - Overall result: passed
 - Current task: T001
@@ -93,7 +98,7 @@ dist/index.html                   0.46 kB │ gzip:   0.29 kB
 dist/assets/index-DvjxWt30.css    5.69 kB │ gzip:   1.93 kB
 dist/assets/index-DtLVvPCG.js   317.50 kB │ gzip: 100.16 kB
 
-[32m✓ built in 212ms[39m
+[32m✓ built in 204ms[39m
 ```
 ### npm run test
 
@@ -120,34 +125,58 @@ package.json에 test script가 없습니다.
 
 ## Generated At
 
-2026-07-17 20:19:53
+2026-07-17 23:01:27
 
 ## Git Status
 
 ```text
  M .ai-dev/codex-result.md
+ M .ai-dev/codex-review-result.md
  M .ai-dev/current-task-prompt.md
+ M .ai-dev/diff.md
  M .ai-dev/goal.md
+ M .ai-dev/loop-log.md
  M .ai-dev/queue.json
+ M .ai-dev/review-prompt.md
+ M .ai-dev/review-response.json
+ M .ai-dev/review.md
+ M .ai-dev/revise-prompt.md
  M .ai-dev/state.json
  M .ai-dev/test-result.md
- M scripts/ai-dev-auto-cycle-full.ps1
-?? .ai-dev/auto-goal-planning-prompt.md
+ M scripts/ai-dev-next.ps1
+?? .ai-dev/build-check-failure-next-stale-review-fix-prompt.md
+?? .ai-dev/build-check-failure-revise-next-fix-prompt.md
+?? .ai-dev/next-check-failure-command-scope-fix-prompt.md
+?? .ai-dev/next-final-review-requirements-prompt.md
+?? .ai-dev/next-review-after-check-recommended-commands-fix-prompt.md
+?? .ai-dev/next-review-revise-compat-fix-prompt.md
 ```
 
 ## App Change Files
 
-- scripts/ai-dev-auto-cycle-full.ps1
+- scripts/ai-dev-next.ps1
 
 ## AI Dev Operational Artifact Files
 
 - .ai-dev/codex-result.md
+- .ai-dev/codex-review-result.md
 - .ai-dev/current-task-prompt.md
+- .ai-dev/diff.md
 - .ai-dev/goal.md
+- .ai-dev/loop-log.md
 - .ai-dev/queue.json
+- .ai-dev/review-prompt.md
+- .ai-dev/review-response.json
+- .ai-dev/review.md
+- .ai-dev/revise-prompt.md
 - .ai-dev/state.json
 - .ai-dev/test-result.md
-- .ai-dev/auto-goal-planning-prompt.md
+- .ai-dev/build-check-failure-next-stale-review-fix-prompt.md
+- .ai-dev/build-check-failure-revise-next-fix-prompt.md
+- .ai-dev/next-check-failure-command-scope-fix-prompt.md
+- .ai-dev/next-final-review-requirements-prompt.md
+- .ai-dev/next-review-after-check-recommended-commands-fix-prompt.md
+- .ai-dev/next-review-revise-compat-fix-prompt.md
 
 ## Review Diff Scope
 
@@ -156,26 +185,140 @@ package.json에 test script가 없습니다.
 ## Unstaged Diff Stat
 
 ```text
- scripts/ai-dev-auto-cycle-full.ps1 | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/ai-dev-next.ps1 | 80 +++++++++++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 75 insertions(+), 5 deletions(-)
 ```
 
 ## Unstaged Diff
 
 ```text
-diff --git a/scripts/ai-dev-auto-cycle-full.ps1 b/scripts/ai-dev-auto-cycle-full.ps1
-index 5d3fa84..350b1b2 100644
---- a/scripts/ai-dev-auto-cycle-full.ps1
-+++ b/scripts/ai-dev-auto-cycle-full.ps1
-@@ -1284,7 +1284,7 @@ while ($script:completedTaskCount -lt $MaxTasks) {
+diff --git a/scripts/ai-dev-next.ps1 b/scripts/ai-dev-next.ps1
+index 5c2d172..6708ded 100644
+--- a/scripts/ai-dev-next.ps1
++++ b/scripts/ai-dev-next.ps1
+@@ -65,7 +65,19 @@ function Test-IsCheckCommand {
+         return $false
+     }
  
-     try {
-         if (Test-PackageFileChanged) {
--            $script:steps += New-StepResult $stepNumber "package-change-gate" "git status --porcelain -- package.json package-lock.json" $false $true 1 "package.json 또는 package-lock.json 변경이 감지되어 자동 커밋하지 않습니다."
-+            $script:steps += New-StepResult $stepNumber "package-change-gate" "git status --porcelain -- package.json package-lock.json" $false $true 1 "package.json 또는 package-lock.json 변경이 감지되어 자동 커밋을 중단합니다. 의도한 패키지 변경인지, lock file 변경이 필요한지 확인한 뒤 별도 작업으로 처리하세요."
-             Stop-Cycle $script:steps "package_files_changed" $false 1
-         }
-     } catch {
+-    return $Command -eq "check" -or $Command -like "npm run build*" -or $Command -like "npm run test*" -or $Command -like "npm run lint*"
++    $commandText = [string]$Command
++
++    return $commandText -eq "check" `
++        -or $commandText -eq "build" `
++        -or $commandText -eq "lint" `
++        -or $commandText -eq "check-revise" `
++        -or $commandText -eq "build-revise" `
++        -or $commandText -eq "lint-revise" `
++        -or $commandText -like "check-*" `
++        -or $commandText -like "*-check" `
++        -or $commandText -like "npm run build*" `
++        -or $commandText -like "npm run test*" `
++        -or $commandText -like "npm run lint*"
+ }
+ 
+ function New-NextAction {
+@@ -202,6 +214,9 @@ try {
+ $currentTaskPromptExists = Test-Path -LiteralPath (Join-Path $projectRoot ".ai-dev/current-task-prompt.md") -PathType Leaf
+ $testResultExists = Test-Path -LiteralPath (Join-Path $projectRoot ".ai-dev/test-result.md") -PathType Leaf
+ $diffExists = Test-Path -LiteralPath (Join-Path $projectRoot ".ai-dev/diff.md") -PathType Leaf
++$reviewResultExists = Test-Path -LiteralPath (Join-Path $projectRoot ".ai-dev/review.md") -PathType Leaf
++$reviewResponsePath = Join-Path $projectRoot ".ai-dev/review-response.json"
++$reviewResponseExists = Test-Path -LiteralPath $reviewResponsePath -PathType Leaf
+ $reviewPromptExists = Test-Path -LiteralPath (Join-Path $projectRoot ".ai-dev/review-prompt.md") -PathType Leaf
+ $revisePromptExists = Test-Path -LiteralPath (Join-Path $projectRoot ".ai-dev/revise-prompt.md") -PathType Leaf
+ 
+@@ -211,12 +226,58 @@ $lastCommandStatus = if (Test-HasValue $state.lastCommandStatus) { [string]$stat
+ $lastReviewDecision = if (Test-HasValue $state.lastReviewDecision) { [string]$state.lastReviewDecision } else { "" }
+ $lastReviewSeverity = if (Test-HasValue $state.lastReviewSeverity) { [string]$state.lastReviewSeverity } else { "" }
+ $lastCommitHash = if (Test-HasValue $state.lastCommitHash) { [string]$state.lastCommitHash } else { "" }
++
++$reviewResponseDecision = ""
++$reviewResponseNextStep = ""
++
++if ($reviewResponseExists) {
++    try {
++        $reviewResponse = Get-Content -Raw -Encoding UTF8 -LiteralPath $reviewResponsePath | ConvertFrom-Json
++        $reviewResponseDecision = if (Test-HasValue $reviewResponse.decision) { [string]$reviewResponse.decision } else { "" }
++        $reviewResponseNextStep = if (Test-HasValue $reviewResponse.next_step) { [string]$reviewResponse.next_step } else { "" }
++    } catch {
++        $reviewResponseDecision = ""
++        $reviewResponseNextStep = ""
++    }
++}
++
+ $hasGitChanges = $gitStatus -eq "available" -and $gitChangedFilesCount -gt 0
+ $hasNoGitChanges = $gitStatus -eq "available" -and $gitChangedFilesCount -eq 0
+ $hasImplementationGitChanges = $gitStatus -eq "available" -and $gitImplementationChangedFilesCount -gt 0
+ $hasNoImplementationGitChanges = $gitStatus -eq "available" -and $gitImplementationChangedFilesCount -eq 0
+ $reviewNotStarted = Test-IsReviewNotStarted $lastReviewDecision
+ $isCheckCommand = Test-IsCheckCommand $lastCommand
++$hasCheckFailure = $isCheckCommand -and $lastCommandStatus -eq "failed"
++$hasStateReviseReview = $lastReviewDecision -eq "revise"
++$hasReviewResponseReviseSignal = $reviewResponseExists -and $reviewResponseDecision -eq "revise" -and $reviewResponseNextStep -eq "revise_with_codex"
++$hasReviewResponseMismatch = $reviewResponseExists -and -not $hasReviewResponseReviseSignal
++$canMakeRevisePrompt = $hasStateReviseReview
++
++$checkFailureRecommendedCommands = @()
++$checkFailureRecommendedCommands += "Get-Content -LiteralPath .ai-dev/test-result.md"
++$checkFailureRecommendedCommands += "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-save-diff.ps1"
++$checkFailureRecommendedCommands += "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-review-prompt.ps1 -Strict"
++
++$revisePromptNotes = @()
++$revisePromptNotes += $(if ($revisePromptExists) { "기존 revise-prompt.md는 현재 리뷰 기준으로 덮어씁니다." } else { "required changes만 반영하세요." })
++
++if (-not $testResultExists) {
++    $revisePromptNotes += ".ai-dev/test-result.md가 없으면 수정 전 실패/검증 결과를 먼저 확보하세요."
++}
++
++if (-not $diffExists) {
++    $revisePromptNotes += ".ai-dev/diff.md가 없으면 save-diff로 현재 변경사항을 먼저 저장하세요."
++}
++
++if (-not $reviewResultExists) {
++    $revisePromptNotes += ".ai-dev/review.md가 없으면 저장된 리뷰 내용을 먼저 확보하세요."
++}
++
++if (-not $reviewResponseExists) {
++    $revisePromptNotes += "review-response.json이 없어도 state.json의 lastReviewDecision=revise를 기준으로 revise 안내를 유지합니다."
++} elseif ($hasReviewResponseMismatch) {
++    $revisePromptNotes += "review-response.json이 현재 revise 신호와 다르므로 review.md와 state.json의 최신성을 확인하세요."
++}
+ 
+ $nextAction = $null
+ 
+@@ -230,12 +291,20 @@ if (-not (Test-HasValue $currentTaskId) -and $goalStatus -eq "completed") {
+     ) @("프롬프트 생성 후 현재 task만 수행하세요.")
+ } elseif ($lastReviewDecision -eq "blocked") {
+     $nextAction = New-NextAction "stop_for_user" "리뷰가 blocked 상태입니다." @() @("사용자 판단이 필요하므로 자동 진행을 중단하세요.")
+-} elseif ($lastReviewDecision -eq "revise") {
++} elseif ($hasCheckFailure) {
++    $nextAction = New-NextAction "prepare_review_after_check_failure" "build/check가 실패했습니다. 실패 원인을 반영한 리뷰를 먼저 생성해야 합니다." $checkFailureRecommendedCommands @(
++        $(if ($testResultExists) { ".ai-dev/test-result.md에서 실패 원인을 먼저 확인하세요." } else { ".ai-dev/test-result.md가 없으므로 실패 로그를 먼저 확보하세요." }),
++        $(if ($hasImplementationGitChanges) { "구현 변경사항이 있으므로 실패 원인과 함께 현재 diff를 리뷰에 포함하세요." } elseif ($hasNoImplementationGitChanges) { "현재 감지된 구현 변경사항은 없지만 state.json 기준 build/check 실패 상태이므로 실패 로그 확인을 우선하세요." } else { "git 상태를 확인할 수 없지만 state.json 기준 build/check 실패 상태이므로 실패 로그 확인을 우선하세요." }),
++        "save-diff로 현재 변경사항을 저장하고, make-review-prompt -Strict로 실패 결과 기준 리뷰 프롬프트를 생성하세요.",
++        "review-prompt.md를 만든 뒤 Codex 리뷰를 실행하거나 리뷰 결과를 저장해야 합니다.",
++        "리뷰 결과를 받은 뒤 decision이 revise이면 powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-revise-prompt.ps1 를 실행합니다.",
++        "revise-prompt가 생성된 뒤 powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-codex.ps1 -AllowDirty -PromptPath .ai-dev/revise-prompt.md 로 재수정할 수 있습니다.",
++        "이 revise 단계는 리뷰 결과가 revise인 경우에만 해당하며, build/check 실패 직후에는 먼저 실패 로그 확인, diff 저장, review prompt 생성을 진행하세요."
++    )
++} elseif ($canMakeRevisePrompt) {
+     $nextAction = New-NextAction "make_revise_prompt" "리뷰에서 수정이 필요하다고 판정했습니다." @(
+         "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-revise-prompt.ps1"
+-    ) @(
+-        $(if ($revisePromptExists) { "기존 revise-prompt.md는 현재 리뷰 기준으로 덮어씁니다." } else { "required changes만 반영하세요." })
+-    )
++    ) $revisePromptNotes
+ } elseif ($lastReviewDecision -eq "pass" -and $lastCommandStatus -eq "passed" -and $hasImplementationGitChanges) {
+     $nextAction = New-NextAction "commit" "검증과 리뷰가 통과했고 커밋할 변경사항이 있습니다." @(
+         "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-commit.ps1"
+@@ -300,6 +369,7 @@ $output = [ordered]@{
+         currentTaskPromptExists = $currentTaskPromptExists
+         testResultExists = $testResultExists
+         diffExists = $diffExists
++        reviewResultExists = $reviewResultExists
+         reviewPromptExists = $reviewPromptExists
+         revisePromptExists = $revisePromptExists
+     }
 ```
 
 ## Staged Diff Stat
