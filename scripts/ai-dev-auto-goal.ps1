@@ -220,8 +220,11 @@ function Stop-AutoGoal {
         [int]$ExitCode
     )
 
-    Clear-AutoGoalTempArtifacts
-    if (-not $Completed -or $ExitCode -ne 0) {
+    if (-not $DryRun) {
+        Clear-AutoGoalTempArtifacts
+    }
+
+    if (-not $DryRun -and (-not $Completed -or $ExitCode -ne 0)) {
         if ($script:autoGoalCanWriteResultFile) {
             Save-AutoGoalResultFile $StoppedReason $false $ExitCode
         }
