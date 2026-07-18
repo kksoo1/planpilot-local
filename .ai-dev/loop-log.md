@@ -1514,3 +1514,16 @@ Exit code: 1
 - Task: T001 리뷰 JSON 추출 실패 처리 보강
 - Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
 - Next task: 없음
+
+## 2026-07-18 18:35:00 - Task documentation completed
+
+- Task: T001 GitHub PR 연동 검토 문서 작성
+- Result: `.ai-dev/github-pr-integration-review.md`에 현재 구조 요약, MVP 최소 흐름, 제외 범위, 데이터 저장 후보, 후속 작은 작업 단위를 정리했다.
+- Verification: 코드와 DB schema를 변경하지 않았고, build/test/lint/git 명령을 실행하지 않았다.
+- Next task: 업무 메모의 PR URL 수동 기록/검색 흐름을 테스트 체크리스트로 분리하는 작업으로 진행 가능
+
+## 2026-07-18 18:32:59 - Task completed
+
+- Task: T001 GitHub PR 연동 검토 문서 작성
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 구현 커밋 없음, 저장된 리뷰 pass에서 자동 완료
+- Next task: 없음

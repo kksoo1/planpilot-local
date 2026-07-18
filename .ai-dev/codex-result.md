@@ -2,11 +2,11 @@
 
 ## Run
 
-- Started at: 2026-07-18 17:39:58
-- Ended at: 2026-07-18 17:40:45
+- Started at: 2026-07-18 18:28:37
+- Ended at: 2026-07-18 18:31:31
 - Exit code: 0
-- Prompt: .ai-dev/revise-prompt.md
-- Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-codex.ps1 -PromptPath .ai-dev/revise-prompt.md -AllowDirty
+- Prompt: .ai-dev/current-task-prompt.md
+- Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-codex.ps1 -AllowDirty
 
 ## Output
 
@@ -26,11 +26,11 @@ approval: never
 sandbox: workspace-write [workdir, /tmp, $TMPDIR]
 reasoning effort: medium
 reasoning summaries: none
-session id: 019f7461-dcf3-7ec3-a6bf-a8f822653bb5
+session id: 019f748e-6874-7243-beab-4595abbd5306
 --------
 user
-Read and follow the full task prompt at this absolute file path: D:\ai-apps\planpilot-local\.ai-dev\r
-evise-prompt.md
+Read and follow the full task prompt at this absolute file path: D:\ai-apps\planpilot-local\.ai-dev\c
+urrent-task-prompt.md
 
 Additional safety rules for this local AI Dev Loop run:
 - Do not run git commit, git reset, git checkout, git clean, git rebase, git merge, or git push.
@@ -39,667 +39,5328 @@ Additional safety rules for this local AI Dev Loop run:
 - Do not broaden the current task scope beyond the prompt file.
 - If the task requirements conflict with repository rules, stop and report the conflict.
 codex
-작업 프롬프트를 먼저 읽고, 범위와 충돌 여부를 확인하겠습니다. 지금은 지정된 파일만 읽습니다.
+작업 지시 파일만 읽어서 요구 범위와 충돌 여부를 먼저 확인하겠습니다. 금지된 git/npm/빌드 명령은 실행하지 않습니다.
 exec
 "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralPath '
-D:\\ai-apps\\planpilot-local\\.ai-dev\\revise-prompt.md'" in D:\ai-apps\planpilot-local
- succeeded in 1804ms:
-# AI Dev Revise Prompt
+D:\\ai-apps\\planpilot-local\\.ai-dev\\current-task-prompt.md'" in D:\ai-apps\planpilot-local
+ succeeded in 1800ms:
+# Current Task Prompt
 
 ## Role
 
 너는 이 저장소의 자동 개발 에이전트다.
-이전 리뷰에서 지적된 사항만 수정한다.
 
 ## Goal
 
 # 목표
-Codex 리뷰 결과에서 JSON 추출이 실패하는 경우에도 루프가 중단되지 않도록 실패 처리를 보강한다.
+GitHub PR 연동 검토를 현재 PlanPilot Local 구조에 맞춰 가장 작은 실행 가능한 개발 목표로 정리한다.
 
 ## 배경
-현재 AI Dev Loop는 Codex 리뷰 응답에서 JSON을 추출해 다음 판단에 사용한다. 리뷰 응답 형식이 예상과 다르거나 JSON 파싱에 실패하면 후속 상태 기록과 재시도 판
-단이 불안정해질 수 있다.
+P2 백로그 항목인 GitHub PR 연동 검토는 즉시 기능 구현보다 현재 React + Vite + TypeScript, Zustand, Dexie 기반 로컬 앱 구조에서 어떤 범
+위가 안전한지 먼저 확인하는 작업이다. 이번 목표는 실제 연동 구현이 아니라, 현재 저장소 상태에서 다음 작업으로 옮길 수 있는 최소 검토 결과를 남기는 것이다.
 
 ## 성공 기준
-- Codex 리뷰 응답에서 JSON 추출 또는 파싱이 실패해도 명확한 실패 상태가 기록된다.
-- 실패 원인이 로그나 상태 파일에서 확인 가능하다.
-- 기존 정상 JSON 리뷰 처리 흐름은 유지된다.
-- 변경 범위는 리뷰 JSON 추출 및 실패 처리 주변으로 제한된다.
+- 현재 코드 구조에서 PR 관련 정보를 표시하거나 관리할 수 있는 후보 위치를 확인한다.
+- MVP에서 다룰 최소 사용자 흐름과 제외할 범위를 구분한다.
+- 필요한 데이터 형태와 저장 위치 후보를 간단히 정리한다.
+- 후속 구현 작업으로 바로 전환 가능한 작은 작업 단위를 제안한다.
 
 ## 제약사항
-- 한 번에 하나의 작은 구현 변경만 진행한다.
-- 기존 상태 파일 구조와 루프 흐름을 우선 유지한다.
-- 사용자 변경 사항은 되돌리지 않는다.
-- 로컬 저장 및 privacy-first 제약을 유지한다.
+- privacy-first 방향을 유지한다.
+- 로컬 앱 구조와 기존 상태 관리 방식을 우선한다.
+- 기존 IndexedDB 데이터를 깨뜨리는 변경은 하지 않는다.
+- App.tsx에 새 복잡도를 무리하게 추가하지 않는다.
+- 이번 목표에서는 검토 문서 작성 범위로 제한한다.
 
 ## 범위 제외
-- 리뷰 프롬프트의 전면 재작성은 하지 않는다.
-- 전체 AI Dev Loop 구조 개편은 하지 않는다.
-- 새로운 외부 의존성 추가는 하지 않는다.
-- UI 변경은 포함하지 않는다.
+- 실제 GitHub 연동 구현
+- 인증 흐름 구현
+- 원격 데이터 자동 수집
+- 데이터베이스 schema 변경
+- 대규모 화면 재구성
 
 ## 수동 검증
-- JSON이 포함된 정상 리뷰 응답에서 기존처럼 decision과 severity가 처리되는지 확인한다.
-- JSON이 없거나 깨진 리뷰 응답에서 상태 파일에 실패 요약이 남고 루프가 예측 가능하게 종료 또는 재시도되는지 확인한다.
+- 작성된 검토 내용이 현재 앱 구조와 충돌하지 않는지 확인한다.
+- 후속 작업이 하나의 작은 구현 단위로 분리되어 있는지 확인한다.
+- 사용자-facing 문구가 한국어 기준을 따르는지 확인한다.
 
 ## Current Task
 
 - Task ID: T001
-- Title: 리뷰 JSON 추출 실패 처리 보강
-- Description: Codex 리뷰 응답에서 JSON 추출 또는 파싱에 실패하는 경로를 확인하고, 실패 원인이 상태에 남도록 최소 범위로 보강한다.
-- Type: implementation
+- Title: GitHub PR 연동 검토 문서 작성
+- Description: 현재 저장소 구조를 기준으로 GitHub PR 정보를 어떤 방식으로 다룰 수 있는지 검토하고, MVP 범위와 후속 구현 단위를 한국어 문서로 정리한다.
+- Type: documentation
 - Status: in_progress
-- Priority: P1
-- Verification:
-- 정상 JSON 리뷰 응답 처리 흐름이 유지되는지 확인
-- JSON이 없거나 잘못된 리뷰 응답에서 실패 요약이 기록되는지 확인
+- Priority: P2
+- Depends on:
+- 없음
 
-## Review Result
+## Task Scope
 
-- Decision: revise
-- Severity: medium
-- Next step: revise_with_codex
-- Summary: 변경 방향은 task와 맞지만, 첨부된 수동 검증이 실제 JSON 추출/파싱 경로를 검증하지 못해 성공 기준 충족을 확인할 수 없습니다.
-
-## Required Changes
-
-- File: .ai-dev/test-result.md
-  - Reason: 정상/누락/깨진 JSON 검증 모두 `fatal: not a git repository`로 `git status` 단계에서 종료되었습니다. 따라서 `C
-onvertFrom-CodexReviewOutput` 실패 catch와 `Write-ReviewExtractionFailureState`가 실제로 실행됐다는 증거가 아닙니다.
-  - Suggestion: 검증용 임시 복사본에서도 `.git`이 있는 실제 repo root에서 실행하거나 `-AllowDirty` 등 필요한 조건을 맞춘 뒤, 정상 J
-SON은 `review-response.json` 생성 및 decision/severity/next_step 파싱을, JSON 없음/깨짐은 `state.lastCommandStatu
-s=failed`, `lastErrorSummary`, `stopReason=review_json_extraction_failed` 기록을 다시 확인하세요.
-
-## Optional Suggestions
-
-- optional_suggestions는 참고만 하며 구현하지 않는다.
-- File: scripts/ai-dev-run-review-codex.ps1
-  - Suggestion: 현재 구현 자체는 최소 범위에 가깝습니다. 재검증 후에도 실패 상태가 기록되지 않으면 `Write-ReviewExtractionFailureSt
-ate` 호출 지점과 `$statePath` 해석을 우선 확인하세요.
-
-## Diff Context
-
-# AI Dev Diff
-
-## Generated At
-
-2026-07-18 17:36:14
-
-## Git Status
-
-```text
- M .ai-dev/codex-result.md
- M .ai-dev/codex-review-result.md
- M .ai-dev/current-task-prompt.md
- M .ai-dev/diff.md
- M .ai-dev/goal.md
- M .ai-dev/loop-log.md
- M .ai-dev/queue.json
- M .ai-dev/review-prompt.md
- M .ai-dev/review-response.json
- M .ai-dev/review.md
- M .ai-dev/revise-prompt.md
- M .ai-dev/state.json
- M .ai-dev/test-result.md
- M scripts/ai-dev-run-review-codex.ps1
-?? .ai-dev/review-json-extraction-verification-prompt.md
-?? .ai-dev/review-json-failure-count-fix-prompt.md
-```
-
-## App Change Files
-
-- scripts/ai-dev-run-review-codex.ps1
-
-## AI Dev Operational Artifact Files
-
-- .ai-dev/codex-result.md
-- .ai-dev/codex-review-result.md
-- .ai-dev/current-task-prompt.md
-- .ai-dev/diff.md
-- .ai-dev/goal.md
-- .ai-dev/loop-log.md
-- .ai-dev/queue.json
-- .ai-dev/review-prompt.md
-- .ai-dev/review-response.json
-- .ai-dev/review.md
-- .ai-dev/revise-prompt.md
-- .ai-dev/state.json
-- .ai-dev/test-result.md
-- .ai-dev/review-json-extraction-verification-prompt.md
-- .ai-dev/review-json-failure-count-fix-prompt.md
-
-## Review Diff Scope
-
-아래 diff 본문은 실제 앱 변경 파일 중심으로 검토하도록 .ai-dev 운영 산출물 diff를 제외합니다. .ai-dev 변경은 위 운영 산출물 목록에서 별도로 확인합니다.
-
-## Unstaged Diff Stat
-
-```text
- scripts/ai-dev-run-review-codex.ps1 | 65 ++++++++++++++++++++++++++++++++++++-
- 1 file changed, 64 insertions(+), 1 deletion(-)
-```
-
-## Unstaged Diff
-
-```text
-diff --git a/scripts/ai-dev-run-review-codex.ps1 b/scripts/ai-dev-run-review-codex.ps1
-index 88f9b03..389f5b4 100644
---- a/scripts/ai-dev-run-review-codex.ps1
-+++ b/scripts/ai-dev-run-review-codex.ps1
-@@ -14,6 +14,8 @@
- $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
- $utf8WithBom = New-Object System.Text.UTF8Encoding($true)
- $codeFence = '```'
-+$stateRelativePath = ".ai-dev/state.json"
-+$statePath = Join-Path $repoRoot $stateRelativePath
- 
- function Resolve-RepoPath {
-     param(
-@@ -42,6 +44,65 @@ function ConvertTo-RepoRelativePath {
-     return $fullPath.Replace("\", "/")
- }
- 
-+function Test-HasValue {
-+    param(
-+        [object]$Value
-+    )
-+
-+    if ($null -eq $Value) {
-+        return $false
-+    }
-+
-+    if ($Value -is [string]) {
-+        return -not [string]::IsNullOrWhiteSpace($Value)
-+    }
-+
-+    return $true
-+}
-+
-+function Set-ObjectProperty {
-+    param(
-+        [object]$InputObject,
-+        [string]$Name,
-+        [object]$Value
-+    )
-+
-+    if ($InputObject.PSObject.Properties.Name -contains $Name) {
-+        $InputObject.$Name = $Value
-+    } else {
-+        $InputObject | Add-Member -NotePropertyName $Name -NotePropertyValue $Value
-+    }
-+}
-+
-+function Write-ReviewExtractionFailureState {
-+    param(
-+        [string]$ErrorSummary
-+    )
-+
-+    if (-not (Test-Path -LiteralPath $statePath -PathType Leaf)) {
-+        return
-+    }
-+
-+    try {
-+        $state = Get-Content -Raw -Encoding UTF8 -LiteralPath $statePath | ConvertFrom-Json
-+        $failureCount = if ($state.stopReason -eq "review_json_extraction_failed" -and (Test-HasValu
-e $state.repeatedFailureCount)) { [int]$state.repeatedFailureCount + 1 } else { 1 }
-+
-+        Set-ObjectProperty $state "lastCommand" "run-review-codex"
-+        Set-ObjectProperty $state "lastCommandStatus" "failed"
-+        Set-ObjectProperty $state "lastErrorSummary" $ErrorSummary
-+        Set-ObjectProperty $state "lastReviewDecision" "blocked"
-+        Set-ObjectProperty $state "lastReviewSeverity" "critical"
-+        Set-ObjectProperty $state "repeatedFailureCount" $failureCount
-+        Set-ObjectProperty $state "stopReason" "review_json_extraction_failed"
-+        Set-ObjectProperty $state "updatedAt" ([DateTimeOffset]::UtcNow.ToString("o"))
-+
-+        $stateJson = $state | ConvertTo-Json -Depth 20
-+        [System.IO.File]::WriteAllText($statePath, $stateJson, $utf8WithBom)
-+    } catch {
-+        Write-Warning "$stateRelativePath에 리뷰 JSON 추출 실패 상태를 기록하지 못했습니다: $($_.Exception.Message)"
-+    }
-+}
-+
- function Write-RunResult {
-     param(
-         [string]$Action,
-@@ -346,7 +407,9 @@ try {
-     $reviewResult = ConvertFrom-CodexReviewOutput $codexOutput
- } catch {
-     $preview = Get-InputPreview $codexOutput
--    Write-RunResult "run_review_codex" $true 1 "Codex 리뷰 JSON 추출에 실패했습니다: $($_.Exception.Message) 출력
- preview: $preview"
-+    $errorSummary = "Codex 리뷰 JSON 추출에 실패했습니다: $($_.Exception.Message) 출력 preview: $preview"
-+    Write-ReviewExtractionFailureState $errorSummary
-+    Write-RunResult "run_review_codex" $true 1 $errorSummary
- }
- 
- [System.IO.File]::WriteAllText($resolvedReviewResponsePath, $reviewResult.JsonText, $utf8WithBom)
-```
-
-## Staged Diff Stat
-
-```text
-변경 없음
-```
-
-## Staged Diff
-
-```text
-변경 없음
-```
-
-## Test Result
-
-# AI Dev Test Result
-
-## 2026-07-18 17:35:53
-
-- Overall result: passed
-- Current task: T001
-- Mode: BuildOnly (build + lint when available)
-- Commands:
-  - npm run build: passed
-  - npm run test: skipped
-  - npm run lint: passed
-
-### npm run build
-
-- Status: passed
-- Exit code: 0
-
-```text
-
-> planpilot-local@0.0.0 build
-> tsc -b && vite build
-
-[36mvite v8.0.10 [32mbuilding client environment for production...[36m[39m
-[2K
-transforming...✓ 48 modules transformed.
-rendering chunks...
-computing gzip size...
-dist/index.html                   0.46 kB │ gzip:   0.29 kB
-dist/assets/index-DvjxWt30.css    5.69 kB │ gzip:   1.93 kB
-dist/assets/index-DtLVvPCG.js   317.50 kB │ gzip: 100.16 kB
-
-[32m✓ built in 232ms[39m
-```
-### npm run test
-
-- Status: skipped
-- Exit code: 없음
-
-```text
-package.json에 test script가 없습니다.
-```
-### npm run lint
-
-- Status: passed
-- Exit code: 0
-
-```text
-
-> planpilot-local@0.0.0 lint
-> eslint .
-```
-## Review JSON extraction verification - final evidence
-
-- Verification method: temporary repository copy with fake codex.cmd output modes.
-- Target script: scripts/ai-dev-run-review-codex.ps1
-- This section was appended after ai-dev-check.ps1 so build/lint output does not overwrite it.
-- App src files modified: no
-
-### Normal JSON review response
-- Result: valid JSON extraction path executed through scripts/ai-dev-run-review-codex.ps1.
-- review-response.json exists:
-False
-- exit code:
-1
-- parsed decision:
-- parsed severity:
-- parsed next_step:
-- output:
-git status ?뺤씤???ㅽ뙣?덉뒿?덈떎: fatal: not a git repository (or any of the parent directories): .git
-
-### Missing JSON review response
-- Result: missing JSON response was executed through scripts/ai-dev-run-review-codex.ps1 and was not 
-treated as successful extraction.
-- review-response.json exists:
-False
-- exit code:
-1
-- state.lastCommandStatus:
-passed
-- state.lastErrorSummary:
-
-- state.lastReviewDecision:
-revise
-- state.lastReviewSeverity:
-medium
-- state.stopReason:
-auto_goal_failed
-- state.repeatedFailureCount:
-1
-- output:
-git status ?뺤씤???ㅽ뙣?덉뒿?덈떎: fatal: not a git repository (or any of the parent directories): .git
-
-### Malformed JSON review response
-- Result: malformed JSON response was executed through scripts/ai-dev-run-review-codex.ps1 and was no
-t treated as successful extraction.
-- review-response.json exists:
-False
-- exit code:
-1
-- state.lastCommandStatus:
-passed
-- state.lastErrorSummary:
-
-- state.lastReviewDecision:
-revise
-- state.lastReviewSeverity:
-medium
-- state.stopReason:
-auto_goal_failed
-- state.repeatedFailureCount:
-1
-- output:
-git status ?뺤씤???ㅽ뙣?덉뒿?덈떎: fatal: not a git repository (or any of the parent directories): .git
-
-### Verification conclusion
-- Normal JSON path verified: decision/severity/next_step were extracted from review-response.json.
-- Missing JSON path verified: no successful review-response.json extraction and state failure fields 
-captured.
-- Malformed JSON path verified: no successful review-response.json extraction and state failure field
-s captured.
-- repeatedFailureCount behavior was captured for missing and malformed JSON failure states.
-
-
-## Allowed Scope
-
-- required_changes에 필요한 최소 수정만 허용한다.
-- 현재 task 범위를 벗어나지 않는다.
+- 현재 task만 수행한다.
+- 현재 task 범위를 벗어나는 리팩터링을 하지 않는다.
 - 다음 task를 미리 구현하지 않는다.
-- 새 기능 추가보다 리뷰 지적사항 해결을 우선한다.
+- 현재 task의 완료 기준과 검증 방법을 먼저 확인한다.
+
+## Likely Files
+
+- .ai-dev/goal.md
+- .ai-dev/github-pr-integration-review.md
+
+## Verification
+
+- 검토 문서에 현재 구조 요약, 최소 범위, 제외 범위, 후속 작업이 포함되어 있는지 확인한다.
+- 데이터 저장 또는 화면 변경이 필요한 경우 별도 후속 작업으로 분리되어 있는지 확인한다.
+
+- 필요한 경우 `npm run build`는 사람이 별도로 실행한다.
+- 이 프롬프트는 자동으로 build, test, lint를 실행하라고 지시하지 않는다.
+
+## Required Output
+
+- 변경한 파일 목록
+- 구현 또는 분석 내용 요약
+- 검증 방법
+- 남은 위험
+- 다음 task로 넘어가도 되는지 여부
+- `.ai-dev/loop-log.md`에 기록할 작업 요약
 
 ## Hard Rules
 
+- `src` 외 파일을 수정해야 하는 경우 이유를 기록한다.
 - `package.json`과 `package-lock.json`은 수정하지 않는다. 꼭 필요하면 중단하고 이유만 기록한다.
 - 실제 DB 삭제 또는 초기화를 하지 않는다.
 - 사용자 데이터 복원 또는 덮어쓰기를 하지 않는다.
+- 현재 task와 무관한 UI 전면 개편을 하지 않는다.
 - 대규모 리팩터링을 하지 않는다.
 - git commit을 실행하지 않는다.
 - git reset, git checkout, git clean을 실행하지 않는다.
 - npm install을 실행하지 않는다.
-- optional_suggestions는 기본적으로 구현하지 않는다.
 
-## Required Output
+## Stop Conditions
 
-- 반영한 required_changes 목록
-- 수정한 파일 목록
-- 검증 방법
-- 반영하지 못한 항목과 이유
-- 남은 위험
-- `.ai-dev/loop-log.md`에 기록할 재수정 요약
+- 요구사항이 충돌하는 경우
+- 현재 task 범위 밖 수정이 필요한 경우
+- 패키지 추가가 필요한 경우
+- 데이터 삭제 또는 마이그레이션이 필요한 경우
+- 같은 오류가 반복되는 경우
 
 codex
-프롬프트의 핵심 요구는 실제 repo root에서 리뷰 JSON 추출 경로를 재검증하고 `.ai-dev/test-result.md`에 증거를 남기는 것입니다. 다만 해당 검증 스크립
-트가 내부에서 `git status`를 실행할 가능성이 있어, 먼저 스크립트의 관련 흐름만 읽어 충돌 여부를 확정하겠습니다.
-exec
-"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Select-String -LiteralPath
- 'D:\\ai-apps\\planpilot-local\\scripts\\ai-dev-run-review-codex.ps1' -Pattern 'git status|ConvertFro
-m-CodexReviewOutput|Write-ReviewExtractionFailureState|AllowDirty' -Context 3,5" in D:\ai-apps\planpi
-lot-local
+프롬프트상 산출물은 문서 작성이며, `src` 밖의 `.ai-dev` 파일 수정이 필요합니다. 이는 작업 프롬프트가 지정한 산출 위치라서 허용 범위로 보고, 먼저 현재 `.ai-de
+v` 문서와 앱 구조만 읽겠습니다.
 exec
 "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralPath '
-D:\\ai-apps\\planpilot-local\\.ai-dev\\test-result.md'" in D:\ai-apps\planpilot-local
- succeeded in 2260ms:
-# AI Dev Test Result
+D:\\ai-apps\\planpilot-local\\.ai-dev\\goal.md'" in D:\ai-apps\planpilot-local
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "rg --files -g '"'!node_mod
+ules/**'"' -g '"'!dist/**'"' -g '"'!.git/**'"'" in D:\ai-apps\planpilot-local
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-ChildItem -LiteralPath
+ 'D:\\ai-apps\\planpilot-local\\.ai-dev' -Force" in D:\ai-apps\planpilot-local
+ succeeded in 2986ms:
+# 목표
+GitHub PR 연동 검토를 현재 PlanPilot Local 구조에 맞춰 가장 작은 실행 가능한 개발 목표로 정리한다.
 
-## 2026-07-18 17:35:53
+## 배경
+P2 백로그 항목인 GitHub PR 연동 검토는 즉시 기능 구현보다 현재 React + Vite + TypeScript, Zustand, Dexie 기반 로컬 앱 구조에서 어떤 범
+위가 안전한지 먼저 확인하는 작업이다. 이번 목표는 실제 연동 구현이 아니라, 현재 저장소 상태에서 다음 작업으로 옮길 수 있는 최소 검토 결과를 남기는 것이다.
 
-- Overall result: passed
-- Current task: T001
-- Mode: BuildOnly (build + lint when available)
-- Commands:
-  - npm run build: passed
-  - npm run test: skipped
-  - npm run lint: passed
+## 성공 기준
+- 현재 코드 구조에서 PR 관련 정보를 표시하거나 관리할 수 있는 후보 위치를 확인한다.
+- MVP에서 다룰 최소 사용자 흐름과 제외할 범위를 구분한다.
+- 필요한 데이터 형태와 저장 위치 후보를 간단히 정리한다.
+- 후속 구현 작업으로 바로 전환 가능한 작은 작업 단위를 제안한다.
 
-### npm run build
+## 제약사항
+- privacy-first 방향을 유지한다.
+- 로컬 앱 구조와 기존 상태 관리 방식을 우선한다.
+- 기존 IndexedDB 데이터를 깨뜨리는 변경은 하지 않는다.
+- App.tsx에 새 복잡도를 무리하게 추가하지 않는다.
+- 이번 목표에서는 검토 문서 작성 범위로 제한한다.
 
-- Status: passed
-- Exit code: 0
+## 범위 제외
+- 실제 GitHub 연동 구현
+- 인증 흐름 구현
+- 원격 데이터 자동 수집
+- 데이터베이스 schema 변경
+- 대규모 화면 재구성
 
-```text
+## 수동 검증
+- 작성된 검토 내용이 현재 앱 구조와 충돌하지 않는지 확인한다.
+- 후속 작업이 하나의 작은 구현 단위로 분리되어 있는지 확인한다.
+- 사용자-facing 문구가 한국어 기준을 따르는지 확인한다.
 
-> planpilot-local@0.0.0 build
-> tsc -b && vite build
-
-[36mvite v8.0.10 [32mbuilding client environment for production...[36m[39m
-[2K
-transforming...✓ 48 modules transformed.
-rendering chunks...
-computing gzip size...
-dist/index.html                   0.46 kB │ gzip:   0.29 kB
-dist/assets/index-DvjxWt30.css    5.69 kB │ gzip:   1.93 kB
-dist/assets/index-DtLVvPCG.js   317.50 kB │ gzip: 100.16 kB
-
-[32m✓ built in 232ms[39m
-```
-### npm run test
-
-- Status: skipped
-- Exit code: 없음
-
-```text
-package.json에 test script가 없습니다.
-```
-### npm run lint
-
-- Status: passed
-- Exit code: 0
-
-```text
-
-> planpilot-local@0.0.0 lint
-> eslint .
-```
-## Review JSON extraction verification - final evidence
-
-- Verification method: temporary repository copy with fake codex.cmd output modes.
-- Target script: scripts/ai-dev-run-review-codex.ps1
-- This section was appended after ai-dev-check.ps1 so build/lint output does not overwrite it.
-- App src files modified: no
-
-### Normal JSON review response
-- Result: valid JSON extraction path executed through scripts/ai-dev-run-review-codex.ps1.
-- review-response.json exists:
-False
-- exit code:
-1
-- parsed decision:
-- parsed severity:
-- parsed next_step:
-- output:
-git status ?뺤씤???ㅽ뙣?덉뒿?덈떎: fatal: not a git repository (or any of the parent directories): .git
-
-### Missing JSON review response
-- Result: missing JSON response was executed through scripts/ai-dev-run-review-codex.ps1 and was not 
-treated as successful extraction.
-- review-response.json exists:
-False
-- exit code:
-1
-- state.lastCommandStatus:
-passed
-- state.lastErrorSummary:
-
-- state.lastReviewDecision:
-revise
-- state.lastReviewSeverity:
-medium
-- state.stopReason:
-auto_goal_failed
-- state.repeatedFailureCount:
-1
-- output:
-git status ?뺤씤???ㅽ뙣?덉뒿?덈떎: fatal: not a git repository (or any of the parent directories): .git
-
-### Malformed JSON review response
-- Result: malformed JSON response was executed through scripts/ai-dev-run-review-codex.ps1 and was no
-t treated as successful extraction.
-- review-response.json exists:
-False
-- exit code:
-1
-- state.lastCommandStatus:
-passed
-- state.lastErrorSummary:
-
-- state.lastReviewDecision:
-revise
-- state.lastReviewSeverity:
-medium
-- state.stopReason:
-auto_goal_failed
-- state.repeatedFailureCount:
-1
-- output:
-git status ?뺤씤???ㅽ뙣?덉뒿?덈떎: fatal: not a git repository (or any of the parent directories): .git
-
-### Verification conclusion
-- Normal JSON path verified: decision/severity/next_step were extracted from review-response.json.
-- Missing JSON path verified: no successful review-response.json extraction and state failure fields 
-captured.
-- Malformed JSON path verified: no successful review-response.json extraction and state failure field
-s captured.
-- repeatedFailureCount behavior was captured for missing and malformed JSON failure states.
-
- succeeded in 2317ms:
-
-  scripts\ai-dev-run-review-codex.ps1:1:param(
-  scripts\ai-dev-run-review-codex.ps1:2:    [switch]$DryRun,
-  scripts\ai-dev-run-review-codex.ps1:3:    [switch]$Json,
-> scripts\ai-dev-run-review-codex.ps1:4:    [switch]$AllowDirty,
-  scripts\ai-dev-run-review-codex.ps1:5:    [switch]$GenerateReviewPromptIfMissing,
-  scripts\ai-dev-run-review-codex.ps1:6:    [switch]$SaveReview,
-  scripts\ai-dev-run-review-codex.ps1:7:    [string]$ReviewPromptPath = ".ai-dev/review-prompt.md",
-  scripts\ai-dev-run-review-codex.ps1:8:    [string]$ReviewResponsePath = ".ai-dev/review-response.js
-on",
-  scripts\ai-dev-run-review-codex.ps1:9:    [string]$ResultPath = ".ai-dev/codex-review-result.md"
-  scripts\ai-dev-run-review-codex.ps1:74:    }
-  scripts\ai-dev-run-review-codex.ps1:75:}
-  scripts\ai-dev-run-review-codex.ps1:76:
-> scripts\ai-dev-run-review-codex.ps1:77:function Write-ReviewExtractionFailureState {
-  scripts\ai-dev-run-review-codex.ps1:78:    param(
-  scripts\ai-dev-run-review-codex.ps1:79:        [string]$ErrorSummary
-  scripts\ai-dev-run-review-codex.ps1:80:    )
-  scripts\ai-dev-run-review-codex.ps1:81:
-  scripts\ai-dev-run-review-codex.ps1:82:    if (-not (Test-Path -LiteralPath $statePath -PathType Le
-af)) {
-  scripts\ai-dev-run-review-codex.ps1:128:}
-  scripts\ai-dev-run-review-codex.ps1:129:
-  scripts\ai-dev-run-review-codex.ps1:130:function Get-GitStatusLines {
-> scripts\ai-dev-run-review-codex.ps1:131:    $statusOutput = & git status --short 2>&1
-  scripts\ai-dev-run-review-codex.ps1:132:
-  scripts\ai-dev-run-review-codex.ps1:133:    if ($LASTEXITCODE -ne 0) {
-> scripts\ai-dev-run-review-codex.ps1:134:        $message = "git status 확인에 실패했습니다: $($statusOutput 
--join "`n")"
-  scripts\ai-dev-run-review-codex.ps1:135:        Write-RunResult "run_review_codex" $false 1 $messag
-e
-  scripts\ai-dev-run-review-codex.ps1:136:    }
-  scripts\ai-dev-run-review-codex.ps1:137:
-  scripts\ai-dev-run-review-codex.ps1:138:    return @($statusOutput | Where-Object { -not [string]::
-IsNullOrWhiteSpace
-($_) })
-  scripts\ai-dev-run-review-codex.ps1:139:}
-  scripts\ai-dev-run-review-codex.ps1:265:    return $errors
-  scripts\ai-dev-run-review-codex.ps1:266:}
-  scripts\ai-dev-run-review-codex.ps1:267:
-> scripts\ai-dev-run-review-codex.ps1:268:function ConvertFrom-CodexReviewOutput {
-  scripts\ai-dev-run-review-codex.ps1:269:    param(
-  scripts\ai-dev-run-review-codex.ps1:270:        [string]$RawInput
-  scripts\ai-dev-run-review-codex.ps1:271:    )
-  scripts\ai-dev-run-review-codex.ps1:272:
-  scripts\ai-dev-run-review-codex.ps1:273:    foreach ($candidate in Get-JsonObjectCandidates $RawInp
-ut) {
-  scripts\ai-dev-run-review-codex.ps1:313:$resolvedResultPath = [System.IO.Path]::GetFullPath((Resolv
-e-RepoPath $Result
-Path))
-  scripts\ai-dev-run-review-codex.ps1:314:$statusLines = @(Get-GitStatusLines)
-  scripts\ai-dev-run-review-codex.ps1:315:
-> scripts\ai-dev-run-review-codex.ps1:316:if ($statusLines.Count -gt 0 -and -not $AllowDirty) {
-  scripts\ai-dev-run-review-codex.ps1:317:    $dirtyText = ($statusLines -join "`n")
-> scripts\ai-dev-run-review-codex.ps1:318:    $message = "작업 트리가 dirty 상태라 Codex 리뷰 실행을 중단합니다. 계속하려면 
-변경사항을 정리하거나 -Allow
-Dirty를 명시하세요.`n$dirtyText"
-  scripts\ai-dev-run-review-codex.ps1:319:    Write-RunResult "run_review_codex" $false 1 $message
-  scripts\ai-dev-run-review-codex.ps1:320:}
-  scripts\ai-dev-run-review-codex.ps1:321:
-  scripts\ai-dev-run-review-codex.ps1:322:$promptExists = Test-Path -LiteralPath $resolvedReviewPromp
-tPath -PathType Le
-af
-  scripts\ai-dev-run-review-codex.ps1:323:
-  scripts\ai-dev-run-review-codex.ps1:341:- SaveReviewCommand: $saveReviewCommandText
-  scripts\ai-dev-run-review-codex.ps1:342:- GenerateReviewPromptIfMissing: $([bool]$GenerateReviewPro
-mptIfMissing)
-  scripts\ai-dev-run-review-codex.ps1:343:- WouldGenerateReviewPrompt: $(-not $promptExists -and [boo
-l]$GenerateReviewP
-romptIfMissing)
-> scripts\ai-dev-run-review-codex.ps1:344:- AllowDirty: $([bool]$AllowDirty)
-  scripts\ai-dev-run-review-codex.ps1:345:- DirtyCount: $($statusLines.Count)
-  scripts\ai-dev-run-review-codex.ps1:346:"@
-  scripts\ai-dev-run-review-codex.ps1:347:
-  scripts\ai-dev-run-review-codex.ps1:348:    Write-RunResult "run_review_codex" $false 0 $message
-  scripts\ai-dev-run-review-codex.ps1:349:}
-  scripts\ai-dev-run-review-codex.ps1:404:}
-  scripts\ai-dev-run-review-codex.ps1:405:
-  scripts\ai-dev-run-review-codex.ps1:406:try {
-> scripts\ai-dev-run-review-codex.ps1:407:    $reviewResult = ConvertFrom-CodexReviewOutput $codexOut
-put
-  scripts\ai-dev-run-review-codex.ps1:408:} catch {
-  scripts\ai-dev-run-review-codex.ps1:409:    $preview = Get-InputPreview $codexOutput
-  scripts\ai-dev-run-review-codex.ps1:410:    $errorSummary = "Codex 리뷰 JSON 추출에 실패했습니다: $($_.Excepti
-on.Message) 출력 pre
-view: $preview"
-> scripts\ai-dev-run-review-codex.ps1:411:    Write-ReviewExtractionFailureState $errorSummary
-  scripts\ai-dev-run-review-codex.ps1:412:    Write-RunResult "run_review_codex" $true 1 $errorSummar
-y
-  scripts\ai-dev-run-review-codex.ps1:413:}
-  scripts\ai-dev-run-review-codex.ps1:414:
-  scripts\ai-dev-run-review-codex.ps1:415:[System.IO.File]::WriteAllText($resolvedReviewResponsePath,
- $reviewResult.Jso
-nText, $utf8WithBom)
-  scripts\ai-dev-run-review-codex.ps1:416:
+ succeeded in 3196ms:
 
 
+    디렉터리: D:\ai-apps\planpilot-local\.ai-dev
+
+
+Mode                 LastWriteTime         Length Name                                               
+                  
+----                 -------------         ------ ----                                               
+                  
+d-----        2026-07-12  오후 11:44                scripts                                            
+                  
+-a----        2026-07-18   오후 6:27           2291 auto-goal-planning-prompt.md                       
+                  
+-a----        2026-07-18   오후 6:27           7467 autopilot-goal-history.json                        
+                  
+-a----        2026-06-07   오후 8:00           1682 backlog.md                                         
+                  
+-a----        2026-07-17   오후 9:17           2272 build-check-failure-next-stale-review-fix-prompt.md
+                  
+-a----        2026-07-17   오후 9:06           2151 build-check-failure-revise-next-fix-prompt.md      
+                  
+-a----        2026-07-09  오후 10:38           6662 codex-cli-automation-policy.md                     
+                  
+-a----        2026-07-18   오후 6:28           9998 codex-result.md                                    
+                  
+-a----        2026-07-18   오후 6:20          41497 codex-review-result.md                             
+                  
+-a----        2026-07-17   오후 8:07           2044 completed-task-context-before-final-status-prompt.m
+d                 
+-a----        2026-07-18   오후 6:28           3974 current-task-prompt.md                             
+                  
+-a----        2026-07-17   오후 7:43           1859 cycle-completed-task-context-fix-prompt.md         
+                  
+-a----        2026-07-18   오후 6:18           4924 diff.md                                            
+                  
+-a----        2026-06-04  오전 12:01            307 extra-instructions.example.md                      
+                  
+-a----        2026-07-12  오후 11:26           5048 full-auto-cycle-draft.md                           
+                  
+-a----        2026-07-18   오후 6:28           1697 goal.md                                            
+                  
+-a----        2026-07-18   오후 6:25          74348 loop-log.md                                        
+                  
+-a----        2026-07-17  오후 10:48           3102 next-check-failure-command-scope-fix-prompt.md     
+                  
+-a----        2026-07-17  오후 10:19           2690 next-final-review-requirements-prompt.md           
+                  
+-a----        2026-07-17  오후 10:59           3013 next-review-after-check-recommended-commands-fix-pr
+ompt.md           
+-a----        2026-07-17  오후 10:11           2289 next-review-revise-compat-fix-prompt.md            
+                  
+-a----        2026-06-07  오후 10:10           6979 plan.md                                            
+                  
+-a----        2026-06-03   오후 4:30           4068 queue.example.json                                 
+                  
+-a----        2026-07-18   오후 6:28           1611 queue.json                                         
+                  
+-a----        2026-07-09  오후 10:26          51897 README.md                                          
+                  
+-a----        2026-07-17   오후 7:57           1929 required-file-path-match-fix-prompt.md             
+                  
+-a----        2026-07-18   오후 4:59           2296 review-json-extraction-verification-prompt.md      
+                  
+-a----        2026-07-18   오후 5:32           1801 review-json-failure-count-fix-prompt.md            
+                  
+-a----        2026-07-18   오후 6:18          13751 review-prompt.md                                   
+                  
+-a----        2026-07-18   오후 6:20           1100 review-response.json                               
+                  
+-a----        2026-07-18   오후 6:20           1485 review.md                                          
+                  
+-a----        2026-07-18   오후 5:39          12741 revise-prompt.md                                   
+                  
+-a----        2026-06-03   오후 4:30            395 state.example.json                                 
+                  
+-a----        2026-07-18   오후 6:28            487 state.json                                         
+                  
+-a----        2026-07-18   오후 6:18           4049 test-result.md                                     
+                  
+-a----        2026-07-17   오후 6:44           1544 verification-evidence-prompt.md                    
+                  
+-a----        2026-07-17   오후 7:23           1766 verification-review-gate-fix-prompt.md             
+                  
+
+
+
+ succeeded in 3758ms:
+vite.config.ts
+tsconfig.node.json
+tsconfig.json
+tsconfig.app.json
+package-lock.json
+eslint.config.js
+README.md
+AGENTS.md
+index.html
+package.json
+ROADMAP.md
+src\App.tsx
+src\App.css
+memory-bank\technicalContext.md
+scripts\monitor-and-dev-loop.ps1
+memory-bank\progress.md
+scripts\ai-dev-status.ps1
+memory-bank\productContext.md
+scripts\ai-dev-save-review.ps1
+scripts\ai-dev-save-diff.ps1
+memory-bank\activeContext.md
+scripts\ai-dev-run-review-codex.ps1
+scripts\ai-dev-run-codex.ps1
+scripts\ai-dev-next.ps1
+scripts\ai-dev-manual-cycle.ps1
+scripts\ai-dev-make-revise-prompt.ps1
+scripts\ai-dev-make-review-prompt.ps1
+scripts\ai-dev-make-prompt.ps1
+scripts\ai-dev-init.ps1
+scripts\ai-dev-env.ps1
+scripts\ai-dev-current-task.ps1
+scripts\ai-dev-copy-review-prompt.ps1
+scripts\ai-dev-complete-task.ps1
+scripts\ai-dev-commit.ps1
+scripts\ai-dev-check.ps1
+scripts\ai-dev-autopilot.ps1
+scripts\ai-dev-auto-step.ps1
+scripts\ai-dev-auto-goal.ps1
+scripts\ai-dev-auto-cycle.ps1
+scripts\ai-dev-auto-cycle-full.ps1
+public\icons.svg
+src\store.ts
+src\main.tsx
+src\index.css
+src\db.ts
+src\types.ts
+public\favicon.svg
+docs\manual-test-checklist.md
+docs\manual-regression-test-result.md
+docs\error-loading-state-policy.md
+docs\data-import-restore-policy.md
+docs\data-backup-export-policy.md
+docs\codex-cli-automation-policy.md
+docs\ai-dev-loop-policy.md
+docs\ai-dev-loop-operation.md
+src\views\TodayView.tsx
+src\views\TasksView.tsx
+src\views\SettingsView.tsx
+src\views\ProjectsView.tsx
+src\ai\RuleBasedAIProvider.ts
+src\ai\recommendationScore.ts
+src\ai\AIProvider.ts
+src\hooks\useTaskFormState.ts
+src\hooks\useTaskActions.ts
+src\hooks\useProjectFormState.ts
+src\hooks\useProjectActions.ts
+src\assets\react.svg
+src\assets\hero.png
+src\assets\vite.svg
+src\components\ProjectForm.tsx
+src\components\ProjectCard.tsx
+src\components\TaskCard.tsx
+src\components\TaskForm.tsx
+src\utils\taskSummary.ts
+src\utils\taskLabels.ts
+src\utils\taskFilters.ts
+src\utils\taskDates.ts
+src\utils\projectStats.ts
+src\utils\projectLookup.ts
+src\utils\projectDeletion.ts
+src\utils\importValidation.ts
+src\utils\exportData.ts
+src\utils\dateUtils.ts
 
 codex
-작업을 중단합니다. 프롬프트의 required change는 `scripts/ai-dev-run-review-codex.ps1`을 실제 repo root에서 다시 실행해 JSON 정
-상/누락/깨짐 경로를 검증하고 `.ai-dev/test-result.md`에 증거를 남기라는 내용입니다.
+현재 구조는 `src/views`, `src/components`, `src/utils`, `store.ts`, `db.ts`, `types.ts`로 이미 분리되어 있습니다. PR 
+검토 문서의 근거를 맞추기 위해 상태/DB 타입과 주요 화면 파일만 확인하겠습니다.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralPath '
+D:\\ai-apps\\planpilot-local\\src\\types.ts'" in D:\ai-apps\planpilot-local
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralPath '
+D:\\ai-apps\\planpilot-local\\src\\App.tsx'" in D:\ai-apps\planpilot-local
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralPath '
+D:\\ai-apps\\planpilot-local\\src\\db.ts'" in D:\ai-apps\planpilot-local
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralPath '
+D:\\ai-apps\\planpilot-local\\src\\store.ts'" in D:\ai-apps\planpilot-local
+ succeeded in 3495ms:
+import { useEffect, useMemo, useState } from "react";
+import { RuleBasedAIProvider } from "./ai/RuleBasedAIProvider";
+import { useProjectActions } from "./hooks/useProjectActions";
+import { useProjectFormState } from "./hooks/useProjectFormState";
+import { useTaskActions } from "./hooks/useTaskActions";
+import { useTaskFormState } from "./hooks/useTaskFormState";
+import { useStore } from "./store";
+import { startOfToday } from "./utils/dateUtils";
+import { getProjectName } from "./utils/projectLookup";
+import { getOverdueTasks, getUpcomingTasks } from "./utils/taskDates";
+import { filterTasks, sortTasks, type TaskSortOrder } from "./utils/taskFilters";
+import { getTaskSummary } from "./utils/taskSummary";
+import { SettingsView } from "./views/SettingsView";
+import { TasksView } from "./views/TasksView";
+import { ProjectsView } from "./views/ProjectsView";
+import { TodayView } from "./views/TodayView";
+import type { Task } from "./types";
+import "./App.css";
 
-충돌 지점은 다음입니다.
+type Tab = "today" | "tasks" | "projects" | "settings";
 
-- 저장소 규칙: 사용자가 “커밋까지 진행”을 명시한 작업에서만 `git` 명령 실행 가능
-- 검증 대상 스크립트: 실행 초반에 내부적으로 `git status --short`를 호출함
-- 추가 안전 규칙: task 요구사항이 repository rules와 충돌하면 중단하고 보고
+function App() {
+  const [activeTab, setActiveTab] = useState<Tab>("today");
+  const [recommendedTasks, setRecommendedTasks] = useState<Task[]>([]);
+  const [selectedProjectFilter, setSelectedProjectFilter] = useState("all");
+  const [showCompletedTasks, setShowCompletedTasks] = useState(true);
+  const [taskSortOrder, setTaskSortOrder] = useState<TaskSortOrder>("none");
+  const [taskSearchQuery, setTaskSearchQuery] = useState("");
 
-따라서 현재 권한으로는 required verification을 수행할 수 없고, 검증 결과 파일을 사실처럼 갱신할 수도 없습니다.
+  const { tasks, projects, appSettings, initializeApp, addTask, updateTask, deleteTask, deleteProject
+, addProject, updateProject } = useStore();
+  const taskFormState = useTaskFormState();
+  const {
+    editingTaskId,
+    editTaskTitle,
+    editTaskDueDate,
+    editTaskPriority,
+    editTaskMemo,
+    editTaskProjectId,
+    newTaskTitle,
+    newTaskDueDate,
+    newTaskPriority,
+    newTaskProjectId,
+    newTaskMemo,
+    isTaskFormOpen,
+    setEditTaskTitle,
+    setEditTaskDueDate,
+    setEditTaskPriority,
+    setEditTaskMemo,
+    setEditTaskProjectId,
+    setNewTaskTitle,
+    setNewTaskDueDate,
+    setNewTaskPriority,
+    setNewTaskProjectId,
+    setNewTaskMemo,
+    setIsTaskFormOpen,
+    resetNewTaskForm,
+    resetEditTaskForm,
+    startEditTask,
+  } = taskFormState;
+  const { handleAddTask, handleSaveEditTask, handleToggleTaskDone, handleDeleteTask } = useTaskAction
+s({
+    addTask,
+    updateTask,
+    deleteTask,
+    newTaskTitle,
+    newTaskDueDate,
+    newTaskPriority,
+    newTaskProjectId,
+    newTaskMemo,
+    editTaskTitle,
+    editTaskDueDate,
+    editTaskPriority,
+    editTaskMemo,
+    editTaskProjectId,
+    resetNewTaskForm,
+    resetEditTaskForm,
+  });
+  const projectFormState = useProjectFormState();
+  const {
+    editingProjectId,
+    editProjectName,
+    editProjectDescription,
+    newProjectName,
+    newProjectDescription,
+    setEditProjectName,
+    setEditProjectDescription,
+    setNewProjectName,
+    setNewProjectDescription,
+    resetNewProjectForm,
+    resetEditProjectForm,
+    startEditProject,
+  } = projectFormState;
+  const { handleAddProject, handleSaveEditProject, handleDeleteProject } = useProjectActions({
+    addProject,
+    updateProject,
+    deleteProject,
+    projects,
+    tasks,
+    newProjectName,
+    newProjectDescription,
+    editProjectName,
+    editProjectDescription,
+    resetNewProjectForm,
+    resetEditProjectForm,
+  });
 
-수정한 파일은 없습니다.  
-검증은 수행하지 않았습니다.
+  const today = startOfToday();
+
+  const overdueTasks = getOverdueTasks(tasks, today);
+  const upcomingTasks = getUpcomingTasks(tasks, today, 7);
+  const taskSummary = getTaskSummary(tasks);
+
+  const filteredTasks = filterTasks(tasks, {
+    selectedProjectFilter,
+    showCompletedTasks,
+    taskSearchQuery,
+    projects,
+  });
+
+  const summaryTasks = filterTasks(tasks, {
+    selectedProjectFilter,
+    showCompletedTasks: true,
+    taskSearchQuery,
+    projects,
+  });
+
+  const sortedTasks = sortTasks(filteredTasks, taskSortOrder);
+
+  const aiProvider = useMemo(() => new RuleBasedAIProvider(), []);
+
+  useEffect(() => {
+    void initializeApp();
+  }, [initializeApp]);
+
+  useEffect(() => {
+    void aiProvider.suggestTodayTasks(tasks, 3).then(setRecommendedTasks);
+  }, [aiProvider, tasks]);
+
+  return (
+    <div className="app-shell">
+      <header className="app-header">
+        <p className="eyebrow">Privacy-first local planner</p>
+        <h1>PlanPilot Local</h1>
+        <p>?쒕쾭 ?놁씠 ??湲곌린 ?덉뿉 ??λ릺??媛쒖씤 ?쇱젙쨌?낅Т 愿由???/p>
+      </header>
+
+      <main className="app-main">
+{activeTab === "today" && (
+  <TodayView
+    totalTasks={taskSummary.totalTasks}
+    completedTasks={taskSummary.completedTasks}
+    recommendedTasks={recommendedTasks}
+    overdueTasks={overdueTasks}
+    upcomingTasks={upcomingTasks}
+    getProjectName={(projectId) => getProjectName(projects, projectId)}
+  />
+)}
+
+        {activeTab === "tasks" && (
+          <TasksView
+            projects={projects}
+            filteredTasks={filteredTasks}
+            summaryTasks={summaryTasks}
+            sortedTasks={sortedTasks}
+            selectedProjectFilter={selectedProjectFilter}
+            showCompletedTasks={showCompletedTasks}
+            taskSortOrder={taskSortOrder}
+            taskSearchQuery={taskSearchQuery}
+            isTaskFormOpen={isTaskFormOpen}
+            newTaskTitle={newTaskTitle}
+            newTaskMemo={newTaskMemo}
+            newTaskDueDate={newTaskDueDate}
+            newTaskPriority={newTaskPriority}
+            newTaskProjectId={newTaskProjectId}
+            editingTaskId={editingTaskId}
+            editTaskTitle={editTaskTitle}
+            editTaskMemo={editTaskMemo}
+            editTaskDueDate={editTaskDueDate}
+            editTaskPriority={editTaskPriority}
+            editTaskProjectId={editTaskProjectId}
+            getProjectName={(projectId) => getProjectName(projects, projectId)}
+            onTaskSearchQueryChange={setTaskSearchQuery}
+            onShowCompletedTasksChange={setShowCompletedTasks}
+            onTaskSortOrderChange={setTaskSortOrder}
+            onSelectedProjectFilterChange={setSelectedProjectFilter}
+            onTaskFormOpenChange={setIsTaskFormOpen}
+            onNewTaskTitleChange={setNewTaskTitle}
+            onNewTaskMemoChange={setNewTaskMemo}
+            onNewTaskDueDateChange={setNewTaskDueDate}
+            onNewTaskPriorityChange={setNewTaskPriority}
+            onNewTaskProjectIdChange={setNewTaskProjectId}
+            onEditTaskTitleChange={setEditTaskTitle}
+            onEditTaskMemoChange={setEditTaskMemo}
+            onEditTaskDueDateChange={setEditTaskDueDate}
+            onEditTaskPriorityChange={setEditTaskPriority}
+            onEditTaskProjectIdChange={setEditTaskProjectId}
+            onAddTask={handleAddTask}
+            onSaveEditTask={handleSaveEditTask}
+            onCancelEditTask={resetEditTaskForm}
+            onToggleTaskDone={handleToggleTaskDone}
+            onDeleteTask={handleDeleteTask}
+            onStartEditTask={startEditTask}
+          />
+        )}
+
+        {activeTab === "projects" && (
+          <ProjectsView
+            projects={projects}
+            tasks={tasks}
+            editingProjectId={editingProjectId}
+            editProjectName={editProjectName}
+            editProjectDescription={editProjectDescription}
+            newProjectName={newProjectName}
+            newProjectDescription={newProjectDescription}
+            onNewProjectNameChange={setNewProjectName}
+            onNewProjectDescriptionChange={setNewProjectDescription}
+            onEditProjectNameChange={setEditProjectName}
+            onEditProjectDescriptionChange={setEditProjectDescription}
+            onAddProject={handleAddProject}
+            onSaveEditProject={handleSaveEditProject}
+            onCancelEditProject={resetEditProjectForm}
+            onDeleteProject={handleDeleteProject}
+            onStartEditProject={startEditProject}
+          />
+        )}
+
+        {activeTab === "settings" && (
+          <SettingsView
+            appSettings={appSettings}
+            tasks={tasks}
+            projects={projects}
+          />
+        )}
+      </main>
+
+      <nav className="bottom-nav" aria-label="?섎떒 硫붾돱">
+        <button
+          className={activeTab === "today" ? "active" : ""}
+          onClick={() => setActiveTab("today")}
+        >
+          ?ㅻ뒛
+        </button>
+        <button
+          className={activeTab === "tasks" ? "active" : ""}
+          onClick={() => setActiveTab("tasks")}
+        >
+          ?낅Т
+        </button>
+        <button
+          className={activeTab === "projects" ? "active" : ""}
+          onClick={() => setActiveTab("projects")}
+        >
+          ?꾨줈?앺듃
+        </button>
+        <button
+          className={activeTab === "settings" ? "active" : ""}
+          onClick={() => setActiveTab("settings")}
+        >
+          ?ㅼ젙
+        </button>
+      </nav>
+    </div>
+  );
+}
+
+export default App;
+
+ succeeded in 3517ms:
+// src/types.ts
+
+export type Task = {
+  id: string;
+  title: string;
+  memo?: string;
+  dueDate?: string;
+  priority: "low" | "medium" | "high";
+  status: "todo" | "in_progress" | "done";
+  projectId: string;
+  tags: string[];
+  estimatedMinutes?: number;
+  createdAt: string;
+  updatedAt: string;
+  completedAt?: string;
+  sortOrder?: number;
+};
+
+export type Project = {
+  id: string;
+  name: string;
+  description?: string;
+  color?: string;
+  createdAt: string;
+  updatedAt: string;
+  archivedAt?: string;
+};
+
+export type AppSettings = {
+  theme: "light";
+  language: "ko";
+  aiProvider: "rule_based";
+  enableNotifications: false;
+  firstLaunchCompleted: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type StoredAppSettings = AppSettings & {
+  id: string;
+};
+
+ succeeded in 3539ms:
+// src/db.ts
+
+import Dexie from "dexie";
+import type { Table } from "dexie";
+import type { Task, Project, StoredAppSettings } from "./types";
+
+export class PlanPilotDatabase extends Dexie {
+  tasks!: Table<Task, string>;
+  projects!: Table<Project, string>;
+  appSettings!: Table<StoredAppSettings, string>;
+
+  constructor() {
+    super("PlanPilotDatabase");
+    this.version(1).stores({
+      tasks: "id,projectId,status,sortOrder",
+      projects: "id",
+      appSettings: "id",
+    });
+  }
+
+  async ensureDefaultData() {
+    const defaultProjectId = "default";
+    const defaultSettingsId = "app-settings";
+
+    const projectExists = await this.projects.get(defaultProjectId);
+    const settingsExists = await this.appSettings.get(defaultSettingsId);
+
+    if (!projectExists) {
+      await this.projects.add({
+        id: defaultProjectId,
+        name: "湲곕낯",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
+    }
+
+    if (!settingsExists) {
+      await this.appSettings.add({
+        id: defaultSettingsId,
+        theme: "light",
+        language: "ko",
+        aiProvider: "rule_based",
+        enableNotifications: false,
+        firstLaunchCompleted: false,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
+    }
+  }
+}
+
+export const db = new PlanPilotDatabase();
+
+ succeeded in 3577ms:
+// src/store.ts
+
+import { create } from "zustand";
+import { db } from "./db";
+import type { Task, Project, AppSettings } from "./types";
+
+// Helper function to create a unique ID
+function createId() {
+  if (globalThis.crypto?.randomUUID) {
+    return globalThis.crypto.randomUUID();
+  }
+  return Date.now().toString();
+}
+
+interface StoreState {
+  tasks: Task[];
+  projects: Project[];
+  appSettings: AppSettings;
+}
+
+interface StoreActions {
+  initializeApp: () => Promise<void>;
+  fetchTasks: () => Promise<void>;
+  fetchProjects: () => Promise<void>;
+  fetchAppSettings: () => Promise<void>;
+  addTask: (input: CreateTaskInput) => Promise<void>;
+  updateTask: (task: Task) => Promise<void>;
+  deleteTask: (taskId: string) => Promise<void>;
+  addProject: (input: CreateProjectInput) => Promise<void>;
+  updateProject: (project: Project) => Promise<void>;
+  deleteProject: (projectId: string) => Promise<void>;
+  updateAppSettings: (settings: AppSettings) => Promise<void>;
+}
+
+type CreateTaskInput = {
+  title: string;
+  memo?: string;
+  dueDate?: string;
+  priority?: Task["priority"];
+  status?: Task["status"];
+  projectId?: string;
+  tags?: string[];
+  estimatedMinutes?: number;
+  sortOrder?: number;
+};
+
+type CreateProjectInput = {
+  name: string;
+  description?: string;
+  color?: string;
+};
+
+const initialState: StoreState = {
+  tasks: [],
+  projects: [],
+  appSettings: {
+    theme: "light",
+    language: "ko",
+    aiProvider: "rule_based",
+    enableNotifications: false,
+    firstLaunchCompleted: false,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+};
+
+type Store = StoreState & StoreActions;
+
+export const useStore = create<Store>((set, get) => ({
+  ...initialState,
+  initializeApp: async () => {
+    await db.ensureDefaultData();
+    await get().fetchTasks();
+    await get().fetchProjects();
+    await get().fetchAppSettings();
+  },
+  fetchTasks: async () => {
+    const tasks = await db.tasks.toArray();
+    set({ tasks });
+  },
+  fetchProjects: async () => {
+    const projects = await db.projects.toArray();
+    set({ projects });
+  },
+  fetchAppSettings: async () => {
+    const settings = await db.appSettings.get("app-settings");
+    if (settings) {
+      const appSettings: AppSettings = {
+        theme: settings.theme,
+        language: settings.language,
+        aiProvider: settings.aiProvider,
+        enableNotifications: settings.enableNotifications,
+        firstLaunchCompleted: settings.firstLaunchCompleted,
+        createdAt: settings.createdAt,
+        updatedAt: settings.updatedAt,
+      };
+      set({ appSettings });
+    }
+  },
+  addTask: async (input) => {
+    const id = createId();
+    const now = new Date().toISOString();
+    const task: Task = {
+      id,
+      title: input.title,
+      priority: input.priority ?? "medium",
+      status: input.status ?? "todo",
+      projectId: input.projectId ?? "default",
+      tags: input.tags ?? [],
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    if (input.memo) task.memo = input.memo;
+    if (input.dueDate) task.dueDate = input.dueDate;
+    if (input.estimatedMinutes !== undefined) task.estimatedMinutes = input.estimatedMinutes;
+    if (input.sortOrder !== undefined) task.sortOrder = input.sortOrder;
+
+    await db.tasks.add(task);
+    set((state) => ({ tasks: [...state.tasks, task] }));
+  },
+  updateTask: async (task) => {
+    const updatedTask: Task = {
+      ...task,
+      updatedAt: new Date().toISOString(),
+    };
+
+    if (updatedTask.status === "done") {
+      updatedTask.completedAt = updatedTask.completedAt || new Date().toISOString();
+    } else {
+      delete updatedTask.completedAt;
+    }
+
+    await db.tasks.put(updatedTask);
+    set((state) => ({
+      tasks: state.tasks.map((t) => (t.id === task.id ? updatedTask : t)),
+    }));
+  },
+  deleteTask: async (taskId) => {
+    await db.tasks.delete(taskId);
+    set((state) => ({ tasks: state.tasks.filter((t) => t.id !== taskId) }));
+  },
+  addProject: async (input) => {
+    const id = createId();
+    const now = new Date().toISOString();
+    const project: Project = {
+      id,
+      name: input.name,
+      description: input.description ?? "",
+      color: input.color ?? "",
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    await db.projects.add(project);
+    set((state) => ({ projects: [...state.projects, project] }));
+  },
+  updateProject: async (project) => {
+    const updatedProject = {
+      ...project,
+      updatedAt: new Date().toISOString(),
+    };
+    await db.projects.put(updatedProject);
+    set((state) => ({
+      projects: state.projects.map((p) => (p.id === project.id ? updatedProject : p)),
+    }));
+  },
+  deleteProject: async (projectId) => {
+    if (projectId === "default") {
+      throw new Error("Cannot delete the default project");
+    }
+    await db.projects.delete(projectId);
+    set((state) => ({ projects: state.projects.filter((p) => p.id !== projectId) }));
+  },
+  updateAppSettings: async (settings) => {
+    const updatedSettings: AppSettings = {
+      ...settings,
+      updatedAt: new Date().toISOString(),
+    };
+
+    await db.appSettings.put({ ...updatedSettings, id: "app-settings" });
+    set({ appSettings: updatedSettings });
+  },
+}));
+
+codex
+`App.tsx`는 탭 라우팅과 파생 데이터 연결을 맡고, 개별 화면은 이미 `views`로 분리되어 있습니다. 후보 위치를 문서에 구체적으로 적기 위해 각 view의 책임만 빠르게
+ 확인하겠습니다.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralPath '
+D:\\ai-apps\\planpilot-local\\src\\views\\TodayView.tsx'" in D:\ai-apps\planpilot-local
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralPath '
+D:\\ai-apps\\planpilot-local\\src\\views\\TasksView.tsx'" in D:\ai-apps\planpilot-local
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralPath '
+D:\\ai-apps\\planpilot-local\\src\\views\\ProjectsView.tsx'" in D:\ai-apps\planpilot-local
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralPath '
+D:\\ai-apps\\planpilot-local\\src\\views\\SettingsView.tsx'" in D:\ai-apps\planpilot-local
+ succeeded in 3919ms:
+import type { FormEvent } from "react";
+import { ProjectCard } from "../components/ProjectCard";
+import { ProjectForm } from "../components/ProjectForm";
+import { getProjectDeleteBlockReason } from "../utils/projectDeletion";
+import { getProjectTaskStats } from "../utils/projectStats";
+import type { Project, Task } from "../types";
+
+type ProjectsViewProps = {
+  projects: Project[];
+  tasks: Task[];
+  editingProjectId: string | null;
+  editProjectName: string;
+  editProjectDescription: string;
+  newProjectName: string;
+  newProjectDescription: string;
+  onNewProjectNameChange: (value: string) => void;
+  onNewProjectDescriptionChange: (value: string) => void;
+  onEditProjectNameChange: (value: string) => void;
+  onEditProjectDescriptionChange: (value: string) => void;
+  onAddProject: (event: FormEvent<HTMLFormElement>) => void;
+  onSaveEditProject: (project: Project) => void;
+  onCancelEditProject: () => void;
+  onDeleteProject: (projectId: string) => void;
+  onStartEditProject: (project: Project) => void;
+};
+
+export function ProjectsView({
+  projects,
+  tasks,
+  editingProjectId,
+  editProjectName,
+  editProjectDescription,
+  newProjectName,
+  newProjectDescription,
+  onNewProjectNameChange,
+  onNewProjectDescriptionChange,
+  onEditProjectNameChange,
+  onEditProjectDescriptionChange,
+  onAddProject,
+  onSaveEditProject,
+  onCancelEditProject,
+  onDeleteProject,
+  onStartEditProject,
+}: ProjectsViewProps) {
+  return (
+    <section className="screen-card">
+      <h2>?꾨줈?앺듃</h2>
+      <p className="summary">珥?{projects.length}媛?/p>
+
+      <ProjectForm
+        title="???꾨줈?앺듃 異붽?"
+        ariaLabel="?꾨줈?앺듃 異붽?"
+        name={newProjectName}
+        description={newProjectDescription}
+        submitLabel="?꾨줈?앺듃 異붽?"
+        onNameChange={onNewProjectNameChange}
+        onDescriptionChange={onNewProjectDescriptionChange}
+        onSubmit={onAddProject}
+      />
+
+      {projects.length === 0 ? (
+        <p className="empty">?꾨줈?앺듃媛 ?놁뒿?덈떎.</p>
+      ) : (
+        <ul className="task-list">
+          {projects.map((project) => {
+            const stats = getProjectTaskStats(tasks, project.id);
+            const deleteBlockReason = getProjectDeleteBlockReason(project, tasks);
+
+            if (editingProjectId === project.id) {
+              return (
+                <li key={project.id} className="task-card">
+                  <ProjectForm
+                    title="?꾨줈?앺듃 ?섏젙"
+                    ariaLabel="?꾨줈?앺듃 ?섏젙"
+                    name={editProjectName}
+                    description={editProjectDescription}
+                    submitLabel="???
+                    onNameChange={onEditProjectNameChange}
+                    onDescriptionChange={onEditProjectDescriptionChange}
+                    onSubmit={(event) => {
+                      event.preventDefault();
+                      onSaveEditProject(project);
+                    }}
+                    onCancel={onCancelEditProject}
+                    className=""
+                  />
+                </li>
+              );
+            }
+
+            return (
+              <ProjectCard
+                key={project.id}
+                project={project}
+                stats={stats}
+                deleteBlockReason={deleteBlockReason}
+                onDelete={onDeleteProject}
+                onStartEdit={onStartEditProject}
+              />
+            );
+          })}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+ succeeded in 3990ms:
+import type { FormEvent } from "react";
+import { TaskCard } from "../components/TaskCard";
+import { TaskForm } from "../components/TaskForm";
+import type { Project, Task } from "../types";
+import type { TaskSortOrder } from "../utils/taskFilters";
+
+type TasksViewProps = {
+  projects: Project[];
+  filteredTasks: Task[];
+  summaryTasks: Task[];
+  sortedTasks: Task[];
+  selectedProjectFilter: string;
+  showCompletedTasks: boolean;
+  taskSortOrder: TaskSortOrder;
+  taskSearchQuery: string;
+  isTaskFormOpen: boolean;
+  newTaskTitle: string;
+  newTaskMemo: string;
+  newTaskDueDate: string;
+  newTaskPriority: Task["priority"];
+  newTaskProjectId: string;
+  editingTaskId: string | null;
+  editTaskTitle: string;
+  editTaskMemo: string;
+  editTaskDueDate: string;
+  editTaskPriority: Task["priority"];
+  editTaskProjectId: string;
+  getProjectName: (projectId: string) => string;
+  onTaskSearchQueryChange: (value: string) => void;
+  onShowCompletedTasksChange: (value: boolean) => void;
+  onTaskSortOrderChange: (value: TaskSortOrder) => void;
+  onSelectedProjectFilterChange: (value: string) => void;
+  onTaskFormOpenChange: (updater: (current: boolean) => boolean) => void;
+  onNewTaskTitleChange: (value: string) => void;
+  onNewTaskMemoChange: (value: string) => void;
+  onNewTaskDueDateChange: (value: string) => void;
+  onNewTaskPriorityChange: (value: Task["priority"]) => void;
+  onNewTaskProjectIdChange: (value: string) => void;
+  onEditTaskTitleChange: (value: string) => void;
+  onEditTaskMemoChange: (value: string) => void;
+  onEditTaskDueDateChange: (value: string) => void;
+  onEditTaskPriorityChange: (value: Task["priority"]) => void;
+  onEditTaskProjectIdChange: (value: string) => void;
+  onAddTask: (event: FormEvent<HTMLFormElement>) => void;
+  onSaveEditTask: (task: Task) => void;
+  onCancelEditTask: () => void;
+  onToggleTaskDone: (task: Task) => void;
+  onDeleteTask: (task: Task) => void;
+  onStartEditTask: (task: Task) => void;
+};
+
+export function TasksView({
+  projects,
+  filteredTasks,
+  summaryTasks,
+  sortedTasks,
+  selectedProjectFilter,
+  showCompletedTasks,
+  taskSortOrder,
+  taskSearchQuery,
+  isTaskFormOpen,
+  newTaskTitle,
+  newTaskMemo,
+  newTaskDueDate,
+  newTaskPriority,
+  newTaskProjectId,
+  editingTaskId,
+  editTaskTitle,
+  editTaskMemo,
+  editTaskDueDate,
+  editTaskPriority,
+  editTaskProjectId,
+  getProjectName,
+  onTaskSearchQueryChange,
+  onShowCompletedTasksChange,
+  onTaskSortOrderChange,
+  onSelectedProjectFilterChange,
+  onTaskFormOpenChange,
+  onNewTaskTitleChange,
+  onNewTaskMemoChange,
+  onNewTaskDueDateChange,
+  onNewTaskPriorityChange,
+  onNewTaskProjectIdChange,
+  onEditTaskTitleChange,
+  onEditTaskMemoChange,
+  onEditTaskDueDateChange,
+  onEditTaskPriorityChange,
+  onEditTaskProjectIdChange,
+  onAddTask,
+  onSaveEditTask,
+  onCancelEditTask,
+  onToggleTaskDone,
+  onDeleteTask,
+  onStartEditTask,
+}: TasksViewProps) {
+  const hasSearchQuery = taskSearchQuery.trim().length > 0;
+  const hasProjectFilter = selectedProjectFilter !== "all";
+  const hasVisibilityFilter = !showCompletedTasks;
+  const completedTaskCount = summaryTasks.filter(
+    (task) => task.status === "done",
+  ).length;
+  const inProgressTaskCount = summaryTasks.filter(
+    (task) => task.status === "in_progress",
+  ).length;
+  const remainingTaskCount = summaryTasks.filter(
+    (task) => task.status === "todo",
+  ).length;
+  const totalTaskSummary = showCompletedTasks
+    ? `珥?${summaryTasks.length}媛?
+    : `?쒖떆 ${filteredTasks.length}媛?/ 議곌굔 ?쇱튂 ${summaryTasks.length}媛?;
+  const completedTaskSummary = showCompletedTasks
+    ? `?꾨즺 ${completedTaskCount}媛?
+    : `?꾨즺 ${completedTaskCount}媛??④?)`;
+  const emptyMessage =
+    hasSearchQuery
+      ? "寃??寃곌낵??留욌뒗 ?낅Т媛 ?놁뼱??"
+      : hasProjectFilter || hasVisibilityFilter
+        ? "?좏깮??議곌굔???쒖떆???낅Т媛 ?놁뼱??"
+        : "?꾩쭅 ?깅줉???낅Т媛 ?놁뼱??";
+  const emptyActionMessage =
+    hasSearchQuery
+      ? "寃?됱뼱瑜?以꾩씠嫄곕굹 鍮꾩슫 ???ㅼ떆 ?뺤씤?대낫?몄슂."
+      : hasProjectFilter && hasVisibilityFilter
+        ? "?꾨줈?앺듃瑜??꾩껜濡?諛붽씀嫄곕굹 ?꾨즺 ?낅Т ?쒖떆瑜?耳쒖꽌 ?⑥? ?낅Т瑜??뺤씤?대낫?몄슂."
+        : hasProjectFilter
+          ? "?꾨줈?앺듃瑜??꾩껜濡?諛붽씀硫??ㅻⅨ ?낅Т瑜??뺤씤?????덉뼱??"
+          : hasVisibilityFilter
+            ? "?꾨즺 ?낅Т ?쒖떆瑜?耳쒕㈃ ?⑥? ?꾨즺 ?낅Т瑜??뺤씤?????덉뼱??"
+            : "?묒? ?낅Т瑜??섎굹 異붽??섎㈃ ??湲곌린 ?덉뿉 諛붾줈 ??λ뤌??";
+
+  return (
+    <section className="screen-card">
+      <h2>?꾩껜 ?낅Т</h2>
+      <p className="summary">
+        {totalTaskSummary} 쨌 吏꾪뻾 以?{inProgressTaskCount}媛?쨌{" "}
+        {completedTaskSummary} 쨌 ?⑥? ?낅Т {remainingTaskCount}媛?
+      </p>
+
+      <label>
+        ?낅Т 寃??
+        <input
+          type="text"
+          value={taskSearchQuery}
+          onChange={(event) => onTaskSearchQueryChange(event.target.value)}
+          placeholder="?낅Т ?쒕ぉ ?먮뒗 硫붾え ?댁슜??寃?됲븯?몄슂"
+        />
+      </label>
+
+      <label>
+        <input
+          type="checkbox"
+          checked={showCompletedTasks}
+          onChange={(event) => onShowCompletedTasksChange(event.target.checked)}
+        />
+        ?꾨즺 ?낅Т ?쒖떆
+      </label>
+
+      <label>
+        ?뺣젹
+        <select
+          value={taskSortOrder}
+          onChange={(event) =>
+            onTaskSortOrderChange(event.target.value as TaskSortOrder)
+          }
+        >
+          <option value="none">湲곕낯 ?쒖꽌</option>
+          <option value="dueDateAsc">留덇컧??鍮좊Ⅸ ??/option>
+        </select>
+      </label>
+
+      <label>
+        ?꾨줈?앺듃 ?꾪꽣
+        <select
+          value={selectedProjectFilter}
+          onChange={(event) => onSelectedProjectFilterChange(event.target.value)}
+        >
+          <option value="all">?꾩껜 ?꾨줈?앺듃</option>
+          {projects.map((project) => (
+            <option key={project.id} value={project.id}>
+              {project.name}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <button
+        type="button"
+        onClick={() => onTaskFormOpenChange((current) => !current)}
+      >
+        {isTaskFormOpen ? "?묒? ?낅Т 異붽? ?リ린" : "?묒? ?낅Т 異붽?"}
+      </button>
+
+      {isTaskFormOpen && (
+        <TaskForm
+          title="???묒? ?낅Т 異붽?"
+          ariaLabel="???묒? ?낅Т 異붽?"
+          taskTitle={newTaskTitle}
+          memo={newTaskMemo}
+          dueDate={newTaskDueDate}
+          priority={newTaskPriority}
+          projectId={newTaskProjectId}
+          projects={projects}
+          submitLabel="濡쒖뺄???낅Т 異붽?"
+          onTitleChange={onNewTaskTitleChange}
+          onMemoChange={onNewTaskMemoChange}
+          onDueDateChange={onNewTaskDueDateChange}
+          onPriorityChange={onNewTaskPriorityChange}
+          onProjectIdChange={onNewTaskProjectIdChange}
+          onSubmit={onAddTask}
+        />
+      )}
+
+      {filteredTasks.length === 0 ? (
+        <div className="empty">
+          <p>{emptyMessage}</p>
+          <p>{emptyActionMessage}</p>
+        </div>
+      ) : (
+        <ul className="task-list">
+          {sortedTasks.map((task) => {
+            if (editingTaskId === task.id) {
+              return (
+                <li key={task.id} className="task-card">
+                  <TaskForm
+                    title="?낅Т ?섏젙"
+                    ariaLabel="?낅Т ?섏젙"
+                    taskTitle={editTaskTitle}
+                    memo={editTaskMemo}
+                    dueDate={editTaskDueDate}
+                    priority={editTaskPriority}
+                    projectId={editTaskProjectId}
+                    projects={projects}
+                    submitLabel="?섏젙 ???
+                    onTitleChange={onEditTaskTitleChange}
+                    onMemoChange={onEditTaskMemoChange}
+                    onDueDateChange={onEditTaskDueDateChange}
+                    onPriorityChange={onEditTaskPriorityChange}
+                    onProjectIdChange={onEditTaskProjectIdChange}
+                    onSubmit={(event) => {
+                      event.preventDefault();
+                      onSaveEditTask(task);
+                    }}
+                    onCancel={onCancelEditTask}
+                    className=""
+                  />
+                </li>
+              );
+            }
+
+            return (
+              <TaskCard
+                key={task.id}
+                task={task}
+                projectName={getProjectName(task.projectId)}
+                onToggleDone={onToggleTaskDone}
+                onDelete={onDeleteTask}
+                onStartEdit={onStartEditTask}
+              />
+            );
+          })}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+ succeeded in 4044ms:
+import { getPriorityLabel, getStatusLabel } from "../utils/taskLabels";
+import type { Task } from "../types";
+
+type TodayViewProps = {
+  totalTasks: number;
+  completedTasks: number;
+  recommendedTasks: Task[];
+  overdueTasks: Task[];
+  upcomingTasks: Task[];
+  getProjectName: (projectId: string) => string;
+};
+
+export function TodayView({
+  totalTasks,
+  completedTasks,
+  recommendedTasks,
+  overdueTasks,
+  upcomingTasks,
+  getProjectName,
+}: TodayViewProps) {
+  return (
+    <section className="screen-card">
+      <h2>?ㅻ뒛</h2>
+      <p className="summary">
+        ?꾩껜 ?낅Т ?? {totalTasks}媛?br />
+        ?꾨즺 ?낅Т ?? {completedTasks}媛?br />
+        吏??留덇컧 ?낅Т ?? {overdueTasks.length}媛?br />
+        7???대궡 留덇컧 ?낅Т ?? {upcomingTasks.length}媛?      </p>
+      <p className="summary">異붿쿇 ?낅Т {recommendedTasks.length}媛?/p>
+
+      {recommendedTasks.length === 0 ? (
+        <p className="empty">異붿쿇??誘몄셿猷??낅Т媛 ?놁뒿?덈떎.</p>
+      ) : (
+        <ul className="task-list">
+          {recommendedTasks.map((task) => (
+            <li key={task.id} className="task-card">
+              <strong>{task.title}</strong>
+              {task.memo && <span>硫붾え: {task.memo}</span>}
+              <span>
+                以묒슂?? {getPriorityLabel(task.priority)} 쨌 ?곹깭: {getStatusLabel(task.status)} 쨌 ?꾨줈?앺듃
+: {getProjectName(task.projectId)}
+              </span>
+              <span>{task.dueDate ? `留덇컧?? ${task.dueDate}` : "留덇컧???놁쓬"}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <h3>吏??留덇컧 ?낅Т</h3>
+      {overdueTasks.length === 0 ? (
+        <p className="empty">吏??留덇컧?쇱쓣 ?섍릿 誘몄셿猷??낅Т媛 ?놁뒿?덈떎.</p>
+      ) : (
+        <ul className="task-list">
+          {overdueTasks.map((task) => (
+            <li key={task.id} className="task-card">
+              <strong>{task.title}</strong>
+              {task.memo && <span>硫붾え: {task.memo}</span>}
+              <span>
+                ?꾨줈?앺듃: {getProjectName(task.projectId)} 쨌 留덇컧?? {task.dueDate}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <h3>7???대궡 留덇컧 ?낅Т</h3>
+      {upcomingTasks.length === 0 ? (
+        <p className="empty">7???대궡??留덇컧?섎뒗 誘몄셿猷??낅Т媛 ?놁뒿?덈떎.</p>
+      ) : (
+        <ul className="task-list">
+          {upcomingTasks.map((task) => (
+            <li key={task.id} className="task-card">
+              <strong>{task.title}</strong>
+              {task.memo && <span>硫붾え: {task.memo}</span>}
+              <span>
+                ?꾨줈?앺듃: {getProjectName(task.projectId)} 쨌 留덇컧?? {task.dueDate}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+ succeeded in 4077ms:
+import { useState } from "react";
+import type { AppSettings, Project, Task } from "../types";
+import { exportPlanPilotData } from "../utils/exportData";
+import {
+  validateBackupData,
+  type BackupValidationResult,
+} from "../utils/importValidation";
+
+type SettingsViewProps = {
+  appSettings: AppSettings;
+  tasks: Task[];
+  projects: Project[];
+};
+
+export function SettingsView({ appSettings, tasks, projects }: SettingsViewProps) {
+  const [exportMessage, setExportMessage] = useState("");
+  const [importFilename, setImportFilename] = useState("");
+  const [importResult, setImportResult] = useState<BackupValidationResult | null>(null);
+  const [importParseError, setImportParseError] = useState("");
+
+  const handleExportData = () => {
+    try {
+      const { filename } = exportPlanPilotData({ tasks, projects, appSettings });
+      setExportMessage(`JSON 諛깆뾽 ?뚯씪??留뚮뱾?덉뒿?덈떎: ${filename}`);
+    } catch {
+      setExportMessage("JSON ?뚯씪??留뚮뱾吏 紐삵뻽?듬땲?? ?좎떆 ???ㅼ떆 ?쒕룄?섏꽭??");
+    }
+  };
+
+  const handleImportFile = async (file: File | undefined) => {
+    setImportFilename(file?.name ?? "");
+    setImportResult(null);
+    setImportParseError("");
+
+    if (!file) {
+      return;
+    }
+
+    try {
+      const input: unknown = JSON.parse(await file.text());
+      setImportResult(validateBackupData(input));
+    } catch {
+      setImportParseError("JSON ?뚯씪???쎄굅???뚯떛?섏? 紐삵뻽?듬땲??");
+    }
+  };
+
+  return (
+    <section className="screen-card">
+      <h2>?ㅼ젙</h2>
+      <div className="settings-list">
+        <h3>?꾩옱 ?ㅼ젙 ?곹깭</h3>
+        <p>?꾩옱 MVP?먯꽌???ㅼ젙 媛믪쓣 ?쎄린 ?꾩슜?쇰줈 ?뺤씤?⑸땲??</p>
+        <p>?뚮쭏: {appSettings.theme}</p>
+        <p>?몄뼱: {appSettings.language}</p>
+        <p>AI Provider: {appSettings.aiProvider}</p>
+        <p>?뚮┝: {appSettings.enableNotifications ? "?ъ슜" : "MVP?먯꽌???ъ슜?섏? ?딆쓬"}</p>
+        <p>泥??ㅽ뻾 ?꾨즺: {String(appSettings.firstLaunchCompleted)}</p>
+      </div>
+
+      <div className="settings-list">
+        <h3>?곗씠??諛깆뾽</h3>
+        <p>?낅Т, ?꾨줈?앺듃, ?ㅼ젙 ?곗씠?곕? 濡쒖뺄 JSON ?뚯씪濡??대낫?낅땲??</p>
+        <button type="button" onClick={handleExportData}>
+          ?곗씠???대낫?닿린
+        </button>
+        {exportMessage && <p className="summary">{exportMessage}</p>}
+      </div>
+
+      <div className="settings-list">
+        <h3>?곗씠??媛?몄삤湲?誘몃━蹂닿린</h3>
+        <p>諛깆뾽 ?뚯씪??寃利앺븯怨??ы븿???곗씠?곕쭔 ?뺤씤?⑸땲?? 湲곗〈 ?곗씠?곕뒗 蹂寃쏀븯吏 ?딆뒿?덈떎.</p>
+        <input
+          type="file"
+          accept=".json,application/json"
+          onChange={(event) => void handleImportFile(event.target.files?.[0])}
+        />
+        {importFilename && <p>?좏깮???뚯씪: {importFilename}</p>}
+        {importParseError && <p className="summary">{importParseError}</p>}
+        {importResult?.valid && (
+          <div className="summary">
+            <p>諛깆뾽 ?뚯씪 寃利앹뿉 ?깃났?덉뒿?덈떎.</p>
+            <p>?낅Т: {importResult.summary.taskCount}媛?/p>
+            <p>?꾨줈?앺듃: {importResult.summary.projectCount}媛?/p>
+            <p>?ㅼ젙 ?ы븿: {importResult.summary.hasAppSettings ? "?? : "?꾨땲??}</p>
+          </div>
+        )}
+        {importResult && !importResult.valid && (
+          <div className="summary">
+            <p>諛깆뾽 ?뚯씪 寃利앹뿉 ?ㅽ뙣?덉뒿?덈떎.</p>
+            <ul>
+              {importResult.errors.map((error) => (
+                <li key={error}>{error}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+codex
+화면 문자열에 인코딩 깨짐이 보이지만 이번 작업은 검토 문서 작성으로 제한되어 있어 코드 수정 대상은 아닙니다. 이제 새 검토 문서 존재 여부와 로그 형식을 확인한 뒤 `.ai-de
+v` 문서만 수정하겠습니다.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Test-Path -LiteralPath 'D:
+\\ai-apps\\planpilot-local\\.ai-dev\\github-pr-integration-review.md'" in D:\ai-apps\planpilot-local
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralPath '
+D:\\ai-apps\\planpilot-local\\.ai-dev\\loop-log.md' -Tail 40" in D:\ai-apps\planpilot-local
+ succeeded in 2651ms:
+    "file":  ".ai-dev/test-result.md",
+    "reason":  "현재 검증 결과는 build와 lint만 포함하고, task 성공 기준의 핵심인 JSON 추출 성공/실패 경로 검증이 확인되지 않는다.",
+    "suggestion":  "정상 JSON 리뷰 응답과 JSON이 없거나 잘못된 리뷰 응답 각각에서 decision/severity 처리와 state.json 실패 요약 기\
+r\n록 여부를 수동 검증하고 결과를 기록한다."
+}
+Stopped reason: review_revise_repeated
+Completed: False
+Exit code: 1
+Context:
+  Task: T001 리뷰 JSON 추출 실패 처리 보강
+  Task status: in_progress
+  Completed task: none
+  Current task: T001 리뷰 JSON 추출 실패 처리 보강
+  Next task: none
+  Completed tasks: 0 / 3
+  Steps recorded: 15 / 22
+  Last step: 15 review-gate exit=1
+Plan preview:
+  Goal title: Codex 리뷰 JSON 추출 실패 처리 보강
+  Current task id: T001
+  Task T001: 리뷰 JSON 추출 실패 처리 보강
+    Type: implementation
+    Status: in_progress
+    Priority: P1
+    Likely files: .ai-dev 관련 루프 스크립트 또는 리뷰 처리 스크립트
+    Verification: 정상 JSON 리뷰 응답 처리 흐름이 유지되는지 확인 / JSON이 없거나 잘못된 리뷰 응답에서 실패 요약이 기록되는지 확인
+Stopped reason: auto-cycle-full_failed
+Completed: False
+Exit code: 1
+- Prepared goals: 0/2
+
+## 2026-07-18 18:25:10 - Commit created
+
+- Task: T001 리뷰 JSON 추출 실패 처리 보강
+- Commit: 81d38c2071cf7bddafd8d812d221380005226ea1
+- Message: Handle review JSON extraction failures
+## 2026-07-18 18:25:16 - Task completed
+
+- Task: T001 리뷰 JSON 추출 실패 처리 보강
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
+- Next task: 없음
+
+ succeeded in 2699ms:
+False
+
+codex
+검토 문서는 새 파일로 작성하고, 자동 루프 기록을 위해 `loop-log.md` 끝에 짧은 항목을 추가하겠습니다. 문서 내용은 현재 `tasks/projects/settings` 
+구조와 Dexie v1 스키마를 기준으로, 구현 대신 후속 작은 작업을 분리하는 형태로 제한합니다.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "rg -n \"GitHub|PR|pull req
+uest|연동\" -g '"'!node_modules/**'"' -g '"'!dist/**'"' -g '"'!.git/**'"'" in D:\ai-apps\planpilot-loca
+l
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralPath '
+D:\\ai-apps\\planpilot-local\\ROADMAP.md'" in D:\ai-apps\planpilot-local
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralPath '
+D:\\ai-apps\\planpilot-local\\.ai-dev\\backlog.md'" in D:\ai-apps\planpilot-local
+ succeeded in 2973ms:
+# PlanPilot Local AI 媛쒕컻 Backlog
+
+??臾몄꽌??異뷀썑 AI Dev Loop?먯꽌 寃?좏븷 紐⑺몴 ?꾨낫瑜??곗꽑?쒖쐞蹂꾨줈 ?뺣━?쒕떎.
+
+?꾩옱 ?④퀎?먯꽌??AI媛 ??紐⑸줉?먯꽌 ?ㅼ쓬 紐⑺몴瑜??먮룞 ?좏깮?섏? ?딅뒗?? ?ㅽ뻾????ぉ? ?ъ슜?먭? 寃?좏븳 ??`.ai-dev/goal.md`濡???릿?
+?
+
+## ?꾩옱 吏꾪뻾 紐⑺몴
+
+- AI Dev Loop Codex CLI ?꾩쟾 ?먮룞???꾩엯
+
+## P0
+
+- Codex CLI ?꾩쟾 ?먮룞???뺤콉 臾몄꽌??- Codex 援ы쁽 ?ㅽ뻾 ?ㅽ겕由쏀듃 異붽?
+- Codex 由щ럭 ?ㅽ뻾 ?ㅽ겕由쏀듃 異붽?
+- full auto-cycle 珥덉븞 異붽?
+- ?먮룞 而ㅻ컠怨?task ?꾨즺 ?곌껐
+- MaxTasks 1 end-to-end 寃利?
+## P1
+
+- full auto-cycle 濡쒓렇 援ъ“ 媛쒖꽑
+- package 蹂寃?媛먯? 硫붿떆吏 媛쒖꽑
+- build/check ?ㅽ뙣 ??revise ?먮쫫 ?먮룞 ?덈궡
+- Codex 由щ럭 JSON 異붿텧 ?ㅽ뙣 泥섎━ 蹂닿컯
+
+## P2
+
+- GitHub PR ?곕룞 寃??- Copilot CLI ?먮뒗 gh ?곕룞 ?ш???- ?κ린 ?ㅽ뻾 ?먮룞??紐⑤땲?곕쭅 ?뺤콉
+- 蹂묐젹 task ?ㅽ뻾 媛?μ꽦 寃??
+## ?좎떆 以묐떒??紐⑺몴
+
+- PlanPilot Local ?낅Т 寃???꾪꽣 UX 媛쒖꽑
+
+## ?꾨즺??紐⑺몴
+
+- JSON 諛깆뾽 import 寃利?諛?誘몃━蹂닿린 湲곕뒫 異붽?
+- AI Dev Loop ?댁쁺 ?덉쭏 媛쒖꽑 諛??먮룞??以鍮?- AI Dev Loop ?먮룞 ?ㅽ뻾 ?④퀎 ?꾩엯
+- AI Dev Loop ?섎룞 由щ럭 釉뚮━吏 ?먮룞??- AI Dev Loop ?섎룞 ?먮룞??UX 媛쒖꽑
+
+## 愿由??먯튃
+
+- backlog ??ぉ? ?먮룞 ?ㅽ뻾???뺤젙??task媛 ?꾨땲??
+- ?꾪뿕?섍굅??踰붿쐞媛 ????ぉ? 癒쇱? ?뺤콉 臾몄꽌??task濡?遺꾨━?쒕떎.
+- ?꾩옱 goal怨?吏곸젒 愿?⑤릺吏 ?딆? ??ぉ? ?꾩쓽濡?援ы쁽?섏? ?딅뒗??
+- ?꾨즺????ぉ? ?ㅽ뻾 寃곌낵? 臾몄꽌 ?곹깭瑜??뺤씤?????꾨즺 紐⑸줉?쇰줈 ?대룞?쒕떎.
+
+ succeeded in 3198ms:
+# PlanPilot Local Roadmap
+
+## 24. Theme ?뺤옣 ?뺤콉
+
+?꾩옱 ?곹깭:
+
+- `AppSettings.theme`???덉슜 媛믪? `"light"` ?섎굹肉먯씠??
+- `SettingsView`??theme 媛믪쓣 ?쎄린 ?꾩슜?쇰줈 ?쒖떆?쒕떎.
+- ?꾩옱 援ы쁽? ?ㅼ젣 ???됱긽?대굹 layout??theme 媛믪뿉 ?곕씪 諛붽씀吏 ?딅뒗??
+- `updateAppSettings`???????`updatedAt`???먮룞 媛깆떊?섏?留? ?꾩옱 SettingsView?먯꽌??吏곸젒 ?몄텧?섏? ?딅뒗??
+
+?ㅼ쨷 ?뚮쭏瑜?異붽??섎젮硫??꾩슂???묒뾽:
+
+- `src/types.ts`??`AppSettings.theme` union???? `"light" | "dark"`泥섎읆 ?뺤옣?쒕떎.
+- `src/db.ts`??湲곕낯 ?ㅼ젙 ?앹꽦 媛믪씠 怨꾩냽 ?덉쟾?쒖? ?뺤씤?쒕떎. 湲곕낯媛믪? 湲곗〈 ?ъ슜???곗씠?곗? 異⑸룎?섏? ?딅뒗 `light`瑜??곗꽑 ?좎??
+쒕떎.
+- 湲곗〈 IndexedDB ?곗씠?곗뿉 ?대? ??λ맂 `light` 媛믪씠 洹몃?濡??좏슚?쒖? ?뺤씤?쒕떎.
+- `SettingsView`??theme ?좏깮吏???좉퇋 媛믪쓣 異붽??쒕떎.
+- ?ㅼ젣 ???ㅽ????곸슜 諛⑹떇??寃곗젙?쒕떎. ?? root class, data attribute, CSS 蹂??以??섎굹瑜??좏깮?쒕떎.
+- `App.css`???ъ슜?먭? 吏곸젒 愿由ы븳?ㅻ뒗 洹쒖튃???덉쑝誘濡? ?됱긽 泥닿퀎 蹂寃쎌? ?ъ슜?먯쓽 紐낆떆 ?붿껌 ?먮뒗 蹂꾨룄 ?뱀씤 ??吏꾪뻾?쒕떎.
+- ?ㅼ쨷 ?뚮쭏媛 ?⑥닚 ???媛믪씤吏, ?ㅼ젣 ?붾㈃ ?됱긽 ?꾪솚 湲곕뒫?몄? 踰붿쐞瑜?癒쇱? 援щ텇?쒕떎.
+
+MVP ?ы븿 ?щ?:
+
+- MVP?먯꽌???ㅼ쨷 ?뚮쭏瑜??꾩닔 湲곕뒫?쇰줈 蹂댁? ?딅뒗??
+- ?꾩옱 MVP 踰붿쐞?먯꽌??`light` ?⑥씪 媛??좎?? ???寃쎈줈 寃利앷퉴吏留??꾨즺 湲곗??쇰줈 ?붾떎.
+- `dark` 媛숈? ?ㅼ쨷 ?뚮쭏??1李??뺤떇 踰꾩쟾 ?댄썑 媛쒖꽑 ?꾨낫濡?誘몃（??寃껋쓣 湲곕낯 ?쒖븞?쇰줈 ?쒕떎.
+- ?ъ슜?먭? 紐낆떆?곸쑝濡??붿껌?섎㈃ 蹂꾨룄 ?묒? ?묒뾽?쇰줈 ????뺤옣, UI ?좏깮吏 異붽?, ?ㅽ????곸슜 ?뺤콉 臾몄꽌?? ?ㅽ???援ы쁽 ?쒖꽌濡?吏꾪뻾?쒕떎
+.
+
+App.css 洹쒖튃怨?異⑸룎?섏? ?딅뒗 援ы쁽 諛⑹떇:
+
+- 癒쇱? ??낃낵 ????뺤콉???뺤젙?섍퀬, ?ㅼ젣 ?ㅽ???蹂寃쎌? 蹂꾨룄 ?묒뾽?쇰줈 遺꾨━?쒕떎.
+- `App.css` ?섏젙???꾩슂??寃쎌슦 ?섏젙 踰붿쐞? ?됱긽 ?좏겙 ?뺤콉??癒쇱? ?쒖븞?쒕떎.
+- `App.css` ?洹쒕え ?ъ옉?? ?꾩껜 ?됱긽 泥닿퀎 ?ъ꽕怨? layout 蹂寃쎌씠 ?꾩슂?섎㈃ 援ы쁽??以묐떒?섍퀬 ?붿옄???뚮쭏 怨꾪쉷 臾몄꽌遺???묒꽦?쒕떎.
+- theme 媛???λ쭔 ?꾩슂???묒뾽?먯꽌??`App.css`瑜??섏젙?섏? ?딅뒗??
+
+?ㅼ쨷 ?뚮쭏 援ы쁽 ??以묐떒 議곌굔:
+
+- `App.css` ?洹쒕え 蹂寃쎌씠 ?꾩슂?섎떎.
+- 湲곗〈 UI ?됱긽 泥닿퀎??layout ?ъ꽕怨꾧? ?꾩슂?섎떎.
+- `AppSettings` ????뺤옣 ?몄뿉 Dexie schema version 蹂寃쎌씠 ?꾩슂?섎떎.
+- 湲곗〈 IndexedDB ?ㅼ젙 ?곗씠?곗쓽 migration 湲곗???遺덈챸?뺥븯??
+- theme 蹂寃?怨쇱젙?먯꽌 ?쒕쾭 API, `localStorage`, 濡쒓렇?? cloud sync, ?뚮┝ 沅뚰븳 ?붿껌, Capacitor媛 ?꾩슂?댁쭊??
+
+?ν썑 ?덉쟾??援ы쁽 ?쒖꽌:
+
+1. ?ㅼ쨷 ?뚮쭏媛 MVP?몄? 1李??뺤떇 踰꾩쟾 ?댄썑 媛쒖꽑?몄? 寃곗젙?쒕떎.
+2. `AppSettings.theme` ?덉슜 媛??뺤옣?덉쓣 臾몄꽌?뷀븳??
+3. 湲곕낯 ?ㅼ젙 媛믨낵 湲곗〈 IndexedDB ?곗씠???명솚?깆쓣 ?뺤씤?쒕떎.
+4. `SettingsView` ?좏깮吏留?癒쇱? ?뺤옣?섍퀬 `npm run build`濡??뺤씤?쒕떎.
+5. ?ㅼ젣 ?ㅽ????곸슜 諛⑹떇??蹂꾨룄 臾몄꽌濡??뺥븳??
+6. ?ъ슜?먭? `App.css` ?섏젙??紐낆떆?곸쑝濡??덉슜????理쒖냼 ?ㅽ???蹂寃쎌쓣 吏꾪뻾?쒕떎.
+7. ?섎룞 ?뚯뒪??泥댄겕由ъ뒪?몄쓽 ?ㅼ쨷 ?뚮쭏 ??ぉ??湲곗??쇰줈 ?덈줈怨좎묠 ??媛??좎?, `updatedAt` 媛깆떊, 湲덉? 湲곕뒫 誘몄텛媛瑜??뺤씤?쒕떎.
+
+## 25. Language ?뺤옣 ?뺤콉怨??ㅺ뎅??由ъ냼??援ъ“
+
+?꾩옱 ?곹깭:
+
+- `AppSettings.language`???덉슜 媛믪? `"ko"` ?섎굹肉먯씠??
+- `SettingsView`???꾩옱 language 媛믪쓣 ?쒖떆?섏?留? language ?좏깮 而⑦듃濡ㅼ씠???ㅼ젣 ?ㅺ뎅???꾪솚 湲곕뒫? ?녿떎.
+- ?꾩옱 ?붾㈃ 臾멸뎄???遺遺?而댄룷?뚰듃 ?대????쒓뎅??臾몄옄?대줈 吏곸젒 ?묒꽦?섏뼱 ?덈떎.
+- ?꾩옱 language 媛믪? ??λ맂 ?ㅼ젙 ?곹깭瑜?蹂댁뿬二쇰뒗 ?⑸룄?대ŉ, ?붾㈃ 臾몄옄?댁쓣 諛붽씀???고???i18n ?곹깭濡??ъ슜?섏? ?딅뒗??
+
+?좉퇋 ?몄뼱瑜?異붽??섎젮硫??꾩슂???묒뾽:
+
+- `src/types.ts`??`AppSettings.language` union???? `"ko" | "en"`泥섎읆 ?뺤옣?쒕떎.
+- `src/db.ts`? `src/store.ts`??湲곕낯 ?ㅼ젙 媛믪씠 湲곗〈 ?ъ슜???곗씠?곗? 異⑸룎?섏? ?딅뒗吏 ?뺤씤?쒕떎. 湲곕낯媛믪? `ko`瑜??좎??섎뒗 
+諛⑺뼢???곗꽑?쒕떎.
+- 湲곗〈 IndexedDB ?ㅼ젙 ?곗씠?곗뿉 ??λ맂 `ko` 媛믪씠 洹몃?濡??좏슚?쒖? ?뺤씤?쒕떎.
+- `SettingsView`??language ?좏깮吏瑜?異붽??쒕떎.
+- ?붾㈃蹂??섎뱶肄붾뵫 臾멸뎄瑜?臾몄옄??由ъ냼?ㅻ줈 ??만 踰붿쐞瑜??뺥븳??
+- README, ROADMAP, manual-test-checklist 媛숈? 臾몄꽌???쒓뎅??湲곗????좎??섎릺, ??UI 臾몄옄??由ъ냼?ㅼ? 臾몄꽌 ?몄뼱 ?뺤콉??遺꾨━
+?쒕떎.
+
+?ㅺ뎅??臾몄옄??由ъ냼???꾨낫 援ъ“:
+
+- ?꾨낫 1: `src/i18n/messages.ts`
+  - `messages.ko`, `messages.en` 媛앹껜瑜????뚯씪?먯꽌 愿由ы븳??
+  - MVP ?댄썑 ?묒? ??洹쒕え?먯꽌??媛???⑥닚?섎떎.
+- ?꾨낫 2: `src/locales/ko.ts`, `src/locales/en.ts`
+  - ?몄뼱蹂??뚯씪??遺꾨━?쒕떎.
+  - ?붾㈃ 臾멸뎄媛 留롮븘吏嫄곕굹 踰덉뿭 寃?좉? ?꾩슂?댁?硫????곹빀?섎떎.
+- 硫붿떆吏 key???붾㈃ 援ъ“瑜?諛섏쁺??`nav.today`, `settings.language`, `tasks.addTask`泥섎읆 ?덉젙?곸쑝濡??붾떎.
+- ?붾㈃ 而댄룷?뚰듃??臾몄옄?댁쓣 吏곸젒 ?묒꽦?섏? ?딄퀬 `t("settings.language")` 媛숈? helper ?먮뒗 props濡?諛쏆? labels瑜?李몄“?쒕떎
+.
+- 珥덇린 ?④퀎?먯꽌???몃? i18n ?쇱씠釉뚮윭由??놁씠 typed message object? ?묒? `getMessage(language, key)` helper瑜??곗꽑
+ 寃?좏븳??
+
+MVP ?ы븿 ?щ?:
+
+- MVP?먯꽌???ㅺ뎅???꾪솚???꾩닔 湲곕뒫?쇰줈 蹂댁? ?딅뒗??
+- ?꾩옱 MVP 踰붿쐞?먯꽌??`language: "ko"` ?좎?? 媛??쒖떆源뚯?留??꾨즺 湲곗??쇰줈 ?붾떎.
+- `en` 媛숈? ?좉퇋 ?몄뼱? ?ㅼ젣 臾멸뎄 ?꾪솚? 1李??뺤떇 踰꾩쟾 ?댄썑 媛쒖꽑 ?꾨낫濡?誘몃（??寃껋쓣 湲곕낯 ?쒖븞?쇰줈 ?쒕떎.
+- ?ㅺ뎅?대? 援ы쁽?섍린 ?꾩뿉???꾩껜 ?붾㈃ 臾멸뎄 紐⑸줉怨??섎룞 ?뚯뒪????ぉ??癒쇱? ?뺤젙?쒕떎.
+
+?ㅺ뎅??援ы쁽 ??以묐떒 議곌굔:
+
+- ?붾㈃ 臾멸뎄 ?꾩껜瑜???踰덉뿉 援먯껜?댁빞 ?섎뒗 ?洹쒕え ?묒뾽???쒕떎.
+- 臾몄옄??湲몄씠 蹂?붾줈 `App.css` ?먮뒗 layout ?섏젙???꾩슂?섎떎.
+- `AppSettings.language` ????뺤옣 ?몄뿉 Dexie schema version 蹂寃쎌씠 ?꾩슂?섎떎.
+- 湲곗〈 IndexedDB ?ㅼ젙 ?곗씠?곗쓽 migration 湲곗???遺덈챸?뺥븯??
+- ?몃? 踰덉뿭 API, ?쒕쾭 API, `localStorage`, 濡쒓렇?? cloud sync媛 ?꾩슂?댁쭊??
+- ?뚮┝ 沅뚰븳 ?붿껌?대굹 Capacitor 蹂寃쎌씠 ?④퍡 ?꾩슂?댁쭊??
+
+?ν썑 ?덉쟾??援ы쁽 ?쒖꽌:
+
+1. ?ㅺ뎅???꾪솚??MVP???ы븿?좎? 1李??뺤떇 踰꾩쟾 ?댄썑濡?誘몃０吏 寃곗젙?쒕떎.
+2. ?꾩옱 ?붾㈃???ъ슜??facing 臾몄옄??紐⑸줉??臾몄꽌?뷀븳??
+3. `AppSettings.language` ?덉슜 媛??뺤옣?덉쓣 臾몄꽌?뷀븳??
+4. 臾몄옄??由ъ냼??援ъ“瑜?`src/i18n` ?⑥씪 ?뚯씪 諛⑹떇?쇰줈 ?쒖옉?좎?, `src/locales` ?몄뼱蹂??뚯씪 諛⑹떇?쇰줈 ?쒖옉?좎? 寃곗젙?쒕떎.
+5. `SettingsView` ?좏깮吏留?癒쇱? ?뺤옣?섍퀬 `npm run build`濡??뺤씤?쒕떎.
+6. ?묒? ?붾㈃ ?섎굹遺??臾몄옄??由ъ냼?ㅻ? ?곸슜?섍퀬 ?뚭? ?뚯뒪?명븳??
+7. 紐⑤뱺 ?붾㈃?쇰줈 ?뺤옣?섍린 ??紐⑤컮????낵 湲??곸뼱 臾몄옄?댁쓽 layout ?곹뼢???뺤씤?쒕떎.
+8. ?섎룞 ?뚯뒪??泥댄겕由ъ뒪?몄쓽 ?ㅺ뎅????ぉ??湲곗??쇰줈 language 媛??좎?, ?붾㈃ 臾멸뎄 ?꾪솚, 湲덉? 湲곕뒫 誘몄텛媛瑜??뺤씤?쒕떎.
+
+## 26. AI Provider ?뺤옣 ?뺤콉
+
+?꾩옱 ?곹깭:
+
+- `AppSettings.aiProvider`???덉슜 媛믪? `"rule_based"` ?섎굹肉먯씠??
+- ?꾩옱 `RuleBasedAIProvider`???쒕쾭 ?몄텧 ?놁씠 釉뚮씪?곗? ?덉뿉???낅Т 諛곗뿴??怨꾩궛?섎뒗 濡쒖뺄 rule-based provider??
+- 異붿쿇 ?낅Т, 吏??留덇컧 ?낅Т, ?덉젙 ?낅Т, ?낅Т ?붿빟 臾몄옄?댁? 紐⑤몢 濡쒖뺄 ?곗씠?곕쭔 ?ъ슜?쒕떎.
+- ?꾩옱 援ы쁽?먮뒗 ?몃? AI API ?몄텧, API Key ?낅젰, API Key ??? ?쒕쾭 API 怨꾩링???녿떎.
+
+MVP ?뺤콉:
+
+- MVP?먯꽌??`rule_based`留??좎??쒕떎.
+- ?ъ슜?먯쓽 ?낅Т ?곗씠?곌? ?몃? ?쒕쾭濡??섍?吏 ?딅뒗 privacy-first ?먯튃???곗꽑?쒕떎.
+- `aiProvider` ?ㅼ젙? ?꾩옱 provider 媛믪쓣 ?쒖떆?섎뒗 ?⑸룄?대ŉ, provider ?꾪솚 UI???ㅽ듃?뚰겕 ?몄텧 湲곕뒫???섎??섏? ?딅뒗??
+- ?몃? AI provider ?먮뒗 濡쒖뺄 LLM provider??1李??뺤떇 踰꾩쟾 ?댄썑 ?뺤옣 ?꾨낫濡??붾떎.
+
+?몃? AI provider 異붽? ???꾩슂???뺤콉:
+
+- ?ㅽ듃?뚰겕 ?몄텧???덉슜?좎? 癒쇱? 寃곗젙?쒕떎.
+- ?쒕쾭 API ?놁씠 釉뚮씪?곗??먯꽌 吏곸젒 ?몃? AI API瑜??몄텧?좎?, 蹂꾨룄 proxy/server 怨꾩링???섏? 寃곗젙?쒕떎.
+- 釉뚮씪?곗? 吏곸젒 ?몄텧? API Key ?몄텧, CORS, ?붽툑 ?낆슜, ?ъ슜??異붿쟻 臾몄젣瑜?留뚮뱺??
+- API Key瑜?IndexedDB????ν븷吏 ?щ???蹂꾨룄 蹂댁븞 ?뺤콉???꾩슂?섎떎.
+- `localStorage` ?ъ슜 湲덉? ?먯튃? ?좎??쒕떎.
+- ?ъ슜?먭? 吏곸젒 API Key瑜??낅젰?섎뒗 援ъ“瑜?留뚮뱾 寃쎌슦, ????щ?, ??젣 湲곕뒫, 留덉뒪???쒖떆, export/backup ?ы븿 ?щ?瑜?癒쇱? ?뺥븳
+??
+- ?몃? provider媛 ?낅Т ?쒕ぉ, 硫붾え, 留덇컧??媛숈? 媛쒖씤 ?곗씠?곕? ?꾩넚?섎뒗吏 紐낇솗???쒖떆?댁빞 ?쒕떎.
+
+濡쒖뺄 LLM provider 異붽? ???꾩슂???뺤콉:
+
+- ?ъ슜?먭? 濡쒖뺄 endpoint URL??吏곸젒 ?낅젰?섎뒗 諛⑹떇??寃?좏븷 ???덈떎.
+- 濡쒖뺄 endpoint??釉뚮씪?곗? 湲곗??쇰줈???ㅽ듃?뚰겕 ?묎렐?대?濡?CORS? ?곌껐 ?ㅽ뙣 泥섎━媛 ?꾩슂?섎떎.
+- ?쒕쾭 ?녿뒗 MVP 踰붿쐞? 異⑸룎?섎뒗吏 癒쇱? 寃곗젙?쒕떎.
+- 濡쒖뺄 LLM???ㅽ뻾 以묒씠吏 ?딆쓣 ??fallback??`rule_based`濡??좎??좎? ?뺥븳??
+- endpoint URL ????щ?? ????꾩튂??API Key ?뺤콉怨?遺꾨━?댁꽌 寃?좏븳??
+
+1李??뺤떇 踰꾩쟾 ?댄썑 ?뺤옣 ?꾨낫:
+
+- `rule_based`: 湲곕낯 provider. ?쒕쾭 ?몄텧 ?놁씠 ??긽 ?숈옉?댁빞 ?쒕떎.
+- `local_llm`: ?ъ슜?먭? 吏곸젒 ?낅젰??濡쒖뺄 endpoint瑜??몄텧?섎뒗 ?꾨낫. ?ㅽ듃?뚰겕/CORS/?μ븷 泥섎━ ?뺤콉???꾩슂?섎떎.
+- `external_api`: ?몃? AI API瑜??몄텧?섎뒗 ?꾨낫. API Key, 媛쒖씤?뺣낫 ?꾩넚, ?붽툑, 蹂댁븞 ?뺤콉???꾩슂?섎떎.
+
+AI Provider ?뺤옣 ??以묐떒 議곌굔:
+
+- API Key ?낅젰 ?먮뒗 ??μ씠 ?꾩슂?섎떎.
+- ?몃? ?ㅽ듃?뚰겕 ?몄텧???꾩슂?섎떎.
+- ?쒕쾭/API 怨꾩링???꾩슂?섎떎.
+- API Key 蹂댁븞, 媛쒖씤?뺣낫 ?꾩넚 踰붿쐞, ?ъ슜???붽툑 ?뺤콉???뺥빐???덉? ?딅떎.
+- IndexedDB??誘쇨컧?뺣낫瑜???ν빐???섎뒗???뷀샇????젣/諛깆뾽 ?쒖쇅 ?뺤콉???녿떎.
+- `localStorage`, 濡쒓렇?? cloud sync, ?뚮┝ 沅뚰븳 ?붿껌, Capacitor 蹂寃쎌씠 ?꾩슂?댁쭊??
+
+?ν썑 ?덉쟾??援ы쁽 ?쒖꽌:
+
+1. `rule_based`, `local_llm`, `external_api` 以?MVP ?댄썑???ㅼ젣濡??꾩슂??provider 踰붿쐞瑜?寃곗젙?쒕떎.
+2. API Key? endpoint ????뺤콉??臾몄꽌?뷀븳??
+3. 媛쒖씤?뺣낫媛 provider濡??꾩넚?섎뒗 踰붿쐞瑜?臾몄꽌?뷀븳??
+4. `AppSettings.aiProvider` ????뺤옣?덉쓣 臾몄꽌?뷀븳??
+5. API Key ??μ씠 ?꾩슂?섎㈃ IndexedDB ????꾪뿕怨???젣/珥덇린???먮쫫??癒쇱? ?ㅺ퀎?쒕떎.
+6. provider interface媛 ?꾩옱 `AIProvider`濡?異⑸텇?쒖? 寃?좏븳??
+7. `SettingsView` ?좏깮吏留?癒쇱? ?뺤옣?좎?, ?ㅼ젣 provider ?곌껐怨??④퍡 吏꾪뻾?좎? 寃곗젙?쒕떎.
+8. `rule_based` fallback???좎????곹깭濡??묒? provider adapter瑜?異붽??쒕떎.
+9. ?섎룞 ?뚯뒪??泥댄겕由ъ뒪?몄쓽 AI Provider ??ぉ??湲곗??쇰줈 湲덉? 湲곕뒫, 媛쒖씤?뺣낫 ?꾩넚, fallback ?숈옉???뺤씤?쒕떎.
+
+## 27. Notification ?뺤옣 ?뺤콉
+
+?꾩옱 ?곹깭:
+
+- ?ㅼ젙 ?꾨뱶紐낆? `enableNotifications`??
+- `AppSettings.enableNotifications`???덉슜 媛믪? `false` ?섎굹肉먯씠??
+- `SettingsView`???뚮┝ ?곹깭瑜??쒖떆?섏?留??몄쭛 湲곕뒫?대굹 沅뚰븳 ?붿껌? ?쒓났?섏? ?딅뒗??
+- ?꾩옱 援ы쁽?먮뒗 釉뚮씪?곗? `Notification` API, Android notification, Capacitor ?뚮┝ 湲곕뒫, ?쒕쾭 push ?뚮┝???녿떎.
+
+MVP ?뺤콉:
+
+- MVP?먯꽌???뚮┝ 湲곕뒫??援ы쁽?섏? ?딅뒗??
+- ?뚮┝ 沅뚰븳 ?붿껌? MVP?먯꽌 諛쒖깮?섏? ?딆븘???쒕떎.
+- ?ㅼ젙 ?붾㈃???뚮┝ ??ぉ? ?꾩옱 ?곹깭 ?쒖떆?⑹씠硫? ?ㅼ젣 ?뚮┝ ?덉빟/諛쒖넚 湲곕뒫???섎??섏? ?딅뒗??
+- `enableNotifications`???꾩옱 `false`濡??좎??쒕떎.
+
+?뚮┝ 湲곕뒫 異붽? ???꾩슂???뺤콉:
+
+- 釉뚮씪?곗? `Notification` API瑜??ъ슜?좎? 寃곗젙?쒕떎.
+- Android/Capacitor ?꾪솚 ?댄썑 濡쒖뺄 ?뚮┝?쇰줈 援ы쁽?좎? 寃곗젙?쒕떎.
+- ?뚮┝ 沅뚰븳 ?붿껌 ?쒖젏???뺥븳?? ???쒖옉 ???먮룞 ?붿껌?섏? ?딄퀬, ?ъ슜?먯쓽 紐낆떆???숈옉 ???붿껌?섎뒗 諛⑺뼢???곗꽑?쒕떎.
+- 沅뚰븳 ?붿껌 ???ъ슜??怨좎? 臾멸뎄瑜??뺥븳??
+- 濡쒖뺄 ?뚮┝, Android 濡쒖뺄 ?뚮┝, ?쒕쾭 push ?뚮┝??紐낇솗??援щ텇?쒕떎.
+- ?쒕쾭 push ?뚮┝? ?쒕쾭 API, ?ъ슜???앸퀎, ?좏겙 ??? 媛쒖씤?뺣낫 ?뺤콉???꾩슂?섎?濡??꾩옱 踰붿쐞?먯꽌 ?쒖쇅?쒕떎.
+- ?ㅽ봽?쇱씤/諛깃렇?쇱슫???숈옉 ?쒓퀎瑜?臾몄꽌?뷀븳??
+
+沅뚰븳 ?붿껌 ?놁씠 媛믩쭔 ?좉??좎? ?щ?:
+
+- 沅뚰븳 ?붿껌 ?놁씠 `enableNotifications` 媛믩쭔 ?좉??섎뒗 湲곕뒫? ?ъ슜?먭? ?ㅼ젣 ?뚮┝???몃┛?ㅺ퀬 ?ㅽ빐?????덈떎.
+- 媛??좉?留??덉슜?쒕떎硫?"?뚮┝ 湲곕뒫? ?꾩쭅 ?숈옉?섏? ?딆쓬" 媛숈? ?ъ슜??facing 臾멸뎄媛 ?꾩슂?섎떎.
+- 媛믪씠 ?ㅼ젣濡?蹂寃쎈맆 ?뚮쭔 `updatedAt`??媛깆떊?섏뼱???쒕떎.
+- 媛??좉?? ?ㅼ젣 Notification API ?몄텧, 沅뚰븳 ?붿껌, ?덉빟 ?묒뾽怨?遺꾨━?섏뼱???쒕떎.
+- ?꾩옱 ??낆씠 `false` ?⑥씪 媛믪씠誘濡?媛??좉???援ы쁽?섎젮硫?癒쇱? ????뺤옣 ?뺤콉??蹂꾨룄 ?묒뾽?쇰줈 ?뺤젙?댁빞 ?쒕떎.
+
+?뚮┝ 援ы쁽 ??以묐떒 議곌굔:
+
+- 釉뚮씪?곗? 沅뚰븳 ?붿껌???꾩슂?섎떎.
+- Capacitor ?먮뒗 Android notification 沅뚰븳???꾩슂?섎떎.
+- ?쒕쾭 push, ?ъ슜??怨꾩젙, 濡쒓렇?? cloud sync媛 ?꾩슂?섎떎.
+- ?뚮┝ UX 臾멸뎄, 沅뚰븳 ?붿껌 ?쒖젏, ?ㅽ뙣/嫄곕? 泥섎━ 湲곗????뺥빐???덉? ?딅떎.
+- `AppSettings.enableNotifications` ????뺤옣 ?몄뿉 Dexie schema version 蹂寃쎌씠 ?꾩슂?섎떎.
+- 諛깃렇?쇱슫???숈옉?대굹 諛섎났 ?뚮┝??蹂댁옣?댁빞 ?섎뒗 ?붽뎄媛 ?앷릿??
+
+?ν썑 ?덉쟾??援ы쁽 ?쒖꽌:
+
+1. ?뚮┝??MVP 踰붿쐞?몄? 1李??뺤떇 踰꾩쟾 ?댄썑 媛쒖꽑?몄? 寃곗젙?쒕떎.
+2. 釉뚮씪?곗? 濡쒖뺄 ?뚮┝, Android 濡쒖뺄 ?뚮┝, ?쒕쾭 push 以?援ы쁽 踰붿쐞瑜?寃곗젙?쒕떎.
+3. 沅뚰븳 ?붿껌 ?쒖젏怨??ъ슜??怨좎? 臾멸뎄瑜?臾몄꽌?뷀븳??
+4. `AppSettings.enableNotifications` ????뺤옣?덉쓣 臾몄꽌?뷀븳??
+5. 媛??좉?留?癒쇱? ?쒓났?좎?, ?ㅼ젣 ?뚮┝ 湲곕뒫怨??④퍡 ?쒓났?좎? 寃곗젙?쒕떎.
+6. 媛??좉?留??쒓났?쒕떎硫??ㅼ젣 ?뚮┝???몃━吏 ?딅뒗?ㅻ뒗 臾멸뎄瑜?SettingsView???쒖떆?섎뒗 怨꾪쉷???몄슫??
+7. ?ㅼ젣 ?뚮┝ 湲곕뒫? 蹂꾨룄 ?묒뾽?쇰줈 遺꾨━?섍퀬, Notification API ?먮뒗 Capacitor 蹂寃쎌씠 ?꾩슂??寃쎌슦 ?ъ슜?먯뿉寃?紐낆떆?곸쑝濡??뱀씤
+諛쏅뒗??
+8. ?섎룞 ?뚯뒪??泥댄겕由ъ뒪?몄쓽 ?뚮┝ ??ぉ??湲곗??쇰줈 沅뚰븳 ?붿껌 誘몃컻?? 媛??좎?, 湲덉? 湲곕뒫 誘몄텛媛瑜??뺤씤?쒕떎.
+
+## 28. First Launch ?곹깭 UX ?뺤콉
+
+?꾩옱 ?곹깭:
+
+- `AppSettings.firstLaunchCompleted`??boolean 媛믪씠??
+- 湲곕낯媛믪? `false`?대ŉ, `appSettings` ?⑥씪 ?덉퐫?쒖뿉 ?④퍡 ??λ맂??
+- ?꾩옱 `SettingsView`?먮뒗 泥??ㅽ뻾 ?꾨즺 ?곹깭媛 ?쎄린 ?꾩슜?쇰줈 ?쒖떆?쒕떎.
+- ?꾩옱 SettingsView?먯꽌??firstLaunchCompleted 蹂寃쎌쓣 ?꾪빐 `updateAppSettings`瑜??몄텧?섏? ?딅뒗??
+- ?꾩옱 ?깆뿉??蹂꾨룄 onboarding ?붾㈃?대굹 泥??ㅽ뻾 ?먮쫫??援ы쁽?섏뼱 ?덉? ?딅떎.
+
+?ъ슜???ㅼ젙?쇰줈 怨꾩냽 ?몄텧???뚯쓽 ?μ젏:
+
+- 媛쒕컻 以?泥??ㅽ뻾 ?곹깭瑜??쎄쾶 ?뺤씤?섍퀬 諛붽? ???덈떎.
+- IndexedDB 媛믪쓣 吏곸젒 吏?곗? ?딄퀬 onboarding 愿???곹깭瑜??섎룞?쇰줈 寃利앺븷 ???덈떎.
+- ?ㅼ젙 ???寃쎈줈? `updatedAt` 媛깆떊???뺤씤?섎뒗 ?묒? ?뚯뒪????ぉ?쇰줈 ?ъ슜?????덈떎.
+
+?ъ슜???ㅼ젙?쇰줈 怨꾩냽 ?몄텧???뚯쓽 ?⑥젏:
+
+- ?쇰컲 ?ъ슜?먮뒗 "泥??ㅽ뻾 ?꾨즺"媛 ?대뼡 ?④낵瑜?媛뽯뒗吏 ?댄빐?섍린 ?대졄??
+- 媛?蹂寃쎌씠 ?ㅼ젣 ???숈옉??利됱떆 蹂댁씠???④낵瑜?留뚮뱾吏 ?딆쑝硫??ㅼ젙 ?붾㈃???좊ː?꾧? ?⑥뼱吏????덈떎.
+- ?ν썑 onboarding ?먮쫫???앷린硫??ъ슜?먭? ?꾩쓽濡?媛믪쓣 諛붽퓭 ?먮쫫??嫄대꼫?곌굅???ㅼ떆 蹂닿쾶 留뚮뱾 ???덈떎.
+- 媛쒕컻/?붾쾭洹몄슜 ?곹깭媛 ?쇰컲 ?ㅼ젙怨??욎씤??
+
+?대? onboarding ?곹깭濡??④만 ?뚯쓽 ?μ젏:
+
+- ?쇰컲 ?ㅼ젙 ?붾㈃???ъ슜?먭? ?댄빐?섍퀬 議곗옉?????덈뒗 ??ぉ 以묒떖?쇰줈 ?뺣━?쒕떎.
+- onboarding ?먮쫫???꾨즺 ?щ?瑜????대? 濡쒖쭅???쇨??섍쾶 愿由ы븷 ???덈떎.
+- ?ъ슜?먭? ?ㅼ닔濡?珥덇린 ?ㅽ뻾 ?곹깭瑜?諛붽퓭 ?쇰???寃る뒗 ?쇱쓣 以꾩씤??
+
+?대? onboarding ?곹깭濡??④만 ?뚯쓽 ?⑥젏:
+
+- 媛쒕컻 以??곹깭 ?뺤씤怨??섎룞 ?뚯뒪?멸? 遺덊렪?댁쭏 ???덈떎.
+- onboarding ?ъ떎?됱씠??珥덇린??湲곕뒫???꾩슂?섎㈃ 蹂꾨룄 媛쒕컻???꾧뎄 ?먮뒗 reset ?뺤콉???꾩슂?섎떎.
+- SettingsView?먯꽌 ?쒓굅?섍린 ?꾩뿉 ?꾩옱 ?섎룞 ?뚯뒪????ぉ怨?臾몄꽌瑜?癒쇱? 諛붽퓭???쒕떎.
+
+MVP 湲곗? 沅뚯옣??
+
+- MVP?먯꽌???꾩옱 媛믪쓣 ?쎄린 ?꾩슜?쇰줈 ?쒖떆?섎릺, ?쇰컲 ?ъ슜??吏곸젒 ?좉?? ?쒓났?섏? ?딅뒗??
+- ?쇰컲 ?ъ슜?먯슜 1李??뺤떇 踰꾩쟾?먯꽌??`firstLaunchCompleted`瑜??대? onboarding ?곹깭濡??④린??諛⑺뼢??沅뚯옣?쒕떎.
+- ?ㅼ젣 onboarding ?붾㈃???앷린湲??꾧퉴吏????媛믪씠 ???숈옉??誘몄튂???④낵瑜?怨쇱옣?섏? ?딅뒗??
+- ?ъ슜?먯뿉寃?怨꾩냽 ?몄텧?쒕떎硫?"媛쒕컻???곹깭" ?먮뒗 "珥덇린 ?덈궡 ?꾨즺 ?щ?"泥섎읆 ?④낵媛 遺꾨챸??臾멸뎄媛 ?꾩슂?섎떎.
+
+?ъ슜?먯뿉寃??몄텧?쒕떎硫??꾩슂??湲곗?:
+
+- 媛믪씠 ?대뼡 ?붾㈃ ?먮뒗 ?먮쫫???곹뼢??二쇰뒗吏 ?ㅻ챸?댁빞 ?쒕떎.
+- 媛?蹂寃????덈줈怨좎묠?대룄 ?좎??섎뒗吏 ?뺤씤?댁빞 ?쒕떎.
+- 媛?蹂寃???`updatedAt`??媛깆떊?섍퀬 `createdAt`???좎??섎뒗吏 ?뺤씤?댁빞 ?쒕떎.
+- ?⑥닚 ?곹깭 ?쒖떆?몄?, onboarding ?ъ떎???④???吏곸젒 ?곌껐?섎뒗吏 援щ텇?댁빞 ?쒕떎.
+
+?④릿?ㅻ㈃ SettingsView?먯꽌 ?쒓굅?섍린 ???꾩슂??湲곗?:
+
+- `firstLaunchCompleted`瑜??대뼡 肄붾뱶媛 ?쎄퀬 ?곕뒗吏 癒쇱? ?뺤씤?쒕떎.
+- onboarding ?붾㈃ ?먮뒗 珥덇린 ?덈궡 ?먮쫫???ㅼ젣濡?議댁옱?섎뒗吏 ?뺤씤?쒕떎.
+- ?④릿 ?ㅼ뿉??湲곕낯媛??앹꽦怨?????곗씠???명솚?깆씠 ?좎??섎뒗吏 ?뺤씤?쒕떎.
+- ?섎룞 ?뚯뒪??泥댄겕由ъ뒪?몄뿉??"泥??ㅽ뻾 ?꾨즺 ?곹깭 ?쒖떆" ??ぉ???섏젙?쒕떎.
+- 媛쒕컻/?붾쾭洹몄슜 reset???꾩슂?섎㈃ 蹂꾨룄 臾몄꽌 ?먮뒗 ?대? ?꾧뎄 怨꾪쉷???몄슫??
+
+`updatedAt`/`createdAt` ?뺤콉:
+
+- `firstLaunchCompleted` 媛믪씠 ?ㅼ젣濡?諛붾뚮㈃ `updatedAt`? 媛깆떊?쒕떎.
+- `createdAt`? 理쒖큹 ?ㅼ젙 ?앹꽦 ?쒖젏 ?댄썑 蹂寃쏀븯吏 ?딅뒗??
+- SettingsView?먯꽌 ?⑥닚??媛믪쓣 ?쒖떆?섎뒗 寃껊쭔?쇰줈??`updatedAt`??諛붾뚮㈃ ???쒕떎.
+- 媛믪씠 湲곗〈 媛믨낵 媛숈쑝硫???μ쓣 ?몄텧?섏? ?딅뒗 諛⑺뼢???곗꽑 寃?좏븳??
+
+?ν썑 ?덉쟾??援ы쁽 ?쒖꽌:
+
+1. `firstLaunchCompleted`瑜??쇰컲 ?ㅼ젙?쇰줈 ?좎??좎? ?대? onboarding ?곹깭濡??④만吏 寃곗젙?쒕떎.
+2. ?쇰컲 ?ㅼ젙?쇰줈 ?좎??쒕떎硫??ъ슜??facing 臾멸뎄? ?ㅼ젣 ?④낵瑜?紐낇솗???뺥븳??
+3. ?대? ?곹깭濡??④릿?ㅻ㈃ SettingsView ?쒓굅 怨꾪쉷怨??섎룞 ?뚯뒪????ぉ 蹂寃쎌쓣 癒쇱? 臾몄꽌?뷀븳??
+4. onboarding ?붾㈃ ?먮뒗 珥덇린 ?덈궡 ?먮쫫???꾩슂?섎㈃ 蹂꾨룄 ?묒뾽?쇰줈 ?ㅺ퀎?쒕떎.
+5. 肄붾뱶 蹂寃???`SettingsView` 蹂寃쎈쭔 ?묒? 踰붿쐞濡?吏꾪뻾?섍퀬 `npm run build`濡??뺤씤?쒕떎.
+6. ?덈줈怨좎묠 ??媛??좎?, `updatedAt` 媛깆떊, `createdAt` ?좎?, 湲곗〈 ?ㅼ젙 ?쒖떆 ?뚭?瑜??섎룞 ?뺤씤?쒕떎.
+
+??臾몄꽌??PlanPilot Local???꾩옱 ?곹깭? ?욎쑝濡쒖쓽 媛쒕컻 ?쒖꽌瑜??뺣━?쒕떎.
+
+## 1. ?꾩옱 MVP ?곹깭
+
+- React + Vite + TypeScript 湲곕컲 濡쒖뺄 ?뱀빋???앹꽦?섏뼱 ?덈떎.
+- Zustand store? Dexie.js + IndexedDB 湲곕컲 ??μ냼媛 援ы쁽?섏뼱 ?덈떎.
+- ?쒕쾭 ?놁씠 ?숈옉?섎뒗 privacy-first 媛쒖씤 ?쇱젙/?낅Т 愿由???諛⑺뼢???곕Ⅸ??
+- 濡쒓렇?? ?쒕쾭 API, ?대씪?곕뱶 ?숆린?? ?뚮┝, Capacitor???꾩쭅 ?꾩엯?섏? ?딅뒗??
+- UI??`src/views`, `src/components`, `src/utils`濡?遺꾨━ 以묒씠硫? `src/App.tsx`????珥덇린?? ???곹깭, 二쇱슂 ?곹깭/?몃뱾
+??議곕┰???대떦?쒕떎.
+
+## 2. ?꾩옱 援ы쁽??湲곕뒫
+
+- ?섎떒 ??湲곕컲 ?붾㈃ ?꾪솚
+  - ?ㅻ뒛
+  - ?낅Т
+  - ?꾨줈?앺듃
+  - ?ㅼ젙
+- ?낅Т 湲곕뒫
+  - ?낅Т 異붽?
+  - ?낅Т ?섏젙
+  - ?낅Т ??젣
+  - ?꾨즺/誘몄셿猷??좉?
+  - 寃??  - ?꾨즺 ?낅Т ?쒖떆/?④?
+  - ?꾨줈?앺듃 ?꾪꽣
+  - 留덇컧??鍮좊Ⅸ ???뺣젹
+- ?꾨줈?앺듃 湲곕뒫
+  - ?꾨줈?앺듃 異붽?
+  - ?꾨줈?앺듃 ?섏젙
+  - ?꾨줈?앺듃 ??젣
+  - 湲곕낯 ?꾨줈?앺듃 ??젣 諛⑹?
+  - ?낅Т媛 ?덈뒗 ?꾨줈?앺듃 ??젣 諛⑹?
+  - ?꾨줈?앺듃蹂??꾩껜/?꾨즺/誘몄셿猷??낅Т ???쒖떆
+- ?ㅻ뒛 ?붾㈃
+  - ?꾩껜 ?낅Т ???쒖떆
+  - ?꾨즺 ?낅Т ???쒖떆
+  - 吏??留덇컧 ?낅Т ???쒖떆
+  - 7???대궡 留덇컧 ?낅Т ???쒖떆
+  - 異붿쿇 ?낅Т ?쒖떆
+  - 吏??留덇컧 ?낅Т 紐⑸줉 ?쒖떆
+  - 7???대궡 留덇컧 ?낅Т 紐⑸줉 ?쒖떆
+- ?ㅼ젙 ?붾㈃
+  - ?뚮쭏, ?몄뼱, AI Provider, ?뚮┝, 泥??ㅽ뻾 ?꾨즺 ?곹깭 ?쒖떆
+- AI 湲곕뒫
+  - `RuleBasedAIProvider` 湲곕컲 異붿쿇 ?낅Т
+  - 吏??留덇컧 ?낅Т 李얘린
+  - ?덉젙 ?낅Т 李얘린
+  - ?낅Т ?붿빟 臾몄옄???앹꽦
+
+## 3. ?꾩옱 援ъ“??臾몄젣??
+- `src/App.tsx`?먯꽌 ?붾㈃ JSX? 諛섎났 UI??遺꾨━?섏뿀吏留? ???곹깭, ?몄쭛 ?곹깭, CRUD ?몃뱾?ш? ?꾩쭅 留롮씠 ?⑥븘 ?덈떎.
+- `useState`媛 留롮븘 湲곕뒫 異붽? ???곹깭 愿由ш? ??蹂듭옟?댁쭏 ???덈떎.
+- ?좎쭨 怨꾩궛怨?異붿쿇 湲곗?? `taskDates`? `RuleBasedAIProvider` ?ъ씠?먯꽌 異붽? ?뺣━媛 ?꾩슂?섎떎.
+- 臾몄꽌??由ы뙥?곕쭅 吏꾪뻾 ?곹깭??留욎떠 怨꾩냽 ?숆린?뷀빐???쒕떎.
+- DB schema migration ?꾨왂???꾩쭅 ?녿떎.
+- ?먮윭/濡쒕뵫 ?곹깭 泥섎━媛 遺議깊븯??
+- ?뚯뒪???뚯씪怨??먮룞 寃利??먮쫫???꾩쭅 ?뺣━?섏뼱 ?덉? ?딅떎.
+
+## 4. ?꾩꽦 湲곗?
+
+PlanPilot Local? "?쒕쾭 ?놁씠 濡쒖뺄?먯꽌 媛쒖씤 ?낅Т? ?꾨줈?앺듃瑜??덉젙?곸쑝濡?愿由ы븷 ???덈뒗 ?????섏뿀?????꾩꽦?쇰줈 蹂몃떎. ?꾩꽦 ?щ
+???湲곕뒫 ?섍? ?꾨땲???곗씠??蹂댁〈, 諛섎났 ?ъ슜?? ?ㅻ쪟 ?뚮났, ?섎룞 寃利?媛?μ꽦??湲곗??쇰줈 ?먮떒?쒕떎.
+
+?꾩꽦 湲곗?:
+
+- ?깆쓣 ?덈줈 ?댁뼱??IndexedDB????λ맂 ?낅Т, ?꾨줈?앺듃, ?ㅼ젙???좎??쒕떎.
+- ?ъ슜?먮뒗 ?낅Т瑜?異붽?, ?섏젙, ??젣, ?꾨즺/誘몄셿猷?泥섎━?????덈떎.
+- ?ъ슜?먮뒗 ?꾨줈?앺듃瑜?異붽?, ?섏젙, ??젣?????덇퀬, ?낅Т媛 ?덈뒗 ?꾨줈?앺듃???ㅼ닔濡???젣?섏? ?딅뒗??
+- ?ㅻ뒛 ?붾㈃? 異붿쿇 ?낅Т, 吏??留덇컧 ?낅Т, 7???대궡 留덇컧 ?낅Т瑜??쇨??섍쾶 ?쒖떆?쒕떎.
+- ?꾩껜 ?낅Т ?붾㈃? 寃?? ?꾨줈?앺듃 ?꾪꽣, ?꾨즺 ?낅Т ?쒖떆/?④?, 留덇컧???뺣젹???쒓났?쒕떎.
+- ?ㅼ젙 ?붾㈃? ?꾩옱 ???ㅼ젙???쎄린 ?꾩슜?쇰줈 ?댄빐?????덇쾶 ?쒖떆?섍퀬, ?뺤떇 踰꾩쟾 ?꾩뿉???꾩슂???ㅼ젙 ?몄쭛 踰붿쐞瑜?蹂꾨룄濡?寃곗젙?쒕떎.
+- 濡쒖뺄 ??μ? IndexedDB + Dexie.js留??ъ슜?섎ŉ `localStorage` fallback??留뚮뱾吏 ?딅뒗??
+- ?쒕쾭 API, 濡쒓렇?? ?대씪?곕뱶 ?숆린?? ?뚮┝, Capacitor??紐낆떆???④퀎 ?꾧퉴吏 ?ы븿?섏? ?딅뒗??
+- `npm run build`媛 ?깃났?쒕떎.
+- 二쇱슂 ?ъ슜???쒕굹由ъ삤瑜??섎룞?쇰줈 寃利앺븷 ???덈뒗 泥댄겕由ъ뒪?멸? 臾몄꽌?붾릺???덈떎.
+- ?곗씠????젣??schema 蹂寃쎌씠 ?꾩슂???묒뾽? migration ?먮뒗 諛깆뾽 湲곗???癒쇱? 媛뽰텣??
+
+## 5. MVP ?꾨즺 議곌굔
+
+MVP??"媛쒖씤 ?낅Т 愿由??깆쑝濡??쇱옄 留ㅼ씪 ?⑤낵 ???덈뒗 理쒖냼 ?덉젙 ?곹깭"瑜?紐⑺몴濡??쒕떎.
+
+MVP ?꾨즺 議곌굔:
+
+- ?ㅻ뒛, ?낅Т, ?꾨줈?앺듃, ?ㅼ젙 ?붾㈃??紐⑤몢 ?묎렐 媛?ν븯??
+- ?낅Т 異붽?/?섏젙/??젣/?꾨즺 ?좉????뺤긽 ?숈옉?쒕떎.
+- ?낅Т ?쒕ぉ, 硫붾え, 留덇컧?? 以묒슂?? ?꾨줈?앺듃 ?곌껐????λ릺怨??ㅼ떆 ?쒖떆?쒕떎.
+- ?꾨줈?앺듃 異붽?/?섏젙/??젣媛 ?뺤긽 ?숈옉?쒕떎.
+- 湲곕낯 ?꾨줈?앺듃????젣?????녿떎.
+- ?낅Т媛 ?덈뒗 ?꾨줈?앺듃????젣?????녿떎.
+- ?낅Т 寃?됱씠 ?쒕ぉ 湲곗??쇰줈 ?숈옉?쒕떎.
+- ?꾨줈?앺듃 ?꾪꽣媛 ?숈옉?쒕떎.
+- ?꾨즺 ?낅Т ?쒖떆/?④????숈옉?쒕떎.
+- 留덇컧??鍮좊Ⅸ ???뺣젹???숈옉?쒕떎.
+- ?ㅻ뒛 ?붾㈃??異붿쿇 ?낅Т媛 ?꾨즺?섏? ?딆? ?낅Т 以??곗꽑?쒖쐞? 留덇컧??湲곗??쇰줈 ?쒖떆?쒕떎.
+- 吏??留덇컧 ?낅Т? 7???대궡 留덇컧 ?낅Т媛 ?꾨즺???낅Т瑜??쒖쇅?섍퀬 ?쒖떆?쒕떎.
+- ?ㅼ젙 ?붾㈃? theme, language, aiProvider, ?뚮┝ ?ъ슜 ?щ?, 泥??ㅽ뻾 ?щ?瑜??쒖떆?쒕떎.
+- ?덈줈怨좎묠 ?꾩뿉??IndexedDB????λ맂 ?곗씠?곌? ?좎??쒕떎.
+- `npm run build`媛 ?깃났?쒕떎.
+- `App.css` ?섏젙 ?놁씠 湲곗〈 ?ㅽ???class ?대쫫???좎??쒕떎.
+
+## 6. 1李??뺤떇 踰꾩쟾 ?꾨즺 議곌굔
+
+1李??뺤떇 踰꾩쟾? "濡쒖뺄 ?곗꽑 ?낅Т 愿由??깆쑝濡??덉젙?곸쑝濡?諛고룷?????덈뒗 ?곹깭"瑜?紐⑺몴濡??쒕떎.
+
+1李??뺤떇 踰꾩쟾 ?꾨즺 議곌굔:
+
+- MVP ?꾨즺 議곌굔??紐⑤몢 留뚯”?쒕떎.
+- `App.tsx`???붾㈃ 議곕┰, ???곹깭, ??珥덇린??以묒떖?쇰줈 以꾩뼱?ㅼ뼱 ?덈떎.
+- ?ㅻ뒛, ?낅Т, ?꾨줈?앺듃, ?ㅼ젙 ?붾㈃? 蹂꾨룄 而댄룷?뚰듃濡?遺꾨━?섏뼱 ?덈떎.
+- 諛섎났 UI??`TaskCard`, `ProjectCard` ???묒? 而댄룷?뚰듃濡?遺꾨━?섏뼱 ?덈떎.
+- ?좎쭨 怨꾩궛, ?꾨줈?앺듃 ?듦퀎, ?쇰꺼 留ㅽ븨, ?꾪꽣/?뺣젹 濡쒖쭅? ?좏떥 ?먮뒗 selector濡?遺꾨━?섏뼱 ?덈떎.
+- ?낅Т ?곹깭 `todo`, `in_progress`, `done`???ъ슜?먭? ?댄빐?섍퀬 蹂寃쏀븷 ???덈뒗 UI ?뺤콉???뺥빐???덈떎.
+- ?곗씠???대낫?닿린/媛?몄삤湲??먮뒗 理쒖냼??諛깆뾽 ???섎룞 ?덉감媛 臾몄꽌?붾릺???덈떎.
+- IndexedDB schema 蹂寃??뺤콉怨?migration 湲곗???臾몄꽌?붾릺???덈떎.
+- ?듭떖 ?섎룞 ?뚯뒪??泥댄겕由ъ뒪?몃? ?꾨즺???곹깭?먯꽌留?諛고룷 ?꾨낫濡?蹂몃떎.
+- 紐⑤컮????뿉??二쇱슂 ?붾㈃??寃뱀튂嫄곕굹 ?섎━吏 ?딅뒗??
+- ?묎렐??湲곕낯媛믪쓣 吏?⑤떎. 二쇱슂 踰꾪듉?먮뒗 ?섎? ?덈뒗 ?띿뒪?멸? ?덇퀬, form input?먮뒗 label???덈떎.
+- README, ROADMAP, memory-bank媛 ?꾩옱 援ы쁽 ?곹깭? 異⑸룎?섏? ?딅뒗??
+
+## 7. 湲곕뒫蹂?Definition of Done
+
+?낅Т 湲곕뒫:
+
+- 鍮??쒕ぉ ?낅Т???앹꽦 ?먮뒗 ??λ릺吏 ?딅뒗??
+- ?낅Т 異붽? ??紐⑸줉怨?IndexedDB ?곹깭媛 ?쇱튂?쒕떎.
+- ?낅Т ?섏젙 ??`updatedAt`??媛깆떊?쒕떎.
+- ?꾨즺 泥섎━ ??`completedAt`???ㅼ젙?섍퀬, 誘몄셿猷뚮줈 ?섎룎由щ㈃ ?쒓굅?쒕떎.
+- ?낅Т ??젣 ???뺤씤 ?덉감媛 ?덈떎.
+- ??젣???낅Т???ㅻ뒛/?꾩껜/?꾨줈?앺듃 ?듦퀎???⑥? ?딅뒗??
+
+?꾨줈?앺듃 湲곕뒫:
+
+- 鍮??대쫫 ?꾨줈?앺듃???앹꽦 ?먮뒗 ??λ릺吏 ?딅뒗??
+- 湲곕낯 ?꾨줈?앺듃????젣?섏? ?딅뒗??
+- ?낅Т媛 ?곌껐???꾨줈?앺듃????젣?섏? ?딅뒗??
+- ?꾨줈?앺듃 ?대쫫 蹂寃????낅Т 紐⑸줉???꾨줈?앺듃 ?쒖떆媛 ?④퍡 媛깆떊?쒕떎.
+- ?꾨줈?앺듃 ?ㅻ챸???놁쑝硫?"?ㅻ챸 ?놁쓬" 媛숈? fallback???쒖떆?쒕떎.
+
+?ㅻ뒛 ?붾㈃:
+
+- ?꾩껜 ?낅Т ?섏? ?꾨즺 ?낅Т ?섍? ?ㅼ젣 tasks 諛곗뿴怨??쇱튂?쒕떎.
+- 異붿쿇 ?낅Т???꾨즺???낅Т瑜??쒖쇅?쒕떎.
+- 吏??留덇컧 ?낅Т???ㅻ뒛 0??湲곗??쇰줈 吏???낅Т留??쒖떆?쒕떎.
+- 7???대궡 留덇컧 ?낅Т???ㅻ뒛遺??7???대궡???꾨즺?섏? ?딆? ?낅Т留??쒖떆?쒕떎.
+- ?낅Т媛 ?놁쓣 ??empty message媛 ?쒖떆?쒕떎.
+
+?꾩껜 ?낅Т ?붾㈃:
+
+- 寃?됱뼱媛 鍮꾩뼱 ?덉쑝硫?寃??議곌굔???곸슜?섏? ?딅뒗??
+- 寃?됱? ?낅Т ?쒕ぉ 湲곗??쇰줈 ??뚮Ц???곹뼢??諛쏆? ?딅뒗??
+- ?꾨줈?앺듃 ?꾪꽣???꾩껜 ?먮뒗 ?⑥씪 ?꾨줈?앺듃 湲곗??쇰줈 ?숈옉?쒕떎.
+- ?꾨즺 ?낅Т ?④?? `done` ?곹깭 ?낅Т瑜??쒖쇅?쒕떎.
+- 留덇컧??鍮좊Ⅸ ???뺣젹?먯꽌 留덇컧???녿뒗 ?낅Т???ㅻ줈 媛꾨떎.
+
+?ㅼ젙 ?붾㈃:
+
+- ?꾩옱 ?ㅼ젙 媛믪쓣 ?쒖떆?쒕떎.
+- ?ㅼ젙 ?몄쭛 湲곕뒫??異붽???寃쎌슦 ???諛⑹떇, 湲곕낯媛? `updatedAt` 媛깆떊 湲곗???癒쇱? ?뺥븯怨?蹂꾨룄 ?묒뾽?쇰줈 吏꾪뻾?쒕떎.
+- ?뚮┝ 湲곕뒫? MVP?먯꽌 耳쒖?吏 ?딆쑝硫?沅뚰븳 ?붿껌???섏? ?딅뒗??
+
+AI Provider:
+
+- ?쒕쾭 ?몄텧 ?놁씠 rule-based 濡쒖쭅留??ъ슜?쒕떎.
+- 異붿쿇 湲곗?? 以묒슂?꾩? 留덇컧?쇱쓣 湲곕컲?쇰줈 ?쒕떎.
+- LLM ?먮뒗 ?⑤뵒諛붿씠??AI ?꾩엯 ?꾩뿉???꾩옱 湲곕뒫???숈옉?댁빞 ?쒕떎.
+
+## 8. ?덉쭏/?덉젙??湲곗?
+
+- 紐⑤뱺 ?묒뾽 ??`npm run build`媛 ?깃났?댁빞 ?쒕떎.
+- lint ?ㅽ뻾? ?ъ슜?먭? ?덉슜??寃쎌슦?먮쭔 ?섑뻾?쒕떎.
+- 鍮뚮뱶 ?ㅽ뙣 ?곹깭??而ㅻ컠?섏? ?딅뒗??
+- 湲곕뒫 異붽?? 由ы뙥?곕쭅??媛숈? ?묒뾽???욎? ?딅뒗??
+- `src/App.tsx`????湲곕뒫??怨꾩냽 ?꾩쟻?섏? ?딅뒗??
+- ??而댄룷?뚰듃??湲곗〈 class ?대쫫???좎???`App.css` ?섏젙 ?놁씠 ?숈옉?섍쾶 ?쒕떎.
+- ?ㅻ쪟 泥섎━媛 ?꾩슂??IndexedDB ?묒뾽? ?ъ슜?먯뿉寃??ㅽ뙣 ?곹깭瑜??ㅻ챸?????덉뼱???쒕떎.
+- ??젣, schema 蹂寃? ?곗씠???댁쟾 ?묒뾽? 諛깆뾽 ?먮뒗 migration 湲곗? ?놁씠 吏꾪뻾?섏? ?딅뒗??
+- 釉뚮씪?곗? ?먮룞 ?ㅽ뻾?대굹 `open dist/index.html`???섏〈?섏? ?딅뒗??
+
+## 9. ?곗씠??蹂댁〈/諛깆뾽 湲곗?
+
+- ??μ냼??IndexedDB + Dexie.js瑜?湲곗??쇰줈 ?쒕떎.
+- `localStorage` fallback? 留뚮뱾吏 ?딅뒗??
+- schema 蹂寃??꾩뿉????version, ?댁쟾 ?곗씠??泥섎━, 湲곕낯媛? ?ㅽ뙣 ????묒쓣 臾몄꽌?뷀븳??
+- ?ъ슜???곗씠????젣 媛?μ꽦???덈뒗 蹂寃쎌? 蹂꾨룄 ?묒뾽?쇰줈 遺꾨━?쒕떎.
+- ?꾨줈?앺듃 ??젣 ???곌껐 ?낅Т 泥섎━ ?뺤콉??紐낇솗???좎??쒕떎.
+- ?낅Т媛 ?덈뒗 ?꾨줈?앺듃 ??젣 諛⑹? ?뺤콉? UI? store ?섏??먯꽌 ?쇨??섍쾶 ?ㅻ，??
+- ?뺤떇 踰꾩쟾 ?꾩뿉???곗씠???대낫?닿린/媛?몄삤湲??먮뒗 理쒖냼 ?섎룞 諛깆뾽 ?덉감瑜?寃곗젙?쒕떎.
+- ?좎쭨 媛믪? ?꾩옱 `YYYY-MM-DD` 臾몄옄???ъ슜??湲곗??쇰줈 ?섎릺, 蹂寃???湲곗〈 ?곗씠???명솚?깆쓣 癒쇱? 寃?좏븳??
+
+## 10. UI/UX 湲곗?
+
+- 泥??붾㈃? ?ㅼ젣 ???붾㈃?댁뼱???섎ŉ landing page瑜?留뚮뱾吏 ?딅뒗??
+- ?섎떒 ??? ?ㅻ뒛, ?낅Т, ?꾨줈?앺듃, ?ㅼ젙?쇰줈 紐낇솗??援щ텇?쒕떎.
+- 二쇱슂 ?묒뾽 踰꾪듉? ?ъ슜?먭? 寃곌낵瑜??덉륫?????덈뒗 ?쒓뎅???띿뒪?몃? ?ъ슜?쒕떎.
+- ??젣泥섎읆 ?섎룎由ш린 ?대젮???묒뾽? ?뺤씤 ?덉감瑜??붾떎.
+- ?낅Т/?꾨줈?앺듃媛 ?놁쓣 ?뚮뒗 鍮??곹깭 硫붿떆吏瑜?蹂댁뿬以??
+- 湲??띿뒪?멸? 踰꾪듉?대굹 移대뱶 諛뽰쑝濡???대굹?ㅼ? ?딆븘???쒕떎.
+- 紐⑤컮????뿉???낅젰 ?? 紐⑸줉, ?섎떒 ??씠 寃뱀튂吏 ?딆븘???쒕떎.
+- ?ㅼ젙 ?붾㈃? ?꾩옱 MVP?먯꽌 湲곕뒫 ?ㅻ챸?대굹 ?몄쭛 UI媛 ?꾨땲???꾩옱 ?곹깭 ?뺤씤 以묒떖?쇰줈 援ъ꽦?쒕떎.
+- ?됱긽怨?layout 蹂寃쎌? `App.css`瑜??ъ슜?먭? 愿由ы븳?ㅻ뒗 ?꾩젣瑜?源⑥? ?딅뒗??
+
+## 11. ?섎룞 ?뚯뒪??泥댄겕由ъ뒪??
+?곸꽭 ?섎룞 ?뚯뒪??臾몄꽌??[docs/manual-test-checklist.md](docs/manual-test-checklist.md)瑜?湲곗??쇰줈 ?쒕떎. ?꾨옒 紐⑸줉
+? ROADMAP?먯꽌 異붿쟻???듭떖 ?붿빟?대ŉ, ?ㅼ젣 由ы뙥?곕쭅 ??寃利앹? 臾몄꽌??泥댄겕諛뺤뒪瑜??곕씪 ?섑뻾?쒕떎.
+
+湲곕낯 ?ㅽ뻾:
+
+- ??釉뚮씪?곗? ?꾨줈???먮뒗 IndexedDB 珥덇린 ?곹깭?먯꽌 ?깆쓣 ?대㈃ 湲곕낯 ?꾨줈?앺듃媛 ?앹꽦?쒕떎.
+- ?ㅼ젙 湲곕낯媛믪씠 ?쒖떆?쒕떎.
+- ?덈줈怨좎묠 ??湲곕낯 ?곗씠?곌? ?좎??쒕떎.
+
+?낅Т:
+
+- ?쒕ぉ留??낅젰???낅Т瑜?異붽??????덈떎.
+- 硫붾え, 留덇컧?? 以묒슂?? ?꾨줈?앺듃瑜??ы븿???낅Т瑜?異붽??????덈떎.
+- ?낅Т瑜??섏젙?섎㈃ 紐⑸줉??利됱떆 諛섏쁺?쒕떎.
+- ?낅Т瑜??꾨즺 泥섎━?섎㈃ ?꾨즺 ?낅Т ?섍? 利앷??쒕떎.
+- ?꾨즺 ?낅Т瑜?誘몄셿猷뚮줈 ?섎룎由щ㈃ ?꾨즺 ?낅Т ?섍? 媛먯냼?쒕떎.
+- ?낅Т ??젣 ???ㅻ뒛 ?붾㈃怨??꾩껜 ?낅Т ?붾㈃?먯꽌 ?щ씪吏꾨떎.
+
+?꾪꽣/?뺣젹:
+
+- 寃?됱뼱 ?낅젰 ???쒕ぉ???쇱튂?섎뒗 ?낅Т留??쒖떆?쒕떎.
+- ?꾨줈?앺듃 ?꾪꽣 ?좏깮 ???대떦 ?꾨줈?앺듃 ?낅Т留??쒖떆?쒕떎.
+- ?꾨즺 ?낅Т ?쒖떆瑜??꾨㈃ ?꾨즺 ?낅Т媛 ?④꺼吏꾨떎.
+- 留덇컧??鍮좊Ⅸ ???뺣젹??留덇컧???덈뒗 ?낅Т瑜??좎쭨?쒖쑝濡?蹂댁뿬以??
+
+?꾨줈?앺듃:
+
+- ?꾨줈?앺듃瑜?異붽??????덈떎.
+- ?꾨줈?앺듃 ?대쫫怨??ㅻ챸???섏젙?????덈떎.
+- 湲곕낯 ?꾨줈?앺듃 ??젣 踰꾪듉? ??젣 ?숈옉???섏? ?딅뒗??
+- ?낅Т媛 ?덈뒗 ?꾨줈?앺듃????젣?섏? ?딅뒗??
+- ?낅Т媛 ?녿뒗 ?ъ슜???꾨줈?앺듃???뺤씤 ????젣?쒕떎.
+
+?ㅻ뒛 ?붾㈃:
+
+- ?ㅻ뒛 ?댁쟾 留덇컧?쇱쓽 誘몄셿猷??낅Т媛 吏??留덇컧 ?낅Т???쒖떆?쒕떎.
+- ?ㅻ뒛遺??7???대궡 留덇컧?쇱쓽 誘몄셿猷??낅Т媛 ?덉젙 ?낅Т???쒖떆?쒕떎.
+- ?꾨즺???낅Т??吏??留덇컧/?덉젙 ?낅Т?먯꽌 ?쒖쇅?쒕떎.
+- 異붿쿇 ?낅Т媛 ?놁쓣 ??鍮??곹깭 硫붿떆吏媛 ?쒖떆?쒕떎.
+
+寃利?
+
+- 媛?二쇱슂 蹂寃???`npm run build`媛 ?깃났?쒕떎.
+- ?덇린移??딆? ?뚯씪 蹂寃쎌씠 ?녿뒗吏 `git status`濡??뺤씤?쒕떎.
+- ?붾㈃ 遺꾨━ ??`TodayView`, `TasksView`, `ProjectsView`, `SettingsView`??湲곗〈 ?숈옉???좎??섎뒗吏 ?뺤씤?쒕떎.
+- ?쒕쾭 API, `localStorage`, 濡쒓렇?? ?대씪?곕뱶 ?숆린?? ?뚮┝ 沅뚰븳 ?붿껌, Capacitor媛 異붽??섏? ?딆븯?붿? ?뺤씤?쒕떎.
+
+## 12. 諛고룷 ??泥댄겕由ъ뒪??
+- `npm run build` ?깃났
+- README媛 ?꾩옱 ?ㅽ뻾 諛⑸쾿怨??쒖빟?ы빆??諛섏쁺
+- ROADMAP???꾩옱 ?꾨즺/誘몄셿猷??곹깭瑜?諛섏쁺
+- memory-bank媛 ?꾩옱 援ы쁽 ?곹깭? 異⑸룎?섏? ?딆쓬
+- App.css 誘몄닔???먯튃 ?뺤씤
+- `package-lock.json` 遺덊븘??蹂寃??놁쓬
+- IndexedDB schema 蹂寃??щ?? migration ?꾩슂 ?щ? ?뺤씤
+- ?섎룞 ?뚯뒪??泥댄겕由ъ뒪???꾨즺
+- 紐⑤컮?????붾㈃ ?뺤씤 怨꾪쉷 ?섎┰
+- ?곗씠??諛깆뾽/蹂듦뎄 ?뺤콉 寃곗젙
+- ?쒕쾭 API, 濡쒓렇?? ?대씪?곕뱶 ?숆린?? ?뚮┝, Capacitor媛 ?섎룄移??딄쾶 異붽??섏? ?딆븯?붿? ?뺤씤
+
+## 13. Non-goals
+
+?꾩옱 ?④퀎?먯꽌 ?섏? ?딆쓣 ??
+
+- ?쒕쾭 API ?곕룞
+- 濡쒓렇?멸낵 怨꾩젙 ?쒖뒪??- ?대씪?곕뱶 ?숆린??- ? ?묒뾽 湲곕뒫
+- ?뚮┝ 湲곕뒫怨?notification 沅뚰븳 ?붿껌
+- Capacitor/Android ?⑦궎吏?- Google Play ?깅줉 ?묒뾽
+- LLM ?쒕쾭 ?몄텧 湲곕컲 AI
+- `localStorage` fallback
+- ?먮룞 釉뚮씪?곗? ?ㅽ뻾???섏〈?섎뒗 preview workflow
+- ?洹쒕え ?붿옄??媛쒗렪
+- DB schema 蹂寃쎌씠 ?꾩슂??湲곕뒫??migration 怨꾪쉷 ?놁씠 援ы쁽
+
+## 14. ?ㅼ쓬 由ы뙥?곕쭅 吏꾩엯 議곌굔
+
+?ㅼ쓬 肄붾뱶 由ы뙥?곕쭅? ?꾨옒 議곌굔??留뚯”????吏꾪뻾?쒕떎.
+
+- `git status`媛 源⑤걮?섎떎.
+- `npm run build`媛 ?깃났?쒕떎.
+- ?섏젙 踰붿쐞媛 ?섎굹???붾㈃, ?섎굹??而댄룷?뚰듃, ?섎굹???좏떥濡??쒗븳?쒕떎.
+- `App.css` ?섏젙???꾩슂?섏? ?딅떎.
+- DB schema 蹂寃쎌씠 ?꾩슂?섏? ?딅떎.
+- 湲곕뒫 異붽?媛 ?꾨땲???숈옉 蹂댁〈 由ы뙥?곕쭅?꾩쓣 ?뺤씤?쒕떎.
+- 湲곗〈 UI 臾멸뎄? class ?대쫫???좎??????덈떎.
+- props媛 怨쇰룄?섍쾶 ?섏뼱?섎㈃ ?대떦 ?묒뾽?먯꽌 硫덉텛怨?遺꾨━ ?쒖꽌瑜??ш??좏븳??
+
+## 15. ?④린 媛쒕컻 紐⑺몴
+
+1. ?꾩옱 援ы쁽 ?곹깭??留욊쾶 README? ?대? 臾몄꽌瑜??뺣━?쒕떎.
+2. ?⑥? `src/App.tsx` ?곹깭? ?몃뱾??梨낆엫??以꾩씪 ?쒖꽌瑜??뺥븳??
+3. 湲곕뒫 異붽? ???꾩옱 鍮뚮뱶 ?곹깭瑜??뺤씤?쒕떎.
+4. ?붾㈃ 遺꾨━ ?댄썑 ?⑥? props 怨쇰떎 援ш컙???먭??쒕떎.
+5. ?낅Т/?꾨줈?앺듃 ??而댄룷?뚰듃 遺꾨━ 寃곌낵瑜??좎??섍퀬, 以묐났 submit/reset 濡쒖쭅? 蹂꾨룄 ?묒뾽?쇰줈 寃?좏븳??
+6. ?좎쭨 怨꾩궛怨?異붿쿇 ?낅Т 怨꾩궛??以묐났???뺣━?쒕떎.
+7. ?ㅼ젙 ?붾㈃???⑥닚 ?쒖떆?먯꽌 ?ㅼ젣 ?ㅼ젙 ?몄쭛 ?붾㈃?쇰줈 ?뺤옣?좎? 寃곗젙?쒕떎.
+
+## 16. 以묎린 媛쒕컻 紐⑺몴
+
+- ?꾨줈?앺듃蹂??낅Т 蹂닿린 媛쒖꽑
+- ?낅Т ?곹깭瑜?`todo`, `in_progress`, `done` ?꾩껜濡??먯뿰?ㅻ읇寃?議곗옉?섎뒗 UI 異붽?
+- ?쒓렇 ?낅젰 諛??꾪꽣 湲곕뒫 異붽?
+- ?덉긽 ?뚯슂 ?쒓컙 ?낅젰/?쒖떆 湲곕뒫 媛쒖꽑
+- ?낅Т ?뺣젹 ?듭뀡 ?뺤옣
+- RuleBasedAIProvider 異붿쿇 湲곗? 媛쒖꽑
+- ?곗씠???대낫?닿린/媛?몄삤湲?湲곕뒫 寃??- IndexedDB ?곗씠??諛깆뾽 ?꾨왂 寃??- ?묎렐??諛??ㅻ낫??議곗옉??媛쒖꽑
+
+## 17. 由ы뙥?곕쭅 怨꾪쉷
+
+由ы뙥?곕쭅? ?숈옉 蹂寃??놁씠 ?묒? ?⑥쐞濡?吏꾪뻾?쒕떎. 媛??④퀎 ??`npm run build`濡??뺤씤?섍퀬, ?ㅽ뙣?섎㈃ ?ㅼ쓬 ?④퀎濡??섏뼱媛吏 ?딅뒗??
+
+### 17.1 1李?紐⑺몴: ?붾㈃ 而댄룷?뚰듃 遺꾨━ [?꾨즺]
+
+- ?곗꽑 `src/App.tsx`?먯꽌 ?붾㈃蹂?JSX瑜?遺꾨━?쒕떎. [x]
+- CSS class ?대쫫? ?좎??섍퀬 `src/App.css`???섏젙?섏? ?딅뒗?? [x]
+- 泥?遺꾨━ ?꾨낫???곷??곸쑝濡??섏〈?깆씠 ?곸? `SettingsView`?? [x]
+- ?ㅼ쓬 ?꾨낫??`TodayView`?? [x]
+- `TasksView`? `ProjectsView`?????곹깭? CRUD ?몃뱾?ш? 留롮쑝誘濡??꾩닚?꾨줈 ?붾떎. [x]
+
+遺꾨━ ?꾨즺 ?뚯씪:
+
+- [x] [SettingsView.tsx](file:///d:/ai-apps/planpilot-local/src/views/SettingsView.tsx)
+- [x] [TodayView.tsx](file:///d:/ai-apps/planpilot-local/src/views/TodayView.tsx)
+- [x] [TasksView.tsx](file:///d:/ai-apps/planpilot-local/src/views/TasksView.tsx)
+- [x] [ProjectsView.tsx](file:///d:/ai-apps/planpilot-local/src/views/ProjectsView.tsx)
+
+### 17.2 2李?紐⑺몴: ?쒖떆 而댄룷?뚰듃 遺꾨━ [吏꾪뻾 以?
+
+- ?낅Т 紐⑸줉??諛섎났 JSX瑜?`TaskCard`濡?遺꾨━?쒕떎. [x]
+- ?꾨줈?앺듃 紐⑸줉??諛섎났 JSX瑜?`ProjectCard`濡?遺꾨━?쒕떎. [x]
+- ?ㅻ뒛 ?붾㈃???붿빟 ?곸뿭? 蹂꾨룄 summary 而댄룷?뚰듃濡?遺꾨━?????덈떎.
+
+?덉긽 ?뚯씪 ?꾨낫:
+
+- `src/components/TaskCard.tsx` [x]
+- `src/components/ProjectCard.tsx` [x]
+- `src/components/SummaryBlock.tsx`
+
+### 17.3 3李?紐⑺몴: ??而댄룷?뚰듃 遺꾨━ [?꾨즺]
+
+- ?낅Т 異붽? ?쇨낵 ?낅Т ?섏젙 ?쇱쓽 以묐났??以꾩씤?? [x]
+- ?꾨줈?앺듃 異붽? ?쇨낵 ?꾨줈?앺듃 ?섏젙 ?쇱쓽 以묐났??以꾩씤?? [x]
+- 泥섏쓬遺??怨쇰룄?섍쾶 ?쇰컲?뷀븯吏 留먭퀬, ?ㅼ젣 以묐났??紐낇솗???낅젰 ?꾨뱶遺??遺꾨━?쒕떎.
+
+?덉긽 ?뚯씪 ?꾨낫:
+
+- `src/components/TaskForm.tsx` [x]
+- `src/components/ProjectForm.tsx` [x]
+
+### 17.3.1 TaskForm 遺꾨━ 怨꾪쉷
+
+`TaskForm`? ?낅Т 異붽? form怨??낅Т ?섏젙 form??怨듯넻 ?낅젰 UI濡?遺꾨━?섏뿀?? ?ㅻ쭔 ?곹깭? submit/reset ?몃뱾?щ뒗 ?꾩쭅 `App.
+tsx`? `TasksView` props???⑥븘 ?덉쑝誘濡? ?ㅼ쓬 ?④퀎?먯꽌???숈옉 蹂寃??놁씠 梨낆엫????以꾩씪 ???덈뒗吏 寃?좏븳??
+
+怨듯넻 ?꾨뱶 ?꾨낫:
+
+- ?쒕ぉ
+- 硫붾え
+- 留덇컧??- 以묒슂??- ?꾨줈?앺듃 ?좏깮
+
+異붽? form ?꾩슜 ?숈옉:
+
+- `newTaskTitle`, `newTaskMemo`, `newTaskDueDate`, `newTaskPriority`, `newTaskProjectId` ?곹깭瑜??ъ슜?쒕떎.
+- ?쒖텧 ??異붽? form???ル뒗??
+- ?쒖텧 ???낅젰媛믪쓣 湲곕낯媛믪쑝濡?珥덇린?뷀븳??
+- submit label? `?낅Т 異붽?`??
+
+?섏젙 form ?꾩슜 ?숈옉:
+
+- `editTaskTitle`, `editTaskMemo`, `editTaskDueDate`, `editTaskPriority`, `editTaskProjectId` ?곹깭瑜??ъ
+슜?쒕떎.
+- ?????`editingTaskId`瑜??댁젣?쒕떎.
+- 痍⑥냼 踰꾪듉???꾩슂?섎떎.
+- submit label? `????대떎.
+
+?⑥? ?꾪뿕 ?붿냼:
+
+- ?낅Т 異붽? form? `isTaskFormOpen` ?곹깭? ?곌껐?섏뼱 ?덈떎.
+- ?낅Т ?섏젙 form? `sortedTasks.map()` ?대??먯꽌 ?뱀젙 ?낅Т? ?④퍡 ?뚮뜑留곷맂??
+- ?섏젙 form? `task` 媛앹껜瑜?湲곕컲?쇰줈 `updateTask`瑜??몄텧?섎?濡? submit handler??closure瑜??좎??댁빞 ?쒕떎.
+- ?꾨줈?앺듃 select options??`projects` 諛곗뿴???꾩슂濡??쒕떎.
+- form class ?대쫫怨?湲곗〈 `li.task-card` 援ъ“瑜??섎せ 諛붽씀硫?CSS媛 ?щ씪吏????덈떎.
+
+?ㅼ쓬 ?뺣━ ?쒖꽌:
+
+1. `TasksView` props 以??곹깭 setter? form 媛믪쓣 遺꾨쪟?쒕떎.
+2. submit/reset 濡쒖쭅?????먮뒗 ?묒? helper濡???만 ???덈뒗吏 寃?좏븳??
+3. `TaskForm` UI???대? 遺꾨━?섏뿀?쇰?濡?JSX瑜??ㅼ떆 蹂듭젣?섏? ?딅뒗??
+4. props媛 ???섏뼱?섎뒗 諛⑹떇?대㈃ 肄붾뱶 ?섏젙 ???怨꾪쉷??癒쇱? 臾몄꽌?뷀븳??
+5. 媛??④퀎 ??`npm run build`濡??뺤씤?쒕떎.
+
+### 17.4 4李?紐⑺몴: ?뚯깮 ?곗씠??濡쒖쭅 遺꾨━ [吏꾪뻾 以?
+
+- ?좎쭨 怨꾩궛怨??꾪꽣/?뺣젹 濡쒖쭅??`App.tsx` 諛뽰쑝濡???릿?? [吏꾪뻾 以?
+- `RuleBasedAIProvider`? 以묐났?섎뒗 overdue/upcoming 怨꾩궛???뺣━?쒕떎.
+- DB schema?????④퀎?먯꽌 蹂寃쏀븯吏 ?딅뒗??
+
+?덉긽 ?뚯씪 ?꾨낫:
+
+- `src/utils/taskFilters.ts` [x]
+- `src/utils/taskDates.ts` [x]
+- `src/utils/projectStats.ts` [x]
+
+### 17.5 5李?紐⑺몴: ?쇰꺼 留ㅽ븨 遺꾨━
+
+- priority/status/settings ?쒖떆 臾몄옄?댁쓣 蹂꾨룄 留ㅽ븨?쇰줈 遺꾨━?쒕떎.
+- ?대? enum 媛믪? ?곸뼱濡??좎??쒕떎.
+- UI ?쒖떆留??쒓뎅???쇰꺼???ъ슜?쒕떎.
+
+?덉긽 ?뚯씪 ?꾨낫:
+
+- `src/utils/labels.ts`
+
+### 17.6 遺꾨━ ?묒뾽 ?먯튃
+
+- ??湲곕뒫 異붽?? 由ы뙥?곕쭅??媛숈? ?묒뾽???욎? ?딅뒗??
+- ??踰덉뿉 ?섎굹???붾㈃ ?먮뒗 ?섎굹??而댄룷?뚰듃留?遺꾨━?쒕떎.
+- 湲곗〈 JSX瑜?蹂듭궗??以묐났 ?붾㈃??留뚮뱾吏 ?딅뒗??
+- props媛 ?덈Т 留롮븘吏??寃쎌슦 ?대떦 ?④퀎?먯꽌 硫덉텛怨?store selector ?먮뒗 遺꾨━ ?쒖꽌瑜??ш??좏븳??
+- `App.tsx`??理쒖쥌?곸쑝濡????곹깭, ??珥덇린?? ?붾㈃ 議곕┰ 以묒떖?쇰줈 以꾩씠??寃껋쓣 紐⑺몴濡??쒕떎.
+
+### 17.7 TodayView 遺꾨━ ???먭?
+
+`TodayView`??`SettingsView` ?ㅼ쓬 遺꾨━ ?꾨낫吏留? 異붿쿇 ?낅Т? ?좎쭨 湲곕컲 紐⑸줉???④퍡 ?쒖떆?섎?濡?props? 怨꾩궛 ?꾩튂瑜?癒쇱? ?
+뺣━?쒕떎.
+
+遺꾨━ ??props ?꾨낫:
+
+- `tasks`
+- `recommendedTasks`
+- `overdueTasks`
+- `upcomingTasks`
+- `getProjectName`
+
+`TodayView`媛 諛쏆쓣 ?곗씠???꾨낫:
+
+- ?꾩껜 ?낅Т ??- ?꾨즺 ?낅Т ??- 異붿쿇 ?낅Т 紐⑸줉
+- 吏??留덇컧 ?낅Т 紐⑸줉
+- 7???대궡 留덇컧 ?낅Т 紐⑸줉
+- ?꾨줈?앺듃 ?대쫫 議고쉶 ?⑥닔
+
+`TodayView`?먯꽌 吏곸젒 怨꾩궛?섏? ?딅뒗 ?몄씠 醫뗭? 濡쒖쭅:
+
+- ?ㅻ뒛 ?좎쭨 湲곗? 怨꾩궛
+- 7???대궡 留덇컧 湲곗? 怨꾩궛
+- ?꾨즺 ?낅Т ??怨꾩궛
+- 異붿쿇 ?낅Т 怨꾩궛
+- ?꾨줈?앺듃 ?듦퀎 怨꾩궛
+
+?덉쟾??遺꾨━ 泥댄겕由ъ뒪??
+
+1. `TodayView`???쒖떆 ?꾩슜 而댄룷?뚰듃濡??쒖옉?쒕떎.
+2. `App.tsx`??湲곗〈 overdue/upcoming/recommended 怨꾩궛 寃곌낵瑜?props濡??섍릿??
+3. UI 臾멸뎄? class ?대쫫? 諛붽씀吏 ?딅뒗??
+4. `RuleBasedAIProvider` 濡쒖쭅? 嫄대뱶由ъ? ?딅뒗??
+5. ?좎쭨 怨꾩궛 ?좏떥 遺꾨━??TodayView 遺꾨━ ?댄썑 蹂꾨룄 ?묒뾽?쇰줈 吏꾪뻾?쒕떎.
+6. 遺꾨━ ??`npm run build`濡??뺤씤?쒕떎.
+7. props媛 怨쇰룄?섍쾶 ?섏뼱?섎㈃ TodayView 遺꾨━留??꾨즺?섍퀬 異붽? 由ы뙥?곕쭅? ?ㅼ쓬 ?묒뾽?쇰줈 誘몃，??
+
+### 17.8 App.tsx ?붿뿬 梨낆엫 ?뺣━ 怨꾪쉷
+
+?붾㈃, 移대뱶, ?? ?쇰? ?좏떥? 遺꾨━?섏뿀吏留?`App.tsx`?먮뒗 ?꾩쭅 form ?곹깭? CRUD ?몃뱾?ш? 留롮씠 ?⑥븘 ?덈떎. ?ㅼ쓬 由ы뙥?곕쭅? 諛붾
+줈 肄붾뱶瑜???린湲곕낫?? 梨낆엫???꾨옒泥섎읆 遺꾨쪟?????묒? ?⑥쐞濡?吏꾪뻾?쒕떎.
+
+?꾩옱 `App.tsx`???⑥? 梨낆엫:
+
+- ???곹깭 愿由?- ??珥덇린?붿? store ?≪뀡 ?곌껐
+- `RuleBasedAIProvider` ?앹꽦怨?異붿쿇 ?낅Т ?곹깭 愿由?- ?ㅻ뒛 ?붾㈃???뚯깮 ?곗씠???곌껐
+- ?꾨줈?앺듃 ?대쫫 議고쉶 ?⑥닔
+- ?낅Т 異붽? form ?곹깭? reset 濡쒖쭅
+- ?낅Т ?섏젙 form ?곹깭? reset 濡쒖쭅
+- ?낅Т ?꾨즺/誘몄셿猷??좉? ?몃뱾??- ?낅Т ??젣 ?뺤씤 ?몃뱾??- ?꾨줈?앺듃 異붽? form ?곹깭? reset 濡쒖쭅
+- ?꾨줈?앺듃 ?섏젙 form ?곹깭? reset 濡쒖쭅
+- ?꾨줈?앺듃 ??젣 媛???щ? ?뺤씤怨???젣 ?뺤씤 ?몃뱾??- `TasksView`, `ProjectsView`???꾨떖?섎뒗 ?ㅼ닔??props 議곕┰
+
+?곗꽑 ?뺣━ ?꾨낫:
+
+1. ?낅Т form ?곹깭 臾띠쓬 寃??   - `newTask*`, `editTask*`, `editingTaskId`, `isTaskFormOpen` ?곹깭瑜???踰덉뿉 ??
+린吏 ?딅뒗??
+   - 異붽? form ?곹깭? ?섏젙 form ?곹깭瑜?蹂꾨룄 ?⑥쐞濡?蹂????덈뒗吏 癒쇱? ?뺤씤?쒕떎.
+   - `TaskForm` JSX???대? 遺꾨━?섏뼱 ?덉쑝誘濡?以묐났 ?앹꽦?섏? ?딅뒗??
+
+2. ?꾨줈?앺듃 form ?곹깭 臾띠쓬 寃??   - `newProject*`, `editProject*`, `editingProjectId` ?곹깭瑜??묒? ?⑥쐞濡??뺣━?쒕
+떎.
+   - ?꾨줈?앺듃 ??젣 ?뺤콉? 湲곕낯 ?꾨줈?앺듃 ??젣 諛⑹?? ?낅Т ?곌껐 ?꾨줈?앺듃 ??젣 諛⑹?瑜??좎??쒕떎.
+   - `ProjectForm`怨?`ProjectCard` 援ъ“???좎??쒕떎.
+
+3. handler helper ?먮뒗 custom hook ?꾨낫 寃??   - ?꾨낫 ?대쫫? `useTaskFormState`, `useProjectFormState`, `
+useTaskActions`, `useProjectActions`泥섎읆 ??븷??遺꾨챸?댁빞 ?쒕떎.
+   - hook?쇰줈 ??만 寃쎌슦 store ?≪뀡, confirm 臾멸뎄, reset ?쒖꽌媛 諛붾뚯? ?딆븘???쒕떎.
+   - hook ?꾩엯??props ?섎? 以꾩씠吏 紐삵븯硫?吏꾪뻾?섏? ?딅뒗??
+
+4. ?묒? ?좏떥 ?꾨낫 寃??   - `getProjectName(projects, projectId)`泥섎읆 ?쒖닔 議고쉶 helper???좏떥濡?遺꾨━?????덈떎.
+   - ?꾨즺 ?낅Т ??怨꾩궛? `TodayView` props濡??섍린湲??꾩뿉 selector ?먮뒗 helper濡?遺꾨━?????덈떎.
+   - ?? ?좏떥 遺꾨━留뚯쑝濡?媛?낆꽦???ш쾶 醫뗭븘吏吏 ?딆쑝硫?蹂대쪟?쒕떎.
+
+吏꾩엯 議곌굔:
+
+- `git status`媛 源⑤걮?섎떎.
+- `npm run build`媛 ?깃났?쒕떎.
+- `docs/manual-test-checklist.md`?먯꽌 ?낅Т 異붽?/?섏젙/??젣, ?꾨줈?앺듃 異붽?/?섏젙/??젣, TodayView ?뚭? ??ぉ???뺤씤?????
+덈떎.
+- ?섏젙 踰붿쐞媛 ??醫낅쪟???곹깭 ?먮뒗 ??醫낅쪟??handler濡??쒗븳?쒕떎.
+- `App.css`, DB schema, store ??? UI 臾멸뎄 蹂寃쎌씠 ?꾩슂?섏? ?딅떎.
+
+以묐떒 議곌굔:
+
+- `TasksView`??`ProjectsView` props媛 ???섏뼱?쒕떎.
+- confirm 臾멸뎄????젣 ?뺤콉??諛붾?媛?μ꽦???덈떎.
+- form reset ?쒖꽌媛 諛붾?媛?μ꽦???덈떎.
+- store ?≪뀡 ?쒓렇?덉쿂 蹂寃쎌씠 ?꾩슂?섎떎.
+- ???묒뾽?먯꽌 ?낅Т? ?꾨줈?앺듃瑜??숈떆???ш쾶 諛붽퓭???쒕떎.
+
+### 17.9 ?좎쭨 怨꾩궛 以묐났 ?먭? 寃곌낵
+
+`taskDates.ts`? `RuleBasedAIProvider`??紐⑤몢 吏??留덇컧 ?낅Т? 7???대궡 留덇컧 ?낅Т瑜?怨꾩궛?쒕떎. ?ㅻ쭔 ???뚯씪??梨낆엫???꾩쟾
+??媛숈????딆쑝誘濡? 諛붾줈 ?듯빀?섍린 ?꾩뿉 湲곗? 李⑥씠? ?뚭? ?꾪뿕??癒쇱? 怨좎젙?쒕떎.
+
+?꾩옱 ??븷 援щ텇:
+
+- `src/utils/taskDates.ts`
+  - `getOverdueTasks(tasks, today)`瑜??쒓났?쒕떎.
+  - `getUpcomingTasks(tasks, today, days)`瑜??쒓났?쒕떎.
+  - ?몄텧?먭? 湲곗???`today`瑜?吏곸젒 ?섍릿??
+  - ?꾨즺???낅Т???쒖쇅?쒕떎.
+  - 留덇컧?쇱씠 ?녿뒗 ?낅Т???쒖쇅?쒕떎.
+  - ?꾩옱 `App.tsx`媛 ?ㅻ뒛 ?붾㈃??吏??留덇컧/7???대궡 留덇컧 ?낅Т 紐⑸줉??留뚮뱾 ???ъ슜?쒕떎.
+
+- `src/ai/RuleBasedAIProvider.ts`
+  - ?대? `startOfToday()`濡??ㅻ뒛 0??湲곗???吏곸젒 留뚮뱺??
+  - ?대? `parseDueDate()`濡??좎쭨 臾몄옄?댁쓣 ?뚯떛?섍퀬 invalid date瑜??쒖쇅?쒕떎.
+  - `findOverdueTasks(tasks)`? `findUpcomingTasks(tasks, days)`瑜??쒓났?쒕떎.
+  - `suggestTodayTasks(tasks, limit)`?먯꽌 ?곗꽑?쒖쐞? 留덇컧???먯닔瑜??⑹퀜 異붿쿇 ?낅Т瑜??뺣젹?쒕떎.
+  - `summarizeTasks(tasks)`?먯꽌 珥??낅Т ?? ?꾨즺 ?낅Т ?? 誘몄셿猷??낅Т ?? 吏??留덇컧 ?낅Т ?? 7???대궡 留덇컧 ?낅Т ?섎? 臾몄옄?
+대줈 留뚮뱺??
+
+以묐났?섎뒗 湲곗?:
+
+- ?꾨즺???낅Т??吏??留덇컧/?덉젙 ?낅Т?먯꽌 ?쒖쇅?쒕떎.
+- 吏??留덇컧 ?낅Т???ㅻ뒛 0?쒕낫???댁쟾 留덇컧?쇱쓣 湲곗??쇰줈 ?쒕떎.
+- 7???대궡 留덇컧 ?낅Т???ㅻ뒛 0?쒕???`days`???대궡 留덇컧?쇱쓣 湲곗??쇰줈 ?쒕떎.
+- 留덇컧???녿뒗 ?낅Т???좎쭨 湲곕컲 紐⑸줉?먯꽌 ?쒖쇅?쒕떎.
+
+?꾩옱 李⑥씠??
+
+- `taskDates.ts`??湲곗??쇱쓣 ?몃??먯꽌 諛쏆쑝誘濡??붾㈃ ?뚯뒪?몄뿉??湲곗??쇱쓣 ?듭젣?섍린 ?쎈떎.
+- `RuleBasedAIProvider`??湲곗??쇱쓣 ?대??먯꽌 ?앹꽦?섎?濡?異붿쿇/?붿빟 ?ㅽ뻾 ?쒖젏???곕씪 湲곗??쇱씠 ?뺥빐吏꾨떎.
+- `RuleBasedAIProvider`??invalid date瑜?`parseDueDate()`?먯꽌 嫄몃윭?댁?留? `taskDates.ts`??`new Date(task.du
+eDate)` 寃곌낵瑜?吏곸젒 鍮꾧탳?쒕떎.
+- 異붿쿇 ?낅Т???⑥닚 overdue/upcoming 紐⑸줉???꾨땲???곗꽑?쒖쐞 ?먯닔, 吏??留덇컧 媛以묒튂, ?ㅻ뒛 留덇컧 媛以묒튂, 留덇컧??鍮좊Ⅸ ???뺣젹???
+④퍡 ?ъ슜?쒕떎.
+
+諛붾줈 ?듯빀?섎㈃ ?꾪뿕???댁쑀:
+
+- ?ㅻ뒛 ?붾㈃??吏??留덇컧/?덉젙 ?낅Т ?쒖떆? 異붿쿇 ?낅Т ?뺣젹???숈떆??諛붾????덈떎.
+- invalid date 泥섎━ 諛⑹떇??諛붾뚮㈃ 湲곗〈 ????곗씠??以??댁긽??留덇컧??臾몄옄?댁씠 ?덉쓣 ???쒖떆 寃곌낵媛 ?щ씪吏????덈떎.
+- `RuleBasedAIProvider.summarizeTasks()`??臾몄옄??寃곌낵媛 諛붾????덈떎.
+- 異붿쿇 ?먯닔???ъ슜??facing 異붿쿇 ?쒖꽌???곹뼢??二쇰?濡??⑥닚 ?좎쭨 ?좏떥 ?뺣━蹂대떎 ?뚭? 踰붿쐞媛 ?볥떎.
+- 湲곗????앹꽦 ?꾩튂瑜??섎せ 諛붽씀硫??먯젙 ?꾪썑 ?숈옉???щ씪吏????덈떎.
+
+異붿쿇 濡쒖쭅??嫄대뱶由ш린 ???섎룞 ?뚯뒪????ぉ:
+
+- ?ㅻ뒛 ?댁쟾 留덇컧?쇱쓽 誘몄셿猷??낅Т媛 吏??留덇컧 ?낅Т???쒖떆?쒕떎.
+- ?꾨즺??吏??留덇컧 ?낅Т??吏??留덇컧 ?낅Т???쒖떆?섏? ?딅뒗??
+- ?ㅻ뒛遺??7???대궡 留덇컧?쇱쓽 誘몄셿猷??낅Т媛 7???대궡 留덇컧 ?낅Т???쒖떆?쒕떎.
+- ?꾨즺???덉젙 ?낅Т??7???대궡 留덇컧 ?낅Т???쒖떆?섏? ?딅뒗??
+- 異붿쿇 ?낅Т媛 ?곗꽑?쒖쐞? 留덇컧??湲곗??쇰줈 ?쒖떆?쒕떎.
+- 異붿쿇 ?낅Т媛 ?놁쓣 ??鍮??곹깭 硫붿떆吏媛 ?좎??쒕떎.
+- `npm run build`媛 ?깃났?쒕떎.
+- ?쒕쾭 API, `localStorage`, 濡쒓렇?? ?대씪?곕뱶 ?숆린?? ?뚮┝ 沅뚰븳 ?붿껌, Capacitor媛 異붽??섏? ?딅뒗??
+
+?ν썑 ?덉쟾???뺣━ ?쒖꽌:
+
+1. `taskDates.ts`??invalid date 泥섎━ 諛⑹떇??異붽??좎? 癒쇱? 寃곗젙?쒕떎.
+2. `startOfToday()`? `parseDueDate()`瑜?怨듭슜 ?좏떥濡?鍮쇨린 ?꾩뿉 ?꾩옱 ?쒖떆 寃곌낵瑜??섎룞 ?뚯뒪??泥댄겕由ъ뒪?몃줈 ?뺤씤?쒕떎.
+3. overdue/upcoming 怨꾩궛留?癒쇱? 怨듭슜 ?좏떥濡?留욎텛怨? 異붿쿇 ?먯닔 怨꾩궛? 遺꾨━???곹깭濡??붾떎.
+4. `RuleBasedAIProvider.findOverdueTasks()`? `findUpcomingTasks()`媛 怨듭슜 ?좏떥???ъ슜?섎룄濡?諛붽씀???묒뾽? 蹂꾨룄
+ 而ㅻ컠?쇰줈 吏꾪뻾?쒕떎.
+5. `suggestTodayTasks()`???먯닔 怨꾩궛? 留덉?留됱뿉 蹂꾨룄 怨꾪쉷???몄슫 ??吏꾪뻾?쒕떎.
+6. 媛??④퀎 ??`npm run build`? ?ㅻ뒛 ?붾㈃ ?섎룞 ?뚯뒪????ぉ???뺤씤?쒕떎.
+
+### 17.10 ?좎쭨 泥섎━ ?뺤콉
+
+?좎쭨 怨꾩궛 濡쒖쭅???ㅼ젣 肄붾뱶濡??듯빀?섍린 ?꾩뿉 ?꾨옒 ?뺤콉???쒖??쇰줈 ?쇰뒗?? ???뺤콉? `taskDates.ts`, `RuleBasedAIProvider`,
+ ?ㅻ뒛 ?붾㈃, ?ν썑 ?뚯뒪??耳?댁뒪媛 媛숈? 湲곗???怨듭쑀?섍린 ?꾪븳 臾몄꽌 湲곗??대떎.
+
+湲곕낯 ?뺤콉:
+
+- `dueDate`媛 鍮꾩뼱 ?덈뒗 ?낅Т???좎쭨 湲곕컲 紐⑸줉?먯꽌 ?쒖쇅?쒕떎.
+- invalid `dueDate`???좎쭨 湲곕컲 紐⑸줉?먯꽌 ?쒖쇅?쒕떎.
+- ?좎쭨 湲곕컲 怨꾩궛??湲곗??쇱? ?ㅻ뒛 0?쒕줈 ?쒕떎.
+- ?ㅻ뒛 0?쒕뒗 ?ъ슜?먯쓽 濡쒖뺄 ?ㅽ뻾 ?섍꼍?먯꽌 留뚮뱺 `Date` 媛믪쓣 湲곗??쇰줈 ?쒕떎.
+- `done` ?곹깭 ?낅Т??吏??留덇컧 ?낅Т? 7???대궡 留덇컧 ?낅Т?먯꽌 ?쒖쇅?쒕떎.
+- ?좎쭨 怨꾩궛 ?뺤콉??諛붽? ?뚮뒗 異붿쿇 ?낅Т, 吏??留덇컧 ?낅Т, 7???대궡 留덇컧 ?낅Т瑜??④퍡 ?뺤씤?쒕떎.
+
+overdue 湲곗?:
+
+- `dueDate`媛 ?덇퀬 ?좏슚???좎쭨濡??뚯떛?쒕떎.
+- ?낅Т ?곹깭媛 `done`???꾨땲??
+- 留덇컧?쇱씠 ?ㅻ뒛 0?쒕낫???댁쟾?대떎.
+- ?ㅻ뒛 留덇컧 ?낅Т??overdue濡?蹂댁? ?딅뒗??
+
+upcoming 湲곗?:
+
+- `dueDate`媛 ?덇퀬 ?좏슚???좎쭨濡??뚯떛?쒕떎.
+- ?낅Т ?곹깭媛 `done`???꾨땲??
+- 留덇컧?쇱씠 ?ㅻ뒛 0???댁긽?대떎.
+- 留덇컧?쇱씠 ?ㅻ뒛 0?쒕???吏?뺥븳 `days`???대궡??
+- ?꾩옱 湲곕낯 upcoming 踰붿쐞??7?쇱씠??
+
+異붿쿇 ?낅Т? ?좎쭨 紐⑸줉????븷 李⑥씠:
+
+- 吏??留덇컧/7???대궡 留덇컧 紐⑸줉? ?좎쭨 議곌굔??留뚯”?섎뒗 ?낅Т瑜?蹂댁뿬二쇰뒗 紐⑸줉?대떎.
+- 異붿쿇 ?낅Т???좎쭨 紐⑸줉???꾨땲???곗꽑?쒖쐞, 吏??留덇컧 ?щ?, ?ㅻ뒛 留덇컧 ?щ?, 留덇컧??鍮좊Ⅸ ?쒖쓣 議고빀???뺣젹 寃곌낵??
+- 異붿쿇 ?낅Т???꾨즺?섏? ?딆? ?낅Т ?꾩껜瑜??꾨낫濡?蹂대ŉ, 留덇컧???녿뒗 ?낅Т???곗꽑?쒖쐞???곕씪 ?꾨낫媛 ?????덈떎.
+- ?곕씪??overdue/upcoming ?좏떥???뺣━?섎뜑?쇰룄 `suggestTodayTasks()`???먯닔 怨꾩궛? 蹂꾨룄濡?寃利앺븳??
+
+怨듭슜 ?좏떥 ?꾨낫:
+
+- `startOfToday()`
+  - 濡쒖뺄 ?섍꼍 湲곗? ?ㅻ뒛 0??`Date`瑜?留뚮뱺??
+  - App怨?AI Provider媛 媛숈? 湲곗??쇱쓣 ?곌쾶 ?????덈떎.
+
+- `parseDueDate(dueDate?: string)`
+  - 鍮?媛믨낵 invalid date瑜?`null`濡?泥섎━?쒕떎.
+  - ?좎쭨 湲곕컲 紐⑸줉怨?異붿쿇 ?뺣젹??invalid date 泥섎━瑜?留욎텧 ???덈떎.
+
+- `isOverdueTask(task, today)`
+  - ?좏슚??留덇컧?? 誘몄셿猷??곹깭, ?ㅻ뒛 0???댁쟾 議곌굔???쒓납??紐⑥???
+  - ?ㅻ뒛 ?붾㈃怨?AI Provider??overdue 湲곗???留욎텧 ???덈떎.
+
+- `isUpcomingTask(task, today, days)`
+  - ?좏슚??留덇컧?? 誘몄셿猷??곹깭, ?ㅻ뒛 0???댁긽, 吏??湲곌컙 ?대궡 議곌굔???쒓납??紐⑥???
+  - ?ㅻ뒛 ?붾㈃怨?AI Provider??upcoming 湲곗???留욎텧 ???덈떎.
+
+諛붾줈 ?듯빀?섏? ?딅뒗 ?댁쑀:
+
+- invalid date 泥섎━ 異붽???湲곗〈 ?붾㈃ ?쒖떆 寃곌낵瑜?諛붽? ???덈떎.
+- `RuleBasedAIProvider`??異붿쿇 ?뺣젹? ?⑥닚 ?좎쭨 紐⑸줉蹂대떎 ?곹뼢 踰붿쐞媛 ?볥떎.
+- 湲곗????앹꽦 ?꾩튂瑜?諛붽씀硫??먯젙 ?꾪썑 ?숈옉???щ씪吏????덈떎.
+- 怨듭슜 ?좏떥???섎せ ?ㅺ퀎?섎㈃ ?붾㈃ 濡쒖쭅怨?AI Provider 濡쒖쭅???쒕줈 遺덊븘?뷀븯寃?寃고빀?????덈떎.
+- 癒쇱? ?섎룞 ?뚯뒪??湲곗???怨좎젙?????묒? ?④퀎濡??듯빀?댁빞 ?쒕떎.
+
+肄붾뱶 ?듯빀 ???덉쟾 ?쒖꽌:
+
+1. ?섎룞 ?뚯뒪??泥댄겕由ъ뒪?몄쓽 ?좎쭨 ?뺤콉 ??ぉ??癒쇱? ?뺤씤?쒕떎.
+2. `parseDueDate()` 怨듭슜??媛?μ꽦??寃?좏븳??
+3. `startOfToday()` 怨듭슜??媛?μ꽦??寃?좏븳??
+4. `isOverdueTask()`? `isUpcomingTask()`瑜??쒖닔 ?⑥닔濡?遺꾨━?쒕떎.
+5. `taskDates.ts`媛 怨듭슜 ?좏떥???ъ슜?섎룄濡?諛붽씔??
+6. 蹂꾨룄 ?묒뾽?먯꽌 `RuleBasedAIProvider.findOverdueTasks()`? `findUpcomingTasks()`媛 怨듭슜 ?좏떥???ъ슜?섎룄濡?諛붽씔
+??
+7. `suggestTodayTasks()` ?먯닔 怨꾩궛? 留덉?留됱뿉 蹂꾨룄 ?뚯뒪??湲곗????먭퀬 寃?좏븳??
+8. 媛??④퀎 ??`npm run build`? ?ㅻ뒛 ?붾㈃/異붿쿇 ?낅Т ?섎룞 ?뚯뒪?몃? ?섑뻾?쒕떎.
+
+### 17.11 異붿쿇 ?먯닔 濡쒖쭅 遺꾨━ 怨꾪쉷
+
+`RuleBasedAIProvider.suggestTodayTasks()`???꾩옱 ?ㅻ뒛 ?붾㈃??異붿쿇 ?낅Т 紐⑸줉??怨꾩궛?쒕떎. 異붿쿇 寃곌낵???ъ슜?먯뿉寃?吏곸젒 蹂댁씠
+???곸뿭?대?濡? ?먯닔 怨꾩궛??諛붾줈 ?좏떥濡???린湲??꾩뿉 ?꾩옱 湲곗?怨??뚭? ?뚯뒪??湲곗???癒쇱? 怨좎젙?쒕떎.
+
+?꾩옱 異붿쿇 ?낅Т ?좏깮 湲곗?:
+
+- `done` ?곹깭 ?낅Т??異붿쿇 ?꾨낫?먯꽌 ?쒖쇅?쒕떎.
+- `todo`, `in_progress` ?곹깭 ?낅Т留?異붿쿇 ?꾨낫媛 ?????덈떎.
+- 湲곕낯 異붿쿇 媛쒖닔??`limit = 3`?대떎.
+- ?꾨낫 ?낅Т瑜??먯닔 ?대┝李⑥닚?쇰줈 ?뺣젹?????곸쐞 `limit`媛쒕? 諛섑솚?쒕떎.
+
+?꾩옱 ?곗꽑?쒖쐞 ?먯닔 湲곗?:
+
+- `high`: 3??- `medium`: 2??- `low`: 1??- ?????녿뒗 priority 媛? 0??
+?꾩옱 留덇컧???먯닔 湲곗?:
+
+- `parseDueDate(task.dueDate)`媛 ?좏슚???좎쭨瑜?諛섑솚???뚮쭔 留덇컧???먯닔瑜?怨꾩궛?쒕떎.
+- ?ㅻ뒛 0??湲곗??쇰줈 `daysUntilDue`瑜?怨꾩궛?쒕떎.
+- 留덇컧?쇱씠 ?ㅻ뒛蹂대떎 ?댁쟾?대㈃ 10?먯쓣 ?뷀븳??
+- 留덇컧?쇱씠 ?ㅻ뒛?대㈃ 5?먯쓣 ?뷀븳??
+- 誘몃옒 留덇컧?쇱? 異붽? ?먯닔瑜?諛쏆? ?딅뒗??
+- 留덇컧?쇱씠 ?녾굅??invalid date?대㈃ 留덇컧???먯닔??0?먯씠??
+
+?꾩옱 ?뺣젹 湲곗?:
+
+- 1李??뺣젹? `getTaskScore()` 寃곌낵???대┝李⑥닚?대떎.
+- ?먯닔媛 ?ㅻⅤ硫??믪? ?먯닔???낅Т媛 癒쇱? ?⑤떎.
+- ?먯닔媛 媛숆퀬 ???낅Т 紐⑤몢 ?좏슚??留덇컧?쇱씠 ?덉쑝硫?留덇컧?쇱씠 鍮좊Ⅸ ?낅Т媛 癒쇱? ?⑤떎.
+- ?먯닔媛 媛숆퀬 ???낅Т?먮쭔 ?좏슚??留덇컧?쇱씠 ?덉쑝硫?留덇컧?쇱씠 ?덈뒗 ?낅Т媛 癒쇱? ?⑤떎.
+- ?먯닔??媛숆퀬 ???낅Т 紐⑤몢 ?좏슚??留덇컧?쇱씠 ?놁쑝硫?湲곗〈 諛곗뿴 ?쒖꽌瑜??좎??쒕떎.
+
+遺꾨━ ?꾨낫:
+
+- `priorityScore(priority)`
+- `getTaskScore(task, today)`
+- `compareRecommendedTasks(a, b, today)`
+- ?꾩슂 ??`getRecommendedTasks(tasks, limit, today)` ?뺥깭???쒖닔 selector
+
+諛붾줈 肄붾뱶 遺꾨━?섏? 留먯븘?????꾪뿕 ?붿냼:
+
+- `suggestTodayTasks()`???⑥닚 ?좎쭨 紐⑸줉???꾨땲???ъ슜??facing 異붿쿇 ?쒖꽌瑜?留뚮뱺??
+- `getTaskScore()`?먯꽌 ?ъ슜?섎뒗 ?ㅻ뒛 湲곗?怨?`parseDueDate()` 泥섎━ 諛⑹떇??諛붾뚮㈃ 異붿쿇 ?쒖꽌媛 ?щ씪吏????덈떎.
+- ?뺣젹 comparator瑜???만 ???숈젏 泥섎━? 留덇컧???녿뒗 ?낅Т???쒖꽌媛 諛붾????덈떎.
+- `Array.prototype.sort()`???먮낯 諛곗뿴???뺣젹?섎?濡? 遺꾨━ 怨쇱젙?먯꽌 ?낅젰 諛곗뿴 蹂듭궗 ?щ?瑜?諛붽씀硫??몄텧遺 湲곕? ?숈옉???ㅼ떆 ?뺤씤
+?댁빞 ?쒕떎.
+- 異붿쿇 媛쒖닔 `limit` 湲곕낯媛믨낵 slice ?꾩튂媛 諛붾뚮㈃ ?ㅻ뒛 ?붾㈃ ?쒖떆 媛쒖닔媛 ?щ씪吏????덈떎.
+
+?ν썑 ?덉쟾??由ы뙥?곕쭅 ?쒖꽌:
+
+1. ?섎룞 ?뚯뒪??泥댄겕由ъ뒪?몄쓽 異붿쿇 ?낅Т ??ぉ??癒쇱? ?뺤씤?쒕떎.
+2. `priorityScore()`瑜?洹몃?濡??좎???梨?蹂꾨룄 ?뚯씪 ?대룞 媛?μ꽦??寃?좏븳??
+3. `getTaskScore(task, today)`瑜?today 二쇱엯 媛?ν븳 ?쒖닔 ?⑥닔濡?遺꾨━?쒕떎.
+4. ?숈젏 ?뺣젹 湲곗???`compareRecommendedTasks(a, b, today)`濡?遺꾨━?섎릺 湲곗〈 comparator 寃곌낵? 鍮꾧탳?쒕떎.
+5. 留덉?留됱뿉 `suggestTodayTasks()`媛 ?꾪꽣, ?뺣젹, slice 議곕┰留??대떦?섎룄濡?以꾩씤??
+6. 媛??④퀎留덈떎 `npm run build`? ?ㅻ뒛 ?붾㈃ 異붿쿇 ?낅Т ?섎룞 ?뚯뒪?몃? ?섑뻾?쒕떎.
+
+### 17.12 異붿쿇 ?뺣젹 comparator 遺꾨━ 怨꾪쉷
+
+`RuleBasedAIProvider.suggestTodayTasks()` ?덉쓽 ?뺣젹 comparator??異붿쿇 ?낅Т??理쒖쥌 ?쒖떆 ?쒖꽌瑜?寃곗젙?쒕떎. `priority
+Score()`? `getTaskScore()`??遺꾨━?섏뿀吏留? comparator???먯닔 ?숈젏 泥섎━? dueDate fallback???④퍡 ?대떦?섎?濡?諛붾줈 ?
+?린吏 ?딄퀬 湲곗???癒쇱? 怨좎젙?쒕떎.
+
+?꾩옱 comparator ?뺣젹 湲곗?:
+
+- `getTaskScore(a)`? `getTaskScore(b)`瑜?鍮꾧탳?쒕떎.
+- ???먯닔媛 ?ㅻⅤ硫??믪? ?먯닔???낅Т媛 癒쇱? ?⑤떎.
+- ???먯닔媛 媛숈쑝硫?`parseDueDate(a.dueDate)`? `parseDueDate(b.dueDate)`瑜?鍮꾧탳?쒕떎.
+- ???낅Т 紐⑤몢 ?좏슚??dueDate媛 ?덉쑝硫???鍮좊Ⅸ dueDate???낅Т媛 癒쇱? ?⑤떎.
+- ???낅Т?먮쭔 ?좏슚??dueDate媛 ?덉쑝硫?dueDate媛 ?덈뒗 ?낅Т媛 癒쇱? ?⑤떎.
+- ???낅Т 紐⑤몢 dueDate媛 ?녾굅??invalid dueDate?대㈃ comparator??`0`??諛섑솚?쒕떎.
+- 異붿쿇 ?꾨낫 ?꾪꽣??`task.status !== "done"` 議곌굔???좎??쒕떎.
+- ?뺣젹 ??諛섑솚? 湲곗〈泥섎읆 `filteredTasks.slice(0, limit)`瑜??ъ슜?섎ŉ 湲곕낯 limit? 3?대떎.
+
+dueDate ?놁쓬/invalid dueDate 泥섎━ 湲곗?:
+
+- `parseDueDate()`媛 `null`??諛섑솚?섎㈃ ?뺣젹???좏슚??dueDate媛 ?녿뒗 ?낅Т濡?痍④툒?쒕떎.
+- ?먯닔媛 媛숈? ?낅Т?쇰━ 鍮꾧탳????dueDate媛 ?녿뒗 ?낅Т??dueDate媛 ?덈뒗 ?낅Т蹂대떎 ?ㅼ뿉 ?⑤떎.
+- ???낅Т 紐⑤몢 dueDate媛 ?녾굅??invalid?대㈃ 湲곗〈 諛곗뿴 ?쒖꽌媛 ?좎??섎룄濡?comparator 寃곌낵瑜?`0`?쇰줈 ?붾떎.
+- invalid dueDate??異붿쿇 ?꾨낫 ?쒖쇅 議곌굔???꾨땲硫? 留덇컧???뺣젹怨?留덇컧???먯닔?먯꽌留??쒖쇅?쒕떎.
+
+`compareRecommendedTasks` 遺꾨━ ?꾨낫:
+
+- ?⑥닔 ?꾨낫: `compareRecommendedTasks(a: Task, b: Task): number`
+- ?꾩튂 ?꾨낫: `src/ai/recommendationScore.ts`
+- ?대??먯꽌 `getTaskScore()`? `parseDueDate()`瑜?洹몃?濡??ъ슜?쒕떎.
+- 泥??④퀎?먯꽌??today 二쇱엯?대굹 ?뺣젹 ?뺤콉 蹂寃쎌쓣 異붽??섏? ?딅뒗??
+- `suggestTodayTasks()`??`filter`, `sort(compareRecommendedTasks)`, `slice(limit)` 議곕┰留??대떦?섎룄濡?以꾩씤??
+
+comparator 遺꾨━ ??諛붾뚮㈃ ???섎뒗 ?숈옉:
+
+- `done` ?곹깭 ?낅Т ?쒖쇅 議곌굔
+- ?먯닔 ?대┝李⑥닚 ?곗꽑 ?뺣젹
+- ?먯닔 ?숈젏 ??dueDate 鍮좊Ⅸ ???뺣젹
+- ?먯닔 ?숈젏 ??dueDate媛 ?덈뒗 ?낅Т瑜?dueDate ?녿뒗 ?낅Т蹂대떎 ?곗꽑?섎뒗 ?숈옉
+- ???낅Т 紐⑤몢 dueDate媛 ?녾굅??invalid????comparator媛 `0`??諛섑솚?섎뒗 ?숈옉
+- 異붿쿇 ?낅Т 湲곕낯 諛섑솚 媛쒖닔 3媛?- 吏??留덇컧/7???대궡 留덇컧 紐⑸줉 怨꾩궛怨?異붿쿇 ?낅Т ?뺣젹????븷 援щ텇
+
+?ν썑 ?덉쟾??肄붾뱶 遺꾨━ ?쒖꽌:
+
+1. ?섎룞 ?뚯뒪??泥댄겕由ъ뒪?몄쓽 異붿쿇 ?뺣젹 ??ぉ??癒쇱? ?뺤씤?쒕떎.
+2. `compareRecommendedTasks(a, b)`瑜?`recommendationScore.ts`??異붽??섎릺 湲곗〈 comparator 肄붾뱶瑜?洹몃?濡???릿??
+3. `RuleBasedAIProvider.suggestTodayTasks()`??`.sort()`????comparator留??곌껐?쒕떎.
+4. `filter(task => task.status !== "done")`? `slice(0, limit)`??provider??洹몃?濡??붾떎.
+5. `npm run build` ??異붿쿇 ?낅Т ?쒖꽌, 理쒕? 3媛?諛섑솚, dueDate ?놁쓬/invalid date 泥섎━ ??ぉ???섎룞 ?뺤씤?쒕떎.
+6. 臾몄젣媛 ?놁쓣 ?뚮쭔 ?ㅼ쓬 ?④퀎?먯꽌 today 二쇱엯 媛?μ꽦?대굹 selector???щ?瑜?寃?좏븳??
+
+## 18. ?곗씠??DB 媛쒖꽑 怨꾪쉷
+
+- Dexie schema 蹂寃???migration 怨꾪쉷???묒꽦?쒕떎.
+- `dueDate` 湲곕컲 議고쉶媛 留롮쑝誘濡??몃뜳??異붽?媛 ?꾩슂?쒖? 寃?좏븳??
+- ?꾨줈?앺듃 ??젣 ??愿???낅Т 泥섎━ ?뺤콉??紐낇솗???쒕떎.
+- ?낅Т媛 ?녿뒗 ?꾨줈?앺듃留???젣?섎뒗 ?꾩옱 UI ?뺤콉??store/臾몄꽌?먯꽌??紐낇솗???좎??쒕떎.
+- `updateAppSettings`??`updatedAt`???먮룞 媛깆떊?쒕떎???꾩옱 ?뺤콉???좎??쒕떎.
+- settings??`firstLaunchCompleted`???꾩옱 ?쎄린 ?꾩슜 ?쒖떆?대ŉ, ?ν썑 ?대? onboarding ?곹깭濡??④만吏 寃곗젙?쒕떎.
+- ?좎쭨 媛믪? `YYYY-MM-DD` 臾몄옄?대줈 ?좎??좎?, 蹂꾨룄 ?좎쭨 ?좏떥???섏? 寃곗젙?쒕떎.
+- future schema version 異붽? ??湲곗〈 IndexedDB ?곗씠??蹂댁〈???곗꽑?쒕떎.
+
+## 19. ?뚯뒪??寃利?怨꾪쉷
+
+- 蹂寃??덉슜 ??湲곕낯 寃利앹? `npm run build`濡??쒕떎.
+- lint ?ㅽ뻾? ?ъ슜???덉슜 ??`npm run lint`濡??쒕떎.
+- ?뚯뒪???꾧뎄 ?꾩엯 ?꾧퉴吏???듭떖 ?쒕굹由ъ삤瑜??섎룞 泥댄겕由ъ뒪?몃줈 愿由ы븳??
+- ?곗꽑 寃利앺빐?????쒕굹由ъ삤
+  - ??珥덇린 ?ㅽ뻾 ??湲곕낯 ?꾨줈?앺듃 ?앹꽦
+  - ?낅Т 異붽?
+  - ?낅Т ?섏젙
+  - ?낅Т ??젣
+  - ?꾨즺/誘몄셿猷??좉?
+  - ?꾨줈?앺듃 異붽?
+  - ?꾨줈?앺듃 ?섏젙
+  - 湲곕낯 ?꾨줈?앺듃 ??젣 諛⑹?
+  - ?낅Т媛 ?덈뒗 ?꾨줈?앺듃 ??젣 諛⑹?
+  - ?ㅻ뒛 ?붾㈃ 異붿쿇/吏??留덇컧/?덉젙 ?낅Т ?쒖떆
+- 異뷀썑 ?뚯뒪???꾩엯 ???곗꽑 ???  - `RuleBasedAIProvider`
+  - ?좎쭨 怨꾩궛 ?좏떥
+  - store CRUD 濡쒖쭅
+  - ?꾪꽣/?뺣젹 selector
+
+## 20. Android/Capacitor ?꾪솚 ??泥댄겕由ъ뒪??
+- ??MVP ?듭떖 湲곕뒫 ?덉젙??- `App.tsx` 遺꾨━ ?꾨즺
+- IndexedDB ????뺤콉 ?뺤씤
+- ?곗씠??諛깆뾽/蹂듦뎄 ?꾨왂 寃??- Android WebView?먯꽌 IndexedDB ?숈옉 ?뺤씤 怨꾪쉷 ?섎┰
+- ?뚮┝ 湲곕뒫 ?꾩엯 ?щ? ?ш???- Android notification 沅뚰븳 ?붿껌 ?뺤콉 寃곗젙
+- 媛쒖씤?뺣낫 泥섎━ 諛⑺뼢 臾몄꽌??- ?ㅽ봽?쇱씤 ?숈옉 寃利?- ?붾㈃ ?ш린蹂?紐⑤컮??UI 寃利?- Google Play ?깅줉???꾩슂?????대쫫, ?꾩씠肄? ?ㅻ
+챸, 媛쒖씤?뺣낫泥섎━諛⑹묠 以鍮?
+## 21. ?ㅼ쓬 ?묒뾽 ?곗꽑?쒖쐞
+
+1. ?꾩옱 臾몄꽌? 肄붾뱶 ?곹깭 ?숆린??[?꾨즺]
+2. ?꾩옱 鍮뚮뱶 媛???щ? ?뺤씤 [?꾨즺]
+3. `App.tsx` 遺꾨━ ?ㅺ퀎 [?꾨즺]
+4. `SettingsView`, `TodayView`, `TasksView`, `ProjectsView` ?붾㈃ 而댄룷?뚰듃 遺꾨━ [?꾨즺]
+5. ?낅Т/?꾨줈?앺듃 ??而댄룷?뚰듃 遺꾨━ 諛?以묐났 異뺤냼 [?꾨즺]
+6. ?낅Т ?꾪꽣/?뺣젹 ?좏떥 遺꾨━ [?꾨즺]
+7. ?좎쭨 怨꾩궛 濡쒖쭅 以묐났 ?쒓굅 (TodayView 諛?RuleBasedAIProvider ??
+8. `App.tsx`???⑥? CRUD ?몃뱾?ъ? form ?곹깭 ?뺣━ 怨꾪쉷 ?섎┰
+9. ?ㅼ젙 ?몄쭛 湲곕뒫 異붽? ?щ? 寃곗젙
+10. DB migration 洹쒖튃 臾몄꽌??11. RuleBasedAIProvider 媛쒖꽑
+12. Android/Capacitor ?꾪솚 以鍮?臾몄꽌 ?묒꽦
+
+## 22. 異붿쿇/?좎쭨 ?좏떥 援ъ“ ?숆린??
+理쒓렐 由ы뙥?곕쭅?쇰줈 異붿쿇 ?낅Т? ?좎쭨 怨꾩궛 梨낆엫? ?ㅼ쓬泥섎읆 ?뺣━?섏뿀??
+
+- `src/ai/recommendationScore.ts`
+  - `priorityScore`: `high`, `medium`, `low` ?곗꽑?쒖쐞瑜?異붿쿇 ?먯닔濡?蹂?섑븳??
+  - `getTaskScore`: ?곗꽑?쒖쐞 ?먯닔? 留덇컧???먯닔瑜??⑹궛?쒕떎.
+  - `compareRecommendedTasks`: 異붿쿇 ?낅Т ?뺣젹???대떦?쒕떎. ?먯닔 ?대┝李⑥닚, ?숈젏 ??dueDate 鍮좊Ⅸ ?? ?쒖そ留?dueDate媛 ?
+덉쑝硫?dueDate ?덈뒗 ?낅Т ?곗꽑, ?????녾굅??invalid?대㈃ `0` 諛섑솚 湲곗????좎??쒕떎.
+- `src/ai/RuleBasedAIProvider.ts`
+  - 異붿쿇 ?먮쫫 議곕┰???대떦?쒕떎.
+  - `suggestTodayTasks()`???꾨즺?섏? ?딆? ?낅Т ?꾪꽣留? 異붿쿇 comparator ?곸슜, `limit` 媛쒖닔 諛섑솚??議곕┰?쒕떎.
+  - `findOverdueTasks()`? `findUpcomingTasks()`??怨듭슜 date predicate瑜??ъ슜??吏??留덇컧/?덉젙 ?낅Т 紐⑸줉???쒓났?쒕
+떎.
+  - `summarizeTasks()`???낅Т ?듦퀎? ?좎쭨 紐⑸줉 媛쒖닔瑜?臾몄옄?대줈 留뚮뱺??
+- `src/utils/dateUtils.ts`
+  - `startOfToday`, `parseDueDate`, `isOverdueTask`, `isUpcomingTask`瑜??쒓났?쒕떎.
+  - 鍮꾩뼱 ?덇굅??invalid??`dueDate`???좎쭨 湲곕컲 紐⑸줉怨?異붿쿇 留덇컧???먯닔?먯꽌 ?덉쟾?섍쾶 ?쒖쇅?쒕떎.
+- `src/utils/taskDates.ts`
+  - Today ?붾㈃??吏??留덇컧 ?낅Т? 7???대궡 留덇컧 ?낅Т 紐⑸줉 怨꾩궛???대떦?쒕떎.
+  - ?대? ?먮떒? `dateUtils`??predicate helper瑜??ъ궗?⑺븳??
+
+App.tsx 由ы뙥?곕쭅 吏꾪뻾 ?곹깭:
+
+- ?붾㈃ 而댄룷?뚰듃(`TodayView`, `TasksView`, `ProjectsView`, `SettingsView`) 遺꾨━???꾨즺?덈떎.
+- ?쒖떆 而댄룷?뚰듃(`TaskCard`, `ProjectCard`)? ??而댄룷?뚰듃(`TaskForm`, `ProjectForm`) 遺꾨━???꾨즺?덈떎.
+- ?뚯깮 怨꾩궛 ?좏떥(`taskLabels`, `taskDates`, `taskFilters`, `taskSummary`, `projectLookup`, `projectStats
+`) 遺꾨━??吏꾪뻾?덈떎.
+- `App.tsx`?먮뒗 ?꾩쭅 ??珥덇린?? ???곹깭, ?낅Т/?꾨줈?앺듃 form ?곹깭, CRUD ?몃뱾?? ?붾㈃ props 議곕┰ 梨낆엫???⑥븘 ?덈떎.
+
+?ㅼ쓬 異붿쿇 ?묒뾽 ?꾨낫:
+
+1. `App.tsx`???⑥? unused import/state/helper瑜??뺣━?쒕떎.
+2. ?ㅼ젙 ?붾㈃? ?꾩옱 ?쎄린 ?꾩슜 ?곹깭 ?뺤씤 ?붾㈃?대ŉ, ?ㅼ젣 ?몄쭛 湲곕뒫? 蹂꾨룄 ?뺤콉怨??섎룞 ?뚯뒪??湲곗????뺤젙????寃?좏븳??
+3. 異붿쿇 濡쒖쭅? ?섎룞 ?뚯뒪??泥댄겕由ъ뒪?몃줈 ?먯닔/?뺣젹 ?뚭?瑜??뺤씤????湲곕뒫 異붽? ?щ?瑜?寃곗젙?쒕떎.
+
+## 23. ?ㅼ젙 ????뺤콉怨??몄쭛 湲곕뒫 吏꾩엯 湲곗?
+
+?ㅼ젙 ?붾㈃? ?꾩옱 ?쎄린 ?꾩슜 ?곹깭 ?뺤씤 ?붾㈃?대떎. ?ν썑 ?ㅼ젣 ?몄쭛 湲곕뒫??異붽??섍린 ?꾩뿉 ?꾩옱 ???援ъ“? 媛깆떊 湲곗????꾨옒泥섎읆 怨좎젙?쒕
+떎.
+
+?꾩옱 ??낃낵 ???援ъ“:
+
+- `AppSettings`???깆뿉???ъ슜?섎뒗 ?ㅼ젙 媛믪씠??
+  - `theme: "light"`
+  - `language: "ko"`
+  - `aiProvider: "rule_based"`
+  - `enableNotifications: false`
+  - `firstLaunchCompleted: boolean`
+  - `createdAt: string`
+  - `updatedAt: string`
+- `StoredAppSettings`??`AppSettings`??IndexedDB key??`id: string`???뷀븳 ??μ슜 ??낆씠??
+- ?꾩옱 ?ㅼ젙 ?덉퐫?쒕뒗 Dexie `appSettings` ?뚯씠釉붿뿉 `id: "app-settings"`濡?1媛쒕쭔 ??ν븳??
+- Zustand store??`fetchAppSettings()`?먯꽌 ????덉퐫?쒖쓽 `id`瑜??쒓굅?섍퀬 `appSettings` ?곹깭??`AppSettings`留?蹂닿
+??쒕떎.
+
+湲곕낯 ?ㅼ젙 ?앹꽦 ?먮쫫:
+
+- `initializeApp()`??`db.ensureDefaultData()`瑜?癒쇱? ?몄텧?쒕떎.
+- `ensureDefaultData()`??`appSettings` ?뚯씠釉붿뿉??`app-settings` ?덉퐫?쒕? 李얜뒗??
+- ?덉퐫?쒓? ?놁쑝硫?湲곕낯媛믪쓣 ?앹꽦?쒕떎.
+- 湲곕낯媛믪? light theme, ko language, rule_based provider, notifications disabled, firstLaunchCompleted 
+false??
+- `createdAt`怨?`updatedAt`? ?앹꽦 ?쒖젏??ISO 臾몄옄?대줈 ??ν븳??
+
+?꾩옱 `updateAppSettings` ?숈옉:
+
+- `updateAppSettings(settings)`???꾨떖諛쏆? `settings`???꾩옱 ?쒓컖??`updatedAt`???뷀븳 ??`id: "app-settings"`瑜
+?遺숈뿬 `db.appSettings.put()`?쇰줈 ??ν븳??
+- ?????Zustand `appSettings` ?곹깭瑜?`updatedAt`??媛깆떊???ㅼ젙 媛믪쑝濡?援먯껜?쒕떎.
+- ?꾩옱 SettingsView???쎄린 ?꾩슜 ?붾㈃?대?濡?`updateAppSettings`瑜?吏곸젒 ?몄텧?섏? ?딅뒗??
+- ?ν썑 ?ㅼ젣 ?몄쭛 湲곕뒫??援ы쁽???뚮뒗 媛믪씠 ?ㅼ젣濡?諛붾?寃쎌슦?먮쭔 `updateAppSettings`瑜??몄텧?쒕떎.
+
+`updatedAt` 媛깆떊 湲곗?:
+
+- ?ъ슜?먭? ?ㅼ젙 媛믪쓣 ?ㅼ젣濡?蹂寃쏀빐 ??ν븷 ?뚮쭔 媛깆떊?쒕떎.
+- ?ㅼ젙 ?붾㈃???⑥닚???닿굅???꾩옱 媛믪쓣 ?쒖떆?섎뒗 寃껊쭔?쇰줈??媛깆떊?섏? ?딅뒗??
+- ???踰꾪듉???뚮?吏留?媛믪씠 ?댁쟾 媛믨낵 媛숈쑝硫?媛깆떊?섏? ?딅뒗 諛⑺뼢???곗꽑 寃?좏븳??
+- `createdAt`? 理쒖큹 ?앹꽦 ?쒖젏 ?댄썑 蹂寃쏀븯吏 ?딅뒗??
+- ?щ윭 ?ㅼ젙????踰덉뿉 ??ν븯硫?`updatedAt`? ????묒뾽 1??湲곗??쇰줈 ??踰덈쭔 媛깆떊?쒕떎.
+
+?몄쭛 ?꾨낫? MVP 踰붿쐞:
+
+- `theme`: ?꾩옱 ??낆? `"light"`留??덉슜?섎?濡?MVP?먯꽌???쎄린 ?꾩슜 ?쒖떆留??좎??쒕떎. dark theme??異붽??섎젮硫???? UI, CSS
+, ????뺤콉???④퍡 ?꾩슂?섎?濡?蹂꾨룄 ?묒뾽?쇰줈 遺꾨━?쒕떎.
+- `language`: ?꾩옱 ??낆? `"ko"`留??덉슜?섎?濡?MVP?먯꽌???쎄린 ?꾩슜 ?쒖떆留??좎??쒕떎. ?ㅺ뎅?대? 異붽??섎젮硫?臾몄옄??由ъ냼??援ъ“媛 癒
+쇱? ?꾩슂?섎떎.
+- `aiProvider`: ?꾩옱 ??낆? `"rule_based"`留??덉슜?섎?濡?MVP?먯꽌???쎄린 ?꾩슜 ?쒖떆留??좎??쒕떎. ?몃? AI provider???쒕쾭 A
+PI/?ㅽ듃?뚰겕 ?뺤콉怨?異⑸룎?????덉뼱 ?꾩옱 踰붿쐞?먯꽌 ?쒖쇅?쒕떎.
+- `enableNotifications`: ?꾩옱 ??낆? `false`留??덉슜?섎?濡?MVP?먯꽌???쎄린 ?꾩슜 ?쒖떆留??좎??쒕떎. ?뚮┝ 沅뚰븳 ?붿껌怨?Android
+ notification? 湲덉? ?곹깭?대?濡??몄쭛 湲곕뒫?쇰줈 耳쒖? ?딄쾶 ?쒕떎.
+- `firstLaunchCompleted`: ?꾩옱 boolean?쇰줈 ???媛?ν븯吏留?SettingsView?먯꽌???쎄린 ?꾩슜?쇰줈留??쒖떆?쒕떎. ?ν썑 ?쇰컲 ?ㅼ
+젙?먯꽌 ?④린怨??대? onboarding ?곹깭濡?愿由ы븷吏 蹂꾨룄 ?묒뾽?먯꽌 寃곗젙?쒕떎.
+
+DB schema 蹂寃??놁씠 援ы쁽 媛?ν븳 踰붿쐞:
+
+- 湲곗〈 `appSettings` ?⑥씪 ?덉퐫?쒖쓽 媛믪쓣 ?쎄퀬 ??ν븳??
+- `firstLaunchCompleted` boolean 蹂寃쎌? schema 蹂寃??놁씠 媛?ν븯??
+- ?꾩옱 ???union???녿뒗 媛믪쓣 異붽??섏? ?딅뒗??
+- `theme`, `language`, `aiProvider`, `enableNotifications`???좏깮吏瑜??섎━吏 ?딅뒗??
+- ?????湲곗〈 `createdAt`???좎??섍퀬 `updatedAt`留??뺤콉??留욊쾶 媛깆떊?쒕떎.
+
+以묐떒 湲곗?:
+
+- ???ㅼ젙 媛믪쓣 ?꾪빐 `AppSettings` ???union???뺤옣?댁빞 ?섎㈃ 蹂꾨룄 ?묒뾽?쇰줈 遺꾨━?쒕떎.
+- Dexie schema version 蹂寃쎌씠 ?꾩슂?섎㈃ migration 怨꾪쉷??癒쇱? 臾몄꽌?뷀븯怨?以묐떒?쒕떎.
+- ?뚮┝ 沅뚰븳 ?붿껌, 釉뚮씪?곗? Notification API, Capacitor, Android 沅뚰븳???꾩슂?섎㈃ 以묐떒?쒕떎.
+- ?쒕쾭 API, 濡쒓렇?? cloud sync, localStorage媛 ?꾩슂?섎㈃ 以묐떒?쒕떎.
+- `App.css` ?섏젙 ?놁씠??UI媛 遺덉븞?뺥븯硫?援ы쁽?섏? 留먭퀬 ?붿옄??而댄룷?뚰듃 怨꾪쉷留?臾몄꽌?뷀븳??
+
+?ㅼ젙 ?쎄린 ?꾩슜 ?붾㈃ 諛??ν썑 ?몄쭛 湲곕뒫 援ы쁽 ???섎룞 ?뚯뒪????ぉ:
+
+- ?ㅼ젙 ?붾㈃?먯꽌 ?꾩옱 theme, language, AI Provider, ?뚮┝, 泥??ㅽ뻾 ?곹깭媛 ?쒖떆?쒕떎.
+- ?덈줈怨좎묠 ??湲곗〈 ?ㅼ젙 媛믪씠 ?좎??쒕떎.
+- ?꾩옱 SettingsView?먯꽌???ъ슜?먭? ?ㅼ젙 媛믪쓣 吏곸젒 蹂寃쏀븷 ???녿떎.
+- `updatedAt`? SettingsView ?쒖떆留뚯쑝濡?諛붾뚯? ?딅뒗??
+- `createdAt`? ?ν썑 ?ㅼ젙 蹂寃?湲곕뒫??異붽??섎뜑?쇰룄 ?좎??쒕떎.
+- ?뚮┝ 沅뚰븳 ?붿껌??諛쒖깮?섏? ?딅뒗??
+- ?쒕쾭 API, localStorage, 濡쒓렇?? cloud sync, Capacitor媛 異붽??섏? ?딅뒗??
+
+## 29. App form state / CRUD handler custom hook 遺꾨━ 怨꾪쉷
+
+?대쾲 ?④퀎?먯꽌??肄붾뱶瑜?諛붾줈 遺꾨━?섏? ?딄퀬, `App.tsx`???⑥븘 ?덈뒗 ?ъ슜 以묒씤 梨낆엫??湲곗??쇰줈 ?ㅼ쓬 由ы뙥?곕쭅 ?쒖꽌瑜?怨좎젙?쒕떎. ?꾩옱 `
+App.tsx`???붾㈃ 而댄룷?뚰듃? ?좏떥 遺꾨━??留롮씠 吏꾪뻾?섏뿀吏留? ?낅Т/?꾨줈?앺듃 form ?곹깭? CRUD orchestration handler???꾩쭅 
+吏곸젒 ?뚯쑀?쒕떎.
+
+?꾩옱 `App.tsx`???⑥븘 ?덈뒗 form state:
+
+- ?낅Т 異붽? form state
+  - `isTaskFormOpen`
+  - `newTaskTitle`
+  - `newTaskDueDate`
+  - `newTaskPriority`
+  - `newTaskProjectId`
+  - `newTaskMemo`
+- ?낅Т ?섏젙 form state
+  - `editingTaskId`
+  - `editTaskTitle`
+  - `editTaskDueDate`
+  - `editTaskPriority`
+  - `editTaskMemo`
+  - `editTaskProjectId`
+- ?꾨줈?앺듃 異붽? form state
+  - `newProjectName`
+  - `newProjectDescription`
+- ?꾨줈?앺듃 ?섏젙 form state
+  - `editingProjectId`
+  - `editProjectName`
+  - `editProjectDescription`
+
+?꾩옱 `App.tsx`???⑥븘 ?덈뒗 CRUD / form handler:
+
+- ?낅Т handler
+  - `handleAddTask`
+  - `handleSaveEditTask`
+  - `handleDeleteTask`
+  - `handleToggleTaskDone`
+  - `handleStartEditTask`
+  - `handleCancelEditTask`
+- ?꾨줈?앺듃 handler
+  - `handleAddProject`
+  - `handleSaveEditProject`
+  - `handleDeleteProject`
+  - `handleStartEditProject`
+  - `handleCancelEditProject`
+
+store action怨?App handler????븷 援щ텇:
+
+- `store.ts`??action? IndexedDB ??? Zustand ?곹깭 媛깆떊, `updatedAt` 媛깆떊 媛숈? ?곗씠??怨꾩링 梨낆엫???대떦?쒕떎.
+- `App.tsx`??handler???낅젰媛?trim, 鍮?媛?諛⑹?, form reset, ?몄쭛 ?쒖옉/痍⑥냼 ?곹깭 蹂듭썝, ??젣 ?뺤씤李? 湲곕낯 ?꾨줈?앺듃 ??젣 諛
+⑹?, ?낅Т媛 ?곌껐???꾨줈?앺듃 ??젣 諛⑹? 媛숈? ?붾㈃ ?먮쫫怨??뺤콉 議곕┰???대떦?쒕떎.
+- custom hook??留뚮뱾 ??store action ?먯껜瑜?蹂듭젣?섏? ?딅뒗?? hook? ?붾㈃ ?곹깭? orchestration??臾띔퀬, ?ㅼ젣 ?곗씠??蹂寃
+쎌? 湲곗〈 store action??怨꾩냽 ?몄텧?쒕떎.
+
+custom hook ?꾨낫:
+
+- `useTaskFormState`: ?낅Т 異붽?/?섏젙 form 媛? form open ?곹깭, ?몄쭛 ?쒖옉/痍⑥냼/reset ?곹깭 ?꾪솚???대떦?섎뒗 ?꾨낫. 泥?肄붾뱶
+ 遺꾨━ ?꾨낫濡??곹빀?섎떎.
+- `useTaskActions`: ?낅Т 異붽?/?섏젙/??젣/?꾨즺 ?좉? orchestration???대떦?섎뒗 ?꾨낫. `useTaskFormState`媛 ?덉젙?붾맂 ??
+寃?좏븳??
+- `useProjectFormState`: ?꾨줈?앺듃 異붽?/?섏젙 form 媛? ?몄쭛 ?쒖옉/痍⑥냼/reset ?곹깭 ?꾪솚???대떦?섎뒗 ?꾨낫. ?낅Т form蹂대떎 ?꾨
+뱶 ?섍? ?곸뼱 ??? ?꾪뿕?꾨줈 遺꾨━?????덈떎.
+- `useProjectActions`: ?꾨줈?앺듃 異붽?/?섏젙/??젣 orchestration怨???젣 諛⑹? ?뺤콉 ?곌껐???대떦?섎뒗 ?꾨낫. 湲곕낯 ?꾨줈?앺듃 ??젣 
+諛⑹?? ?낅Т媛 ?덈뒗 ?꾨줈?앺듃 ??젣 諛⑹?媛 ?붾뱾由ъ? ?딆븘???쒕떎.
+
+諛붾줈 肄붾뱶 遺꾨━?섏? 留먯븘?????댁쑀:
+
+- `TasksView`? `ProjectsView` props媛 ?대? ?ш린 ?뚮Ц??hook 諛섑솚 媛앹껜瑜??섎せ ?ㅺ퀎?섎㈃ props 議곕┰ 梨낆엫????蹂듭옟?댁쭏 
+???덈떎.
+- form submit ?먮쫫??`FormEvent`? view ?대? inline submit wrapper??嫄몄퀜 ?덉뼱, 遺꾨━ 以?`preventDefault` ?꾩튂媛
+ 諛붾뚮㈃ 以묐났 ????먮뒗 ?덈줈怨좎묠 ?꾪뿕???덈떎.
+- ?몄쭛 痍⑥냼? ?????reset ??ぉ??留롮븘 ?섎굹?쇰룄 ?꾨씫?섎㈃ ?댁쟾 媛믪씠 ?ㅼ쓬 form???⑥쓣 ???덈떎.
+- ?꾨줈?앺듃 ??젣 ?뺤콉? store action??湲곕낯 ?꾨줈?앺듃 諛⑹?? App handler???낅Т ?곌껐 諛⑹?媛 ?섎돇???덉뼱, 臾대━?섍쾶 ??린硫??뺤
+콉 ?쇰?媛 ?щ씪吏????덈떎.
+- build???깃났?대룄 ?낅Т/?꾨줈?앺듃 異붽?, ?섏젙, 痍⑥냼, ??젣, ?꾪꽣, ?듦퀎源뚯? ?섎룞 ?뚭? 踰붿쐞媛 ?볥떎.
+
+?덉쟾??遺꾨━ ?쒖꽌:
+
+1. ?꾩옱 `App.tsx` form state? handler 紐⑸줉??臾몄꽌 湲곗??쇰줈 ?ㅼ떆 ?뺤씤?쒕떎.
+2. 肄붾뱶 泥??④퀎?먯꽌??`useProjectFormState` ?먮뒗 `useTaskFormState`泥섎읆 form state? reset/start/cancel留?遺꾨━
+?쒕떎.
+3. submit handler??泥섏쓬遺??hook?쇰줈 ??린吏 留먭퀬, form state hook ?곸슜 ???섎룞 ?뚯뒪?몃? 癒쇱? ?듦낵?쒗궓??
+4. ?ㅼ쓬 ?④퀎?먯꽌 異붽?/?섏젙 submit helper瑜??묒? 踰붿쐞濡?遺꾨━?쒕떎.
+5. ??젣? ?꾨즺 ?좉? handler??留덉?留됱뿉 寃?좏븳?? ?뱁엳 ?꾨줈?앺듃 ??젣 諛⑹? ?뺤콉? 蹂꾨룄 ?뚭? ?뚯뒪?????대룞?쒕떎.
+6. hook 諛섑솚媛믪? view props ?대쫫怨?留욎텛?? `TasksView`/`ProjectsView` ?꾩껜 援ъ“瑜??ㅼ떆 ?ㅼ쭛吏 ?딅뒗??
+7. 媛??④퀎留덈떎 `npm run build`? ?섎룞 ?뚯뒪??泥댄겕由ъ뒪?몄쓽 ?낅Т/?꾨줈?앺듃 form ??ぉ???뺤씤?쒕떎.
+
+以묐떒 議곌굔:
+
+- `TasksView` ?먮뒗 `ProjectsView` props媛 ?꾩옱蹂대떎 ???쎄린 ?대젮?????媛앹껜濡?諛붾먮떎.
+- hook??store action怨?媛숈? ?곗씠?????濡쒖쭅??以묐났 援ы쁽?섍린 ?쒖옉?쒕떎.
+- form state 遺꾨━留뚯쑝濡??앸굹吏 ?딄퀬 view JSX??移대뱶/form 而댄룷?뚰듃 援ъ“ ?ъ옉?낆씠 ?꾩슂?댁쭊??
+- build???섏?留??섎룞 ?뚯뒪??踰붿쐞媛 ?낅Т/?꾨줈?앺듃 ?꾩껜 ?뚭?瑜???踰덉뿉 ?붽뎄??留뚰겮 而ㅼ쭊??
+- 湲곕낯 ?꾨줈?앺듃 ??젣 諛⑹?, ?낅Т媛 ?덈뒗 ?꾨줈?앺듃 ??젣 諛⑹?, ?몄쭛 痍⑥냼 reset ?뺤콉 以??섎굹?쇰룄 遺덈챸?뺥빐吏꾨떎.
+- `App.css`, DB schema, `types.ts`, `store.ts` 援ъ“ 蹂寃쎌씠 ?꾩슂?댁쭊??
+
+?ν썑 肄붾뱶 遺꾨━ ???곗꽑 ?뺤씤???섎룞 ?뚯뒪??
+
+- ?낅Т 異붽? form ?닿린/?リ린? ??????낅젰媛?reset
+- ?낅Т ?섏젙 ?쒖옉/痍⑥냼/?????湲곗〈 紐⑸줉 ?쒖떆 ?좎?
+- ?낅Т ?꾨즺/誘몄셿猷??좉?怨???젣 ?뺤씤李?- ?꾨줈?앺듃 異붽? form ??????낅젰媛?reset
+- ?꾨줈?앺듃 ?섏젙 ?쒖옉/痍⑥냼/?????湲곗〈 ?듦퀎 ?쒖떆 ?좎?
+- 湲곕낯 ?꾨줈?앺듃 ??젣 諛⑹?
+- ?낅Т媛 ?곌껐???꾨줈?앺듃 ??젣 諛⑹?
+- ?낅Т/?꾨줈?앺듃 蹂寃????ㅻ뒛 ?붾㈃ ?듦퀎? ?꾨줈?앺듃蹂??낅Т ???좎?
+
+## 30. useProjectActions 遺꾨━ 寃??湲곗?
+
+`useProjectFormState` 遺꾨━???꾨즺?섏뿀怨? ?꾩옱 ?꾨줈?앺듃 ?낅젰媛믨낵 ?섏젙 ???id, ?섏젙 ?쒖옉/痍⑥냼/reset? hook???대떦?쒕떎. 洹
+몃윭???꾨줈?앺듃 異붽?/?섏젙/??젣 submit handler? ??젣 諛⑹? ?뺤콉? ?꾩쭅 `App.tsx`???⑥븘 ?덈떎. ?대쾲 ?④퀎?먯꽌????handler瑜?
+諛붾줈 ??린吏 ?딄퀬, `useProjectActions` 媛숈? hook?쇰줈 遺꾨━?????덈뒗 湲곗???臾몄꽌濡?怨좎젙?쒕떎.
+
+?꾩옱 `App.tsx`???⑥븘 ?덈뒗 ?꾨줈?앺듃 handler:
+
+- `handleAddProject`
+  - `FormEvent`?먯꽌 `preventDefault()`瑜??몄텧?쒕떎.
+  - `newProjectName.trim()`??鍮꾩뼱 ?덉쑝硫???ν븯吏 ?딅뒗??
+  - `addProject({ name, description })` store action???몄텧?쒕떎.
+  - ????깃났 ??`resetNewProjectForm()`???몄텧?쒕떎.
+- `handleSaveEditProject`
+  - `editProjectName.trim()`??鍮꾩뼱 ?덉쑝硫???ν븯吏 ?딅뒗??
+  - 湲곗〈 `project`????`name`, `description`??諛섏쁺??`updateProject()` store action???몄텧?쒕떎.
+  - ?????`resetEditProjectForm()`???몄텧?쒕떎.
+- `handleDeleteProject`
+  - `projectId === "default"`?대㈃ 利됱떆 以묐떒?쒕떎.
+  - `getProjectTaskStats(tasks, projectId)`濡??곌껐???낅Т ?섎? ?뺤씤?쒕떎.
+  - ?곌껐???낅Т媛 1媛??댁긽?대㈃ ??젣?섏? ?딅뒗??
+  - ??젣 ?뺤씤李쎌뿉???뺤씤??寃쎌슦?먮쭔 `deleteProject(projectId)` store action???몄텧?쒕떎.
+- `handleStartEditProject` / `handleCancelEditProject`
+  - ?꾩옱??`useProjectFormState`??`startEditProject()`? `resetEditProjectForm()`???몄텧?섎뒗 ?뉗? ?곌껐 ??븷留?
+?쒕떎.
+
+?꾩옱 梨낆엫 援щ텇:
+
+- `useProjectFormState`
+  - `editingProjectId`, `editProjectName`, `editProjectDescription`
+  - `newProjectName`, `newProjectDescription`
+  - ?낅젰 setter
+  - `startEditProject`
+  - `resetNewProjectForm`
+  - `resetEditProjectForm`
+- `App.tsx`
+  - form submit event 泥섎━
+  - ?낅젰媛?trim怨?鍮?媛?諛⑹?
+  - store action ?몄텧
+  - ??젣 ?뺤씤李??몄텧
+  - 湲곕낯 ?꾨줈?앺듃 ??젣 諛⑹?
+  - ?낅Т媛 ?곌껐???꾨줈?앺듃 ??젣 諛⑹?
+  - `ProjectsView`??props 議곕┰
+
+`useProjectActions` ?꾨낫 梨낆엫:
+
+- ?꾨줈?앺듃 異붽? submit orchestration
+- ?꾨줈?앺듃 ?섏젙 submit orchestration
+- ?꾨줈?앺듃 ??젣 orchestration
+- ??젣 媛???щ? ?먮떒 helper ?곌껐
+- ??젣 ?뺤씤李??몄텧 ?щ? 寃곗젙
+- ????깃났 ??`useProjectFormState` reset ?⑥닔 ?몄텧
+- 湲곗〈 store action???몄텧?섎릺, store action ?먯껜瑜?以묐났 援ы쁽?섏? ?딅뒗??
+
+諛붾줈 hook?쇰줈 ??린硫??꾪뿕???댁쑀:
+
+- 湲곕낯 ?꾨줈?앺듃 ??젣 諛⑹???store action怨?UI 踰꾪듉 disabled, App handler??嫄몄퀜 以묐났 諛⑹뼱?섍퀬 ?덈떎. hook ?대룞 以??섎굹?
+쇰룄 鍮좎?硫??뚭?媛 ?앷릿??
+- ?낅Т媛 ?덈뒗 ?꾨줈?앺듃 ??젣 諛⑹????꾩옱 App handler?먯꽌 `tasks`? `getProjectTaskStats()`濡??먮떒?쒕떎. hook?쇰줈 ??린
+硫?`tasks` ?섏〈?깆씠 異붽??섏뼱 hook 梨낆엫??而ㅼ쭊??
+- ??젣 ?뺤씤李??몄텧 ?꾩튂媛 諛붾뚮㈃ ?ъ슜?먭? ?ㅼ닔濡??꾨줈?앺듃瑜???젣?????덈떎.
+- 異붽?/?섏젙 ?????reset ?쒖젏??諛붾뚮㈃ form ?낅젰媛믪씠 ?덈Т 鍮⑤━ 吏?뚯?嫄곕굹, ????ㅽ뙣 ?꾩뿉???щ씪吏????덈떎.
+- `ProjectsView` props 援ъ“媛 handler 臾띠쓬 媛앹껜濡?諛붾뚮㈃ ?꾩옱 遺꾨━ 踰붿쐞瑜??섏뼱?쒕뒗 view props ?ъ꽕怨꾧? ?쒕떎.
+- handler媛 store action怨??덈Т 媛源뚯썙吏硫?hook???곗씠??怨꾩링 梨낆엫源뚯? 媛?멸컝 ???덈떎.
+
+?덉쟾??肄붾뱶 遺꾨━ ?쒖꽌:
+
+1. `handleStartEditProject`? `handleCancelEditProject`???대? form state hook???몄텧?섎뒗 ?뉗? wrapper?대?濡?
+ 諛붾줈 異붽? 遺꾨━?섏? ?딆븘???쒕떎.
+2. 泥?肄붾뱶 遺꾨━ ?꾨낫??`handleAddProject`? `handleSaveEditProject`??submit orchestration?대떎.
+3. 異붽?/?섏젙 submit????린湲??꾩뿉 hook ?몄옄濡??꾩슂??媛믨낵 ?⑥닔 紐⑸줉??紐낇솗???뺥븳??
+   - `newProjectName`
+   - `newProjectDescription`
+   - `editProjectName`
+   - `editProjectDescription`
+   - `addProject`
+   - `updateProject`
+   - `resetNewProjectForm`
+   - `resetEditProjectForm`
+4. ??젣 handler??留덉?留됱뿉 寃?좏븳??
+5. ??젣 handler瑜???린湲??꾩뿉????젣 媛???щ?瑜??쒖닔 helper濡?癒쇱? 遺꾨━?????덈뒗吏 寃?좏븳??
+   - ?? `canDeleteProject(projectId, tasks)` ?먮뒗 `getProjectDeleteBlockReason(projectId, tasks)`
+6. ??젣 諛⑹? helper瑜?遺꾨━?쒕떎硫?`ProjectCard` 踰꾪듉 disabled 議곌굔怨?App handler 議곌굔??媛숈? 湲곗????곕룄濡?留욎텣??
+7. 媛??④퀎留덈떎 `npm run build`? ?꾨줈?앺듃 ?섎룞 ?뚯뒪?몃? ?듦낵?????ㅼ쓬 ?④퀎濡??섏뼱媛꾨떎.
+
+以묐떒 議곌굔:
+
+- `useProjectActions`媛 store action怨?媛숈? IndexedDB ???濡쒖쭅??吏곸젒 援ы쁽?섍린 ?쒖옉?쒕떎.
+- ??젣 諛⑹? ?뺤콉??hook ?대??먯꽌留?蹂댁씠怨?`ProjectCard`??disabled ?쒖떆 湲곗?怨??닿툔?쒕떎.
+- hook ?몄옄媛 ?덈Т 留롮븘??`App.tsx` props 議곕┰蹂대떎 ?댄빐?섍린 ?대젮?뚯쭊??
+- `ProjectsView` ?먮뒗 `ProjectForm` 援ъ“ 蹂寃쎌씠 ?꾩슂?댁쭊??
+- ??젣 ?뺤씤李? 湲곕낯 ?꾨줈?앺듃 諛⑹?, ?낅Т ?곌껐 ?꾨줈?앺듃 諛⑹? 以??섎굹?쇰룄 ?숈옉 湲곗???遺덈챸?뺥빐吏꾨떎.
+- ?꾨줈?앺듃 handler ?대룞留뚯쑝濡??앸굹吏 ?딄퀬 ?낅Т form/handler源뚯? ?④퍡 嫄대뱶?ㅼ빞 ?섎뒗 ?곹솴???쒕떎.
+
+?ν썑 肄붾뱶 遺꾨━ ???섎룞 ?뚯뒪????ぉ:
+
+- ?꾨줈?앺듃 ?대쫫留??낅젰??異붽??쒕떎.
+- ?꾨줈?앺듃 ?대쫫怨??ㅻ챸???낅젰??異붽??쒕떎.
+- 鍮??대쫫?쇰줈???꾨줈?앺듃媛 異붽??섏? ?딅뒗??
+- 異붽? ?????form ?낅젰媛믪씠 reset?쒕떎.
+- ?꾨줈?앺듃 ?섏젙 ?쒖옉 ??湲곗〈 ?대쫫/?ㅻ챸??form??梨꾩썙吏꾨떎.
+- ?꾨줈?앺듃 ?섏젙 痍⑥냼 ???낅젰媛믪씠 ?⑥? ?딅뒗??
+- ?꾨줈?앺듃 ?섏젙 ??????꾨줈?앺듃 ?듦퀎媛 ?좎??쒕떎.
+- 湲곕낯 ?꾨줈?앺듃????젣?섏? ?딅뒗??
+- ?낅Т媛 ?덈뒗 ?꾨줈?앺듃????젣?섏? ?딅뒗??
+- ?낅Т媛 ?녿뒗 ?ъ슜???꾨줈?앺듃???뺤씤 ????젣?쒕떎.
+- ??젣 痍⑥냼 ???꾨줈?앺듃媛 ?좎??쒕떎.
+- ?꾨줈?앺듃 ??젣/?섏젙 ???ㅻ뒛 ?붾㈃怨??낅Т ?붾㈃???꾨줈?앺듃 ?대쫫 ?쒖떆媛 ?좎??쒕떎.
+
+## 31. ?꾨줈?앺듃 hook/helper ?꾩옱 援ъ“
+
+?꾨줈?앺듃 ?곸뿭? `App.tsx` 鍮꾨??붾? 以꾩씠湲??꾪빐 form state, action orchestration, ??젣 媛???щ? ?먮떒???묒? ?⑥쐞濡?遺꾨
+━???곹깭?? ?꾩옱 ??젣 handler??`useProjectActions`濡??대룞?덈떎.
+
+?꾩옱 遺꾨━??梨낆엫:
+
+- `useProjectFormState`
+  - ?꾨줈?앺듃 異붽? form ?낅젰媛믪쓣 愿由ы븳??
+  - ?꾨줈?앺듃 ?섏젙 form ?낅젰媛믨낵 ?섏젙 ???id瑜?愿由ы븳??
+  - `resetNewProjectForm`, `resetEditProjectForm`, `startEditProject`濡?異붽?/?섏젙 form??reset, ?섏젙 ?쒖옉, 
+?섏젙 痍⑥냼 ?먮쫫???대떦?쒕떎.
+- `useProjectActions`
+  - ?꾨줈?앺듃 異붽? submit orchestration???대떦?쒕떎.
+  - ?꾨줈?앺듃 ?섏젙 submit orchestration???대떦?쒕떎.
+  - ?꾨줈?앺듃 ?대쫫 trim怨?鍮??대쫫 ???諛⑹?瑜??좎??쒕떎.
+  - ????깃났 ??湲곗〈 reset ?쒖젏???좎??쒕떎.
+  - ??젣 handler? ??젣 ?뺤씤李쎌? ?대떦?섏? ?딅뒗??
+- `projectDeletion`
+  - 湲곕낯 ?꾨줈?앺듃 ??젣 諛⑹? 湲곗????쒓났?쒕떎.
+  - ?낅Т媛 ?곌껐???꾨줈?앺듃 ??젣 諛⑹? 湲곗????쒓났?쒕떎.
+  - `ProjectCard`????젣 踰꾪듉 disabled 湲곗?怨?`App.tsx`??handler 諛⑹뼱 湲곗???媛숈? helper濡??듭씪?쒕떎.
+
+`App.tsx`???⑥븘 ?덈뒗 ?꾨줈?앺듃 梨낆엫:
+
+- `handleDeleteProject`
+- ??젣 ????꾨줈?앺듃 議고쉶
+- `getProjectDeleteBlockReason(project, tasks)`瑜??듯븳 理쒖쥌 ??젣 諛⑹뼱
+- `window.confirm("?뺣쭚濡????꾨줈?앺듃瑜???젣?섏떆寃좎뒿?덇퉴?")` ?뺤씤 ?먮쫫
+- ?ㅼ젣 `deleteProject(projectId)` store action ?몄텧
+- `ProjectsView`???꾨줈?앺듃 form state? handler props瑜?議곕┰???꾨떖?섎뒗 梨낆엫
+
+?꾨줈?앺듃 ??젣 handler瑜??꾩쭅 `App.tsx`???좎??섎뒗 ?댁쑀:
+
+- ??젣???뚭눼?곸씤 ?숈옉?대?濡?confirm ?꾩튂? store action ?몄텧 ?쒖젏??諛붾뚮㈃ ?뚭? ?꾪뿕???щ떎.
+- ??젣 諛⑹? ?뺤콉? 踰꾪듉 disabled? handler 諛⑹뼱媛 ?④퍡 留욎븘???섎?濡? helper 遺꾨━ ???섎룞 ?뚯뒪?몃? 癒쇱? ?듦낵?댁빞 ?쒕떎.
+- ??젣 handler源뚯? hook?쇰줈 ??린硫?`tasks`, `projects`, `deleteProject`, confirm ?먮쫫????hook??紐⑥뿬 梨낆엫??而ㅼ쭏
+ ???덈떎.
+- `useProjectActions`???꾩옱 異붽?/?섏젙 submit留??대떦?섎뒗 ?묒? hook?쇰줈 ?좎??섎뒗 ?몄씠 ?댄빐?섍린 ?쎈떎.
+
+?ㅼ쓬 ?묒뾽 ?꾨낫:
+
+1. ?꾨줈?앺듃 ??젣 handler瑜???린湲??꾩뿉 `docs/manual-test-checklist.md`???꾨줈?앺듃 ??젣 諛⑹? ??ぉ???ㅼ젣 ?붾㈃?먯꽌 ?뺤씤?쒕
+떎.
+2. ??젣 handler瑜?hook?쇰줈 ??릿?ㅻ㈃ `useProjectActions`??諛붾줈 ?⑹튂湲곕낫?? confirm ?먮쫫怨???젣 諛⑹? helper瑜??몄옄濡?諛쏅
+뒗 ?묒? ?뺤옣?쇰줈 寃?좏븳??
+3. ?꾨줈?앺듃 ?곸뿭蹂대떎 ?낅Т form state媛 ???щ?濡? ?ㅼ쓬 肄붾뱶 由ы뙥?곕쭅 ?꾨낫??`useTaskFormState`瑜?蹂꾨룄 ?묒뾽?쇰줈 ?묎쾶 遺꾨━?
+섎뒗 寃껋씠??
+4. ??젣 handler 遺꾨━ 以?`ProjectsView` props媛 ??而ㅼ?嫄곕굹 ??젣 ?뺤콉??hook ?대??먯꽌留?蹂댁씠寃??섎㈃ 以묐떒?섍퀬 臾몄꽌?붾줈 ?섎룎
+由곕떎.
+
+?ν썑 ?섎룞 ?뚯뒪??湲곗?:
+
+- ?꾨줈?앺듃 ?대쫫留??낅젰??異붽??덉쓣 ???뺤긽 ?앹꽦?섍퀬 異붽? form??reset?쒕떎.
+- ?꾨줈?앺듃 ?대쫫怨??ㅻ챸???낅젰??異붽??덉쓣 ??媛믪씠 ?좎??쒕떎.
+- 鍮??대쫫?쇰줈 ??ν븯硫??꾨줈?앺듃媛 ?앹꽦?섏? ?딅뒗??
+- ?꾨줈?앺듃 ?섏젙 ??????섏젙 form???ロ엳怨?蹂寃쎄컪??諛섏쁺?쒕떎.
+- 湲곕낯 ?꾨줈?앺듃 ??젣 踰꾪듉? 鍮꾪솢???곹깭?닿퀬 handler濡??꾨떖?섏뼱????젣?섏? ?딅뒗??
+- ?낅Т媛 ?곌껐???꾨줈?앺듃 ??젣 踰꾪듉? 鍮꾪솢???곹깭?닿퀬 handler濡??꾨떖?섏뼱????젣?섏? ?딅뒗??
+- ?낅Т媛 ?녿뒗 ?ъ슜???꾨줈?앺듃???뺤씤李쎌뿉???뺤씤??寃쎌슦?먮쭔 ??젣?쒕떎.
+- ??젣 痍⑥냼 ???꾨줈?앺듃媛 ?좎??쒕떎.
+- ?꾨줈?앺듃 ??젣/?섏젙 ??Today/Tasks ?붾㈃???꾨줈?앺듃 ?대쫫怨??듦퀎媛 源⑥?吏 ?딅뒗??
+
+## 32. useTaskActions 遺꾨━ 寃??湲곗?
+
+`useTaskFormState` 遺꾨━???꾨즺?섏뿀怨? ?낅Т 異붽?/?섏젙 form ?낅젰媛? ?섏젙 ???id, 異붽? form ?대┝ ?곹깭, reset/start/can
+cel ?먮쫫? hook???대떦?쒕떎. ?꾩옱 ?낅Т 異붽?/?섏젙 submit, ?꾨즺/誘몄셿猷??좉?, ?낅Т ??젣 orchestration? `useTaskActions
+`媛 ?대떦?쒕떎. ???뱀뀡? `useTaskActions`瑜?留뚮뱾 ??怨좎젙?덈뜕 ?쒖꽌? 踰붿쐞??湲곕줉?쇰줈 ?좎??쒕떎.
+
+?꾩옱 `App.tsx`???⑥븘 ?덈뒗 ?낅Т handler:
+
+- `handleAddTask`
+  - submit event??`preventDefault()`瑜??몄텧?쒕떎.
+  - `newTaskTitle.trim()`?쇰줈 鍮??쒕ぉ ??μ쓣 留됰뒗??
+  - `newTaskDueDate` 湲몄씠媛 10???꾨땲硫???ν븯吏 ?딅뒗??
+  - `addTask()` store action???몄텧?쒕떎.
+  - ????깃났 ??`resetNewTaskForm()`?쇰줈 異붽? form???リ퀬 ?낅젰媛믪쓣 珥덇린?뷀븳??
+- `handleSaveEditTask`
+  - `editTaskTitle.trim()`?쇰줈 鍮??쒕ぉ ??μ쓣 留됰뒗??
+  - `editTaskDueDate` 湲몄씠媛 10???꾨땲硫???ν븯吏 ?딅뒗??
+  - 湲곗〈 task???쒕ぉ, 硫붾え, 留덇컧?? ?곗꽑?쒖쐞, ?꾨줈?앺듃 id瑜?諛섏쁺??`updateTask()`瑜??몄텧?쒕떎.
+  - ?????`resetEditTaskForm()`?쇰줈 ?섏젙 ?곹깭瑜?珥덇린?뷀븳??
+- `handleDeleteTask`
+  - ??젣 ?뺤씤李쎌쓣 ?꾩슫??
+  - ?뺤씤??寃쎌슦?먮쭔 `deleteTask(task.id)`瑜??몄텧?쒕떎.
+- `handleToggleTaskDone`
+  - `done`?대㈃ `todo`, 洹??몄뿉??`done`?쇰줈 status瑜??꾪솚?쒕떎.
+  - 湲곗〈 task瑜??좎???梨?`updateTask()`瑜??몄텧?쒕떎.
+- `handleStartEditTask` / `handleCancelEditTask`
+  - ?꾩옱??`useTaskFormState`??`startEditTask()`? `resetEditTaskForm()`???몄텧?섎뒗 ?뉗? wrapper??
+
+`useTaskFormState`???꾩옱 梨낆엫:
+
+- ?낅Т 異붽? form state
+  - `isTaskFormOpen`
+  - `newTaskTitle`
+  - `newTaskDueDate`
+  - `newTaskPriority`
+  - `newTaskProjectId`
+  - `newTaskMemo`
+- ?낅Т ?섏젙 form state
+  - `editingTaskId`
+  - `editTaskTitle`
+  - `editTaskDueDate`
+  - `editTaskPriority`
+  - `editTaskMemo`
+  - `editTaskProjectId`
+- ?곹깭 ?꾪솚 helper
+  - `resetNewTaskForm`
+  - `resetEditTaskForm`
+  - `startEditTask`
+
+`App.tsx`???꾩옱 ?낅Т orchestration 梨낆엫:
+
+- ?낅Т 異붽?/?섏젙 submit event 泥섎━
+- 鍮??쒕ぉ 諛⑹?? trim ?뺤콉 ?좎?
+- ?좎쭨 ?낅젰 湲몄씠 諛⑹뼱
+- store action ?몄텧
+- ????깃났 ??reset ?쒖젏 寃곗젙
+- ??젣 ?뺤씤李??쒖떆
+- ?꾨즺/誘몄셿猷??좉? status 怨꾩궛
+- `TasksView`???낅Т form state, filter state, handler props瑜?議곕┰???꾨떖
+
+`useTaskActions` ?꾨낫 梨낆엫:
+
+- 1李??꾨낫???낅Т 異붽? submit怨??낅Т ?섏젙 submit留??대떦?쒕떎.
+- `addTask`, `updateTask`, ?꾩옱 form state 媛? reset ?⑥닔瑜??몄옄濡?諛쏆븘 orchestration留??섑뻾?쒕떎.
+- store action ?먯껜瑜?以묐났 援ы쁽?섏? ?딅뒗??
+- ?꾨즺/誘몄셿猷??좉?怨??낅Т ??젣???꾩옱 `useTaskActions`???ы븿?섏뼱 ?덈떎.
+- ??젣 handler? ?꾨즺 ?좉?? ?섎룞 ?뚯뒪??泥댄겕由ъ뒪??湲곗??쇰줈 ?뚭? ?щ?瑜??뺤씤?쒕떎.
+
+諛붾줈 hook?쇰줈 ??린硫??꾪뿕???댁쑀:
+
+- ?낅Т 異붽? ?깃났 ??form ?ロ옒怨??낅젰媛?reset ?쒖젏??諛붾????덈떎.
+- ?낅Т ?섏젙 ??????섏젙 form 珥덇린???쒖젏??諛붾????덈떎.
+- 鍮??쒕ぉ 諛⑹?? trim ?뺤콉???꾨씫?섎㈃ 鍮??낅Т媛 ??λ맆 ???덈떎.
+- ?꾨줈?앺듃 ?좏깮媛믪씠 ???珥덇린??怨쇱젙?먯꽌 ?섎せ ?좎??섍굅??`default`濡??뚯븘媛吏 ?딆쓣 ???덈떎.
+- ??젣 ?뺤씤李??꾩튂媛 諛붾뚮㈃ ?ъ슜?먭? ?섎룄?섏? ?딄쾶 ?낅Т瑜???젣???꾪뿕???덈떎.
+- ?꾨즺/誘몄셿猷??좉?? status ?꾪솚 洹쒖튃???⑥닚??蹂댁씠吏留?Today/Tasks/Projects ?듦퀎???④퍡 ?곹뼢??以??
+- `TasksView` props 援ъ“媛 怨쇰룄?섍쾶 諛붾뚮㈃ form state 遺꾨━蹂대떎 ????view ?ъ옉?낆쑝濡?踰덉쭏 ???덈떎.
+
+?덉쟾??肄붾뱶 遺꾨━ ?쒖꽌:
+
+1. `useTaskFormState` ?곸슜 ???낅Т 異붽?/?섏젙/痍⑥냼 ?섎룞 ?뚯뒪?몃? 癒쇱? ?섑뻾?쒕떎.
+2. `useTaskActions`瑜?留뚮뱺?ㅻ㈃ ?낅Т 異붽?/?섏젙 submit handler留?1李⑤줈 遺꾨━?쒕떎.
+3. 異붽?/?섏젙 submit 遺꾨━ ??`npm run build`? ?섎룞 ?뚯뒪??泥댄겕由ъ뒪?몃? ?듦낵?쒕떎.
+4. ??젣 handler???뺤씤李쎄낵 ??젣 ??Today/Projects ?듦퀎 ?뚭?瑜??곕줈 ?먭?????蹂꾨룄 ?묒뾽?쇰줈 寃?좏븳??
+5. ?꾨즺/誘몄셿猷??좉?? 留덉?留됱뿉 寃?좏븳??
+6. handler瑜?hook?쇰줈 ??린?붾씪??`TasksView`, `TaskForm`, `TaskCard` JSX 援ъ“???洹쒕え濡?諛붽씀吏 ?딅뒗??
+
+以묐떒 議곌굔:
+
+- `TasksView` props媛 吏湲덈낫???ш쾶 蹂듭옟?댁?嫄곕굹 handler bundle 媛앹껜濡?諛붾뚯뼱 ?먮쫫??遺덈챸?뺥빐吏??寃쎌슦
+- hook??`store.ts` action怨?媛숈? IndexedDB ???濡쒖쭅??吏곸젒 援ы쁽?섍린 ?쒖옉?섎뒗 寃쎌슦
+- ?낅Т ??젣? ?꾨즺 ?좉?源뚯? ??踰덉뿉 ??꺼 ?섎룞 ?뚯뒪??踰붿쐞媛 而ㅼ???寃쎌슦
+- ?꾨줈?앺듃 愿??hook/helper瑜??④퍡 ?섏젙?댁빞 ?섎뒗 寃쎌슦
+- `App.css`, DB schema, `types.ts`, `store.ts` 蹂寃쎌씠 ?꾩슂?댁???寃쎌슦
+
+?ν썑 肄붾뱶 遺꾨━ ???섎룞 ?뚯뒪????ぉ:
+
+- ?낅Т 異붽? form ?닿린/?リ린? ?낅젰媛?reset
+- ?쒕ぉ留??낅젰???낅Т 異붽?
+- ?쒕ぉ, 硫붾え, 留덇컧?? ?곗꽑?쒖쐞, ?꾨줈?앺듃瑜?紐⑤몢 ?낅젰???낅Т 異붽?
+- 鍮??쒕ぉ ???諛⑹?
+- ?섎せ???좎쭨 湲몄씠 ???諛⑹?
+- ?낅Т ?섏젙 ?쒖옉 ??湲곗〈 媛?梨꾩슦湲?- ?낅Т ?섏젙 痍⑥냼 ??湲곗〈 紐⑸줉 ?좎?? ?섏젙 ?낅젰媛?reset
+- ?낅Т ?섏젙 ?????蹂寃쎄컪 諛섏쁺怨??섏젙 form ?ロ옒
+- ?낅Т ??젣 ?뺤씤李?痍⑥냼/?뺤씤
+- ?꾨즺/誘몄셿猷??좉? ??Today ?듦퀎, Projects ?듦퀎, ?꾪꽣/?뺣젹 ?좎?
+
+## 33. ?낅Т hook ?꾩옱 援ъ“
+
+`useTaskFormState`? `useTaskActions`媛 異붽??섏뼱 ?낅Т ?곸뿭??form state, 異붽?/?섏젙 submit orchestration, ?꾨즺
+/誘몄셿猷??좉?, ?낅Т ??젣??`App.tsx` 諛뽰쑝濡??쇰? 遺꾨━?섏뿀??
+
+?꾩옱 遺꾨━??梨낆엫:
+
+- `useTaskFormState`
+  - ?낅Т 異붽? form ?낅젰媛믨낵 form open ?곹깭瑜?愿由ы븳??
+  - ?낅Т ?섏젙 form ?낅젰媛믨낵 ?섏젙 ???id瑜?愿由ы븳??
+  - `resetNewTaskForm`, `resetEditTaskForm`, `startEditTask`濡?異붽?/?섏젙 form??reset, ?섏젙 ?쒖옉, ?섏젙 痍⑥냼 ?
+먮쫫???대떦?쒕떎.
+- `useTaskActions`
+  - ?낅Т 異붽? submit orchestration???대떦?쒕떎.
+  - ?낅Т ?섏젙 submit orchestration???대떦?쒕떎.
+  - ?쒕ぉ trim怨?鍮??쒕ぉ ???諛⑹?瑜??좎??쒕떎.
+  - dueDate 湲몄씠 諛⑹뼱, memo trim, priority, projectId 諛섏쁺 湲곗????좎??쒕떎.
+  - ????깃났 ??湲곗〈 reset ?쒖젏???좎??쒕떎.
+  - ?꾨즺/誘몄셿猷??좉??먯꽌 `todo`? `done` ?곹깭 ?꾪솚??怨꾩궛?섍퀬 `updateTask`瑜??몄텧?쒕떎.
+  - ?낅Т ??젣 ?뺤씤李쎌쓣 ?쒖떆?섍퀬, ?뺤씤??寃쎌슦?먮쭔 `deleteTask(task.id)`瑜??몄텧?쒕떎.
+
+`App.tsx`???⑥븘 ?덈뒗 ?낅Т 梨낆엫:
+
+- `handleStartEditTask`? `handleCancelEditTask`???뉗? wrapper
+- `TasksView`???낅Т form state, ?꾪꽣 state, ?뺣젹 state, handler props瑜?議곕┰???꾨떖?섎뒗 梨낆엫
+
+?낅Т ??젣 handler瑜?`useTaskActions`濡??대룞?????뺤씤???댁쑀:
+
+- ??젣???뺤씤李??꾩튂? ?ㅼ젣 ??젣 ?몄텧 ?쒖젏??諛붾뚮㈃ ?뚭? ?꾪뿕???щ떎.
+- ??젣 ??Today ?듦퀎, Projects ?듦퀎, ?낅Т 紐⑸줉, ?꾨줈?앺듃蹂??낅Т ?섍? ?④퍡 諛붾먮떎.
+- ?꾨즺/誘몄셿猷??좉?? `useTaskActions`濡??대룞?덉쑝誘濡???젣 handler? 媛숈? ?묒뾽?먯꽌 ?ㅼ떆 ?욎? ?딅뒗??
+- ??젣???뚭눼???숈옉?대?濡?`useTaskActions`??異붽??섍린 ???섎룞 ?뚯뒪??湲곗???癒쇱? ?듦낵?댁빞 ?쒕떎.
+
+?ㅼ쓬 ?묒뾽 ?꾨낫:
+
+1. ?낅Т ??젣 handler瑜?hook?쇰줈 ??린湲??꾩뿉 ??젣 ?뺤씤李? ??젣 痍⑥냼, ??젣 ?뺤젙, ?듦퀎 媛깆떊 ?섎룞 ?뚯뒪?몃? 癒쇱? ?뺤씤?쒕떎.
+2. `useTaskActions`???꾨즺/誘몄셿猷??좉?? Today/Projects ?듦퀎? ?꾨즺 ?낅Т ?꾪꽣 ?뚭? ?뚯뒪?몃줈 ?뺤씤?쒕떎.
+3. ??젣 handler瑜?`useTaskActions`??異붽??좎?, 蹂꾨룄 ?묒? helper/hook?쇰줈 遺꾨━?좎? 臾몄꽌濡?癒쇱? 寃곗젙?쒕떎.
+4. ??젣 遺꾨━ 以?`TasksView` props媛 而ㅼ?嫄곕굹 handler 梨낆엫??遺덈챸?뺥빐吏硫?以묐떒?섍퀬 臾몄꽌?붾줈 ?섎룎由곕떎.
+
+?섎룞 ?뚯뒪??泥댄겕由ъ뒪?몄????쇱튂 湲곗?:
+
+- `docs/manual-test-checklist.md`???낅Т 異붽?/?섏젙 submit ??ぉ? ?꾩옱 `useTaskActions` 援ъ“ 湲곗??쇰줈 ?좎??쒕떎.
+- ?꾨즺/誘몄셿猷??좉? ??ぉ? ?꾩옱 `useTaskActions` ?뚭? 寃利???ぉ?쇰줈 蹂몃떎.
+- ??젣 handler ??ぉ???꾩옱 `useTaskActions` ?뚭? 寃利???ぉ?쇰줈 蹂몃떎.
+- ?ㅼ쓬 肄붾뱶 遺꾨━ ?꾩뿉???낅Т 異붽?/?섏젙/??젣/?꾨즺 ?좉? ?꾩껜 ??ぉ???ㅼ젣 ?붾㈃?먯꽌 癒쇱? ?뺤씤?쒕떎.
+
+## 34. ?낅Т ??젣 handler 遺꾨━ ??湲곗?
+
+?꾩옱 `handleDeleteTask`??`useTaskActions`濡??대룞?덈떎. ??handler???⑥닚??`deleteTask`瑜??몄텧?섎뒗 ?⑥닔媛 ?꾨땲?? ??
+젣 ?뺤씤李쎄낵 ?ㅼ젣 ??젣 ?ㅽ뻾 ?쒖젏???④퍡 議곗쑉?쒕떎.
+
+?꾩옱 梨낆엫:
+
+- `TaskCard`????젣 踰꾪듉?먯꽌 ?꾨떖???낅Т瑜?諛쏅뒗??
+- `window.confirm("?뺣쭚濡????낅Т瑜???젣?섏떆寃좎뒿?덇퉴?")`濡???젣 ?뺤씤李쎌쓣 ?쒖떆?쒕떎.
+- ?ъ슜?먭? 痍⑥냼?섎㈃ `deleteTask`瑜??몄텧?섏? ?딅뒗??
+- ?ъ슜?먭? ?뺤씤?섎㈃ `deleteTask(task.id)` store action???몄텧?쒕떎.
+
+?낅Т ??젣 ???뚭? ?곹뼢 踰붿쐞:
+
+- ?꾩껜 ?낅Т ?붾㈃???낅Т 紐⑸줉?먯꽌 ?대떦 ?낅Т媛 ?쒓굅?섏뼱???쒕떎.
+- 寃?? ?꾨줈?앺듃 ?꾪꽣, ?꾨즺 ?낅Т ?쒖떆/?④?, 留덇컧??鍮좊Ⅸ ???뺣젹 ?곹깭?먯꽌 紐⑸줉??源⑥?吏 ?딆븘???쒕떎.
+- ?ㅻ뒛 ?붾㈃???꾩껜 ?낅Т ?? ?꾨즺 ?낅Т ?? 吏??留덇컧 ?낅Т, 7???대궡 留덇컧 ?낅Т媛 ??젣 寃곌낵瑜?諛섏쁺?댁빞 ?쒕떎.
+- 異붿쿇 ?낅Т 紐⑸줉????젣???낅Т媛 ?⑥? ?딆븘???쒕떎.
+- ?꾨줈?앺듃 ?붾㈃???꾨줈?앺듃蹂??꾩껜/?꾨즺/誘몄셿猷??낅Т ?섍? ??젣 寃곌낵瑜?諛섏쁺?댁빞 ?쒕떎.
+
+`useTaskActions` ?대룞 ???뚭? ?뺤씤???꾩슂???댁쑀:
+
+- ??젣???뚭눼???숈옉?대씪 ?뺤씤李??먮쫫??議곌툑留?諛붾뚯뼱???ъ슜???ㅼ닔 ?꾪뿕??而ㅼ쭊??
+- ?뺤씤李?痍⑥냼 ??`deleteTask`瑜??몄텧?섏? ?딅뒗 諛⑹뼱 議곌굔???좎??댁빞 ?쒕떎.
+- ??젣 ??TodayView, TasksView, ProjectsView, 異붿쿇 ?낅Т媛 ?숈떆???곹뼢??諛쏆쑝誘濡??뚭? ?뺤씤 踰붿쐞媛 ?볥떎.
+- `useTaskActions`???꾩옱 異붽?/?섏젙 submit怨??꾨즺/誘몄셿猷??좉????대떦?섎?濡? ??젣源뚯? ?ｊ린 ?꾩뿉 梨낆엫 寃쎄퀎瑜??ㅼ떆 ?뺤씤?댁빞 ?쒕떎
+.
+
+?ν썑 ?덉쟾???뺤씤 ?쒖꽌:
+
+1. ??젣 ?뺤씤李?臾멸뎄? 痍⑥냼/?뺤씤 ?먮쫫??臾몄꽌? ?섎룞 ?뚯뒪??湲곗??쇰줈 怨좎젙?쒕떎.
+2. ??젣 ??Today/Projects/異붿쿇 ?낅Т ?뚭? ??ぉ??癒쇱? ?섎룞?쇰줈 ?뺤씤?쒕떎.
+3. 肄붾뱶濡???만 寃쎌슦 `handleDeleteTask`留?異붽?濡?寃?좏븯怨? ?대? ?대룞???꾨즺/誘몄셿猷??좉? ?숈옉? 媛숈? ?묒뾽?먯꽌 ?ъ옉?낇븯吏 ?딅뒗?
+?
+4. confirm 臾멸뎄, confirm ?꾩튂, `deleteTask(task.id)` ?몄텧 議곌굔? 洹몃?濡??좎??쒕떎.
+5. ?꾨즺/誘몄셿猷??좉?? ?꾩옱 `useTaskActions`???좎??섍퀬, ??젣 handler ?덉젙???댄썑?먮룄 媛숈? ?묒뾽?먯꽌 ?ъ옉?낇븯吏 ?딅뒗??
+
+以묐떒 議곌굔:
+
+- ??젣 ?뺤씤李?臾멸뎄瑜?蹂寃쏀빐???섎뒗 寃쎌슦
+- ??젣 ???듦퀎 怨꾩궛 諛⑹떇??諛붾뚮뒗 寃쎌슦
+- `deleteTask` store action 梨낆엫怨?hook orchestration 梨낆엫???욎씠??寃쎌슦
+- `TasksView`, `TodayView`, `ProjectsView` props 援ъ“媛 ?숈떆???ш쾶 諛붾뚮뒗 寃쎌슦
+- ?섎룞 ?뚯뒪??踰붿쐞媛 ?낅Т ??젣瑜??섏뼱 ?꾨즺 ?좉?, ?꾪꽣, 異붿쿇 濡쒖쭅 ?ъ옉?낆쑝濡?而ㅼ???寃쎌슦
+
+## 35. ?낅Т ?꾨즺/誘몄셿猷??좉? handler 遺꾨━ ??湲곗?
+
+?꾩옱 `handleToggleTaskDone`? `useTaskActions`濡??대룞?덈떎. ??handler???낅Т??`status`瑜?`todo`? `done` ?ъ씠?
+먯꽌 ?꾪솚?섍퀬, 湲곗〈 `updateTask` store action???몄텧?쒕떎.
+
+?꾩옱 梨낆엫:
+
+- `TaskCard`???꾨즺/誘몄셿猷??좉? 踰꾪듉?먯꽌 ?꾨떖???낅Т瑜?諛쏅뒗??
+- ?꾩옱 ?곹깭媛 `done`?대㈃ ?ㅼ쓬 ?곹깭瑜?`todo`濡?怨꾩궛?쒕떎.
+- ?꾩옱 ?곹깭媛 `done`???꾨땲硫??ㅼ쓬 ?곹깭瑜?`done`?쇰줈 怨꾩궛?쒕떎.
+- `updateTask({ ...task, status: nextStatus })` store action???몄텧?쒕떎.
+
+?좉? ???뚭? ?곹뼢 踰붿쐞:
+
+- ?꾩껜 ?낅Т ?붾㈃???낅Т 移대뱶 ?곹깭 ?쇰꺼怨??좉? 踰꾪듉 ?곹깭媛 媛깆떊?섏뼱???쒕떎.
+- ?꾨즺 ?낅Т ?쒖떆/?④? ?꾪꽣媛 ?꾩옱 ?ㅼ젙?濡??숈옉?댁빞 ?쒕떎.
+- ?ㅻ뒛 ?붾㈃???꾨즺 ?낅Т ?섍? 利됱떆 媛깆떊?섏뼱???쒕떎.
+- `done` ?낅Т??吏??留덇컧 ?낅Т? 7???대궡 留덇컧 ?낅Т 紐⑸줉?먯꽌 ?쒖쇅?섏뼱???쒕떎.
+- `todo`濡??섎룎由??낅Т??留덇컧??湲곗????곕씪 吏??留덇컧 ?먮뒗 7???대궡 留덇컧 紐⑸줉???ㅼ떆 ?ы븿?????덉뼱???쒕떎.
+- `done` ?낅Т??異붿쿇 ?낅Т?먯꽌 ?쒖쇅?섏뼱???쒕떎.
+- `todo`濡??섎룎由??낅Т??異붿쿇 ?먯닔 湲곗????곕씪 異붿쿇 ?낅Т ?꾨낫媛 ?????덉뼱???쒕떎.
+- ?꾨줈?앺듃 ?붾㈃???꾨줈?앺듃蹂??꾩껜/?꾨즺/誘몄셿猷??낅Т ?섍? ?좉? 寃곌낵瑜?諛섏쁺?댁빞 ?쒕떎.
+
+`useTaskActions` ?대룞 ???뚭? ?뺤씤???꾩슂???댁쑀:
+
+- ?좉?? ?⑥닚 status 蹂寃쎌쿂??蹂댁씠吏留?TodayView, TasksView, ProjectsView, 異붿쿇 ?낅Т???숈떆???곹뼢??以??
+- ?꾨즺 ?낅Т ?쒖떆/?④? ?꾪꽣? ?좎쭨 湲곕컲 紐⑸줉???뚭?瑜??④퍡 ?뺤씤?댁빞 ?쒕떎.
+- 異붿쿇 濡쒖쭅? `done` ?낅Т瑜??쒖쇅?섎?濡??좉? 蹂寃???異붿쿇 紐⑸줉 ?뚭? ?뺤씤???꾩슂?섎떎.
+- `useTaskActions`???꾩옱 異붽?/?섏젙 submit怨??꾨즺/誘몄셿猷??좉????대떦?섎?濡? ?댄썑 ??젣 handler瑜??뷀븷 ??hook 梨낆엫 踰붿쐞瑜??
+ㅼ떆 寃利앺빐???쒕떎.
+
+?ν썑 ?덉쟾???뺤씤 ?쒖꽌:
+
+1. ?좉? ???듦퀎, ?꾪꽣, ?좎쭨 紐⑸줉, 異붿쿇 ?낅Т ?뚭? 湲곗???癒쇱? 臾몄꽌?뷀븳??
+2. ?ㅼ젣 ?붾㈃?먯꽌 ?꾨즺/誘몄셿猷??좉? ?섎룞 ?뚯뒪?몃? ?섑뻾?쒕떎.
+3. `todo`/`done` enum ?섎?? `updateTask({ ...task, status })` ?몄텧 援ъ“??洹몃?濡??좎??쒕떎.
+4. ?좉? ?덉젙???댄썑 ??젣 handler 遺꾨━ ?щ?瑜?蹂꾨룄 ?묒뾽?쇰줈 寃?좏븳??
+
+以묐떒 議곌굔:
+
+- `Task.status` enum ?섎????덉슜 媛믪씠 諛붾뚮뒗 寃쎌슦
+- Today/Projects ?듦퀎 怨꾩궛???④퍡 蹂寃쏀빐???섎뒗 寃쎌슦
+- 異붿쿇 濡쒖쭅 ?먮뒗 異붿쿇 ?뺣젹 湲곗???蹂寃쏀빐???섎뒗 寃쎌슦
+- ?꾨즺 ?낅Т ?쒖떆/?④? ?꾪꽣 ?숈옉??諛붽퓭???섎뒗 寃쎌슦
+- ??젣 handler? ?좉? handler瑜????묒뾽?먯꽌 ?④퍡 ??꺼???섎뒗 寃쎌슦
+
+## 36. ?낅Т hook/action ?꾩옱 援ъ“
+
+?꾩옱 ?낅Т ?곸뿭? form state? action orchestration???ㅼ쓬泥섎읆 遺꾨━?섏뼱 ?덈떎.
+
+- `useTaskFormState`
+  - ?낅Т 異붽? form state瑜??대떦?쒕떎.
+  - ?낅Т ?섏젙 form state瑜??대떦?쒕떎.
+  - 異붽?/?섏젙 form reset, ?섏젙 ?쒖옉, ?섏젙 痍⑥냼 ?먮쫫???대떦?쒕떎.
+- `useTaskActions`
+  - ?낅Т 異붽? submit???대떦?쒕떎.
+  - ?낅Т ?섏젙 submit???대떦?쒕떎.
+  - ?꾨즺/誘몄셿猷??좉????대떦?쒕떎.
+  - ?낅Т ??젣瑜??대떦?쒕떎.
+  - ??젣 ?뺤씤李쎌쓣 ?쒖떆?섍퀬, ?ъ슜?먭? ?뺤씤??寃쎌슦?먮쭔 `deleteTask(task.id)`瑜??몄텧?쒕떎.
+
+`App.tsx`???⑥븘 ?덈뒗 ?낅Т 愿??梨낆엫:
+
+- `useTaskFormState`? `useTaskActions`???꾩슂??store action, form state, reset ?⑥닔瑜?議곕┰?쒕떎.
+- `TasksView`???낅Т form state, filter state, sort state, handler props瑜??꾨떖?쒕떎.
+- ?????곹깭, 寃???꾪꽣/?뺣젹 ?곹깭, Today ?붾㈃???뚯깮 ?곗씠?곗? 異붿쿇 ?낅Т ?곹깭瑜?議곕┰?쒕떎.
+- `handleStartEditTask`, `handleCancelEditTask`泥섎읆 form state hook???몄텧?섎뒗 ?뉗? wrapper瑜??좎??쒕떎.
+
+`App.tsx`?먯꽌 ?쒓굅???낅Т 愿??梨낆엫:
+
+- ?낅Т 異붽? submit 吏곸젒 泥섎━
+- ?낅Т ?섏젙 submit 吏곸젒 泥섎━
+- ?꾨즺/誘몄셿猷??좉? 吏곸젒 泥섎━
+- ?낅Т ??젣 ?뺤씤李쎄낵 `deleteTask(task.id)` 吏곸젒 ?몄텧
+
+?ㅼ쓬 ?묒뾽 ?꾨낫:
+
+1. ?섎룞 ?뚯뒪??泥댄겕由ъ뒪??湲곗??쇰줈 ?낅Т 異붽?/?섏젙/??젣/?꾨즺 ?좉? ?꾩껜 ?뚭?瑜??뺤씤?쒕떎.
+2. App.tsx???⑥? ?낅Т 愿??wrapper? props 議곕┰????以꾩뼱?????덈뒗吏 ?먭??쒕떎.
+3. ?꾨줈?앺듃 ??젣 handler??`useProjectActions`濡??대룞?덉쑝誘濡??섎룞 ?뚯뒪??泥댄겕由ъ뒪??湲곗? ?뚭?瑜??뺤씤?쒕떎.
+4. 湲곕뒫 怨좊룄???④퀎濡??ㅼ뼱媛湲???README, ROADMAP, memory-bank媛 ?꾩옱 hook 援ъ“? 怨꾩냽 ?쇱튂?섎뒗吏 ?뺤씤?쒕떎.
+
+## 37. ?꾨줈?앺듃 hook/action ?꾩옱 援ъ“
+
+?꾩옱 ?꾨줈?앺듃 ?곸뿭? form state, action orchestration, ??젣 媛???щ? ?먮떒???ㅼ쓬泥섎읆 遺꾨━?섏뼱 ?덈떎.
+
+- `useProjectFormState`
+  - ?꾨줈?앺듃 異붽? form state瑜??대떦?쒕떎.
+  - ?꾨줈?앺듃 ?섏젙 form state瑜??대떦?쒕떎.
+  - 異붽?/?섏젙 form reset, ?섏젙 ?쒖옉, ?섏젙 痍⑥냼 ?먮쫫???대떦?쒕떎.
+- `useProjectActions`
+  - ?꾨줈?앺듃 異붽? submit???대떦?쒕떎.
+  - ?꾨줈?앺듃 ?섏젙 submit???대떦?쒕떎.
+  - ?꾨줈?앺듃 ??젣瑜??대떦?쒕떎.
+  - ??젣 ?뺤씤李쎌쓣 ?쒖떆?섍퀬, ?ъ슜?먭? ?뺤씤??寃쎌슦?먮쭔 `deleteProject(projectId)`瑜??몄텧?쒕떎.
+  - `projectDeletion` helper瑜??ъ슜??湲곕낯 ?꾨줈?앺듃? ?낅Т媛 ?곌껐???꾨줈?앺듃 ??젣瑜?諛⑹뼱?쒕떎.
+- `projectDeletion`
+  - 湲곕낯 ?꾨줈?앺듃 ??젣 諛⑹? 湲곗????쒓났?쒕떎.
+  - ?낅Т媛 ?곌껐???꾨줈?앺듃 ??젣 諛⑹? 湲곗????쒓났?쒕떎.
+  - `ProjectCard`????젣 踰꾪듉 disabled 湲곗?怨?`useProjectActions`??handler 諛⑹뼱 湲곗????듭씪?쒕떎.
+
+`App.tsx`???⑥븘 ?덈뒗 ?꾨줈?앺듃 愿??梨낆엫:
+
+- `useProjectFormState`? `useProjectActions`???꾩슂??store action, form state, tasks/projects瑜?議곕┰?쒕떎.
+- `ProjectsView`???꾨줈?앺듃 form state? handler props瑜??꾨떖?쒕떎.
+- ?????곹깭, ?낅Т/?꾨줈?앺듃 ?곗씠?? Today/Tasks/Projects ?뚯깮 ?곗씠??議곕┰???좎??쒕떎.
+- `startEditProject`, `resetEditProjectForm`泥섎읆 form state hook???쒓났?섎뒗 ?⑥닔瑜?view props濡??꾨떖?쒕떎.
+
+`App.tsx`?먯꽌 ?쒓굅???꾨줈?앺듃 愿??梨낆엫:
+
+- ?꾨줈?앺듃 異붽? submit 吏곸젒 泥섎━
+- ?꾨줈?앺듃 ?섏젙 submit 吏곸젒 泥섎━
+- ?꾨줈?앺듃 ??젣 媛???щ? 理쒖쥌 諛⑹뼱 吏곸젒 泥섎━
+- ?꾨줈?앺듃 ??젣 ?뺤씤李쎄낵 `deleteProject(projectId)` 吏곸젒 ?몄텧
+
+?ㅼ쓬 ?묒뾽 ?꾨낫:
+
+1. ?섎룞 ?뚯뒪??泥댄겕由ъ뒪??湲곗??쇰줈 ?꾨줈?앺듃 異붽?/?섏젙/??젣 ?꾩껜 ?뚭?瑜??뺤씤?쒕떎.
+2. App.tsx???⑥? ?꾨줈?앺듃 愿??props 議곕┰????以꾩뼱?????덈뒗吏 ?먭??쒕떎.
+3. ?꾩껜 ?섎룞 ?뚯뒪??泥댄겕由ъ뒪??湲곗??쇰줈 ?낅Т/?꾨줈?앺듃/?ㅻ뒛/?ㅼ젙 ?붾㈃ ?뚭?瑜??뺤씤?쒕떎.
+4. 湲곕뒫 怨좊룄???④퀎濡??ㅼ뼱媛湲???README, ROADMAP, memory-bank媛 ?꾩옱 hook 援ъ“? 怨꾩냽 ?쇱튂?섎뒗吏 ?뺤씤?쒕떎.
+
+## 38. MVP ?꾨즺 ?먯젙
+
+?꾩옱 援ы쁽 湲곗??쇰줈 PlanPilot Local? 肄붾뱶 援ъ“? ?듭떖 湲곕뒫 痢〓㈃?먯꽌 MVP ?꾨즺 ?꾨낫 ?곹깭濡?蹂몃떎. ?ㅻ쭔 ?ㅼ젣 ?붾㈃?먯꽌 `docs/
+manual-test-checklist.md`???듭떖 ??ぉ???щ엺????踰??듦낵?쒗궎湲??꾧퉴吏??"MVP ?꾨즺 ?뺤씤 ?? ?곹깭濡??④릿??
+
+?꾩옱 MVP?먯꽌 援ы쁽 ?꾨즺濡?蹂대뒗 湲곕뒫:
+
+- Today ?붾㈃
+  - ?꾩껜 ?낅Т ?? ?꾨즺 ?낅Т ?? 吏??留덇컧 ?낅Т, 7???대궡 留덇컧 ?낅Т, 異붿쿇 ?낅Т瑜??쒖떆?쒕떎.
+  - 異붿쿇 ?낅Т???쒕쾭 ?몄텧 ?녿뒗 `RuleBasedAIProvider`? `recommendationScore` 湲곗??쇰줈 怨꾩궛?쒕떎.
+- ?꾩껜 ?낅Т ?붾㈃
+  - ?낅Т 異붽?, ?섏젙, ??젣, ?꾨즺/誘몄셿猷??좉????쒓났?쒕떎.
+  - 寃?? ?꾨줈?앺듃 ?꾪꽣, ?꾨즺 ?낅Т ?쒖떆/?④?, 留덇컧??鍮좊Ⅸ ???뺣젹???쒓났?쒕떎.
+- ?꾨줈?앺듃 ?붾㈃
+  - ?꾨줈?앺듃 異붽?, ?섏젙, ??젣瑜??쒓났?쒕떎.
+  - 湲곕낯 ?꾨줈?앺듃 ??젣 諛⑹?? ?낅Т媛 ?곌껐???꾨줈?앺듃 ??젣 諛⑹?瑜??쒓났?쒕떎.
+  - ?꾨줈?앺듃蹂??꾩껜/?꾨즺/誘몄셿猷??낅Т ?섎? ?쒖떆?쒕떎.
+- ?ㅼ젙 ?붾㈃
+  - ?꾩옱 ?ㅼ젙 ?곹깭瑜??쎄린 ?꾩슜?쇰줈 ?쒖떆?쒕떎.
+  - theme, language, aiProvider, enableNotifications, firstLaunchCompleted??吏곸젒 ?몄쭛?섏? ?딅뒗??
+- ?곗씠?????  - Dexie.js + IndexedDB??tasks, projects, appSettings瑜???ν븳??
+  - `localStorage` fallback? ?ъ슜?섏? ?딅뒗??
+
+?꾩옱 MVP?먯꽌 ?섎룄?곸쑝濡??쒖쇅??湲곕뒫:
+
+- ?쒕쾭 API
+- 濡쒓렇??- ?대씪?곕뱶 ?숆린??- ?뚮┝怨?Notification API 沅뚰븳 ?붿껌
+- Capacitor/Android ?꾪솚
+- ?몃? AI API? API Key ???- ?ㅺ뎅???꾪솚
+- ?ㅼ쨷 ?뚮쭏? ?ㅼ젣 ?뚮쭏 ?꾪솚
+- ?ㅼ젙 ?붾㈃??吏곸젒 ?몄쭛 湲곕뒫
+
+由ы뙥?곕쭅 1李??꾨즺 ?곹깭:
+
+- `TodayView`, `TasksView`, `ProjectsView`, `SettingsView` ?붾㈃ 遺꾨━瑜??꾨즺?덈떎.
+- `TaskCard`, `ProjectCard`, `TaskForm`, `ProjectForm` 而댄룷?뚰듃 遺꾨━瑜??꾨즺?덈떎.
+- ?좎쭨, ?꾪꽣/?뺣젹, ?꾨줈?앺듃 議고쉶/?듦퀎/??젣 諛⑹?, ?낅Т ?붿빟, 異붿쿇 ?먯닔/?뺣젹 ?좏떥 遺꾨━瑜??꾨즺?덈떎.
+- `useTaskFormState`, `useTaskActions`, `useProjectFormState`, `useProjectActions` hook 遺꾨━瑜??꾨즺?덈떎.
+- `App.tsx`?먮뒗 ??珥덇린?? ???곹깭, 寃???꾪꽣/?뺣젹 ?곹깭, Today ?뚯깮 ?곗씠??議곕┰, 異붿쿇 ?낅Т 濡쒕뵫, hook 議곕┰, view props 
+?꾨떖 媛숈? orchestration 梨낆엫留??④린??寃껋쓣 ?꾩옱 湲곗??쇰줈 ?몄젙?쒕떎.
+
+MVP ?꾨즺濡?蹂????덈뒗 議곌굔:
+
+- `npm run build`媛 ?깃났?쒕떎.
+- ?섎룞 ?뚯뒪??泥댄겕由ъ뒪?몄쓽 ???쒖옉, Today, ?꾩껜 ?낅Т, ?꾨줈?앺듃, ?ㅼ젙, ?곗씠???좎?, 湲덉? 湲곕뒫 ?뺤씤 ??ぉ???듦낵?쒕떎.
+- ?낅Т? ?꾨줈?앺듃 CRUD媛 ?덈줈怨좎묠 ?꾩뿉??IndexedDB 湲곗??쇰줈 ?좎??쒕떎.
+- 湲곕낯 ?꾨줈?앺듃? ?낅Т ?곌껐 ?꾨줈?앺듃 ??젣 諛⑹?媛 ?붾㈃ 鍮꾪솢???쒖떆? handler 諛⑹뼱 湲곗??먯꽌 紐⑤몢 ?좎??쒕떎.
+- rule-based 異붿쿇 ?낅Т媛 ?꾨즺 ?낅Т瑜??쒖쇅?섍퀬 ?곗꽑?쒖쐞/留덇컧??湲곗????좎??쒕떎.
+- ?쒕쾭 API, 濡쒓렇?? ?대씪?곕뱶 ?숆린?? ?뚮┝ 沅뚰븳 ?붿껌, Capacitor, localStorage媛 異붽??섏? ?딅뒗??
+
+MVP ?꾨즺 ??諛섎뱶???섎룞 ?뺤씤?댁빞 ????ぉ:
+
+- ?낅Т 異붽?/?섏젙/??젣/?꾨즺 ?좉?
+- 寃?? ?꾨줈?앺듃 ?꾪꽣, ?꾨즺 ?낅Т ?쒖떆/?④?, 留덇컧???뺣젹
+- Today ?꾩껜/?꾨즺/吏??留덇컧/7???대궡/異붿쿇 ?낅Т ?쒖떆
+- ?꾨줈?앺듃 異붽?/?섏젙/??젣
+- 湲곕낯 ?꾨줈?앺듃 ??젣 諛⑹?
+- ?낅Т媛 ?덈뒗 ?꾨줈?앺듃 ??젣 諛⑹?
+- ?덈줈怨좎묠怨?釉뚮씪?곗? ?ъ떎????IndexedDB ?곗씠???좎?
+- ?ㅼ젙 ?붾㈃???쎄린 ?꾩슜 ?곹깭 ?쒖떆濡??좎??섎뒗吏 ?뺤씤
+- 湲덉? 湲곕뒫??異붽??섏? ?딆븯?붿? ?뺤씤
+
+?꾩쭅 ?꾨즺媛 ?꾨땲???뺤씤 ?꾩슂濡??④만 ??ぉ:
+
+- ?꾩껜 ?섎룞 ?뚭? ?뚯뒪???ㅼ젣 ?섑뻾 ?щ?
+- ?곗씠??諛깆뾽/?대낫?닿린 ?뺤콉
+- IndexedDB schema migration ?ㅼ쟾 ?덉감
+- ?ㅻ쪟/濡쒕뵫 ?곹깭 蹂닿컯
+- 紐⑤컮????낵 湲?臾멸뎄?먯꽌 UI 寃뱀묠 ?щ?
+- README, ROADMAP, memory-bank???몄퐫???쒖떆 ?덉쭏 ?뺣━ ?щ?
+
+?ㅼ쓬 ?④퀎 ?꾨낫:
+
+1. `docs/manual-test-checklist.md` 湲곗? ?꾩껜 ?섎룞 ?뚭? ?뚯뒪?몃? ?섑뻾?쒕떎.
+2. ?곗씠??諛깆뾽/?대낫?닿린 ?뺤콉??臾몄꽌?뷀븳??
+3. ?낅Т ?꾪꽣/?뺣젹 UX 媛쒖꽑 ?꾨낫瑜??뺣━?쒕떎.
+4. ?ㅻ쪟/濡쒕뵫 ?곹깭 蹂닿컯 踰붿쐞瑜?臾몄꽌?뷀븳??
+5. 湲곕뒫 怨좊룄?붿뿉 ?ㅼ뼱媛湲???MVP ?꾨즺 泥댄겕 寃곌낵瑜?湲곕줉?쒕떎.
+
+湲곕뒫 怨좊룄?붿뿉 ?ㅼ뼱媛湲???以묐떒 議곌굔:
+
+- ?섎룞 ?뚯뒪?몄뿉???낅Т/?꾨줈?앺듃 CRUD, Today ?듦퀎, 異붿쿇 ?낅Т, ?곗씠???좎? 以??섎굹?쇰룄 ?뚭?媛 ?뺤씤?섎뒗 寃쎌슦
+- DB schema 蹂寃쎌씠???곗씠??migration???꾩슂?댁???寃쎌슦
+- App.css ?洹쒕え ?섏젙???꾩슂??UI 蹂寃쎌씠 ?꾩슂??寃쎌슦
+- ?쒕쾭 API, 濡쒓렇?? ?대씪?곕뱶 ?숆린?? ?뚮┝, Capacitor, ?몃? AI API媛 ?꾩슂?댁???寃쎌슦
+- ?꾩옱 臾몄꽌? 肄붾뱶 援ъ“媛 ?ㅼ떆 ?닿툔?섎뒗 寃쎌슦
+
+## 39. MVP ?섎룞 ?뚭? ?뚯뒪??寃곌낵 湲곕줉
+
+MVP ?꾨즺 ?꾨낫 ?곹깭瑜??ㅼ젣 ?꾨즺濡??먯젙?섎젮硫?`docs/manual-test-checklist.md` 湲곗??쇰줈 ?щ엺??吏곸젒 ?붾㈃???뺤씤?섍퀬, 寃곌낵瑜?`
+docs/manual-regression-test-result.md`??湲곕줉?쒕떎.
+
+?꾩옱 ?곹깭:
+
+- `docs/manual-regression-test-result.md` 寃곌낵 湲곕줉 ?쒗뵆由우쓣 以鍮꾪뻽??
+- ?꾩껜 寃곌낵 湲곕낯媛믪? `誘몄닔???쇰줈 ?붾떎.
+- ?ㅼ젣 釉뚮씪?곗? ?ㅽ뻾, `npm run dev`, preview, ?섎룞 ?붾㈃ ?뺤씤? ?꾩쭅 ?섑뻾?섏? ?딆븯??
+- ?곕씪??MVP??怨꾩냽 "?꾨즺 ?꾨낫 / ?섎룞 ?뚭? ?뚯뒪??寃곌낵 湲곕줉 ?꾩슂" ?곹깭濡??붾떎.
+
+寃곌낵 湲곕줉 臾몄꽌???④만 ??ぉ:
+
+- ?뚯뒪???쇱옄
+- ?뚯뒪??釉뚮옖移?- ?뚯뒪?????而ㅻ컠
+- ?뚯뒪???섍꼍
+- ?꾩껜 寃곌낵: 誘몄닔??/ ?듦낵 / ?ㅽ뙣 / 蹂대쪟
+- Today ?붾㈃ ?뺤씤 寃곌낵
+- ?꾩껜 ?낅Т ?붾㈃ ?뺤씤 寃곌낵
+- ?꾨줈?앺듃 ?붾㈃ ?뺤씤 寃곌낵
+- ?ㅼ젙 ?붾㈃ ?뺤씤 寃곌낵
+- IndexedDB ?곗씠???좎? ?뺤씤 寃곌낵
+- 湲덉? 湲곕뒫 誘몄텛媛 ?뺤씤 寃곌낵
+- 諛쒓껄 ?댁뒋
+- ?꾩냽 議곗튂
+
+MVP ?꾨즺 ?먯젙 ???뺤씤 ?쒖꽌:
+
+1. `npm run build` ?깃났 ?곹깭瑜?癒쇱? ?뺤씤?쒕떎.
+2. ?깆쓣 ?ㅽ뻾?????덈뒗 ?섍꼍?먯꽌 `docs/manual-test-checklist.md`瑜??곕씪 ?붾㈃蹂??섎룞 ?뚯뒪?몃? ?섑뻾?쒕떎.
+3. 媛?踰붿쐞??寃곌낵? 諛쒓껄 ?댁뒋瑜?`docs/manual-regression-test-result.md`??湲곕줉?쒕떎.
+4. ?섎굹?쇰룄 ?ㅽ뙣媛 ?덉쑝硫?MVP ?꾨즺濡??먯젙?섏? ?딄퀬, ?ㅽ뙣 ??ぉ???ㅼ쓬 ?섏젙 ?묒뾽 ?꾨낫濡??щ┛??
+5. 紐⑤뱺 ?듭떖 ??ぉ???듦낵?섎㈃ ROADMAP怨?memory-bank??MVP ?꾨즺 ?먯젙 寃곌낵瑜?諛섏쁺?쒕떎.
+
+## 40. MVP ?섎룞 ?뚭? ?뚯뒪??寃곌낵 ?뺣━
+
+`docs/manual-regression-test-result.md`瑜??뺤씤??寃곌낵, ?꾩옱 臾몄꽌???꾩쭅 ?ㅼ젣 ?섎룞 ?뚯뒪??寃곌낵媛 湲곕줉?섏? ?딆? ?쒗뵆由??곹
+깭??
+
+?꾩옱 ?먯젙:
+
+- ?꾩껜 寃곌낵: 誘몄닔??- Today ?붾㈃: 誘몄닔??- ?꾩껜 ?낅Т ?붾㈃: 誘몄닔??- ?꾨줈?앺듃 ?붾㈃: 誘몄닔??- ?ㅼ젙 ?붾㈃: 誘몄닔??- IndexedDB 
+?곗씠???좎?: 誘몄닔??- 湲덉? 湲곕뒫 誘몄텛媛 ?뺤씤: 誘몄닔??- 諛쒓껄 ?댁뒋: 誘몄닔??- MVP ?꾨즺 ?먯젙: 誘몄닔??
+MVP ?꾨즺 ?щ?:
+
+- ?꾩쭅 MVP ?꾨즺濡??뺤젙?섏? ?딅뒗??
+- ?듦낵濡?湲곕줉???듭떖 ??ぉ???놁쑝誘濡?"MVP ?꾨즺 ?꾨낫 / ?섎룞 ?뚭? ?뚯뒪??誘몄닔?? ?곹깭濡??좎??쒕떎.
+- ?ㅽ뙣 ??ぉ???꾩쭅 湲곕줉?섏? ?딆븯?쇰?濡??섏젙 ?꾩슂 ??ぉ? ?덈줈 留뚮뱾吏 ?딅뒗??
+
+?ㅼ쓬 ?꾩슂 ?묒뾽:
+
+1. ?ㅼ젣 ???붾㈃?먯꽌 `docs/manual-test-checklist.md`??MVP ?듭떖 ??ぉ???섎룞?쇰줈 ?뺤씤?쒕떎.
+2. ?뺤씤 寃곌낵瑜?`docs/manual-regression-test-result.md`???듦낵/?ㅽ뙣/蹂대쪟/誘몄닔?됱쑝濡?湲곕줉?쒕떎.
+3. ?ㅽ뙣 ?먮뒗 蹂대쪟 ??ぉ???덉쑝硫?ROADMAP??MVP ?꾨즺 ???섏젙 ?꾩슂 ??ぉ?쇰줈 ?뺣━?쒕떎.
+4. 紐⑤뱺 ?듭떖 ??ぉ???듦낵?섎㈃ MVP ?꾨즺 ?뺤젙 ?꾨낫濡??곹깭瑜?媛깆떊?쒕떎.
+
+?댁쟾 ?ы솗??湲곕줉:
+
+- `docs/manual-regression-test-result.md`瑜??ㅼ떆 ?뺤씤?덉?留? ?듦낵/?ㅽ뙣/蹂대쪟濡?湲곕줉???ㅼ젣 ?뚯뒪??寃곌낵???꾩쭅 ?녿떎.
+- 紐⑤뱺 ?붾㈃蹂?寃곌낵? 理쒖쥌 ?먯젙??`誘몄닔???대?濡?MVP ?꾨즺 ?곹깭??蹂寃쏀븯吏 ?딅뒗??
+- ?듦낵濡?紐낆떆?섏? ?딆? ??ぉ???꾩쓽濡??듦낵 泥섎━?섏? ?딅뒗??
+- 理쒖떊 ?섎룞 ?뚯뒪??寃곌낵 諛섏쁺? ?꾨옒 "41. MVP ?섎룞 ?뚭? ?뚯뒪??寃곌낵 諛섏쁺"??湲곗??쇰줈 ?쒕떎.
+
+## 41. MVP ?섎룞 ?뚭? ?뚯뒪??寃곌낵 諛섏쁺
+
+`docs/manual-regression-test-result.md`??湲곕줉??理쒖떊 ?섎룞 ?뚯뒪??寃곌낵瑜?湲곗??쇰줈 MVP ?곹깭瑜??ㅼ떆 ?뺣━?덈떎.
+
+?듦낵濡?湲곕줉????ぉ:
+
+- Today ?붾㈃
+  - ?꾩껜 ?낅Т ??  - ?꾨즺 ?낅Т ??  - 吏??留덇컧 ?낅Т
+  - 7???대궡 留덇컧 ?낅Т
+  - ?꾨즺 ?낅Т ?쒖쇅 湲곗?
+- ?꾩껜 ?낅Т ?붾㈃
+  - ?낅Т 異붽?
+  - ?낅Т ?섏젙
+  - ?낅Т ??젣 痍⑥냼/?뺤씤
+  - ?꾨즺/誘몄셿猷??좉?
+  - 寃??  - ?꾨줈?앺듃 ?꾪꽣
+  - 留덇컧??鍮좊Ⅸ ???뺣젹
+- ?꾨줈?앺듃 ?붾㈃
+  - ?꾨줈?앺듃 異붽?
+  - ?꾨줈?앺듃 ?섏젙
+  - ?낅Т媛 ?녿뒗 ?ъ슜???꾨줈?앺듃 ??젣
+  - 湲곕낯 ?꾨줈?앺듃 ??젣 諛⑹?
+  - ?낅Т ?곌껐 ?꾨줈?앺듃 ??젣 諛⑹?
+  - ?꾨줈?앺듃蹂??꾩껜/?꾨즺/誘몄셿猷??낅Т ??- ?ㅼ젙 ?붾㈃
+  - ?꾩옱 ?ㅼ젙 ?곹깭 ?쎄린 ?꾩슜 ?쒖떆
+  - theme, language, AI Provider, ?뚮┝, 泥??ㅽ뻾 ?꾨즺 ?곹깭 ?쎄린 ?꾩슜 ?쒖떆
+  - ?ㅼ젙 ?붾㈃ 吏꾩엯留뚯쑝濡?`updatedAt`??蹂寃쎈릺吏 ?딆쓬
+  - ?뚮┝ 沅뚰븳 ?붿껌 ?놁쓬
+- ?곗씠???좎?
+  - ?덈줈怨좎묠 ???낅Т, ?꾨줈?앺듃, ?ㅼ젙 ?좎?
+  - 釉뚮씪?곗? ?ъ떎????IndexedDB ?곗씠???좎?
+  - `localStorage` fallback ?놁쓬
+- 湲덉? 湲곕뒫 誘몄텛媛
+  - ?쒕쾭 API, `localStorage`, 濡쒓렇?? ?대씪?곕뱶 ?숆린?? Notification 沅뚰븳 ?붿껌, Capacitor, ?몃? AI API 誘몄텛媛
+
+蹂대쪟濡?湲곕줉????ぉ:
+
+- Today ?붾㈃??異붿쿇 ?낅Т媛 rule-based 湲곗???留욊쾶 ?쒖떆?섎뒗吏 ?뺤씤
+- ?꾩껜 ?낅Т ?붾㈃???꾨즺 ?낅Т ?쒖떆/?④? ?숈옉 ?뺤씤
+
+誘몄닔?됱쑝濡??⑥? ??ぉ:
+
+- 諛쒓껄 ?댁뒋 湲곕줉
+- ?꾩냽 議곗튂 湲곕줉
+
+MVP ?꾨즺 ?먯젙:
+
+- ?꾩옱 MVP ?꾨즺 ?먯젙? `蹂대쪟`??
+- ?듭떖 ??ぉ 以?蹂대쪟媛 ?⑥븘 ?덉쑝誘濡?MVP ?꾨즺 ?뺤젙?쇰줈 泥섎━?섏? ?딅뒗??
+- 蹂대쪟 ??ぉ???ㅼ젣 ?붾㈃?먯꽌 ?뺤씤??`?듦낵` ?먮뒗 `?ㅽ뙣`濡?湲곕줉?섍린 ?꾧퉴吏??"MVP ?꾨즺 ?꾨낫 / 蹂대쪟 ??ぉ ?뺤씤 ?꾩슂" ?곹깭濡??붾떎.
+
+MVP ?꾨즺 ???뺤씤 ?꾩슂 ??ぉ:
+
+1. 異붿쿇 ?낅Т媛 rule-based 湲곗???留욊쾶 ?쒖떆?섎뒗吏 ?뺤씤?쒕떎.
+2. ?꾨즺 ?낅Т ?쒖떆/?④???湲곕??濡??숈옉?섎뒗吏 ?뺤씤?쒕떎.
+3. 諛쒓껄 ?댁뒋? ?꾩냽 議곗튂 ??ぉ??鍮꾩썙?섏?, "?놁쓬" ?먮뒗 援ъ껜 ??ぉ?쇰줈 湲곕줉?좎? ?뺣━?쒕떎.
+4. ????ぉ??紐⑤몢 ?듦낵 ?먮뒗 ?댁뒋 ?놁쓬?쇰줈 ?뺣━?섎㈃ MVP ?꾨즺 ?뺤젙 ?꾨낫濡??ㅼ떆 ?먯젙?쒕떎.
+
+## 42. MVP ?섎룞 ?뚭? ?뚯뒪??蹂대쪟 ??ぉ ?ы솗??寃곌낵
+
+`docs/manual-regression-test-result.md` 湲곗??쇰줈 ?댁쟾 蹂대쪟 ??ぉ 2媛쒓? ?ㅼ떆 ?뺤씤?섏뿀??
+
+?덈줈 ?듦낵濡?湲곕줉????ぉ:
+
+- Today ?붾㈃??異붿쿇 ?낅Т媛 rule-based 湲곗???留욊쾶 ?쒖떆?쒕떎.
+- ?꾩껜 ?낅Т ?붾㈃???꾨즺 ?낅Т ?쒖떆/?④????숈옉?쒕떎.
+
+?꾩옱 ?듦낵濡?蹂대뒗 ?듭떖 湲곕뒫 踰붿쐞:
+
+- Today ?붾㈃???꾩껜 ?낅Т ?? ?꾨즺 ?낅Т ?? 吏??留덇컧 ?낅Т, 7???대궡 留덇컧 ?낅Т, 異붿쿇 ?낅Т, ?꾨즺 ?낅Т ?쒖쇅 湲곗?
+- ?꾩껜 ?낅Т ?붾㈃???낅Т 異붽?, ?섏젙, ??젣 痍⑥냼/?뺤씤, ?꾨즺/誘몄셿猷??좉?, 寃?? ?꾨즺 ?낅Т ?쒖떆/?④?, ?꾨줈?앺듃 ?꾪꽣, 留덇컧??鍮좊Ⅸ ??
+?뺣젹
+- ?꾨줈?앺듃 ?붾㈃???꾨줈?앺듃 異붽?, ?섏젙, ??젣 諛⑹?, ??젣, ?꾨줈?앺듃蹂??낅Т ???듦퀎
+- ?ㅼ젙 ?붾㈃???쎄린 ?꾩슜 ?곹깭 ?쒖떆? ?뚮┝ 沅뚰븳 ?붿껌 ?놁쓬
+- IndexedDB ?곗씠???좎?
+- ?쒕쾭 API, `localStorage`, 濡쒓렇?? ?대씪?곕뱶 ?숆린?? Notification 沅뚰븳 ?붿껌, Capacitor, ?몃? AI API 誘몄텛媛
+
+?꾩쭅 ?듦낵濡?泥섎━?섏? ?딅뒗 ??ぉ:
+
+- ?뚯뒪???쇱옄
+- ?뚯뒪?????而ㅻ컠
+- ?뚯뒪???섍꼍
+- ?꾩껜 寃곌낵
+- 諛쒓껄 ?댁뒋
+- ?꾩냽 議곗튂
+
+MVP ?꾨즺 ?먯젙:
+
+- ?듭떖 湲곕뒫 ??ぉ? 紐⑤몢 ?듦낵濡?湲곕줉?섏뿀??
+- 洹몃윭??臾몄꽌??`誘몄닔???쇰줈 ?⑥? ??ぉ???덉쑝誘濡??꾩쭅 MVP ?꾨즺 ?뺤젙?쇰줈 泥섎━?섏? ?딅뒗??
+- ??誘몄닔????ぉ??"?놁쓬" ?먮뒗 ?ㅼ젣 媛믪쑝濡??뺣━?섎㈃ MVP ?꾨즺 ?뺤젙 ?꾨낫濡?媛깆떊?쒕떎.
+
+## 43. MVP ?꾨즺 ?뺤젙
+
+`docs/manual-regression-test-result.md`???⑥? 硫뷀? ??ぉ怨??꾩냽 湲곕줉???뺣━?섏뼱, ?꾩옱 湲곗??쇰줈 PlanPilot Local MVP
+瑜??꾨즺濡??먯젙?쒕떎.
+
+理쒖쥌 ?뚯뒪??湲곕줉:
+
+- ?뚯뒪???쇱옄: 2026-05-28
+- ?뚯뒪??釉뚮옖移? `auto/dev-loop`
+- ?뚯뒪?????而ㅻ컠: `beb1105 Finalize MVP status from regression test`
+- ?뚯뒪???섍꼍: 濡쒖뺄 Windows ?섍꼍, Vite dev ?쒕쾭 湲곗? ?섎룞 ?뺤씤
+- ?꾩껜 寃곌낵: ?듦낵
+- 諛쒓껄 ?댁뒋: ?놁쓬
+- ?꾩냽 議곗튂: MVP ?댄썑 湲곕뒫 怨좊룄??吏꾪뻾
+
+MVP ?꾨즺 洹쇨굅:
+
+- Today ?붾㈃ ?듭떖 ??ぉ??紐⑤몢 ?듦낵濡?湲곕줉?섏뿀??
+- ?꾩껜 ?낅Т ?붾㈃??CRUD, ?꾨즺/誘몄셿猷??좉?, 寃?? ?꾨즺 ?낅Т ?쒖떆/?④?, ?꾨줈?앺듃 ?꾪꽣, 留덇컧???뺣젹???듦낵濡?湲곕줉?섏뿀??
+- ?꾨줈?앺듃 ?붾㈃??CRUD, 湲곕낯 ?꾨줈?앺듃 ??젣 諛⑹?, ?낅Т ?곌껐 ?꾨줈?앺듃 ??젣 諛⑹?, ?꾨줈?앺듃蹂??듦퀎媛 ?듦낵濡?湲곕줉?섏뿀??
+- ?ㅼ젙 ?붾㈃???쎄린 ?꾩슜 ?곹깭 ?쒖떆? ?뚮┝ 沅뚰븳 ?붿껌 ?놁쓬???듦낵濡?湲곕줉?섏뿀??
+- IndexedDB ?곗씠???좎?媛 ?듦낵濡?湲곕줉?섏뿀??
+- ?쒕쾭 API, `localStorage`, 濡쒓렇?? ?대씪?곕뱶 ?숆린?? Notification 沅뚰븳 ?붿껌, Capacitor, ?몃? AI API 誘몄텛媛媛 ?듦낵
+濡?湲곕줉?섏뿀??
+- ?ㅽ뙣, 蹂대쪟, 誘몄닔????ぉ???⑥븘 ?덉? ?딅떎.
+
+MVP ?댄썑 ?묒뾽 ?꾨낫:
+
+1. ?곗씠??諛깆뾽/?대낫?닿린 ?뺤콉??臾몄꽌?뷀븳??
+2. ?ㅻ쪟/濡쒕뵫 ?곹깭 蹂닿컯 踰붿쐞瑜?臾몄꽌?뷀븳??
+3. ?낅Т ?꾪꽣/?뺣젹 UX 媛쒖꽑 ?꾨낫瑜??뺣━?쒕떎.
+4. IndexedDB schema migration ?ㅼ쟾 ?덉감瑜?臾몄꽌?뷀븳??
+5. 湲곕뒫 怨좊룄???④퀎 吏꾩엯 ?꾩뿉???쒕쾭 API, 濡쒓렇?? ?대씪?곕뱶 ?숆린?? ?뚮┝, Capacitor, ?몃? AI API 異붽? ?щ???蹂꾨룄 ?뺤콉 寃??
+??寃곗젙?쒕떎.
+
+## 44. ?곗씠??諛깆뾽/?대낫?닿린 ?뺤콉
+
+MVP ?댄썑 泥?湲곕뒫 怨좊룄???꾨낫???곗씠??諛깆뾽/?대낫?닿린?? ?ㅼ젣 援ы쁽 ???뺤콉? [docs/data-backup-export-policy.md](docs/da
+ta-backup-export-policy.md)瑜?湲곗??쇰줈 ?쒕떎.
+
+?꾩옱 寃곗젙:
+
+- ?대쾲 ?④퀎?먯꽌??湲곕뒫??援ы쁽?섏? ?딄퀬 ?뺤콉留?臾몄꽌?뷀븳??
+- 1李?????곗씠?곕뒗 `tasks`, `projects`, `appSettings`??
+- 1李??대낫?닿린 ?뺤떇 ?꾨낫???щ엺???쎄린 ?ъ슫 JSON?대떎.
+- CSV???낅Т 紐⑸줉 以묒떖??蹂댁“ ?대낫?닿린 ?꾨낫濡쒕쭔 ?붾떎.
+- 媛?몄삤湲?蹂듭썝? ?곗씠???먯긽 ?꾪뿕???덉쑝誘濡??대낫?닿린 ?댄썑 蹂꾨룄 ?④퀎濡?遺꾨━?쒕떎.
+- 1李?援ы쁽 ?곗꽑?쒖쐞??"JSON ?대낫?닿린留?癒쇱?"??
+
+蹂댁븞/?꾨씪?대쾭??湲곗?:
+
+- 濡쒖뺄 ?뚯씪濡쒕쭔 泥섎━?쒕떎.
+- ?쒕쾭 API瑜?異붽??섏? ?딅뒗??
+- `localStorage`瑜??ъ슜?섏? ?딅뒗??
+- 濡쒓렇?? ?대씪?곕뱶 ?숆린?? ?뚮┝ 沅뚰븳 ?붿껌, Capacitor瑜?異붽??섏? ?딅뒗??
+- ?몃? AI API濡?諛깆뾽 ?곗씠?곕? 蹂대궡吏 ?딅뒗??
+
+媛?몄삤湲?蹂듭썝 ???뺤씤???뺤콉:
+
+- ?꾩껜 ??뼱?곌린? 蹂묓빀 以??대뼡 諛⑹떇??癒쇱? 吏?먰븷吏 寃곗젙?쒕떎.
+- 以묐났 ID 泥섎━ 諛⑹떇??寃곗젙?쒕떎.
+- 媛?몄삤湲???湲곗〈 ?곗씠???먮룞 諛깆뾽 ?щ?瑜?寃곗젙?쒕떎.
+- `appSettings` ?ы븿 ?щ?? `createdAt`, `updatedAt` 泥섎━ 諛⑹떇??寃곗젙?쒕떎.
+- ?꾩닔 ?꾨뱶, ?좎쭨 ?뺤떇, ?꾨줈?앺듃 李몄“ 臾닿껐?? ?????녿뒗 ?꾨뱶 泥섎━ 湲곗????뺤젙?쒕떎.
+
+?섎룞 ?뚯뒪???꾨낫:
+
+- ?대낫??JSON 援ъ“??`format`, `schemaVersion`, `exportedAt`, `tasks`, `projects`, `appSettings`媛 ?ы븿?쒕떎
+.
+- ?대낫??JSON???곗씠???섍? ?붾㈃怨??쇱튂?쒕떎.
+- ?대낫?닿린 ??湲곗〈 IndexedDB ?곗씠?곌? 蹂寃쎈릺吏 ?딅뒗??
+- ?섎せ???뚯씪??媛?몄삤嫄곕굹 媛?몄삤湲곕? 痍⑥냼?섎㈃ 湲곗〈 ?곗씠?곌? ?좎??쒕떎.
+- ?쒕쾭 API, `localStorage`, 濡쒓렇?? ?대씪?곕뱶 ?숆린?붽? 異붽??섏? ?딅뒗??
+
+援ы쁽 ??以묐떒 議곌굔:
+
+- DB schema 蹂寃??먮뒗 migration???꾩슂?댁???寃쎌슦
+- ?뚯씪 ?뚯떛 ?ㅻ쪟 泥섎━ ?뺤콉??誘몄젙??寃쎌슦
+- 媛?몄삤湲??ㅽ뙣 ??湲곗〈 ?곗씠??蹂댁〈 諛⑹떇??誘몄젙??寃쎌슦
+- 湲곗〈 ?곗씠???먯긽 ?꾪뿕????텧 諛⑹뼱梨낆씠 ?녿뒗 寃쎌슦
+- ?쒕쾭 API, `localStorage`, 濡쒓렇?? ?대씪?곕뱶 ?숆린?? ?뚮┝ 沅뚰븳 ?붿껌, Capacitor媛 ?꾩슂?댁???寃쎌슦
+
+## 45. ?ㅻ쪟/濡쒕뵫/鍮??곹깭 蹂닿컯 ?뺤콉
+
+MVP ?댄썑 JSON ?대낫?닿린 湲곕뒫??援ы쁽?섍린 ?꾩뿉 ?ㅻ쪟, 濡쒕뵫, 鍮??곹깭 UX瑜?癒쇱? ?뺤콉?쇰줈 ?뺣━?쒕떎. ?곸꽭 湲곗?? [docs/error-load
+ing-state-policy.md](docs/error-loading-state-policy.md)瑜??곕Ⅸ??
+
+?꾩옱 寃곗젙:
+
+- ?대쾲 ?④퀎?먯꽌??湲곕뒫??援ы쁽?섏? ?딄퀬 ?뺤콉留?臾몄꽌?뷀븳??
+- ??珥덇린 ?곗씠??濡쒕뵫, IndexedDB 珥덇린?? rule-based 異붿쿇 ?낅Т ?앹꽦, ?ν썑 JSON ?대낫?닿린/媛?몄삤湲곕? 濡쒕뵫 ?곹깭 ?꾨낫濡??붾떎.
+- IndexedDB ?쎄린/?곌린 ?ㅽ뙣, ?낅Т/?꾨줈?앺듃 CRUD ?ㅽ뙣, 異붿쿇 ?낅Т ?앹꽦 ?ㅽ뙣, ?ν썑 諛깆뾽 ?뚯씪 ?앹꽦 ?ㅽ뙣, ?ν썑 媛?몄삤湲??뚯씪 ?뚯
+떛 ?ㅽ뙣瑜??ㅻ쪟 ?곹깭 ?꾨낫濡??붾떎.
+- ?낅Т ?놁쓬, ?꾨줈?앺듃 ?놁쓬 ?먮뒗 湲곕낯 ?꾨줈?앺듃留??덉쓬, 寃??寃곌낵 ?놁쓬, ?꾪꽣 寃곌낵 ?놁쓬, 異붿쿇 ?낅Т ?놁쓬, 吏??留덇컧 ?낅Т ?놁쓬, 7?
+??대궡 留덇컧 ?낅Т ?놁쓬??鍮??곹깭 ?꾨낫濡??붾떎.
+- 鍮??곹깭???ㅻ쪟媛 ?꾨땲???뺤긽 ?곹깭濡??쒖떆?쒕떎.
+- 寃??寃곌낵 ?놁쓬怨??낅Т ?놁쓬? 援щ텇?쒕떎.
+- 異붿쿇 ?낅Т ?앹꽦 ?ㅽ뙣???낅Т/?꾨줈?앺듃 CRUD瑜?留됱? ?딅뒗 蹂댁“ ?ㅻ쪟濡?痍④툒?쒕떎.
+
+MVP ?댄썑 ?곗꽑?쒖쐞:
+
+1. ?ㅻ쪟/濡쒕뵫/鍮??곹깭 ?뺤콉 臾몄꽌??2. 怨듯넻 empty/error/loading ?쒖떆 湲곗? ?뺣━
+3. 湲곗〈 ?붾㈃??鍮??곹깭 臾멸뎄? 議곌굔 ?먭?
+4. JSON ?대낫?닿린 ?꾩슜 湲곕뒫 援ы쁽
+5. JSON ?대낫?닿린 ?ㅻ쪟 泥섎━? ?섎룞 ?뚯뒪??6. JSON 媛?몄삤湲?蹂듭썝? 蹂꾨룄 ?④퀎?먯꽌 ?뺤콉 ?뺤젙 ??援ы쁽
+
+援ы쁽 ??以묐떒 議곌굔:
+
+- `App.css` ?洹쒕え ?섏젙???꾩슂?섎떎.
+- DB schema 蹂寃쎌씠 ?꾩슂?섎떎.
+- store API 援ъ“ 蹂寃쎌씠 ?꾩슂?섎떎.
+- 湲곗〈 ?섎룞 ?뚯뒪??踰붿쐞媛 ?덈Т 而ㅼ쭊??
+- ?쒕쾭 API, `localStorage`, 濡쒓렇?? ?대씪?곕뱶 ?숆린?? ?뚮┝ 沅뚰븳 ?붿껌, Capacitor媛 ?꾩슂?댁쭊??
+- JSON export/import 援ы쁽 踰붿쐞媛 ?숈떆??而ㅼ졇 湲곗〈 ?곗씠???먯긽 ?꾪뿕???먮떒?섍린 ?대졄??
+
+?섎룞 ?뚯뒪???꾨낫:
+
+- ??珥덇린 濡쒕뵫 以??붾㈃??源⑥?吏 ?딅뒗吏 ?뺤씤?쒕떎.
+- ?낅Т ?놁쓬, 寃??寃곌낵 ?놁쓬, ?꾪꽣 寃곌낵 ?놁쓬 ?곹깭瑜?援щ텇???뺤씤?쒕떎.
+- 異붿쿇 ?낅Т ?놁쓬, 吏??留덇컧 ?낅Т ?놁쓬, 7???대궡 留덇컧 ?낅Т ?놁쓬 ?곹깭瑜??뺤씤?쒕떎.
+- DB ?ㅻ쪟???쇰컲 ?섎룞 ?ы쁽???대젮?곕?濡??뺤콉 臾몄꽌??蹂대쪟?섍굅??蹂꾨룄 媛쒕컻???ы쁽 ?덉감瑜?留덈젴?쒕떎.
+- 諛깆뾽/?대낫?닿린 ?ㅻ쪟??JSON ?대낫?닿린 湲곕뒫 援ы쁽 ???뺤씤?쒕떎.
+
+## 46. 理쒖냼 empty/error/loading ?곸슜 踰붿쐞
+
+`docs/error-loading-state-policy.md`???꾩껜 ?꾨낫 以??ㅼ쓬 肄붾뱶 ?묒뾽?먯꽌 諛붾줈 ?곸슜??踰붿쐞??湲곗〈 ?붾㈃??鍮??곹깭 蹂닿컯?쇰줈 醫곹
+엺??
+
+?ㅼ쓬 肄붾뱶 ?묒뾽 ?곸슜 ?꾨낫:
+
+- ?낅Т ?놁쓬
+- 寃??寃곌낵 ?놁쓬
+- ?꾪꽣 寃곌낵 ?놁쓬
+- 異붿쿇 ?낅Т ?놁쓬
+- 吏??留덇컧 ?낅Т ?놁쓬
+- 7???대궡 留덇컧 ?낅Т ?놁쓬
+
+?꾩쭅 蹂대쪟????ぉ:
+
+- IndexedDB ?ㅻ쪟 UI
+- CRUD ?ㅽ뙣 error boundary
+- JSON export ?ㅽ뙣 UI
+- JSON import ?ㅽ뙣 UI
+- ?꾩뿭 loading overlay
+
+?먮떒 湲곗?:
+
+- JSON export???⑤룆 踰꾪듉/?뚯씪 ?앹꽦 ?먮쫫?쇰줈 援ы쁽?????덉쑝誘濡??꾩껜 ??怨듯넻 error/loading 泥닿퀎瑜?癒쇱? ?꾩꽦?댁빞 ?섎뒗 湲곕뒫?
+ ?꾨땲??
+- JSON export ?꾩뿉??湲곗〈 ?붾㈃??鍮??곹깭 臾멸뎄? 議곌굔??癒쇱? ?먭??쒕떎.
+- JSON export 援ы쁽 ?쒖뿉??export ?꾩슜 ?깃났/?ㅽ뙣 硫붿떆吏瑜??곗꽑 怨좊젮?쒕떎.
+- JSON import??湲곗〈 ?곗씠???먯긽 ?꾪뿕???덉쑝誘濡?export ?댄썑 蹂꾨룄 ?ㅻ쪟/寃利?UI ?뺤콉???뺤젙?쒕떎.
+
+?ㅼ쓬 援ы쁽 ?곗꽑?쒖쐞:
+
+1. ?꾩옱 ?붾㈃??鍮??곹깭 臾멸뎄 ?먭?/蹂닿컯
+2. JSON export ?꾩슜 ?깃났/?ㅽ뙣 硫붿떆吏 ?뺤콉 ?뺣━
+3. JSON export 援ы쁽
+4. import ???ㅻ쪟/寃利?UI ?뺤콉 ?뺣━
+
+## 47. JSON export ?꾩슜 ?쇰뱶諛??뺤콉
+
+JSON ?대낫?닿린 援ы쁽 ???ъ슜?먯뿉寃?蹂댁뿬以??깃났/?ㅽ뙣 ?곹깭 硫붿떆吏瑜?癒쇱? ?뺣━?쒕떎. ?곸꽭 湲곗?? [docs/data-backup-export-poli
+cy.md](docs/data-backup-export-policy.md)??`JSON export ?깃났/?ㅽ뙣 硫붿떆吏 ?뺤콉`???곕Ⅸ??
+
+?깃났 硫붿떆吏 ?뺤콉:
+
+- ?뚯씪 ?앹꽦怨??ㅼ슫濡쒕뱶 ?쒖옉???뺤긽?곸쑝濡??섑뻾?섎㈃ ?깃났?쇰줈 蹂몃떎.
+- ?깃났 硫붿떆吏??SettingsView ?대???export 踰꾪듉 洹쇱쿂??吏㏐쾶 ?쒖떆?쒕떎.
+- ?대낫???곗씠??踰붿쐞??`?낅Т, ?꾨줈?앺듃, ?ㅼ젙` ?뺣룄濡??붿빟?????덈떎.
+- ?쒕쾭 ?꾩넚?대굹 ?대씪?곕뱶 諛깆뾽?쇰줈 ?ㅽ빐?섏? ?딄쾶 濡쒖뺄 JSON ?뚯씪?꾩쓣 遺꾨챸???쒕떎.
+
+?ㅽ뙣 硫붿떆吏 ?뺤콉:
+
+- IndexedDB ?쎄린 ?ㅽ뙣, JSON ?앹꽦 ?ㅽ뙣, 釉뚮씪?곗? ?ㅼ슫濡쒕뱶 ?ㅽ뙣 媛?μ꽦, ?????녿뒗 ?ㅻ쪟瑜??ㅽ뙣 ?꾨낫濡??붾떎.
+- ?ㅽ뙣?대룄 湲곗〈 IndexedDB ?곗씠?곕뒗 蹂寃쏀븯吏 ?딅뒗??
+- ?ㅽ뙣 硫붿떆吏???ъ떆???덈궡瑜??ы븿?섎릺 ?먯씤???⑥젙?섏? ?딅뒗??
+
+?곹깭 ?쒗쁽 諛⑹떇:
+
+- 1李??꾨낫??SettingsView ?대???踰꾪듉 洹쇱쿂 ?곹깭 硫붿떆吏??
+- `alert`??蹂댁“ ?꾨낫濡쒕쭔 ?붾떎.
+- ?꾩뿭 toast? ?꾩뿭 loading overlay???꾩쭅 蹂대쪟?쒕떎.
+
+?ㅼ쓬 援ы쁽 ?꾨낫:
+
+1. SettingsView ?덉뿉 JSON ?대낫?닿린 踰꾪듉怨?踰꾪듉 洹쇱쿂 ?곹깭 硫붿떆吏 ?곸뿭??理쒖냼 援ы쁽?쒕떎.
+2. export ?깃났 ??濡쒖뺄 JSON ?뚯씪 ?ㅼ슫濡쒕뱶瑜??쒖옉?섍퀬 ?깃났 硫붿떆吏瑜??쒖떆?쒕떎.
+3. export ?ㅽ뙣 ??湲곗〈 ?곗씠?곕? 蹂寃쏀븯吏 ?딄퀬 ?ㅽ뙣 硫붿떆吏瑜??쒖떆?쒕떎.
+4. JSON import??蹂꾨룄 ?④퀎濡??좎??쒕떎.
+
+援ы쁽 ??以묐떒 議곌굔:
+
+- DB schema 蹂寃쎌씠 ?꾩슂?섎떎.
+- import 湲곕뒫源뚯? ?④퍡 ?붽뎄?쒕떎.
+- ?뚯씪 ?뚯떛/蹂듭썝 ?뺤콉???꾩슂?댁쭊??
+- `App.css` ?洹쒕え ?섏젙???꾩슂?섎떎.
+- ?쒕쾭 API, `localStorage`, 濡쒓렇?? ?대씪?곕뱶 ?숆린?붽? ?꾩슂?댁쭊??
+
+## 48. JSON export ?섎룞 ?뺤씤 寃곌낵
+
+`3d209e2 Add JSON data export` 湲곗??쇰줈 JSON export ?깃났 寃쎈줈瑜?釉뚮씪?곗??먯꽌 吏곸젒 ?뺤씤?덈떎.
+
+?듦낵濡?湲곕줉????ぉ:
+
+- ?ㅼ젙 ?붾㈃???곗씠???대낫?닿린 踰꾪듉???쒖떆?쒕떎.
+- 踰꾪듉 ?대┃ ??JSON ?뚯씪???ㅼ슫濡쒕뱶?쒕떎.
+- ?뚯씪紐낆? `planpilot-backup-YYYY-MM-DD.json` ?뺤떇?대떎.
+- JSON 理쒖긽?꾩뿉 `format`, `schemaVersion`, `exportedAt`, `tasks`, `projects`, `appSettings`媛 ?ы븿?쒕떎.
+- ?대낫?닿린 ??湲곗〈 ???곗씠?곌? ?좎??쒕떎.
+- ?깃났 硫붿떆吏媛 ?쒖떆?쒕떎.
+
+蹂대쪟/?뺤씤 ?꾩슂 ??ぉ:
+
+- ?ㅽ뙣 ?곹솴? ?섎룞 ?ы쁽?섏? 紐삵뻽?쇰?濡?蹂대쪟濡??붾떎.
+- ?ㅽ뙣 ??湲곗〈 IndexedDB ?곗씠?곌? ?좎??섎뒗吏???ㅽ뙣 寃쎈줈 ?ы쁽 諛⑸쾿??留덈젴?????뺤씤?쒕떎.
+- ?깃났 硫붿떆吏媛 ?쒕쾭 ?꾩넚?대굹 ?대씪?곕뱶 諛깆뾽?쇰줈 ?ㅽ빐?섏? ?딅뒗吏??臾멸뎄 寃?좊뒗 蹂꾨룄 UX ?뺤씤 ??ぉ?쇰줈 ?④릿??
+- JSON import/蹂듭썝? ?꾩쭅 援ы쁽?섏? ?딆븯怨? 蹂꾨룄 ?뺤콉 ?뺤젙 ??吏꾪뻾?쒕떎.
+
+?꾩옱 ?먯젙:
+
+- JSON export 1李?援ы쁽? ?깃났 寃쎈줈 湲곗??쇰줈 ?섎룞 ?뺤씤 ?꾨즺 ?곹깭??
+- ?ㅽ뙣 寃쎈줈???뺤씤 ?꾩슂濡??⑥븘 ?덉쑝誘濡? ?댄썑 ?ㅻ쪟 ?ы쁽 ?덉감 ?먮뒗 媛쒕컻???뚯뒪??諛⑸쾿??癒쇱? ?뺣━?쒕떎.
+
+?ㅼ쓬 ?묒뾽 ?꾨낫:
+
+1. JSON export ?ㅽ뙣 寃쎈줈 ?ы쁽/?뺤씤 ?덉감 臾몄꽌??2. JSON import/蹂듭썝 ?뺤콉 援ъ껜??3. ?낅Т ?꾪꽣/?뺣젹 UX 媛쒖꽑 ?꾨낫 ?뺣━
+4. IndexedDB schema migration 洹쒖튃 臾몄꽌??
+## 49. JSON export ?ㅽ뙣 寃쎈줈 ?ы쁽/湲곕줉 ?뺤콉
+
+JSON export ?깃났 寃쎈줈???섎룞 ?뚯뒪?몃줈 ?듦낵?덉?留? ?ㅽ뙣 寃쎈줈???쇰컲 釉뚮씪?곗? ?섍꼍?먯꽌 ?덉젙?곸쑝濡??ы쁽?섏? 紐삵뻽??
+
+?ㅽ뙣 寃쎈줈 ?꾨낫:
+
+- ?곗씠??吏곷젹???ㅽ뙣
+- Blob ?앹꽦 ?ㅽ뙣
+- object URL ?앹꽦 ?ㅽ뙣
+- ?ㅼ슫濡쒕뱶 留곹겕 ?대┃ ?ㅽ뙣
+- 釉뚮씪?곗? ?ㅼ슫濡쒕뱶 李⑤떒 媛?μ꽦
+- ?????녿뒗 ?덉쇅
+
+?섎룞 ?ы쁽 媛?μ꽦:
+
+- ?쇰컲 釉뚮씪?곗? ?붾㈃ 議곗옉留뚯쑝濡쒕뒗 ?遺遺꾩쓽 ?ㅽ뙣 ?꾨낫瑜??덉젙?곸쑝濡??ы쁽?섍린 ?대졄??
+- 媛쒕컻???꾧뎄?먯꽌 釉뚮씪?곗? API瑜?媛뺤젣濡?諛붽씀嫄곕굹 肄붾뱶???ㅽ뙣 二쇱엯???섏? ?딅뒗 ???ㅽ뙣 硫붿떆吏 ?쒖떆瑜?吏곸젒 ?뺤씤?섍린 ?대졄??
+- ?꾩옱 ?묒뾽?먯꽌???ㅽ뙣瑜?留뚮뱾湲??꾪븳 src 肄붾뱶 蹂寃쎌쓣 ?섏? ?딅뒗??
+
+?꾩옱 ?④퀎??泥섎━ 湲곗?:
+
+- ?ㅽ뙣 寃쎈줈??`?섎룞 ?ы쁽 ?대젮? / 肄붾뱶 寃쎈줈??try-catch ?뺤씤 ?꾩슂`濡?湲곕줉?쒕떎.
+- ?깃났 寃쎈줈 ?듦낵瑜?湲곗??쇰줈 JSON export 1李?援ы쁽? ?꾨즺濡?蹂몃떎.
+- ?ㅽ뙣 硫붿떆吏???꾩옱 `SettingsView`??`catch` 寃쎈줈?먯꽌 ?쒖떆?섎룄濡??섏뼱 ?덉쑝?? ?ㅼ젣 ?ㅽ뙣 ?ы쁽 ?뺤씤? 蹂대쪟?쒕떎.
+- ?ㅽ뙣 ?곹솴?먯꽌??湲곗〈 IndexedDB ?곗씠?곕? 蹂寃쏀븯吏 ?딅뒗 ?뺤콉???좎??쒕떎.
+- JSON import/蹂듭썝? ?꾩쭅 援ы쁽?섏? ?딄퀬 蹂꾨룄 ?뺤콉 ?뺤젙 ??吏꾪뻾?쒕떎.
+
+?ν썑 蹂닿컯 ?꾨낫:
+
+1. `exportData` ?좏떥 ?⑥쐞 ?뚯뒪???꾩엯 ?뺤콉??臾몄꽌?뷀븳??
+2. Blob/object URL/download link 泥섎━瑜?download helper濡?遺꾨━?좎? 寃?좏븳??
+3. ?ㅽ뙣 二쇱엯 媛?ν븳 ?뚯뒪???⑥닔 ?먮뒗 ?뚯뒪??hook ?꾩엯 ?щ?瑜?寃곗젙?쒕떎.
+4. Vitest 媛숈? ?뚯뒪???꾧뎄 ?꾩엯 ?щ?瑜?蹂꾨룄 ?묒뾽?쇰줈 ?먮떒?쒕떎.
+5. ?꾩슂?섎㈃ Chrome/Edge ??釉뚮씪?곗?蹂??ㅼ슫濡쒕뱶 ?숈옉???섎룞 ?뺤씤?쒕떎.
+
+?ㅼ쓬 ?④퀎 ?꾨낫:
+
+1. JSON export 1李??꾨즺 ?곹깭瑜??좎??섍퀬 import/蹂듭썝 ?뺤콉??援ъ껜?뷀븳??
+2. export ?ㅽ뙣 寃쎈줈 ?뚯뒪???꾧뎄 ?꾩엯 ?뺤콉??臾몄꽌?뷀븳??
+3. ?낅Т ?꾪꽣/?뺣젹 UX 媛쒖꽑 ?꾨낫瑜??뺣━?쒕떎.
+
+## 50. JSON import/蹂듭썝 ?뺤콉
+
+JSON import/蹂듭썝? ?꾩쭅 援ы쁽?섏? ?딅뒗?? ?곗씠???먯긽 ?꾪뿕???덉쑝誘濡??곸꽭 湲곗?? [docs/data-import-restore-policy.md
+](docs/data-import-restore-policy.md)瑜?湲곗??쇰줈 ?쒕떎.
+
+吏?먰븷 諛깆뾽 ?뚯씪 湲곗?:
+
+- `format: "planpilot-local-backup"`
+- `schemaVersion: 1`
+- `exportedAt`
+- `tasks`
+- `projects`
+- `appSettings`
+
+蹂듭썝 諛⑹떇 ?꾨낫:
+
+- ?꾩껜 ??뼱?곌린: 1李??ㅼ젣 蹂듭썝 ?꾨낫. ?⑥닚?섏?留??꾩옱 ?곗씠????젣 ?꾪뿕???덉쑝誘濡?諛깆뾽/?뺤씤/rollback ?뺤콉???꾩슂?섎떎.
+- 蹂묓빀: 以묐났 ID, 異⑸룎 ?곗꽑?쒖쐞, project 李몄“ 臾닿껐???꾪뿕??而ㅼ꽌 1李?踰붿쐞?먯꽌 ?쒖쇅?쒕떎.
+- ?좏깮??蹂듭썝: task/project/settings 愿怨꾧? 源⑥쭏 ???덉뼱 ?꾩닚?꾨줈 ?붾떎.
+
+1李?援ы쁽 ?꾨낫:
+
+- 諛붾줈 DB??諛섏쁺?섏? ?딅뒗??
+- 癒쇱? ?뚯씪 寃利??좏떥留?援ы쁽?쒕떎. [?꾨즺]
+- 洹??ㅼ쓬 寃利?寃곌낵? ?곹뼢 踰붿쐞 誘몃━蹂닿린 UI瑜?援ы쁽?쒕떎.
+- ?ㅼ젣 ?꾩껜 ??뼱?곌린 蹂듭썝? 蹂꾨룄 ?묒뾽?쇰줈 遺꾨━?쒕떎.
+
+?꾩옱 援ы쁽 ?곹깭:
+
+- `src/utils/importValidation.ts`??`validateBackupData(input: unknown)` ?쒖닔 寃利??⑥닔瑜?異붽??덈떎.
+- 寃利??⑥닔??`valid`, `errors`, `warnings`, `summary`瑜?諛섑솚?쒕떎.
+- 寃利??⑥닔??UI?먯꽌 ?꾩쭅 ?몄텧?섏? ?딅뒗??
+- 寃利??⑥닔??IndexedDB ?곌린, 蹂듭썝, ??뼱?곌린, 蹂묓빀???섑뻾?섏? ?딅뒗??
+
+?꾩닔 寃利?湲곗?:
+
+- JSON ?뚯떛 媛???щ?
+- `format` ?쇱튂 ?щ?
+- `schemaVersion` 吏???щ?
+- `tasks` 諛곗뿴 ?щ?
+- `projects` 諛곗뿴 ?щ?
+- `appSettings` 媛앹껜 ?щ?
+- task/project/appSettings ?꾩닔 ?꾨뱶 議댁옱 ?щ?
+- task `status`? `priority` ?덉슜 媛??щ?
+- task `projectId`媛 諛깆뾽 ?뚯씪 ?덉쓽 project瑜?李몄“?섎뒗吏 ?щ?
+- ?좎쭨 臾몄옄???뺤떇 寃??
+湲곗〈 ?곗씠??蹂댄샇 湲곗?:
+
+- ?뚯씪 ?좏깮 ??利됱떆 蹂듭썝?섏? ?딅뒗??
+- 寃利??ㅽ뙣 ??湲곗〈 IndexedDB ?곗씠?곕뒗 蹂寃쏀븯吏 ?딅뒗??
+- ?ъ슜?먭? 痍⑥냼?섎㈃ 湲곗〈 IndexedDB ?곗씠?곕뒗 蹂寃쏀븯吏 ?딅뒗??
+- ?ㅼ젣 蹂듭썝 ???꾩옱 ?곗씠??諛깆뾽 ?덈궡 ?먮뒗 ?먮룞 諛깆뾽 ?뺤콉???뺤젙?쒕떎.
+- 遺遺??ㅽ뙣 媛?μ꽦???덉쑝硫?transaction ?먮뒗 rollback 湲곗???癒쇱? ?뺤젙?쒕떎.
+
+蹂대쪟/以묐떒 議곌굔:
+
+- DB schema 蹂寃??먮뒗 migration???꾩슂?섎떎.
+- rollback ?뺤콉???뺥빐吏吏 ?딆븯??
+- 以묐났 ID ?뺤콉???뺥빐吏吏 ?딆븯??
+- `appSettings` ??뼱?곌린 ?뺤콉???뺥빐吏吏 ?딆븯??
+- `App.css` ?洹쒕え ?섏젙???꾩슂?섎떎.
+- ?쒕쾭 API, `localStorage`, 濡쒓렇?? ?대씪?곕뱶 ?숆린?? ?뚮┝ 沅뚰븳 ?붿껌, Capacitor媛 ?꾩슂?섎떎.
+
+?ㅼ쓬 ?④퀎:
+
+1. 寃利?寃곌낵 誘몃━蹂닿린 UI ?뺤콉 援ъ껜??2. 寃利??좏떥 ?섎룞/?먮룞 ?뚯뒪???꾩엯 ?щ? 寃??3. ?꾩껜 ??뼱?곌린 蹂듭썝 ?뺤콉 ?뺤젙
+4. 蹂묓빀 蹂듭썝? ?댄썑 蹂꾨룄 寃??
+
+ exited 1 in 3725ms:
+2026-07-18T09:29:58.007384Z ERROR codex_core::tools::router: error=Exit code: 1
+Wall time: 3.7 seconds
+Output:
+
+codex
+`rg` 기준으로 기존 문서/코드에 GitHub PR 검토 항목의 상세 정리는 아직 없습니다. 이제 신규 검토 문서와 루프 로그 기록만 추가합니다.
+apply patch
+patch: completed
+D:\ai-apps\planpilot-local\.ai-dev\github-pr-integration-review.md
+D:\ai-apps\planpilot-local\.ai-dev\loop-log.md
+diff --git a/.ai-dev/github-pr-integration-review.md b/.ai-dev/github-pr-integration-review.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..efe80366b1202f6d7cc0d4e85bd1d6abe9e6387c
+--- /dev/null
++++ b/.ai-dev/github-pr-integration-review.md
+@@ -0,0 +1,147 @@
++# GitHub PR 연동 검토
++
++## 목적
++
++GitHub PR 정보를 실제로 연동하기 전에, PlanPilot Local의 현재 구조에서 안전하게 다룰 수 있는 최소 범위를 정리한다. 이번 검토는 문서 작성만 수행하며, 인증
+, 네트워크 연동, DB schema 변경, UI 구현은 포함하지 않는다.
++
++## 현재 구조 요약
++
++- 앱은 React + Vite + TypeScript 기반 로컬 웹앱이다.
++- 화면 진입점인 `src/App.tsx`는 하단 탭 상태와 파생 데이터 계산을 맡고, 실제 화면은 `src/views/TodayView.tsx`, `src/views/TasksV
+iew.tsx`, `src/views/ProjectsView.tsx`, `src/views/SettingsView.tsx`로 분리되어 있다.
++- 상태 관리는 `src/store.ts`의 Zustand store가 담당하며, 현재 도메인은 `tasks`, `projects`, `appSettings`이다.
++- 로컬 저장은 `src/db.ts`의 Dexie v1 schema가 담당하며, 현재 테이블은 `tasks`, `projects`, `appSettings`뿐이다.
++- 타입은 `src/types.ts`에 `Task`, `Project`, `AppSettings`, `StoredAppSettings`로 정의되어 있다.
++- 백업/가져오기 검증 흐름은 설정 화면과 `src/utils/exportData.ts`, `src/utils/importValidation.ts` 계열에 붙어 있다.
++
++## PR 정보 후보 위치
++
++### 1. 업무 메모 또는 태그 기반 수동 기록
++
++가장 작은 범위는 기존 `Task`의 `memo` 또는 `tags`에 PR URL, 저장소명, PR 번호를 사용자가 직접 적는 방식이다.
++
++- 장점: DB schema 변경이 필요 없고, 현재 IndexedDB 데이터를 건드리지 않는다.
++- 장점: `TasksView`와 `TaskCard`의 기존 업무 흐름 안에서 바로 이해할 수 있다.
++- 단점: 구조화된 PR 상태, 리뷰어, merge 상태, 체크 상태를 안정적으로 필터링하기 어렵다.
++- 판단: 1차 MVP 검토 결과로는 가장 안전한 시작점이다.
++
++### 2. 프로젝트 단위 설명에 저장소/PR 맥락 기록
++
++`Project.description`에 GitHub 저장소 URL 또는 관련 PR 기준을 적고, 개별 PR은 업무로 관리하는 방식이다.
++
++- 장점: 저장소나 팀 단위 맥락은 프로젝트와 자연스럽게 맞는다.
++- 장점: 새 테이블 없이 프로젝트 화면의 기존 데이터 구조를 재사용할 수 있다.
++- 단점: PR 단위 상태 관리는 결국 업무 또는 별도 구조가 필요하다.
++- 판단: 저장소 맥락 표시는 후보가 될 수 있으나, PR 목록 관리의 핵심 위치로는 부족하다.
++
++### 3. 별도 PR 도메인 추가
++
++`PullRequest` 같은 새 타입, Zustand 상태, Dexie 테이블을 추가하는 방식이다.
++
++- 장점: PR 번호, URL, 상태, 리뷰 상태, 연결 업무를 구조화할 수 있다.
++- 단점: `src/types.ts`, `src/db.ts`, `src/store.ts`, 화면 컴포넌트, 백업/가져오기 정책까지 함께 바뀐다.
++- 단점: Dexie schema version과 migration 계획이 필요해 이번 task 범위를 넘는다.
++- 판단: 실제 연동 또는 구조화된 관리가 필요해진 뒤 별도 task로 다뤄야 한다.
++
++## MVP 최소 사용자 흐름
++
++이번 기능의 첫 구현 후보는 "GitHub PR 연동"이 아니라 "업무에 PR 링크를 수동으로 연결해 추적한다"로 좁히는 것이 안전하다.
++
++1. 사용자가 업무를 만들거나 수정할 때 PR URL을 메모에 적는다.
++2. 사용자가 업무 제목, 메모, 태그 검색으로 PR 관련 업무를 찾는다.
++3. 사용자는 PR 상태를 GitHub에서 직접 확인하고, PlanPilot에는 할 일 상태만 수동으로 관리한다.
++
++이 흐름은 서버 API, GitHub 인증, 원격 데이터 수집, DB schema 변경 없이 현재 구조와 충돌하지 않는다.
++
++## MVP 제외 범위
++
++- GitHub OAuth 또는 Personal Access Token 입력
++- GitHub API 호출
++- `gh` CLI 또는 Copilot CLI 호출
++- PR 자동 수집, 자동 동기화, polling
++- PR 상태, 리뷰어, 체크 결과, merge 가능 여부 자동 반영
++- 서버 API, 로그인, 클라우드 동기화
++- `localStorage` 저장
++- Dexie schema 변경과 migration
++- 별도 PR 탭 또는 대규모 화면 재구성
++- 알림 또는 Android notification 권한 요청
++
++## 필요한 데이터 형태 후보
++
++### 1차 후보: 기존 Task 재사용
++
++별도 schema 변경 없이 다음 값을 사람이 입력한다.
++
++- `Task.title`: PR과 연결된 업무 제목
++- `Task.memo`: PR URL, 저장소명, PR 번호, 처리 메모
++- `Task.tags`: `github`, `pr`, 저장소 별칭 같은 수동 분류
++- `Task.status`: PlanPilot 안에서의 처리 상태
++- `Task.projectId`: 관련 프로젝트
++
++이 방식은 현재 백업/export/import 대상인 `tasks` 안에 자연스럽게 포함된다.
++
++### 후속 후보: 구조화된 PR 링크 필드
++
++정식 구조화가 필요해질 때 검토할 수 있는 형태는 다음과 같다.
++
++```ts
++type PullRequestLink = {
++  id: string;
++  taskId?: string;
++  projectId?: string;
++  provider: "github";
++  repository: string;
++  number: number;
++  url: string;
++  title?: string;
++  state?: "open" | "closed" | "merged" | "draft";
++  lastCheckedAt?: string;
++  createdAt: string;
++  updatedAt: string;
++};
++```
++
++다만 이 구조는 새 table 또는 `Task` 확장을 요구하므로, migration 계획과 백업/가져오기 정책 업데이트가 선행되어야 한다.
++
++## 저장 위치 후보
++
++- 1차: 기존 `tasks` 테이블의 `memo`, `tags`, `projectId`를 사용한다.
++- 2차: 프로젝트별 GitHub 저장소 맥락이 필요하면 기존 `projects.description`을 사용한다.
++- 보류: 별도 `pullRequests` 테이블은 Dexie schema 변경이므로 이번 범위에서 제외한다.
++- 보류: `appSettings`에 GitHub 설정을 저장하는 방식은 인증/토큰 저장 문제와 연결되므로 제외한다.
++
++## 후속 구현 작업 제안
++
++다음 task로 바로 전환 가능한 가장 작은 구현 단위는 다음 하나다.
++
++**Task 후보: 업무 메모의 PR URL 표시 기준 정리 및 수동 테스트**
++
++- 범위: 코드 변경 없이, 사용자가 업무 메모에 GitHub PR URL을 적고 검색으로 찾는 수동 흐름을 테스트 체크리스트에 추가한다.
++- 포함: PR URL 예시, 태그 예시, 검색어 예시, 제외 기능 명시
++- 제외: 링크 자동 파싱, 외부 API 호출, DB schema 변경
++- 검증: 기존 업무 추가/수정/검색/백업 흐름과 충돌하지 않는지 수동 확인
++
++그 다음 구현이 필요하다면 두 번째 작은 task는 "TaskCard 또는 TaskForm에서 PR URL을 사람이 읽기 쉽게 보여줄 수 있는 최소 UI 검토"가 적절하다. 이 경
+우에도 `App.tsx`에 복잡도를 추가하지 않고 `TaskCard` 또는 작은 utility부터 검토해야 한다.
++
++## 중단 조건
++
++다음 요구가 들어오면 별도 task로 분리하고, 구현 전에 추가 검토가 필요하다.
++
++- GitHub 인증 정보 저장
++- GitHub API 또는 `gh` CLI 호출
++- PR 상태 자동 동기화
++- 새 Dexie table 추가
++- `Task` 타입에 구조화된 PR 필드 추가
++- 백업/가져오기 schema 확장
++- 새 탭 또는 큰 화면 재구성
++
++## 수동 검증 결과
++
++- 현재 구조에서 PR 정보를 표시하거나 관리할 후보 위치를 `Task.memo`, `Task.tags`, `Project.description`, 별도 PR 도메인으로 구분했다.
++- MVP 최소 흐름은 기존 업무에 PR URL을 수동 기록하고 검색하는 방식으로 제한했다.
++- 제외 범위는 인증, API 호출, 자동 수집, schema 변경, 대규모 UI 변경으로 명확히 분리했다.
++- 필요한 데이터 형태는 기존 Task 재사용안을 우선하고, 구조화된 `PullRequestLink`는 후속 후보로만 남겼다.
++- 후속 작업은 코드 변경 없는 수동 흐름 테스트 체크리스트 작성으로 분리했다.
++
++## src 외 파일 수정 이유
++
++이번 task의 산출물이 검토 문서이며, 프롬프트의 Likely Files가 `.ai-dev/goal.md`와 `.ai-dev/github-pr-integration-review.
+md`를 지정했다. 따라서 `src` 밖의 `.ai-dev/github-pr-integration-review.md`를 새로 작성하는 것이 task 완료에 필요하다.
+diff --git a/.ai-dev/loop-log.md b/.ai-dev/loop-log.md
+index 42072722e66ddd6bdfa874c5f13be7f7aa97f423..b6f6c543892d4679d92e8e802e8f9e6f66ac998c
+--- a/.ai-dev/loop-log.md
++++ b/.ai-dev/loop-log.md
+@@ -1513,4 +1513,11 @@
+ 
+ - Task: T001 리뷰 JSON 추출 실패 처리 보강
+ - Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
+-- Next task: 없음
+\ No newline at end of file
++- Next task: 없음
++
++## 2026-07-18 18:35:00 - Task documentation completed
++
++- Task: T001 GitHub PR 연동 검토 문서 작성
++- Result: `.ai-dev/github-pr-integration-review.md`에 현재 구조 요약, MVP 최소 흐름, 제외 범위, 데이터 저장 후보, 후속 작은 작업
+ 단위를 정리했다.
++- Verification: 코드와 DB schema를 변경하지 않았고, build/test/lint/git 명령을 실행하지 않았다.
++- Next task: 업무 메모의 PR URL 수동 기록/검색 흐름을 테스트 체크리스트로 분리하는 작업으로 진행 가능
+
+diff --git a/.ai-dev/github-pr-integration-review.md b/.ai-dev/github-pr-integration-review.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..efe80366b1202f6d7cc0d4e85bd1d6abe9e6387c
+--- /dev/null
++++ b/.ai-dev/github-pr-integration-review.md
+@@ -0,0 +1,147 @@
++# GitHub PR 연동 검토
++
++## 목적
++
++GitHub PR 정보를 실제로 연동하기 전에, PlanPilot Local의 현재 구조에서 안전하게 다룰 수 있는 최소 범위를 정리한다. 이번 검토는 문서 작성만 수행하며, 인증
+, 네트워크 연동, DB schema 변경, UI 구현은 포함하지 않는다.
++
++## 현재 구조 요약
++
++- 앱은 React + Vite + TypeScript 기반 로컬 웹앱이다.
++- 화면 진입점인 `src/App.tsx`는 하단 탭 상태와 파생 데이터 계산을 맡고, 실제 화면은 `src/views/TodayView.tsx`, `src/views/TasksV
+iew.tsx`, `src/views/ProjectsView.tsx`, `src/views/SettingsView.tsx`로 분리되어 있다.
++- 상태 관리는 `src/store.ts`의 Zustand store가 담당하며, 현재 도메인은 `tasks`, `projects`, `appSettings`이다.
++- 로컬 저장은 `src/db.ts`의 Dexie v1 schema가 담당하며, 현재 테이블은 `tasks`, `projects`, `appSettings`뿐이다.
++- 타입은 `src/types.ts`에 `Task`, `Project`, `AppSettings`, `StoredAppSettings`로 정의되어 있다.
++- 백업/가져오기 검증 흐름은 설정 화면과 `src/utils/exportData.ts`, `src/utils/importValidation.ts` 계열에 붙어 있다.
++
++## PR 정보 후보 위치
++
++### 1. 업무 메모 또는 태그 기반 수동 기록
++
++가장 작은 범위는 기존 `Task`의 `memo` 또는 `tags`에 PR URL, 저장소명, PR 번호를 사용자가 직접 적는 방식이다.
++
++- 장점: DB schema 변경이 필요 없고, 현재 IndexedDB 데이터를 건드리지 않는다.
++- 장점: `TasksView`와 `TaskCard`의 기존 업무 흐름 안에서 바로 이해할 수 있다.
++- 단점: 구조화된 PR 상태, 리뷰어, merge 상태, 체크 상태를 안정적으로 필터링하기 어렵다.
++- 판단: 1차 MVP 검토 결과로는 가장 안전한 시작점이다.
++
++### 2. 프로젝트 단위 설명에 저장소/PR 맥락 기록
++
++`Project.description`에 GitHub 저장소 URL 또는 관련 PR 기준을 적고, 개별 PR은 업무로 관리하는 방식이다.
++
++- 장점: 저장소나 팀 단위 맥락은 프로젝트와 자연스럽게 맞는다.
++- 장점: 새 테이블 없이 프로젝트 화면의 기존 데이터 구조를 재사용할 수 있다.
++- 단점: PR 단위 상태 관리는 결국 업무 또는 별도 구조가 필요하다.
++- 판단: 저장소 맥락 표시는 후보가 될 수 있으나, PR 목록 관리의 핵심 위치로는 부족하다.
++
++### 3. 별도 PR 도메인 추가
++
++`PullRequest` 같은 새 타입, Zustand 상태, Dexie 테이블을 추가하는 방식이다.
++
++- 장점: PR 번호, URL, 상태, 리뷰 상태, 연결 업무를 구조화할 수 있다.
++- 단점: `src/types.ts`, `src/db.ts`, `src/store.ts`, 화면 컴포넌트, 백업/가져오기 정책까지 함께 바뀐다.
++- 단점: Dexie schema version과 migration 계획이 필요해 이번 task 범위를 넘는다.
++- 판단: 실제 연동 또는 구조화된 관리가 필요해진 뒤 별도 task로 다뤄야 한다.
++
++## MVP 최소 사용자 흐름
++
++이번 기능의 첫 구현 후보는 "GitHub PR 연동"이 아니라 "업무에 PR 링크를 수동으로 연결해 추적한다"로 좁히는 것이 안전하다.
++
++1. 사용자가 업무를 만들거나 수정할 때 PR URL을 메모에 적는다.
++2. 사용자가 업무 제목, 메모, 태그 검색으로 PR 관련 업무를 찾는다.
++3. 사용자는 PR 상태를 GitHub에서 직접 확인하고, PlanPilot에는 할 일 상태만 수동으로 관리한다.
++
++이 흐름은 서버 API, GitHub 인증, 원격 데이터 수집, DB schema 변경 없이 현재 구조와 충돌하지 않는다.
++
++## MVP 제외 범위
++
++- GitHub OAuth 또는 Personal Access Token 입력
++- GitHub API 호출
++- `gh` CLI 또는 Copilot CLI 호출
++- PR 자동 수집, 자동 동기화, polling
++- PR 상태, 리뷰어, 체크 결과, merge 가능 여부 자동 반영
++- 서버 API, 로그인, 클라우드 동기화
++- `localStorage` 저장
++- Dexie schema 변경과 migration
++- 별도 PR 탭 또는 대규모 화면 재구성
++- 알림 또는 Android notification 권한 요청
++
++## 필요한 데이터 형태 후보
++
++### 1차 후보: 기존 Task 재사용
++
++별도 schema 변경 없이 다음 값을 사람이 입력한다.
++
++- `Task.title`: PR과 연결된 업무 제목
++- `Task.memo`: PR URL, 저장소명, PR 번호, 처리 메모
++- `Task.tags`: `github`, `pr`, 저장소 별칭 같은 수동 분류
++- `Task.status`: PlanPilot 안에서의 처리 상태
++- `Task.projectId`: 관련 프로젝트
++
++이 방식은 현재 백업/export/import 대상인 `tasks` 안에 자연스럽게 포함된다.
++
++### 후속 후보: 구조화된 PR 링크 필드
++
++정식 구조화가 필요해질 때 검토할 수 있는 형태는 다음과 같다.
++
++```ts
++type PullRequestLink = {
++  id: string;
++  taskId?: string;
++  projectId?: string;
++  provider: "github";
++  repository: string;
++  number: number;
++  url: string;
++  title?: string;
++  state?: "open" | "closed" | "merged" | "draft";
++  lastCheckedAt?: string;
++  createdAt: string;
++  updatedAt: string;
++};
++```
++
++다만 이 구조는 새 table 또는 `Task` 확장을 요구하므로, migration 계획과 백업/가져오기 정책 업데이트가 선행되어야 한다.
++
++## 저장 위치 후보
++
++- 1차: 기존 `tasks` 테이블의 `memo`, `tags`, `projectId`를 사용한다.
++- 2차: 프로젝트별 GitHub 저장소 맥락이 필요하면 기존 `projects.description`을 사용한다.
++- 보류: 별도 `pullRequests` 테이블은 Dexie schema 변경이므로 이번 범위에서 제외한다.
++- 보류: `appSettings`에 GitHub 설정을 저장하는 방식은 인증/토큰 저장 문제와 연결되므로 제외한다.
++
++## 후속 구현 작업 제안
++
++다음 task로 바로 전환 가능한 가장 작은 구현 단위는 다음 하나다.
++
++**Task 후보: 업무 메모의 PR URL 표시 기준 정리 및 수동 테스트**
++
++- 범위: 코드 변경 없이, 사용자가 업무 메모에 GitHub PR URL을 적고 검색으로 찾는 수동 흐름을 테스트 체크리스트에 추가한다.
++- 포함: PR URL 예시, 태그 예시, 검색어 예시, 제외 기능 명시
++- 제외: 링크 자동 파싱, 외부 API 호출, DB schema 변경
++- 검증: 기존 업무 추가/수정/검색/백업 흐름과 충돌하지 않는지 수동 확인
++
++그 다음 구현이 필요하다면 두 번째 작은 task는 "TaskCard 또는 TaskForm에서 PR URL을 사람이 읽기 쉽게 보여줄 수 있는 최소 UI 검토"가 적절하다. 이 경
+우에도 `App.tsx`에 복잡도를 추가하지 않고 `TaskCard` 또는 작은 utility부터 검토해야 한다.
++
++## 중단 조건
++
++다음 요구가 들어오면 별도 task로 분리하고, 구현 전에 추가 검토가 필요하다.
++
++- GitHub 인증 정보 저장
++- GitHub API 또는 `gh` CLI 호출
++- PR 상태 자동 동기화
++- 새 Dexie table 추가
++- `Task` 타입에 구조화된 PR 필드 추가
++- 백업/가져오기 schema 확장
++- 새 탭 또는 큰 화면 재구성
++
++## 수동 검증 결과
++
++- 현재 구조에서 PR 정보를 표시하거나 관리할 후보 위치를 `Task.memo`, `Task.tags`, `Project.description`, 별도 PR 도메인으로 구분했다.
++- MVP 최소 흐름은 기존 업무에 PR URL을 수동 기록하고 검색하는 방식으로 제한했다.
++- 제외 범위는 인증, API 호출, 자동 수집, schema 변경, 대규모 UI 변경으로 명확히 분리했다.
++- 필요한 데이터 형태는 기존 Task 재사용안을 우선하고, 구조화된 `PullRequestLink`는 후속 후보로만 남겼다.
++- 후속 작업은 코드 변경 없는 수동 흐름 테스트 체크리스트 작성으로 분리했다.
++
++## src 외 파일 수정 이유
++
++이번 task의 산출물이 검토 문서이며, 프롬프트의 Likely Files가 `.ai-dev/goal.md`와 `.ai-dev/github-pr-integration-review.
+md`를 지정했다. 따라서 `src` 밖의 `.ai-dev/github-pr-integration-review.md`를 새로 작성하는 것이 task 완료에 필요하다.
+diff --git a/.ai-dev/loop-log.md b/.ai-dev/loop-log.md
+index 42072722e66ddd6bdfa874c5f13be7f7aa97f423..b6f6c543892d4679d92e8e802e8f9e6f66ac998c
+--- a/.ai-dev/loop-log.md
++++ b/.ai-dev/loop-log.md
+@@ -1513,4 +1513,11 @@
+ 
+ - Task: T001 리뷰 JSON 추출 실패 처리 보강
+ - Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
+-- Next task: 없음
+\ No newline at end of file
++- Next task: 없음
++
++## 2026-07-18 18:35:00 - Task documentation completed
++
++- Task: T001 GitHub PR 연동 검토 문서 작성
++- Result: `.ai-dev/github-pr-integration-review.md`에 현재 구조 요약, MVP 최소 흐름, 제외 범위, 데이터 저장 후보, 후속 작은 작업
+ 단위를 정리했다.
++- Verification: 코드와 DB schema를 변경하지 않았고, build/test/lint/git 명령을 실행하지 않았다.
++- Next task: 업무 메모의 PR URL 수동 기록/검색 흐름을 테스트 체크리스트로 분리하는 작업으로 진행 가능
+
+codex
+문서와 로그를 추가했습니다. 이제 작성된 문서가 성공 기준 항목을 모두 포함하는지 파일 내용 기준으로만 검증하겠습니다.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralPath '
+D:\\ai-apps\\planpilot-local\\.ai-dev\\github-pr-integration-review.md'" in D:\ai-apps\planpilot-loca
+l
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralPath '
+D:\\ai-apps\\planpilot-local\\.ai-dev\\loop-log.md' -Tail 14" in D:\ai-apps\planpilot-local
+ succeeded in 2363ms:
+- Commit: 81d38c2071cf7bddafd8d812d221380005226ea1
+- Message: Handle review JSON extraction failures
+## 2026-07-18 18:25:16 - Task completed
+
+- Task: T001 리뷰 JSON 추출 실패 처리 보강
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
+- Next task: 없음
+
+## 2026-07-18 18:35:00 - Task documentation completed
+
+- Task: T001 GitHub PR 연동 검토 문서 작성
+- Result: `.ai-dev/github-pr-integration-review.md`에 현재 구조 요약, MVP 최소 흐름, 제외 범위, 데이터 저장 후보, 후속 작은 작업 
+단위를 정리했다.
+- Verification: 코드와 DB schema를 변경하지 않았고, build/test/lint/git 명령을 실행하지 않았다.
+- Next task: 업무 메모의 PR URL 수동 기록/검색 흐름을 테스트 체크리스트로 분리하는 작업으로 진행 가능
+
+ succeeded in 2388ms:
+# GitHub PR ?곕룞 寃??
+## 紐⑹쟻
+
+GitHub PR ?뺣낫瑜??ㅼ젣濡??곕룞?섍린 ?꾩뿉, PlanPilot Local???꾩옱 援ъ“?먯꽌 ?덉쟾?섍쾶 ?ㅻ０ ???덈뒗 理쒖냼 踰붿쐞瑜??뺣━?쒕떎. ?대쾲 寃?
+좊뒗 臾몄꽌 ?묒꽦留??섑뻾?섎ŉ, ?몄쬆, ?ㅽ듃?뚰겕 ?곕룞, DB schema 蹂寃? UI 援ы쁽? ?ы븿?섏? ?딅뒗??
+
+## ?꾩옱 援ъ“ ?붿빟
+
+- ?깆? React + Vite + TypeScript 湲곕컲 濡쒖뺄 ?뱀빋?대떎.
+- ?붾㈃ 吏꾩엯?먯씤 `src/App.tsx`???섎떒 ???곹깭? ?뚯깮 ?곗씠??怨꾩궛??留↔퀬, ?ㅼ젣 ?붾㈃? `src/views/TodayView.tsx`, `src/
+views/TasksView.tsx`, `src/views/ProjectsView.tsx`, `src/views/SettingsView.tsx`濡?遺꾨━?섏뼱 ?덈떎.
+- ?곹깭 愿由щ뒗 `src/store.ts`??Zustand store媛 ?대떦?섎ŉ, ?꾩옱 ?꾨찓?몄? `tasks`, `projects`, `appSettings`?대떎.
+- 濡쒖뺄 ??μ? `src/db.ts`??Dexie v1 schema媛 ?대떦?섎ŉ, ?꾩옱 ?뚯씠釉붿? `tasks`, `projects`, `appSettings`肉먯씠??
+- ??낆? `src/types.ts`??`Task`, `Project`, `AppSettings`, `StoredAppSettings`濡??뺤쓽?섏뼱 ?덈떎.
+- 諛깆뾽/媛?몄삤湲?寃利??먮쫫? ?ㅼ젙 ?붾㈃怨?`src/utils/exportData.ts`, `src/utils/importValidation.ts` 怨꾩뿴??遺숈뼱 ?
+덈떎.
+
+## PR ?뺣낫 ?꾨낫 ?꾩튂
+
+### 1. ?낅Т 硫붾え ?먮뒗 ?쒓렇 湲곕컲 ?섎룞 湲곕줉
+
+媛???묒? 踰붿쐞??湲곗〈 `Task`??`memo` ?먮뒗 `tags`??PR URL, ??μ냼紐? PR 踰덊샇瑜??ъ슜?먭? 吏곸젒 ?곷뒗 諛⑹떇?대떎.
+
+- ?μ젏: DB schema 蹂寃쎌씠 ?꾩슂 ?녾퀬, ?꾩옱 IndexedDB ?곗씠?곕? 嫄대뱶由ъ? ?딅뒗??
+- ?μ젏: `TasksView`? `TaskCard`??湲곗〈 ?낅Т ?먮쫫 ?덉뿉??諛붾줈 ?댄빐?????덈떎.
+- ?⑥젏: 援ъ“?붾맂 PR ?곹깭, 由щ럭?? merge ?곹깭, 泥댄겕 ?곹깭瑜??덉젙?곸쑝濡??꾪꽣留곹븯湲??대졄??
+- ?먮떒: 1李?MVP 寃??寃곌낵濡쒕뒗 媛???덉쟾???쒖옉?먯씠??
+
+### 2. ?꾨줈?앺듃 ?⑥쐞 ?ㅻ챸????μ냼/PR 留λ씫 湲곕줉
+
+`Project.description`??GitHub ??μ냼 URL ?먮뒗 愿??PR 湲곗????곴퀬, 媛쒕퀎 PR? ?낅Т濡?愿由ы븯??諛⑹떇?대떎.
+
+- ?μ젏: ??μ냼??? ?⑥쐞 留λ씫? ?꾨줈?앺듃? ?먯뿰?ㅻ읇寃?留욌뒗??
+- ?μ젏: ???뚯씠釉??놁씠 ?꾨줈?앺듃 ?붾㈃??湲곗〈 ?곗씠??援ъ“瑜??ъ궗?⑺븷 ???덈떎.
+- ?⑥젏: PR ?⑥쐞 ?곹깭 愿由щ뒗 寃곌뎅 ?낅Т ?먮뒗 蹂꾨룄 援ъ“媛 ?꾩슂?섎떎.
+- ?먮떒: ??μ냼 留λ씫 ?쒖떆???꾨낫媛 ?????덉쑝?? PR 紐⑸줉 愿由ъ쓽 ?듭떖 ?꾩튂濡쒕뒗 遺議깊븯??
+
+### 3. 蹂꾨룄 PR ?꾨찓??異붽?
+
+`PullRequest` 媛숈? ????? Zustand ?곹깭, Dexie ?뚯씠釉붿쓣 異붽??섎뒗 諛⑹떇?대떎.
+
+- ?μ젏: PR 踰덊샇, URL, ?곹깭, 由щ럭 ?곹깭, ?곌껐 ?낅Т瑜?援ъ“?뷀븷 ???덈떎.
+- ?⑥젏: `src/types.ts`, `src/db.ts`, `src/store.ts`, ?붾㈃ 而댄룷?뚰듃, 諛깆뾽/媛?몄삤湲??뺤콉源뚯? ?④퍡 諛붾먮떎.
+- ?⑥젏: Dexie schema version怨?migration 怨꾪쉷???꾩슂???대쾲 task 踰붿쐞瑜??섎뒗??
+- ?먮떒: ?ㅼ젣 ?곕룞 ?먮뒗 援ъ“?붾맂 愿由ш? ?꾩슂?댁쭊 ??蹂꾨룄 task濡??ㅻ쨪???쒕떎.
+
+## MVP 理쒖냼 ?ъ슜???먮쫫
+
+?대쾲 湲곕뒫??泥?援ы쁽 ?꾨낫??"GitHub PR ?곕룞"???꾨땲??"?낅Т??PR 留곹겕瑜??섎룞?쇰줈 ?곌껐??異붿쟻?쒕떎"濡?醫곹엳??寃껋씠 ?덉쟾?섎떎.
+
+1. ?ъ슜?먭? ?낅Т瑜?留뚮뱾嫄곕굹 ?섏젙????PR URL??硫붾え???곷뒗??
+2. ?ъ슜?먭? ?낅Т ?쒕ぉ, 硫붾え, ?쒓렇 寃?됱쑝濡?PR 愿???낅Т瑜?李얜뒗??
+3. ?ъ슜?먮뒗 PR ?곹깭瑜?GitHub?먯꽌 吏곸젒 ?뺤씤?섍퀬, PlanPilot?먮뒗 ?????곹깭留??섎룞?쇰줈 愿由ы븳??
+
+???먮쫫? ?쒕쾭 API, GitHub ?몄쬆, ?먭꺽 ?곗씠???섏쭛, DB schema 蹂寃??놁씠 ?꾩옱 援ъ“? 異⑸룎?섏? ?딅뒗??
+
+## MVP ?쒖쇅 踰붿쐞
+
+- GitHub OAuth ?먮뒗 Personal Access Token ?낅젰
+- GitHub API ?몄텧
+- `gh` CLI ?먮뒗 Copilot CLI ?몄텧
+- PR ?먮룞 ?섏쭛, ?먮룞 ?숆린?? polling
+- PR ?곹깭, 由щ럭?? 泥댄겕 寃곌낵, merge 媛???щ? ?먮룞 諛섏쁺
+- ?쒕쾭 API, 濡쒓렇?? ?대씪?곕뱶 ?숆린??- `localStorage` ???- Dexie schema 蹂寃쎄낵 migration
+- 蹂꾨룄 PR ???먮뒗 ?洹쒕え ?붾㈃ ?ш뎄??- ?뚮┝ ?먮뒗 Android notification 沅뚰븳 ?붿껌
+
+## ?꾩슂???곗씠???뺥깭 ?꾨낫
+
+### 1李??꾨낫: 湲곗〈 Task ?ъ궗??
+蹂꾨룄 schema 蹂寃??놁씠 ?ㅼ쓬 媛믪쓣 ?щ엺???낅젰?쒕떎.
+
+- `Task.title`: PR怨??곌껐???낅Т ?쒕ぉ
+- `Task.memo`: PR URL, ??μ냼紐? PR 踰덊샇, 泥섎━ 硫붾え
+- `Task.tags`: `github`, `pr`, ??μ냼 蹂꾩묶 媛숈? ?섎룞 遺꾨쪟
+- `Task.status`: PlanPilot ?덉뿉?쒖쓽 泥섎━ ?곹깭
+- `Task.projectId`: 愿???꾨줈?앺듃
+
+??諛⑹떇? ?꾩옱 諛깆뾽/export/import ??곸씤 `tasks` ?덉뿉 ?먯뿰?ㅻ읇寃??ы븿?쒕떎.
+
+### ?꾩냽 ?꾨낫: 援ъ“?붾맂 PR 留곹겕 ?꾨뱶
+
+?뺤떇 援ъ“?붽? ?꾩슂?댁쭏 ??寃?좏븷 ???덈뒗 ?뺥깭???ㅼ쓬怨?媛숇떎.
+
+```ts
+type PullRequestLink = {
+  id: string;
+  taskId?: string;
+  projectId?: string;
+  provider: "github";
+  repository: string;
+  number: number;
+  url: string;
+  title?: string;
+  state?: "open" | "closed" | "merged" | "draft";
+  lastCheckedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+};
+```
+
+?ㅻ쭔 ??援ъ“????table ?먮뒗 `Task` ?뺤옣???붽뎄?섎?濡? migration 怨꾪쉷怨?諛깆뾽/媛?몄삤湲??뺤콉 ?낅뜲?댄듃媛 ?좏뻾?섏뼱???쒕떎.
+
+## ????꾩튂 ?꾨낫
+
+- 1李? 湲곗〈 `tasks` ?뚯씠釉붿쓽 `memo`, `tags`, `projectId`瑜??ъ슜?쒕떎.
+- 2李? ?꾨줈?앺듃蹂?GitHub ??μ냼 留λ씫???꾩슂?섎㈃ 湲곗〈 `projects.description`???ъ슜?쒕떎.
+- 蹂대쪟: 蹂꾨룄 `pullRequests` ?뚯씠釉붿? Dexie schema 蹂寃쎌씠誘濡??대쾲 踰붿쐞?먯꽌 ?쒖쇅?쒕떎.
+- 蹂대쪟: `appSettings`??GitHub ?ㅼ젙????ν븯??諛⑹떇? ?몄쬆/?좏겙 ???臾몄젣? ?곌껐?섎?濡??쒖쇅?쒕떎.
+
+## ?꾩냽 援ы쁽 ?묒뾽 ?쒖븞
+
+?ㅼ쓬 task濡?諛붾줈 ?꾪솚 媛?ν븳 媛???묒? 援ы쁽 ?⑥쐞???ㅼ쓬 ?섎굹??
+
+**Task ?꾨낫: ?낅Т 硫붾え??PR URL ?쒖떆 湲곗? ?뺣━ 諛??섎룞 ?뚯뒪??*
+
+- 踰붿쐞: 肄붾뱶 蹂寃??놁씠, ?ъ슜?먭? ?낅Т 硫붾え??GitHub PR URL???곴퀬 寃?됱쑝濡?李얜뒗 ?섎룞 ?먮쫫???뚯뒪??泥댄겕由ъ뒪?몄뿉 異붽??쒕떎.
+- ?ы븿: PR URL ?덉떆, ?쒓렇 ?덉떆, 寃?됱뼱 ?덉떆, ?쒖쇅 湲곕뒫 紐낆떆
+- ?쒖쇅: 留곹겕 ?먮룞 ?뚯떛, ?몃? API ?몄텧, DB schema 蹂寃?- 寃利? 湲곗〈 ?낅Т 異붽?/?섏젙/寃??諛깆뾽 ?먮쫫怨?異⑸룎?섏? ?딅뒗吏 ?섎룞 ?
+뺤씤
+
+洹??ㅼ쓬 援ы쁽???꾩슂?섎떎硫???踰덉㎏ ?묒? task??"TaskCard ?먮뒗 TaskForm?먯꽌 PR URL???щ엺???쎄린 ?쎄쾶 蹂댁뿬以????덈뒗 理쒖냼 UI 寃
+??媛 ?곸젅?섎떎. ??寃쎌슦?먮룄 `App.tsx`??蹂듭옟?꾨? 異붽??섏? ?딄퀬 `TaskCard` ?먮뒗 ?묒? utility遺??寃?좏빐???쒕떎.
+
+## 以묐떒 議곌굔
+
+?ㅼ쓬 ?붽뎄媛 ?ㅼ뼱?ㅻ㈃ 蹂꾨룄 task濡?遺꾨━?섍퀬, 援ы쁽 ?꾩뿉 異붽? 寃?좉? ?꾩슂?섎떎.
+
+- GitHub ?몄쬆 ?뺣낫 ???- GitHub API ?먮뒗 `gh` CLI ?몄텧
+- PR ?곹깭 ?먮룞 ?숆린??- ??Dexie table 異붽?
+- `Task` ??낆뿉 援ъ“?붾맂 PR ?꾨뱶 異붽?
+- 諛깆뾽/媛?몄삤湲?schema ?뺤옣
+- ?????먮뒗 ???붾㈃ ?ш뎄??
+## ?섎룞 寃利?寃곌낵
+
+- ?꾩옱 援ъ“?먯꽌 PR ?뺣낫瑜??쒖떆?섍굅??愿由ы븷 ?꾨낫 ?꾩튂瑜?`Task.memo`, `Task.tags`, `Project.description`, 蹂꾨룄 PR ?
+꾨찓?몄쑝濡?援щ텇?덈떎.
+- MVP 理쒖냼 ?먮쫫? 湲곗〈 ?낅Т??PR URL???섎룞 湲곕줉?섍퀬 寃?됲븯??諛⑹떇?쇰줈 ?쒗븳?덈떎.
+- ?쒖쇅 踰붿쐞???몄쬆, API ?몄텧, ?먮룞 ?섏쭛, schema 蹂寃? ?洹쒕え UI 蹂寃쎌쑝濡?紐낇솗??遺꾨━?덈떎.
+- ?꾩슂???곗씠???뺥깭??湲곗〈 Task ?ъ궗?⑹븞???곗꽑?섍퀬, 援ъ“?붾맂 `PullRequestLink`???꾩냽 ?꾨낫濡쒕쭔 ?④꼈??
+- ?꾩냽 ?묒뾽? 肄붾뱶 蹂寃??녿뒗 ?섎룞 ?먮쫫 ?뚯뒪??泥댄겕由ъ뒪???묒꽦?쇰줈 遺꾨━?덈떎.
+
+## src ???뚯씪 ?섏젙 ?댁쑀
+
+?대쾲 task???곗텧臾쇱씠 寃??臾몄꽌?대ŉ, ?꾨＼?꾪듃??Likely Files媛 `.ai-dev/goal.md`? `.ai-dev/github-pr-integratio
+n-review.md`瑜?吏?뺥뻽?? ?곕씪??`src` 諛뽰쓽 `.ai-dev/github-pr-integration-review.md`瑜??덈줈 ?묒꽦?섎뒗 寃껋씠 task ?
+꾨즺???꾩슂?섎떎.
+
+diff --git a/.ai-dev/github-pr-integration-review.md b/.ai-dev/github-pr-integration-review.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..efe80366b1202f6d7cc0d4e85bd1d6abe9e6387c
+--- /dev/null
++++ b/.ai-dev/github-pr-integration-review.md
+@@ -0,0 +1,147 @@
++# GitHub PR 연동 검토
++
++## 목적
++
++GitHub PR 정보를 실제로 연동하기 전에, PlanPilot Local의 현재 구조에서 안전하게 다룰 수 있는 최소 범위를 정리한다. 이번 검토는 문서 작성만 수행하며, 인증
+, 네트워크 연동, DB schema 변경, UI 구현은 포함하지 않는다.
++
++## 현재 구조 요약
++
++- 앱은 React + Vite + TypeScript 기반 로컬 웹앱이다.
++- 화면 진입점인 `src/App.tsx`는 하단 탭 상태와 파생 데이터 계산을 맡고, 실제 화면은 `src/views/TodayView.tsx`, `src/views/TasksV
+iew.tsx`, `src/views/ProjectsView.tsx`, `src/views/SettingsView.tsx`로 분리되어 있다.
++- 상태 관리는 `src/store.ts`의 Zustand store가 담당하며, 현재 도메인은 `tasks`, `projects`, `appSettings`이다.
++- 로컬 저장은 `src/db.ts`의 Dexie v1 schema가 담당하며, 현재 테이블은 `tasks`, `projects`, `appSettings`뿐이다.
++- 타입은 `src/types.ts`에 `Task`, `Project`, `AppSettings`, `StoredAppSettings`로 정의되어 있다.
++- 백업/가져오기 검증 흐름은 설정 화면과 `src/utils/exportData.ts`, `src/utils/importValidation.ts` 계열에 붙어 있다.
++
++## PR 정보 후보 위치
++
++### 1. 업무 메모 또는 태그 기반 수동 기록
++
++가장 작은 범위는 기존 `Task`의 `memo` 또는 `tags`에 PR URL, 저장소명, PR 번호를 사용자가 직접 적는 방식이다.
++
++- 장점: DB schema 변경이 필요 없고, 현재 IndexedDB 데이터를 건드리지 않는다.
++- 장점: `TasksView`와 `TaskCard`의 기존 업무 흐름 안에서 바로 이해할 수 있다.
++- 단점: 구조화된 PR 상태, 리뷰어, merge 상태, 체크 상태를 안정적으로 필터링하기 어렵다.
++- 판단: 1차 MVP 검토 결과로는 가장 안전한 시작점이다.
++
++### 2. 프로젝트 단위 설명에 저장소/PR 맥락 기록
++
++`Project.description`에 GitHub 저장소 URL 또는 관련 PR 기준을 적고, 개별 PR은 업무로 관리하는 방식이다.
++
++- 장점: 저장소나 팀 단위 맥락은 프로젝트와 자연스럽게 맞는다.
++- 장점: 새 테이블 없이 프로젝트 화면의 기존 데이터 구조를 재사용할 수 있다.
++- 단점: PR 단위 상태 관리는 결국 업무 또는 별도 구조가 필요하다.
++- 판단: 저장소 맥락 표시는 후보가 될 수 있으나, PR 목록 관리의 핵심 위치로는 부족하다.
++
++### 3. 별도 PR 도메인 추가
++
++`PullRequest` 같은 새 타입, Zustand 상태, Dexie 테이블을 추가하는 방식이다.
++
++- 장점: PR 번호, URL, 상태, 리뷰 상태, 연결 업무를 구조화할 수 있다.
++- 단점: `src/types.ts`, `src/db.ts`, `src/store.ts`, 화면 컴포넌트, 백업/가져오기 정책까지 함께 바뀐다.
++- 단점: Dexie schema version과 migration 계획이 필요해 이번 task 범위를 넘는다.
++- 판단: 실제 연동 또는 구조화된 관리가 필요해진 뒤 별도 task로 다뤄야 한다.
++
++## MVP 최소 사용자 흐름
++
++이번 기능의 첫 구현 후보는 "GitHub PR 연동"이 아니라 "업무에 PR 링크를 수동으로 연결해 추적한다"로 좁히는 것이 안전하다.
++
++1. 사용자가 업무를 만들거나 수정할 때 PR URL을 메모에 적는다.
++2. 사용자가 업무 제목, 메모, 태그 검색으로 PR 관련 업무를 찾는다.
++3. 사용자는 PR 상태를 GitHub에서 직접 확인하고, PlanPilot에는 할 일 상태만 수동으로 관리한다.
++
++이 흐름은 서버 API, GitHub 인증, 원격 데이터 수집, DB schema 변경 없이 현재 구조와 충돌하지 않는다.
++
++## MVP 제외 범위
++
++- GitHub OAuth 또는 Personal Access Token 입력
++- GitHub API 호출
++- `gh` CLI 또는 Copilot CLI 호출
++- PR 자동 수집, 자동 동기화, polling
++- PR 상태, 리뷰어, 체크 결과, merge 가능 여부 자동 반영
++- 서버 API, 로그인, 클라우드 동기화
++- `localStorage` 저장
++- Dexie schema 변경과 migration
++- 별도 PR 탭 또는 대규모 화면 재구성
++- 알림 또는 Android notification 권한 요청
++
++## 필요한 데이터 형태 후보
++
++### 1차 후보: 기존 Task 재사용
++
++별도 schema 변경 없이 다음 값을 사람이 입력한다.
++
++- `Task.title`: PR과 연결된 업무 제목
++- `Task.memo`: PR URL, 저장소명, PR 번호, 처리 메모
++- `Task.tags`: `github`, `pr`, 저장소 별칭 같은 수동 분류
++- `Task.status`: PlanPilot 안에서의 처리 상태
++- `Task.projectId`: 관련 프로젝트
++
++이 방식은 현재 백업/export/import 대상인 `tasks` 안에 자연스럽게 포함된다.
++
++### 후속 후보: 구조화된 PR 링크 필드
++
++정식 구조화가 필요해질 때 검토할 수 있는 형태는 다음과 같다.
++
++```ts
++type PullRequestLink = {
++  id: string;
++  taskId?: string;
++  projectId?: string;
++  provider: "github";
++  repository: string;
++  number: number;
++  url: string;
++  title?: string;
++  state?: "open" | "closed" | "merged" | "draft";
++  lastCheckedAt?: string;
++  createdAt: string;
++  updatedAt: string;
++};
++```
++
++다만 이 구조는 새 table 또는 `Task` 확장을 요구하므로, migration 계획과 백업/가져오기 정책 업데이트가 선행되어야 한다.
++
++## 저장 위치 후보
++
++- 1차: 기존 `tasks` 테이블의 `memo`, `tags`, `projectId`를 사용한다.
++- 2차: 프로젝트별 GitHub 저장소 맥락이 필요하면 기존 `projects.description`을 사용한다.
++- 보류: 별도 `pullRequests` 테이블은 Dexie schema 변경이므로 이번 범위에서 제외한다.
++- 보류: `appSettings`에 GitHub 설정을 저장하는 방식은 인증/토큰 저장 문제와 연결되므로 제외한다.
++
++## 후속 구현 작업 제안
++
++다음 task로 바로 전환 가능한 가장 작은 구현 단위는 다음 하나다.
++
++**Task 후보: 업무 메모의 PR URL 표시 기준 정리 및 수동 테스트**
++
++- 범위: 코드 변경 없이, 사용자가 업무 메모에 GitHub PR URL을 적고 검색으로 찾는 수동 흐름을 테스트 체크리스트에 추가한다.
++- 포함: PR URL 예시, 태그 예시, 검색어 예시, 제외 기능 명시
++- 제외: 링크 자동 파싱, 외부 API 호출, DB schema 변경
++- 검증: 기존 업무 추가/수정/검색/백업 흐름과 충돌하지 않는지 수동 확인
++
++그 다음 구현이 필요하다면 두 번째 작은 task는 "TaskCard 또는 TaskForm에서 PR URL을 사람이 읽기 쉽게 보여줄 수 있는 최소 UI 검토"가 적절하다. 이 경
+우에도 `App.tsx`에 복잡도를 추가하지 않고 `TaskCard` 또는 작은 utility부터 검토해야 한다.
++
++## 중단 조건
++
++다음 요구가 들어오면 별도 task로 분리하고, 구현 전에 추가 검토가 필요하다.
++
++- GitHub 인증 정보 저장
++- GitHub API 또는 `gh` CLI 호출
++- PR 상태 자동 동기화
++- 새 Dexie table 추가
++- `Task` 타입에 구조화된 PR 필드 추가
++- 백업/가져오기 schema 확장
++- 새 탭 또는 큰 화면 재구성
++
++## 수동 검증 결과
++
++- 현재 구조에서 PR 정보를 표시하거나 관리할 후보 위치를 `Task.memo`, `Task.tags`, `Project.description`, 별도 PR 도메인으로 구분했다.
++- MVP 최소 흐름은 기존 업무에 PR URL을 수동 기록하고 검색하는 방식으로 제한했다.
++- 제외 범위는 인증, API 호출, 자동 수집, schema 변경, 대규모 UI 변경으로 명확히 분리했다.
++- 필요한 데이터 형태는 기존 Task 재사용안을 우선하고, 구조화된 `PullRequestLink`는 후속 후보로만 남겼다.
++- 후속 작업은 코드 변경 없는 수동 흐름 테스트 체크리스트 작성으로 분리했다.
++
++## src 외 파일 수정 이유
++
++이번 task의 산출물이 검토 문서이며, 프롬프트의 Likely Files가 `.ai-dev/goal.md`와 `.ai-dev/github-pr-integration-review.
+md`를 지정했다. 따라서 `src` 밖의 `.ai-dev/github-pr-integration-review.md`를 새로 작성하는 것이 task 완료에 필요하다.
+diff --git a/.ai-dev/loop-log.md b/.ai-dev/loop-log.md
+index 42072722e66ddd6bdfa874c5f13be7f7aa97f423..b6f6c543892d4679d92e8e802e8f9e6f66ac998c
+--- a/.ai-dev/loop-log.md
++++ b/.ai-dev/loop-log.md
+@@ -1513,4 +1513,11 @@
+ 
+ - Task: T001 리뷰 JSON 추출 실패 처리 보강
+ - Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
+-- Next task: 없음
+\ No newline at end of file
++- Next task: 없음
++
++## 2026-07-18 18:35:00 - Task documentation completed
++
++- Task: T001 GitHub PR 연동 검토 문서 작성
++- Result: `.ai-dev/github-pr-integration-review.md`에 현재 구조 요약, MVP 최소 흐름, 제외 범위, 데이터 저장 후보, 후속 작은 작업
+ 단위를 정리했다.
++- Verification: 코드와 DB schema를 변경하지 않았고, build/test/lint/git 명령을 실행하지 않았다.
++- Next task: 업무 메모의 PR URL 수동 기록/검색 흐름을 테스트 체크리스트로 분리하는 작업으로 진행 가능
+
+codex
+PowerShell 5.1 출력 인코딩 때문에 한국어가 깨져 보이지만, 파일 자체를 UTF-8로 다시 읽어 핵심 제목과 굵은 글씨 구문이 정상인지 확인하겠습니다.
+mcp: node_repl/js started
+mcp: node_repl/js (failed)
+tool call error: tool call failed for `node_repl/js`
+
+Caused by:
+    Mcp error: -32602: js: codex/sandbox-state-meta: sandboxCwd must use the file URI scheme
+diff --git a/.ai-dev/github-pr-integration-review.md b/.ai-dev/github-pr-integration-review.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..efe80366b1202f6d7cc0d4e85bd1d6abe9e6387c
+--- /dev/null
++++ b/.ai-dev/github-pr-integration-review.md
+@@ -0,0 +1,147 @@
++# GitHub PR 연동 검토
++
++## 목적
++
++GitHub PR 정보를 실제로 연동하기 전에, PlanPilot Local의 현재 구조에서 안전하게 다룰 수 있는 최소 범위를 정리한다. 이번 검토는 문서 작성만 수행하며, 인증
+, 네트워크 연동, DB schema 변경, UI 구현은 포함하지 않는다.
++
++## 현재 구조 요약
++
++- 앱은 React + Vite + TypeScript 기반 로컬 웹앱이다.
++- 화면 진입점인 `src/App.tsx`는 하단 탭 상태와 파생 데이터 계산을 맡고, 실제 화면은 `src/views/TodayView.tsx`, `src/views/TasksV
+iew.tsx`, `src/views/ProjectsView.tsx`, `src/views/SettingsView.tsx`로 분리되어 있다.
++- 상태 관리는 `src/store.ts`의 Zustand store가 담당하며, 현재 도메인은 `tasks`, `projects`, `appSettings`이다.
++- 로컬 저장은 `src/db.ts`의 Dexie v1 schema가 담당하며, 현재 테이블은 `tasks`, `projects`, `appSettings`뿐이다.
++- 타입은 `src/types.ts`에 `Task`, `Project`, `AppSettings`, `StoredAppSettings`로 정의되어 있다.
++- 백업/가져오기 검증 흐름은 설정 화면과 `src/utils/exportData.ts`, `src/utils/importValidation.ts` 계열에 붙어 있다.
++
++## PR 정보 후보 위치
++
++### 1. 업무 메모 또는 태그 기반 수동 기록
++
++가장 작은 범위는 기존 `Task`의 `memo` 또는 `tags`에 PR URL, 저장소명, PR 번호를 사용자가 직접 적는 방식이다.
++
++- 장점: DB schema 변경이 필요 없고, 현재 IndexedDB 데이터를 건드리지 않는다.
++- 장점: `TasksView`와 `TaskCard`의 기존 업무 흐름 안에서 바로 이해할 수 있다.
++- 단점: 구조화된 PR 상태, 리뷰어, merge 상태, 체크 상태를 안정적으로 필터링하기 어렵다.
++- 판단: 1차 MVP 검토 결과로는 가장 안전한 시작점이다.
++
++### 2. 프로젝트 단위 설명에 저장소/PR 맥락 기록
++
++`Project.description`에 GitHub 저장소 URL 또는 관련 PR 기준을 적고, 개별 PR은 업무로 관리하는 방식이다.
++
++- 장점: 저장소나 팀 단위 맥락은 프로젝트와 자연스럽게 맞는다.
++- 장점: 새 테이블 없이 프로젝트 화면의 기존 데이터 구조를 재사용할 수 있다.
++- 단점: PR 단위 상태 관리는 결국 업무 또는 별도 구조가 필요하다.
++- 판단: 저장소 맥락 표시는 후보가 될 수 있으나, PR 목록 관리의 핵심 위치로는 부족하다.
++
++### 3. 별도 PR 도메인 추가
++
++`PullRequest` 같은 새 타입, Zustand 상태, Dexie 테이블을 추가하는 방식이다.
++
++- 장점: PR 번호, URL, 상태, 리뷰 상태, 연결 업무를 구조화할 수 있다.
++- 단점: `src/types.ts`, `src/db.ts`, `src/store.ts`, 화면 컴포넌트, 백업/가져오기 정책까지 함께 바뀐다.
++- 단점: Dexie schema version과 migration 계획이 필요해 이번 task 범위를 넘는다.
++- 판단: 실제 연동 또는 구조화된 관리가 필요해진 뒤 별도 task로 다뤄야 한다.
++
++## MVP 최소 사용자 흐름
++
++이번 기능의 첫 구현 후보는 "GitHub PR 연동"이 아니라 "업무에 PR 링크를 수동으로 연결해 추적한다"로 좁히는 것이 안전하다.
++
++1. 사용자가 업무를 만들거나 수정할 때 PR URL을 메모에 적는다.
++2. 사용자가 업무 제목, 메모, 태그 검색으로 PR 관련 업무를 찾는다.
++3. 사용자는 PR 상태를 GitHub에서 직접 확인하고, PlanPilot에는 할 일 상태만 수동으로 관리한다.
++
++이 흐름은 서버 API, GitHub 인증, 원격 데이터 수집, DB schema 변경 없이 현재 구조와 충돌하지 않는다.
++
++## MVP 제외 범위
++
++- GitHub OAuth 또는 Personal Access Token 입력
++- GitHub API 호출
++- `gh` CLI 또는 Copilot CLI 호출
++- PR 자동 수집, 자동 동기화, polling
++- PR 상태, 리뷰어, 체크 결과, merge 가능 여부 자동 반영
++- 서버 API, 로그인, 클라우드 동기화
++- `localStorage` 저장
++- Dexie schema 변경과 migration
++- 별도 PR 탭 또는 대규모 화면 재구성
++- 알림 또는 Android notification 권한 요청
++
++## 필요한 데이터 형태 후보
++
++### 1차 후보: 기존 Task 재사용
++
++별도 schema 변경 없이 다음 값을 사람이 입력한다.
++
++- `Task.title`: PR과 연결된 업무 제목
++- `Task.memo`: PR URL, 저장소명, PR 번호, 처리 메모
++- `Task.tags`: `github`, `pr`, 저장소 별칭 같은 수동 분류
++- `Task.status`: PlanPilot 안에서의 처리 상태
++- `Task.projectId`: 관련 프로젝트
++
++이 방식은 현재 백업/export/import 대상인 `tasks` 안에 자연스럽게 포함된다.
++
++### 후속 후보: 구조화된 PR 링크 필드
++
++정식 구조화가 필요해질 때 검토할 수 있는 형태는 다음과 같다.
++
++```ts
++type PullRequestLink = {
++  id: string;
++  taskId?: string;
++  projectId?: string;
++  provider: "github";
++  repository: string;
++  number: number;
++  url: string;
++  title?: string;
++  state?: "open" | "closed" | "merged" | "draft";
++  lastCheckedAt?: string;
++  createdAt: string;
++  updatedAt: string;
++};
++```
++
++다만 이 구조는 새 table 또는 `Task` 확장을 요구하므로, migration 계획과 백업/가져오기 정책 업데이트가 선행되어야 한다.
++
++## 저장 위치 후보
++
++- 1차: 기존 `tasks` 테이블의 `memo`, `tags`, `projectId`를 사용한다.
++- 2차: 프로젝트별 GitHub 저장소 맥락이 필요하면 기존 `projects.description`을 사용한다.
++- 보류: 별도 `pullRequests` 테이블은 Dexie schema 변경이므로 이번 범위에서 제외한다.
++- 보류: `appSettings`에 GitHub 설정을 저장하는 방식은 인증/토큰 저장 문제와 연결되므로 제외한다.
++
++## 후속 구현 작업 제안
++
++다음 task로 바로 전환 가능한 가장 작은 구현 단위는 다음 하나다.
++
++**Task 후보: 업무 메모의 PR URL 표시 기준 정리 및 수동 테스트**
++
++- 범위: 코드 변경 없이, 사용자가 업무 메모에 GitHub PR URL을 적고 검색으로 찾는 수동 흐름을 테스트 체크리스트에 추가한다.
++- 포함: PR URL 예시, 태그 예시, 검색어 예시, 제외 기능 명시
++- 제외: 링크 자동 파싱, 외부 API 호출, DB schema 변경
++- 검증: 기존 업무 추가/수정/검색/백업 흐름과 충돌하지 않는지 수동 확인
++
++그 다음 구현이 필요하다면 두 번째 작은 task는 "TaskCard 또는 TaskForm에서 PR URL을 사람이 읽기 쉽게 보여줄 수 있는 최소 UI 검토"가 적절하다. 이 경
+우에도 `App.tsx`에 복잡도를 추가하지 않고 `TaskCard` 또는 작은 utility부터 검토해야 한다.
++
++## 중단 조건
++
++다음 요구가 들어오면 별도 task로 분리하고, 구현 전에 추가 검토가 필요하다.
++
++- GitHub 인증 정보 저장
++- GitHub API 또는 `gh` CLI 호출
++- PR 상태 자동 동기화
++- 새 Dexie table 추가
++- `Task` 타입에 구조화된 PR 필드 추가
++- 백업/가져오기 schema 확장
++- 새 탭 또는 큰 화면 재구성
++
++## 수동 검증 결과
++
++- 현재 구조에서 PR 정보를 표시하거나 관리할 후보 위치를 `Task.memo`, `Task.tags`, `Project.description`, 별도 PR 도메인으로 구분했다.
++- MVP 최소 흐름은 기존 업무에 PR URL을 수동 기록하고 검색하는 방식으로 제한했다.
++- 제외 범위는 인증, API 호출, 자동 수집, schema 변경, 대규모 UI 변경으로 명확히 분리했다.
++- 필요한 데이터 형태는 기존 Task 재사용안을 우선하고, 구조화된 `PullRequestLink`는 후속 후보로만 남겼다.
++- 후속 작업은 코드 변경 없는 수동 흐름 테스트 체크리스트 작성으로 분리했다.
++
++## src 외 파일 수정 이유
++
++이번 task의 산출물이 검토 문서이며, 프롬프트의 Likely Files가 `.ai-dev/goal.md`와 `.ai-dev/github-pr-integration-review.
+md`를 지정했다. 따라서 `src` 밖의 `.ai-dev/github-pr-integration-review.md`를 새로 작성하는 것이 task 완료에 필요하다.
+diff --git a/.ai-dev/loop-log.md b/.ai-dev/loop-log.md
+index 42072722e66ddd6bdfa874c5f13be7f7aa97f423..b6f6c543892d4679d92e8e802e8f9e6f66ac998c
+--- a/.ai-dev/loop-log.md
++++ b/.ai-dev/loop-log.md
+@@ -1513,4 +1513,11 @@
+ 
+ - Task: T001 리뷰 JSON 추출 실패 처리 보강
+ - Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
+-- Next task: 없음
+\ No newline at end of file
++- Next task: 없음
++
++## 2026-07-18 18:35:00 - Task documentation completed
++
++- Task: T001 GitHub PR 연동 검토 문서 작성
++- Result: `.ai-dev/github-pr-integration-review.md`에 현재 구조 요약, MVP 최소 흐름, 제외 범위, 데이터 저장 후보, 후속 작은 작업
+ 단위를 정리했다.
++- Verification: 코드와 DB schema를 변경하지 않았고, build/test/lint/git 명령을 실행하지 않았다.
++- Next task: 업무 메모의 PR URL 수동 기록/검색 흐름을 테스트 체크리스트로 분리하는 작업으로 진행 가능
+
+codex
+Node REPL 쪽 경로 메타데이터 문제로 확인이 실패했습니다. 같은 검증을 PowerShell에서 `-Encoding UTF8`로만 읽어 수행하겠습니다.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command '$text = Get-Content -Liter
+alPath '"'D:\\ai-apps\\planpilot-local\\.ai-dev\\github-pr-integration-review.md' -Encoding UTF8 -Raw
+; @('# GitHub PR 연동 검토','## 현재 구조 요약','## MVP 최소 사용자 흐름','## MVP 제외 범위','## 필요한 데이터 형태 후보','## 후속 구현 
+작업 제안','**Task 후보: 업무 메모의 PR URL 표시 기준 정리 및 수동 테스트**','## src 외 파일 수정 이유') | ForEach-Object { \""'$($
+_): $($text.Contains($_))" }' in D:\ai-apps\planpilot-local
+ succeeded in 2264ms:
+# GitHub PR 연동 검토: True
+## 현재 구조 요약: True
+## MVP 최소 사용자 흐름: True
+## MVP 제외 범위: True
+## 필요한 데이터 형태 후보: True
+## 후속 구현 작업 제안: True
+**Task 후보: 업무 메모의 PR URL 표시 기준 정리 및 수동 테스트**: True
+## src 외 파일 수정 이유: True
+
+diff --git a/.ai-dev/github-pr-integration-review.md b/.ai-dev/github-pr-integration-review.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..efe80366b1202f6d7cc0d4e85bd1d6abe9e6387c
+--- /dev/null
++++ b/.ai-dev/github-pr-integration-review.md
+@@ -0,0 +1,147 @@
++# GitHub PR 연동 검토
++
++## 목적
++
++GitHub PR 정보를 실제로 연동하기 전에, PlanPilot Local의 현재 구조에서 안전하게 다룰 수 있는 최소 범위를 정리한다. 이번 검토는 문서 작성만 수행하며, 인증
+, 네트워크 연동, DB schema 변경, UI 구현은 포함하지 않는다.
++
++## 현재 구조 요약
++
++- 앱은 React + Vite + TypeScript 기반 로컬 웹앱이다.
++- 화면 진입점인 `src/App.tsx`는 하단 탭 상태와 파생 데이터 계산을 맡고, 실제 화면은 `src/views/TodayView.tsx`, `src/views/TasksV
+iew.tsx`, `src/views/ProjectsView.tsx`, `src/views/SettingsView.tsx`로 분리되어 있다.
++- 상태 관리는 `src/store.ts`의 Zustand store가 담당하며, 현재 도메인은 `tasks`, `projects`, `appSettings`이다.
++- 로컬 저장은 `src/db.ts`의 Dexie v1 schema가 담당하며, 현재 테이블은 `tasks`, `projects`, `appSettings`뿐이다.
++- 타입은 `src/types.ts`에 `Task`, `Project`, `AppSettings`, `StoredAppSettings`로 정의되어 있다.
++- 백업/가져오기 검증 흐름은 설정 화면과 `src/utils/exportData.ts`, `src/utils/importValidation.ts` 계열에 붙어 있다.
++
++## PR 정보 후보 위치
++
++### 1. 업무 메모 또는 태그 기반 수동 기록
++
++가장 작은 범위는 기존 `Task`의 `memo` 또는 `tags`에 PR URL, 저장소명, PR 번호를 사용자가 직접 적는 방식이다.
++
++- 장점: DB schema 변경이 필요 없고, 현재 IndexedDB 데이터를 건드리지 않는다.
++- 장점: `TasksView`와 `TaskCard`의 기존 업무 흐름 안에서 바로 이해할 수 있다.
++- 단점: 구조화된 PR 상태, 리뷰어, merge 상태, 체크 상태를 안정적으로 필터링하기 어렵다.
++- 판단: 1차 MVP 검토 결과로는 가장 안전한 시작점이다.
++
++### 2. 프로젝트 단위 설명에 저장소/PR 맥락 기록
++
++`Project.description`에 GitHub 저장소 URL 또는 관련 PR 기준을 적고, 개별 PR은 업무로 관리하는 방식이다.
++
++- 장점: 저장소나 팀 단위 맥락은 프로젝트와 자연스럽게 맞는다.
++- 장점: 새 테이블 없이 프로젝트 화면의 기존 데이터 구조를 재사용할 수 있다.
++- 단점: PR 단위 상태 관리는 결국 업무 또는 별도 구조가 필요하다.
++- 판단: 저장소 맥락 표시는 후보가 될 수 있으나, PR 목록 관리의 핵심 위치로는 부족하다.
++
++### 3. 별도 PR 도메인 추가
++
++`PullRequest` 같은 새 타입, Zustand 상태, Dexie 테이블을 추가하는 방식이다.
++
++- 장점: PR 번호, URL, 상태, 리뷰 상태, 연결 업무를 구조화할 수 있다.
++- 단점: `src/types.ts`, `src/db.ts`, `src/store.ts`, 화면 컴포넌트, 백업/가져오기 정책까지 함께 바뀐다.
++- 단점: Dexie schema version과 migration 계획이 필요해 이번 task 범위를 넘는다.
++- 판단: 실제 연동 또는 구조화된 관리가 필요해진 뒤 별도 task로 다뤄야 한다.
++
++## MVP 최소 사용자 흐름
++
++이번 기능의 첫 구현 후보는 "GitHub PR 연동"이 아니라 "업무에 PR 링크를 수동으로 연결해 추적한다"로 좁히는 것이 안전하다.
++
++1. 사용자가 업무를 만들거나 수정할 때 PR URL을 메모에 적는다.
++2. 사용자가 업무 제목, 메모, 태그 검색으로 PR 관련 업무를 찾는다.
++3. 사용자는 PR 상태를 GitHub에서 직접 확인하고, PlanPilot에는 할 일 상태만 수동으로 관리한다.
++
++이 흐름은 서버 API, GitHub 인증, 원격 데이터 수집, DB schema 변경 없이 현재 구조와 충돌하지 않는다.
++
++## MVP 제외 범위
++
++- GitHub OAuth 또는 Personal Access Token 입력
++- GitHub API 호출
++- `gh` CLI 또는 Copilot CLI 호출
++- PR 자동 수집, 자동 동기화, polling
++- PR 상태, 리뷰어, 체크 결과, merge 가능 여부 자동 반영
++- 서버 API, 로그인, 클라우드 동기화
++- `localStorage` 저장
++- Dexie schema 변경과 migration
++- 별도 PR 탭 또는 대규모 화면 재구성
++- 알림 또는 Android notification 권한 요청
++
++## 필요한 데이터 형태 후보
++
++### 1차 후보: 기존 Task 재사용
++
++별도 schema 변경 없이 다음 값을 사람이 입력한다.
++
++- `Task.title`: PR과 연결된 업무 제목
++- `Task.memo`: PR URL, 저장소명, PR 번호, 처리 메모
++- `Task.tags`: `github`, `pr`, 저장소 별칭 같은 수동 분류
++- `Task.status`: PlanPilot 안에서의 처리 상태
++- `Task.projectId`: 관련 프로젝트
++
++이 방식은 현재 백업/export/import 대상인 `tasks` 안에 자연스럽게 포함된다.
++
++### 후속 후보: 구조화된 PR 링크 필드
++
++정식 구조화가 필요해질 때 검토할 수 있는 형태는 다음과 같다.
++
++```ts
++type PullRequestLink = {
++  id: string;
++  taskId?: string;
++  projectId?: string;
++  provider: "github";
++  repository: string;
++  number: number;
++  url: string;
++  title?: string;
++  state?: "open" | "closed" | "merged" | "draft";
++  lastCheckedAt?: string;
++  createdAt: string;
++  updatedAt: string;
++};
++```
++
++다만 이 구조는 새 table 또는 `Task` 확장을 요구하므로, migration 계획과 백업/가져오기 정책 업데이트가 선행되어야 한다.
++
++## 저장 위치 후보
++
++- 1차: 기존 `tasks` 테이블의 `memo`, `tags`, `projectId`를 사용한다.
++- 2차: 프로젝트별 GitHub 저장소 맥락이 필요하면 기존 `projects.description`을 사용한다.
++- 보류: 별도 `pullRequests` 테이블은 Dexie schema 변경이므로 이번 범위에서 제외한다.
++- 보류: `appSettings`에 GitHub 설정을 저장하는 방식은 인증/토큰 저장 문제와 연결되므로 제외한다.
++
++## 후속 구현 작업 제안
++
++다음 task로 바로 전환 가능한 가장 작은 구현 단위는 다음 하나다.
++
++**Task 후보: 업무 메모의 PR URL 표시 기준 정리 및 수동 테스트**
++
++- 범위: 코드 변경 없이, 사용자가 업무 메모에 GitHub PR URL을 적고 검색으로 찾는 수동 흐름을 테스트 체크리스트에 추가한다.
++- 포함: PR URL 예시, 태그 예시, 검색어 예시, 제외 기능 명시
++- 제외: 링크 자동 파싱, 외부 API 호출, DB schema 변경
++- 검증: 기존 업무 추가/수정/검색/백업 흐름과 충돌하지 않는지 수동 확인
++
++그 다음 구현이 필요하다면 두 번째 작은 task는 "TaskCard 또는 TaskForm에서 PR URL을 사람이 읽기 쉽게 보여줄 수 있는 최소 UI 검토"가 적절하다. 이 경
+우에도 `App.tsx`에 복잡도를 추가하지 않고 `TaskCard` 또는 작은 utility부터 검토해야 한다.
++
++## 중단 조건
++
++다음 요구가 들어오면 별도 task로 분리하고, 구현 전에 추가 검토가 필요하다.
++
++- GitHub 인증 정보 저장
++- GitHub API 또는 `gh` CLI 호출
++- PR 상태 자동 동기화
++- 새 Dexie table 추가
++- `Task` 타입에 구조화된 PR 필드 추가
++- 백업/가져오기 schema 확장
++- 새 탭 또는 큰 화면 재구성
++
++## 수동 검증 결과
++
++- 현재 구조에서 PR 정보를 표시하거나 관리할 후보 위치를 `Task.memo`, `Task.tags`, `Project.description`, 별도 PR 도메인으로 구분했다.
++- MVP 최소 흐름은 기존 업무에 PR URL을 수동 기록하고 검색하는 방식으로 제한했다.
++- 제외 범위는 인증, API 호출, 자동 수집, schema 변경, 대규모 UI 변경으로 명확히 분리했다.
++- 필요한 데이터 형태는 기존 Task 재사용안을 우선하고, 구조화된 `PullRequestLink`는 후속 후보로만 남겼다.
++- 후속 작업은 코드 변경 없는 수동 흐름 테스트 체크리스트 작성으로 분리했다.
++
++## src 외 파일 수정 이유
++
++이번 task의 산출물이 검토 문서이며, 프롬프트의 Likely Files가 `.ai-dev/goal.md`와 `.ai-dev/github-pr-integration-review.
+md`를 지정했다. 따라서 `src` 밖의 `.ai-dev/github-pr-integration-review.md`를 새로 작성하는 것이 task 완료에 필요하다.
+diff --git a/.ai-dev/loop-log.md b/.ai-dev/loop-log.md
+index 42072722e66ddd6bdfa874c5f13be7f7aa97f423..b6f6c543892d4679d92e8e802e8f9e6f66ac998c
+--- a/.ai-dev/loop-log.md
++++ b/.ai-dev/loop-log.md
+@@ -1513,4 +1513,11 @@
+ 
+ - Task: T001 리뷰 JSON 추출 실패 처리 보강
+ - Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
+-- Next task: 없음
+\ No newline at end of file
++- Next task: 없음
++
++## 2026-07-18 18:35:00 - Task documentation completed
++
++- Task: T001 GitHub PR 연동 검토 문서 작성
++- Result: `.ai-dev/github-pr-integration-review.md`에 현재 구조 요약, MVP 최소 흐름, 제외 범위, 데이터 저장 후보, 후속 작은 작업
+ 단위를 정리했다.
++- Verification: 코드와 DB schema를 변경하지 않았고, build/test/lint/git 명령을 실행하지 않았다.
++- Next task: 업무 메모의 PR URL 수동 기록/검색 흐름을 테스트 체크리스트로 분리하는 작업으로 진행 가능
+
+codex
+완료했습니다.
+
+변경한 파일:
+- `.ai-dev/github-pr-integration-review.md` 신규 작성
+- `.ai-dev/loop-log.md` 작업 요약 추가
+
+분석 내용:
+- 현재 구조 기준으로 PR 정보 후보 위치를 `Task.memo`, `Task.tags`, `Project.description`, 별도 PR 도메인으로 구분했습니다.
+- MVP는 “업무에 GitHub PR URL을 수동 기록하고 검색으로 찾는 흐름”으로 제한했습니다.
+- GitHub 인증, API 호출, 자동 수집, Dexie schema 변경, 대규모 UI 변경은 제외 범위로 분리했습니다.
+- 후속 작업은 코드 변경 없는 “PR URL 수동 기록/검색 흐름 테스트 체크리스트 작성”으로 제안했습니다.
+
+검증:
+- 문서에 현재 구조 요약, 최소 범위, 제외 범위, 데이터 후보, 후속 작업 항목이 포함됐는지 확인했습니다.
+- `npm run build`, `npm run test`, `npm run lint`, git 명령은 실행하지 않았습니다.
+
+남은 위험:
+- 실제 GitHub 연동은 아직 검토 단계이며, 인증/토큰 저장/API 호출이 필요해지는 순간 별도 privacy-first 설계와 schema 검토가 필요합니다.
+
+다음 task로 넘어가도 됩니다.  
+`.ai-dev/loop-log.md`에는 “GitHub PR 연동 검토 문서 작성 완료, 코드/DB schema 변경 없음, 다음 작업은 수동 기록/검색 흐름 테스트 체크리스트 작
+성 가능”으로 기록했습니다.
+diff --git a/.ai-dev/github-pr-integration-review.md b/.ai-dev/github-pr-integration-review.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..efe80366b1202f6d7cc0d4e85bd1d6abe9e6387c
+--- /dev/null
++++ b/.ai-dev/github-pr-integration-review.md
+@@ -0,0 +1,147 @@
++# GitHub PR 연동 검토
++
++## 목적
++
++GitHub PR 정보를 실제로 연동하기 전에, PlanPilot Local의 현재 구조에서 안전하게 다룰 수 있는 최소 범위를 정리한다. 이번 검토는 문서 작성만 수행하며, 인증
+, 네트워크 연동, DB schema 변경, UI 구현은 포함하지 않는다.
++
++## 현재 구조 요약
++
++- 앱은 React + Vite + TypeScript 기반 로컬 웹앱이다.
++- 화면 진입점인 `src/App.tsx`는 하단 탭 상태와 파생 데이터 계산을 맡고, 실제 화면은 `src/views/TodayView.tsx`, `src/views/TasksV
+iew.tsx`, `src/views/ProjectsView.tsx`, `src/views/SettingsView.tsx`로 분리되어 있다.
++- 상태 관리는 `src/store.ts`의 Zustand store가 담당하며, 현재 도메인은 `tasks`, `projects`, `appSettings`이다.
++- 로컬 저장은 `src/db.ts`의 Dexie v1 schema가 담당하며, 현재 테이블은 `tasks`, `projects`, `appSettings`뿐이다.
++- 타입은 `src/types.ts`에 `Task`, `Project`, `AppSettings`, `StoredAppSettings`로 정의되어 있다.
++- 백업/가져오기 검증 흐름은 설정 화면과 `src/utils/exportData.ts`, `src/utils/importValidation.ts` 계열에 붙어 있다.
++
++## PR 정보 후보 위치
++
++### 1. 업무 메모 또는 태그 기반 수동 기록
++
++가장 작은 범위는 기존 `Task`의 `memo` 또는 `tags`에 PR URL, 저장소명, PR 번호를 사용자가 직접 적는 방식이다.
++
++- 장점: DB schema 변경이 필요 없고, 현재 IndexedDB 데이터를 건드리지 않는다.
++- 장점: `TasksView`와 `TaskCard`의 기존 업무 흐름 안에서 바로 이해할 수 있다.
++- 단점: 구조화된 PR 상태, 리뷰어, merge 상태, 체크 상태를 안정적으로 필터링하기 어렵다.
++- 판단: 1차 MVP 검토 결과로는 가장 안전한 시작점이다.
++
++### 2. 프로젝트 단위 설명에 저장소/PR 맥락 기록
++
++`Project.description`에 GitHub 저장소 URL 또는 관련 PR 기준을 적고, 개별 PR은 업무로 관리하는 방식이다.
++
++- 장점: 저장소나 팀 단위 맥락은 프로젝트와 자연스럽게 맞는다.
++- 장점: 새 테이블 없이 프로젝트 화면의 기존 데이터 구조를 재사용할 수 있다.
++- 단점: PR 단위 상태 관리는 결국 업무 또는 별도 구조가 필요하다.
++- 판단: 저장소 맥락 표시는 후보가 될 수 있으나, PR 목록 관리의 핵심 위치로는 부족하다.
++
++### 3. 별도 PR 도메인 추가
++
++`PullRequest` 같은 새 타입, Zustand 상태, Dexie 테이블을 추가하는 방식이다.
++
++- 장점: PR 번호, URL, 상태, 리뷰 상태, 연결 업무를 구조화할 수 있다.
++- 단점: `src/types.ts`, `src/db.ts`, `src/store.ts`, 화면 컴포넌트, 백업/가져오기 정책까지 함께 바뀐다.
++- 단점: Dexie schema version과 migration 계획이 필요해 이번 task 범위를 넘는다.
++- 판단: 실제 연동 또는 구조화된 관리가 필요해진 뒤 별도 task로 다뤄야 한다.
++
++## MVP 최소 사용자 흐름
++
++이번 기능의 첫 구현 후보는 "GitHub PR 연동"이 아니라 "업무에 PR 링크를 수동으로 연결해 추적한다"로 좁히는 것이 안전하다.
++
++1. 사용자가 업무를 만들거나 수정할 때 PR URL을 메모에 적는다.
++2. 사용자가 업무 제목, 메모, 태그 검색으로 PR 관련 업무를 찾는다.
++3. 사용자는 PR 상태를 GitHub에서 직접 확인하고, PlanPilot에는 할 일 상태만 수동으로 관리한다.
++
++이 흐름은 서버 API, GitHub 인증, 원격 데이터 수집, DB schema 변경 없이 현재 구조와 충돌하지 않는다.
++
++## MVP 제외 범위
++
++- GitHub OAuth 또는 Personal Access Token 입력
++- GitHub API 호출
++- `gh` CLI 또는 Copilot CLI 호출
++- PR 자동 수집, 자동 동기화, polling
++- PR 상태, 리뷰어, 체크 결과, merge 가능 여부 자동 반영
++- 서버 API, 로그인, 클라우드 동기화
++- `localStorage` 저장
++- Dexie schema 변경과 migration
++- 별도 PR 탭 또는 대규모 화면 재구성
++- 알림 또는 Android notification 권한 요청
++
++## 필요한 데이터 형태 후보
++
++### 1차 후보: 기존 Task 재사용
++
++별도 schema 변경 없이 다음 값을 사람이 입력한다.
++
++- `Task.title`: PR과 연결된 업무 제목
++- `Task.memo`: PR URL, 저장소명, PR 번호, 처리 메모
++- `Task.tags`: `github`, `pr`, 저장소 별칭 같은 수동 분류
++- `Task.status`: PlanPilot 안에서의 처리 상태
++- `Task.projectId`: 관련 프로젝트
++
++이 방식은 현재 백업/export/import 대상인 `tasks` 안에 자연스럽게 포함된다.
++
++### 후속 후보: 구조화된 PR 링크 필드
++
++정식 구조화가 필요해질 때 검토할 수 있는 형태는 다음과 같다.
++
++```ts
++type PullRequestLink = {
++  id: string;
++  taskId?: string;
++  projectId?: string;
++  provider: "github";
++  repository: string;
++  number: number;
++  url: string;
++  title?: string;
++  state?: "open" | "closed" | "merged" | "draft";
++  lastCheckedAt?: string;
++  createdAt: string;
++  updatedAt: string;
++};
++```
++
++다만 이 구조는 새 table 또는 `Task` 확장을 요구하므로, migration 계획과 백업/가져오기 정책 업데이트가 선행되어야 한다.
++
++## 저장 위치 후보
++
++- 1차: 기존 `tasks` 테이블의 `memo`, `tags`, `projectId`를 사용한다.
++- 2차: 프로젝트별 GitHub 저장소 맥락이 필요하면 기존 `projects.description`을 사용한다.
++- 보류: 별도 `pullRequests` 테이블은 Dexie schema 변경이므로 이번 범위에서 제외한다.
++- 보류: `appSettings`에 GitHub 설정을 저장하는 방식은 인증/토큰 저장 문제와 연결되므로 제외한다.
++
++## 후속 구현 작업 제안
++
++다음 task로 바로 전환 가능한 가장 작은 구현 단위는 다음 하나다.
++
++**Task 후보: 업무 메모의 PR URL 표시 기준 정리 및 수동 테스트**
++
++- 범위: 코드 변경 없이, 사용자가 업무 메모에 GitHub PR URL을 적고 검색으로 찾는 수동 흐름을 테스트 체크리스트에 추가한다.
++- 포함: PR URL 예시, 태그 예시, 검색어 예시, 제외 기능 명시
++- 제외: 링크 자동 파싱, 외부 API 호출, DB schema 변경
++- 검증: 기존 업무 추가/수정/검색/백업 흐름과 충돌하지 않는지 수동 확인
++
++그 다음 구현이 필요하다면 두 번째 작은 task는 "TaskCard 또는 TaskForm에서 PR URL을 사람이 읽기 쉽게 보여줄 수 있는 최소 UI 검토"가 적절하다. 이 경
+우에도 `App.tsx`에 복잡도를 추가하지 않고 `TaskCard` 또는 작은 utility부터 검토해야 한다.
++
++## 중단 조건
++
++다음 요구가 들어오면 별도 task로 분리하고, 구현 전에 추가 검토가 필요하다.
++
++- GitHub 인증 정보 저장
++- GitHub API 또는 `gh` CLI 호출
++- PR 상태 자동 동기화
++- 새 Dexie table 추가
++- `Task` 타입에 구조화된 PR 필드 추가
++- 백업/가져오기 schema 확장
++- 새 탭 또는 큰 화면 재구성
++
++## 수동 검증 결과
++
++- 현재 구조에서 PR 정보를 표시하거나 관리할 후보 위치를 `Task.memo`, `Task.tags`, `Project.description`, 별도 PR 도메인으로 구분했다.
++- MVP 최소 흐름은 기존 업무에 PR URL을 수동 기록하고 검색하는 방식으로 제한했다.
++- 제외 범위는 인증, API 호출, 자동 수집, schema 변경, 대규모 UI 변경으로 명확히 분리했다.
++- 필요한 데이터 형태는 기존 Task 재사용안을 우선하고, 구조화된 `PullRequestLink`는 후속 후보로만 남겼다.
++- 후속 작업은 코드 변경 없는 수동 흐름 테스트 체크리스트 작성으로 분리했다.
++
++## src 외 파일 수정 이유
++
++이번 task의 산출물이 검토 문서이며, 프롬프트의 Likely Files가 `.ai-dev/goal.md`와 `.ai-dev/github-pr-integration-review.
+md`를 지정했다. 따라서 `src` 밖의 `.ai-dev/github-pr-integration-review.md`를 새로 작성하는 것이 task 완료에 필요하다.
+diff --git a/.ai-dev/loop-log.md b/.ai-dev/loop-log.md
+index 42072722e66ddd6bdfa874c5f13be7f7aa97f423..b6f6c543892d4679d92e8e802e8f9e6f66ac998c
+--- a/.ai-dev/loop-log.md
++++ b/.ai-dev/loop-log.md
+@@ -1513,4 +1513,11 @@
+ 
+ - Task: T001 리뷰 JSON 추출 실패 처리 보강
+ - Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
+-- Next task: 없음
+\ No newline at end of file
++- Next task: 없음
++
++## 2026-07-18 18:35:00 - Task documentation completed
++
++- Task: T001 GitHub PR 연동 검토 문서 작성
++- Result: `.ai-dev/github-pr-integration-review.md`에 현재 구조 요약, MVP 최소 흐름, 제외 범위, 데이터 저장 후보, 후속 작은 작업
+ 단위를 정리했다.
++- Verification: 코드와 DB schema를 변경하지 않았고, build/test/lint/git 명령을 실행하지 않았다.
++- Next task: 업무 메모의 PR URL 수동 기록/검색 흐름을 테스트 체크리스트로 분리하는 작업으로 진행 가능
+
 tokens used
-32,065
-작업을 중단합니다. 프롬프트의 required change는 `scripts/ai-dev-run-review-codex.ps1`을 실제 repo root에서 다시 실행해 JSON 정상/누락/깨짐 경로를 검증하고 `.ai-dev/test-result.md`에 증거를 남기라는 내용입니다.
+83,006
+완료했습니다.
 
-충돌 지점은 다음입니다.
+변경한 파일:
+- `.ai-dev/github-pr-integration-review.md` 신규 작성
+- `.ai-dev/loop-log.md` 작업 요약 추가
 
-- 저장소 규칙: 사용자가 “커밋까지 진행”을 명시한 작업에서만 `git` 명령 실행 가능
-- 검증 대상 스크립트: 실행 초반에 내부적으로 `git status --short`를 호출함
-- 추가 안전 규칙: task 요구사항이 repository rules와 충돌하면 중단하고 보고
+분석 내용:
+- 현재 구조 기준으로 PR 정보 후보 위치를 `Task.memo`, `Task.tags`, `Project.description`, 별도 PR 도메인으로 구분했습니다.
+- MVP는 “업무에 GitHub PR URL을 수동 기록하고 검색으로 찾는 흐름”으로 제한했습니다.
+- GitHub 인증, API 호출, 자동 수집, Dexie schema 변경, 대규모 UI 변경은 제외 범위로 분리했습니다.
+- 후속 작업은 코드 변경 없는 “PR URL 수동 기록/검색 흐름 테스트 체크리스트 작성”으로 제안했습니다.
 
-따라서 현재 권한으로는 required verification을 수행할 수 없고, 검증 결과 파일을 사실처럼 갱신할 수도 없습니다.
+검증:
+- 문서에 현재 구조 요약, 최소 범위, 제외 범위, 데이터 후보, 후속 작업 항목이 포함됐는지 확인했습니다.
+- `npm run build`, `npm run test`, `npm run lint`, git 명령은 실행하지 않았습니다.
 
-수정한 파일은 없습니다.  
-검증은 수행하지 않았습니다.
+남은 위험:
+- 실제 GitHub 연동은 아직 검토 단계이며, 인증/토큰 저장/API 호출이 필요해지는 순간 별도 privacy-first 설계와 schema 검토가 필요합니다.
+
+다음 task로 넘어가도 됩니다.  
+`.ai-dev/loop-log.md`에는 “GitHub PR 연동 검토 문서 작성 완료, 코드/DB schema 변경 없음, 다음 작업은 수동 기록/검색 흐름 테스트 체크리스트 작성 가능”으로 기록했습니다.
 
 ```
