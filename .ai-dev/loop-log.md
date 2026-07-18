@@ -1047,6 +1047,15 @@ Completed: False
 Exit code: 1
 - Prepared goals: 0/2
 
+## 2026-07-18 17:35:00 - Task revise
+
+- Task: T001 리뷰 JSON 추출 실패 처리 보강
+- Required change reflected: `.ai-dev/test-result.md`의 기존 git status 실패 기반 검증 기록을 삭제하고, `scripts/ai-dev-run-review-codex.ps1 -AllowDirty`가 fake Codex 응답 이후 JSON 추출/파싱 경로까지 도달한 검증 결과로 갱신함
+- Verification: 정상 JSON 응답은 exit code 0 및 `review-response.json`의 `decision=pass`, `severity=none`, `next_step=complete_task` 저장을 확인함. JSON 없음/깨진 JSON 응답은 exit code 1 및 `state.json`의 `lastCommandStatus=failed`, `lastErrorSummary`, `lastReviewDecision=blocked`, `lastReviewSeverity=critical`, `stopReason=review_json_extraction_failed` 기록을 확인함
+- Safety: 검증 중 변경된 `.ai-dev/state.json`, `.ai-dev/review-response.json`, `.ai-dev/codex-review-result.md`는 실행 전 바이트로 복원함
+- Not executed: npm build/lint/test, git commit/reset/checkout/clean/rebase/merge/push, npm install은 실행하지 않음
+- Remaining risk: fake Codex 함수 기반 수동 검증이며 실제 Codex CLI 네트워크/모델 응답은 새로 호출하지 않음
+
 ## 2026-07-17 20:13:04 - Commit created
 
 - Task: T001 full auto-cycle 로그 구조 확인 및 최소 개선
@@ -1287,5 +1296,221 @@ Exit code: 1
 ## 2026-07-17 23:03:44 - Task completed
 
 - Task: T001 build/check 실패 후 revise 안내 추가
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
+- Next task: 없음
+## 2026-07-18 16:55:55 - Autopilot stopped
+
+- Reason: auto_goal_failed
+- Result: Auto-goal failed with exit code 1: Step 1: validate-input
+  Command: check GoalTitle/GoalDescription
+  Executed: False
+  Skipped: False
+  Exit code: 0
+  Message: Input validation completed: Codex 리뷰 JSON 추출 실패 처리 보강
+Step 2: dirty-worktree-gate
+  Command: git status --porcelain
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: Baseline dirty count: 0. Worktree is clean.
+Step 3: plan-goal
+  Command: codex exec <auto-goal planning prompt>
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: Codex goal planning completed. Result: .ai-dev/codex-result.md
+Step 4: validate-generated-json
+  Command: goal/queue/state JSON validation
+  Executed: False
+  Skipped: False
+  Exit code: 0
+  Message: goalMarkdown, queue, and state JSON validation completed. currentTaskId: T001
+Step 5: write-state-files
+  Command: .ai-dev/goal.md, .ai-dev/queue.json, .ai-dev/state.json
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: New goal, queue, and state files were written.
+Step 6: make-prompt
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-prompt.ps1
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: 생성된 프롬프트 파일: .ai-dev/current-task-prompt.md
+Current task id: T001
+Current task title: 리뷰 JSON 추출 실패 처리 보강
+Step 7: auto-cycle-full
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cycle-full.ps1 -MaxTasks 3 -MaxSteps 22 -AllowCodex -AllowReviewCodex -AllowCommit -AllowDirty
+  Executed: True
+  Skipped: False
+  Exit code: 1
+  Message: Step 1: task-start
+  Command: MaxTasks=3
+  Executed: False
+  Skipped: False
+  Exit code: 0
+  Message: 현재 task 실행 시작: T001 리뷰 JSON 추출 실패 처리 보강
+Step 2: make-prompt
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-prompt.ps1
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: 생성된 프롬프트 파일: .ai-dev/current-task-prompt.md
+Current task id: T001
+Current task title: 리뷰 JSON 추출 실패 처리 보강
+Step 3: run-codex
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-codex.ps1 -AllowDirty
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: Codex 실행이 완료되었습니다. 결과 파일: .ai-dev/codex-result.md
+Step 4: check
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-check.ps1 -BuildOnly
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: 실행 중: npm run build
+실행 중: npm run lint
+검증 결과: passed
+  - npm run build: passed
+  - npm run test: skipped
+  - npm run lint: passed
+기록 완료: .ai-dev/test-result.md
+상태 저장 완료: .ai-dev/state.json
+Step 5: save-diff
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-save-diff.ps1
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: WARNING: git diff --stat 경고: warning: in the working copy of 'scripts/ai-dev-run-review-codex.ps1', 
+LF will be replaced by CRLF the next time Git touches it
+WARNING: git diff 경고: warning: in the working copy of 'scripts/ai-dev-run-review-codex.ps1', LF will 
+be replaced by CRLF the next time Git touches it
+git diff 저장 완료: .ai-dev/diff.md
+상태 저장 완료: .ai-dev/state.json
+untracked 파일 내용이 필요하면 -IncludeUntrackedContent 옵션을 사용하세요.
+Step 6: make-review-prompt
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-review-prompt.ps1 -Strict
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: 생성된 리뷰 프롬프트 파일: .ai-dev/review-prompt.md
+Current task id: T001
+Current task title: 리뷰 JSON 추출 실패 처리 보강
+Strict 사용 여부: True
+Step 7: run-review-codex
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-review-codex.ps1 -AllowDirty -SaveReview
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: Codex 리뷰 실행이 완료되었습니다. 리뷰 JSON: .ai-dev/review-response.json 결과 파일: .ai-dev/codex-review-result.md save-review 흐름까지 실행했습니다.
+Step 8: review-gate
+  Command: .ai-dev/review-response.json decision/next_step 확인
+  Executed: False
+  Skipped: False
+  Exit code: 0
+  Message: 리뷰 결과가 revise + revise_with_codex입니다. 자동 revise 재시도를 시작합니다. severity=low, summary=구현 범위와 방향은 T001에 맞지만, 성공 기준의 비정상 리뷰 응답 경로가 실제로 검증된 기록이 없어 불확실성이 남습니다.
+Step 9: make-revise-prompt
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-revise-prompt.ps1
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: 생성된 재수정 프롬프트 파일: .ai-dev/revise-prompt.md
+Current task id: T001
+Current task title: 리뷰 JSON 추출 실패 처리 보강
+Review decision: revise
+Review severity: low
+Optional suggestions 허용 여부: False
+Step 10: run-codex-revise
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-codex.ps1 -AllowDirty -PromptPath .ai-dev/revise-prompt.md
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: Codex 실행이 완료되었습니다. 결과 파일: .ai-dev/codex-result.md
+Step 11: check-revise
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-check.ps1 -BuildOnly
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: 실행 중: npm run build
+실행 중: npm run lint
+검증 결과: passed
+  - npm run build: passed
+  - npm run test: skipped
+  - npm run lint: passed
+기록 완료: .ai-dev/test-result.md
+상태 저장 완료: .ai-dev/state.json
+Step 12: save-diff-revise
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-save-diff.ps1
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: WARNING: git diff --stat 경고: warning: in the working copy of 'scripts/ai-dev-run-review-codex.ps1', 
+LF will be replaced by CRLF the next time Git touches it
+WARNING: git diff 경고: warning: in the working copy of 'scripts/ai-dev-run-review-codex.ps1', LF will 
+be replaced by CRLF the next time Git touches it
+git diff 저장 완료: .ai-dev/diff.md
+상태 저장 완료: .ai-dev/state.json
+untracked 파일 내용이 필요하면 -IncludeUntrackedContent 옵션을 사용하세요.
+Step 13: make-review-prompt-revise
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-review-prompt.ps1 -Strict
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: 생성된 리뷰 프롬프트 파일: .ai-dev/review-prompt.md
+Current task id: T001
+Current task title: 리뷰 JSON 추출 실패 처리 보강
+Strict 사용 여부: True
+Step 14: run-review-codex-revise
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-review-codex.ps1 -AllowDirty -SaveReview
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: Codex 리뷰 실행이 완료되었습니다. 리뷰 JSON: .ai-dev/review-response.json 결과 파일: .ai-dev/codex-review-result.md save-review 흐름까지 실행했습니다.
+Step 15: review-gate
+  Command: 재리뷰 decision/next_step/required_changes 확인
+  Executed: False
+  Skipped: True
+  Exit code: 1
+  Message: 재리뷰도 revise + revise_with_codex를 반환해 자동 revise 재시도를 중단합니다. summary=구현 범위는 적절하고 실패 상태 기록 로직도 추가됐지만, 성공 기준에 명시된 정상 JSON/깨진 JSON 경로의 수동 검증 결과가 남아 있지 않아 작은 불확
+실성이 있다., severity=medium, next_step=revise_with_codex, required_changes={
+    "file":  ".ai-dev/test-result.md",
+    "reason":  "현재 검증 결과는 build와 lint만 포함하고, task 성공 기준의 핵심인 JSON 추출 성공/실패 경로 검증이 확인되지 않는다.",
+    "suggestion":  "정상 JSON 리뷰 응답과 JSON이 없거나 잘못된 리뷰 응답 각각에서 decision/severity 처리와 state.json 실패 요약 기\r\n록 여부를 수동 검증하고 결과를 기록한다."
+}
+Stopped reason: review_revise_repeated
+Completed: False
+Exit code: 1
+Context:
+  Task: T001 리뷰 JSON 추출 실패 처리 보강
+  Task status: in_progress
+  Completed task: none
+  Current task: T001 리뷰 JSON 추출 실패 처리 보강
+  Next task: none
+  Completed tasks: 0 / 3
+  Steps recorded: 15 / 22
+  Last step: 15 review-gate exit=1
+Plan preview:
+  Goal title: Codex 리뷰 JSON 추출 실패 처리 보강
+  Current task id: T001
+  Task T001: 리뷰 JSON 추출 실패 처리 보강
+    Type: implementation
+    Status: in_progress
+    Priority: P1
+    Likely files: .ai-dev 관련 루프 스크립트 또는 리뷰 처리 스크립트
+    Verification: 정상 JSON 리뷰 응답 처리 흐름이 유지되는지 확인 / JSON이 없거나 잘못된 리뷰 응답에서 실패 요약이 기록되는지 확인
+Stopped reason: auto-cycle-full_failed
+Completed: False
+Exit code: 1
+- Prepared goals: 0/2
+
+## 2026-07-18 18:25:10 - Commit created
+
+- Task: T001 리뷰 JSON 추출 실패 처리 보강
+- Commit: 81d38c2071cf7bddafd8d812d221380005226ea1
+- Message: Handle review JSON extraction failures
+## 2026-07-18 18:25:16 - Task completed
+
+- Task: T001 리뷰 JSON 추출 실패 처리 보강
 - Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
 - Next task: 없음

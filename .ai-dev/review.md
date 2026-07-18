@@ -1,11 +1,11 @@
 ﻿# AI Dev Review
 
-## 2026-07-17 23:03:25
+## 2026-07-18 18:20:04
 
 - Decision: pass
 - Severity: none
 - Next step: complete_task
-- Summary: build/check 실패 상태에서 test-result 확인, diff 저장, review prompt 생성, 이후 revise 흐름으로 이어지는 안내가 추가되었고 기존 save-review 이후 revise 분기는 유지됩니다.
+- Summary: 리뷰 JSON 추출 실패 시 상태 파일에 실패 요약과 차단 상태를 기록하도록 최소 범위로 보강했으며, 정상 JSON 처리 흐름도 유지됩니다.
 
 ### Required Changes
 
@@ -13,7 +13,7 @@
 
 ### Optional Suggestions
 
-- scripts/ai-dev-next.ps1: 실제 실패 상태 state.json을 둔 `scripts/ai-dev-next.ps1 -Json` 수동 검증 결과를 별도로 남기면 회귀 확인이 더 명확합니다.
+- 없음
 
 ### Raw JSON
 
@@ -21,15 +21,12 @@
 {
     "decision":  "pass",
     "severity":  "none",
-    "summary":  "build/check 실패 상태에서 test-result 확인, diff 저장, review prompt 생성, 이후 revise 흐름으로 이어지는 안내가 추가되었고 기존 save-review 이후 revise 분기는 유지됩니다.",
+    "summary":  "리뷰 JSON 추출 실패 시 상태 파일에 실패 요약과 차단 상태를 기록하도록 최소 범위로 보강했으며, 정상 JSON 처리 흐름도 유지됩니다.",
     "required_changes":  [
 
                          ],
     "optional_suggestions":  [
-                                 {
-                                     "file":  "scripts/ai-dev-next.ps1",
-                                     "suggestion":  "실제 실패 상태 state.json을 둔 `scripts/ai-dev-next.ps1 -Json` 수동 검증 결과를 별도로 남기면 회귀 확인이 더 명확합니다."
-                                 }
+
                              ],
     "scope_check":  {
                         "within_current_task":  true,
@@ -42,8 +39,7 @@
                        "test_passed":  false,
                        "lint_passed":  true,
                        "issues":  [
-                                      "npm run test는 package.json에 test script가 없어 skipped 상태입니다.",
-                                      "프롬프트의 수동 검증 시나리오 결과는 test-result에 포함되어 있지 않습니다."
+                                      "package.json에 test script가 없어 npm run test는 skipped였습니다. 대신 정상 JSON, JSON 없음, malformed JSON 경\r\n로에 대한 수동 검증 증거가 제공되었습니다."
                                   ]
                    },
     "next_step":  "complete_task"

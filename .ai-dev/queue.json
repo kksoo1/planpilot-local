@@ -1,14 +1,14 @@
 ﻿{
-    "goalTitle":  "build/check 실패 후 revise 흐름 자동 안내",
+    "goalTitle":  "Codex 리뷰 JSON 추출 실패 처리 보강",
     "goalSource":  ".ai-dev/goal.md",
-    "createdAt":  "2026-07-17T20:22:22.8903897+09:00",
-    "updatedAt":  "2026-07-17T14:03:43.0181533+00:00",
+    "createdAt":  "2026-07-18T16:47:20.2599280+09:00",
+    "updatedAt":  "2026-07-18T09:25:13.9237585+00:00",
     "currentTaskId":  null,
     "tasks":  [
                   {
                       "id":  "T001",
-                      "title":  "build/check 실패 후 revise 안내 추가",
-                      "description":  "현재 다음 행동 안내 스크립트의 실패 상태 판정 흐름을 확인하고, build/check 실패 상태에서 사용자가 `.ai-dev/test-result.md`를 확인한 뒤 revise 흐름으로 이어갈 수 있도록 한국어 안내와 추천 명령을 보강한다.",
+                      "title":  "리뷰 JSON 추출 실패 처리 보강",
+                      "description":  "Codex 리뷰 응답에서 JSON 추출 또는 파싱에 실패하는 경로를 확인하고, 실패 원인이 상태에 남도록 최소 범위로 보강한다.",
                       "type":  "implementation",
                       "status":  "done",
                       "priority":  "P1",
@@ -16,15 +16,14 @@
 
                                     ],
                       "filesLikelyToChange":  [
-                                                  "scripts/ai-dev-next.ps1"
+                                                  ".ai-dev 관련 루프 스크립트 또는 리뷰 처리 스크립트"
                                               ],
                       "verification":  [
-                                           "build/check 실패 상태에서 다음 행동 안내가 test-result 확인과 revise 흐름을 제안하는지 확인한다.",
-                                           "기존 review revise 상태의 make_revise_prompt 안내가 유지되는지 확인한다.",
-                                           "사용자가 허용하면 관련 스크립트 DryRun 또는 문법 검증을 실행한다."
+                                           "정상 JSON 리뷰 응답 처리 흐름이 유지되는지 확인",
+                                           "JSON이 없거나 잘못된 리뷰 응답에서 실패 요약이 기록되는지 확인"
                                        ],
-                      "commitMessage":  "Guide revise flow after check failure",
-                      "completedAt":  "2026-07-17T14:03:43.0181533+00:00",
+                      "commitMessage":  "Handle review JSON extraction failures",
+                      "completedAt":  "2026-07-18T09:25:13.9237585+00:00",
                       "resultSummary":  "자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료"
                   }
               ]
