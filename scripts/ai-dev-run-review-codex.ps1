@@ -14,6 +14,8 @@
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $utf8WithBom = New-Object System.Text.UTF8Encoding($true)
 $codeFence = '```'
+$stateRelativePath = ".ai-dev/state.json"
+$statePath = Join-Path $repoRoot $stateRelativePath
 
 function Resolve-RepoPath {
     param(
@@ -40,6 +42,65 @@ function ConvertTo-RepoRelativePath {
     }
 
     return $fullPath.Replace("\", "/")
+}
+
+function Test-HasValue {
+    param(
+        [object]$Value
+    )
+
+    if ($null -eq $Value) {
+        return $false
+    }
+
+    if ($Value -is [string]) {
+        return -not [string]::IsNullOrWhiteSpace($Value)
+    }
+
+    return $true
+}
+
+function Set-ObjectProperty {
+    param(
+        [object]$InputObject,
+        [string]$Name,
+        [object]$Value
+    )
+
+    if ($InputObject.PSObject.Properties.Name -contains $Name) {
+        $InputObject.$Name = $Value
+    } else {
+        $InputObject | Add-Member -NotePropertyName $Name -NotePropertyValue $Value
+    }
+}
+
+function Write-ReviewExtractionFailureState {
+    param(
+        [string]$ErrorSummary
+    )
+
+    if (-not (Test-Path -LiteralPath $statePath -PathType Leaf)) {
+        return
+    }
+
+    try {
+        $state = Get-Content -Raw -Encoding UTF8 -LiteralPath $statePath | ConvertFrom-Json
+        $failureCount = if ($state.stopReason -eq "review_json_extraction_failed" -and (Test-HasValue $state.repeatedFailureCount)) { [int]$state.repeatedFailureCount + 1 } else { 1 }
+
+        Set-ObjectProperty $state "lastCommand" "run-review-codex"
+        Set-ObjectProperty $state "lastCommandStatus" "failed"
+        Set-ObjectProperty $state "lastErrorSummary" $ErrorSummary
+        Set-ObjectProperty $state "lastReviewDecision" "blocked"
+        Set-ObjectProperty $state "lastReviewSeverity" "critical"
+        Set-ObjectProperty $state "repeatedFailureCount" $failureCount
+        Set-ObjectProperty $state "stopReason" "review_json_extraction_failed"
+        Set-ObjectProperty $state "updatedAt" ([DateTimeOffset]::UtcNow.ToString("o"))
+
+        $stateJson = $state | ConvertTo-Json -Depth 20
+        [System.IO.File]::WriteAllText($statePath, $stateJson, $utf8WithBom)
+    } catch {
+        Write-Warning "$stateRelativePath에 리뷰 JSON 추출 실패 상태를 기록하지 못했습니다: $($_.Exception.Message)"
+    }
 }
 
 function Write-RunResult {
@@ -346,7 +407,9 @@ try {
     $reviewResult = ConvertFrom-CodexReviewOutput $codexOutput
 } catch {
     $preview = Get-InputPreview $codexOutput
-    Write-RunResult "run_review_codex" $true 1 "Codex 리뷰 JSON 추출에 실패했습니다: $($_.Exception.Message) 출력 preview: $preview"
+    $errorSummary = "Codex 리뷰 JSON 추출에 실패했습니다: $($_.Exception.Message) 출력 preview: $preview"
+    Write-ReviewExtractionFailureState $errorSummary
+    Write-RunResult "run_review_codex" $true 1 $errorSummary
 }
 
 [System.IO.File]::WriteAllText($resolvedReviewResponsePath, $reviewResult.JsonText, $utf8WithBom)
