@@ -1,6 +1,6 @@
 ﻿{
     "version":  1,
-    "updatedAt":  "2026-07-17T11:21:17.9495233+00:00",
+    "updatedAt":  "2026-07-18T07:46:36.0320747+00:00",
     "goals":  [
                   {
                       "title":  "Autopilot DryRun codex-result dirty 방지",
@@ -101,12 +101,28 @@
                   {
                       "title":  "build/check 실패 후 revise 흐름 자동 안내",
                       "firstSeenAt":  "2026-07-17T11:21:17.9495233+00:00",
-                      "lastSeenAt":  "2026-07-17T11:21:17.9495233+00:00",
-                      "lastEvent":  "selected",
+                      "lastSeenAt":  "2026-07-18T07:46:35.8748159+00:00",
+                      "lastEvent":  "completed",
                       "events":  [
                                      {
                                          "event":  "selected",
                                          "at":  "2026-07-17T11:21:17.9495233+00:00"
+                                     },
+                                     {
+                                         "event":  "completed",
+                                         "at":  "2026-07-18T07:46:35.8748159+00:00"
+                                     }
+                                 ]
+                  },
+                  {
+                      "title":  "Codex 리뷰 JSON 추출 실패 처리 보강",
+                      "firstSeenAt":  "2026-07-18T07:46:36.0320747+00:00",
+                      "lastSeenAt":  "2026-07-18T07:46:36.0320747+00:00",
+                      "lastEvent":  "selected",
+                      "events":  [
+                                     {
+                                         "event":  "selected",
+                                         "at":  "2026-07-18T07:46:36.0320747+00:00"
                                      }
                                  ]
                   }
