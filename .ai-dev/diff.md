@@ -2,20 +2,26 @@
 
 ## Generated At
 
-2026-07-18 18:31:52
+2026-07-21 00:18:28
 
 ## Git Status
 
 ```text
  M .ai-dev/codex-result.md
+ M .ai-dev/codex-review-result.md
  M .ai-dev/current-task-prompt.md
+ M .ai-dev/diff.md
  M .ai-dev/goal.md
  M .ai-dev/loop-log.md
  M .ai-dev/queue.json
+ M .ai-dev/review-prompt.md
+ M .ai-dev/review-response.json
+ M .ai-dev/review.md
+ M .ai-dev/revise-prompt.md
  M .ai-dev/state.json
  M .ai-dev/test-result.md
-?? .ai-dev/auto-goal-planning-prompt.md
-?? .ai-dev/github-pr-integration-review.md
+?? .ai-dev/copilot-cli-gh-integration-review.md
+?? .ai-dev/copilot-gh-documentation-revise-prompt.md
 ```
 
 ## App Change Files
@@ -25,14 +31,20 @@
 ## AI Dev Operational Artifact Files
 
 - .ai-dev/codex-result.md
+- .ai-dev/codex-review-result.md
 - .ai-dev/current-task-prompt.md
+- .ai-dev/diff.md
 - .ai-dev/goal.md
 - .ai-dev/loop-log.md
 - .ai-dev/queue.json
+- .ai-dev/review-prompt.md
+- .ai-dev/review-response.json
+- .ai-dev/review.md
+- .ai-dev/revise-prompt.md
 - .ai-dev/state.json
 - .ai-dev/test-result.md
-- .ai-dev/auto-goal-planning-prompt.md
-- .ai-dev/github-pr-integration-review.md
+- .ai-dev/copilot-cli-gh-integration-review.md
+- .ai-dev/copilot-gh-documentation-revise-prompt.md
 
 ## Review Diff Scope
 
@@ -61,3 +73,12 @@
 ```text
 변경 없음
 ```
+
+## Untracked File Content
+
+내용을 포함할 추적되지 않은 텍스트 파일이 없습니다.
+
+## Skipped Generated AI Dev Artifacts
+
+- .ai-dev/copilot-cli-gh-integration-review.md
+- .ai-dev/copilot-gh-documentation-revise-prompt.md
