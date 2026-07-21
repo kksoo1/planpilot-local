@@ -1,6 +1,6 @@
 ﻿{
     "version":  1,
-    "updatedAt":  "2026-07-21T06:29:09.7690804+00:00",
+    "updatedAt":  "2026-07-21T06:38:36.7652118+00:00",
     "goals":  [
                   {
                       "title":  "Autopilot DryRun codex-result dirty 방지",
@@ -189,12 +189,16 @@
                   {
                       "title":  "병렬 task 실행 가능성 검토",
                       "firstSeenAt":  "2026-07-21T06:29:09.7690804+00:00",
-                      "lastSeenAt":  "2026-07-21T06:29:09.7690804+00:00",
-                      "lastEvent":  "selected",
+                      "lastSeenAt":  "2026-07-21T06:38:36.7652118+00:00",
+                      "lastEvent":  "prepared",
                       "events":  [
                                      {
                                          "event":  "selected",
                                          "at":  "2026-07-21T06:29:09.7690804+00:00"
+                                     },
+                                     {
+                                         "event":  "prepared",
+                                         "at":  "2026-07-21T06:38:36.7652118+00:00"
                                      }
                                  ]
                   }
