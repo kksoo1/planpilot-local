@@ -1,6 +1,6 @@
 ﻿{
     "version":  1,
-    "updatedAt":  "2026-07-18T09:33:27.4319908+00:00",
+    "updatedAt":  "2026-07-21T06:25:00.1998296+00:00",
     "goals":  [
                   {
                       "title":  "Autopilot DryRun codex-result dirty 방지",
@@ -153,12 +153,28 @@
                   {
                       "title":  "Copilot CLI 또는 gh 연동 재검토",
                       "firstSeenAt":  "2026-07-18T09:33:27.4319908+00:00",
-                      "lastSeenAt":  "2026-07-18T09:33:27.4319908+00:00",
-                      "lastEvent":  "selected",
+                      "lastSeenAt":  "2026-07-21T06:24:59.9853571+00:00",
+                      "lastEvent":  "completed",
                       "events":  [
                                      {
                                          "event":  "selected",
                                          "at":  "2026-07-18T09:33:27.4319908+00:00"
+                                     },
+                                     {
+                                         "event":  "completed",
+                                         "at":  "2026-07-21T06:24:59.9853571+00:00"
+                                     }
+                                 ]
+                  },
+                  {
+                      "title":  "장기 실행 자동화 모니터링 정책",
+                      "firstSeenAt":  "2026-07-21T06:25:00.1998296+00:00",
+                      "lastSeenAt":  "2026-07-21T06:25:00.1998296+00:00",
+                      "lastEvent":  "selected",
+                      "events":  [
+                                     {
+                                         "event":  "selected",
+                                         "at":  "2026-07-21T06:25:00.1998296+00:00"
                                      }
                                  ]
                   }
