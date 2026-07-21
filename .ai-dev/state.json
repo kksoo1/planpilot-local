@@ -3,23 +3,14 @@
     "currentTaskId":  null,
     "currentLoop":  0,
     "maxLoopsPerTask":  2,
-    "repeatedFailureCount":  1,
+    "repeatedFailureCount":  0,
     "lastCommand":  "complete-task",
     "lastCommandStatus":  "passed",
     "lastErrorSummary":  "",
     "lastReviewDecision":  "pass",
     "lastReviewSeverity":  "none",
     "lastCommitHash":  null,
-    "startedAt":  "2026-07-18T00:00:00+09:00",
-    "updatedAt":  "2026-07-20T15:19:39.5411907+00:00",
-    "stopReason":  "all_tasks_completed",
-    "lastReviewNextStep":  "revise_with_codex",
-    "lastReviewSummary":  "문서 산출물 자체는 현재 task 요구 섹션과 결론을 충족하지만, Git Status와 App Change Files에 scripts/ai-dev-auto-\r\ncycle-full.ps1 변경이 남아 있어 documentation task 범위를 벗어난 변경 여부가 해소되지 않았습니다.",
-    "lastReviewRequiredChanges":  [
-                                      {
-                                          "file":  "scripts/ai-dev-auto-cycle-full.ps1",
-                                          "reason":  "현재 task는 연동 필요성 검토 문서 작성인데 App Change Files에 스크립트가 포함되어 있습니다. Diff 본문은 변경 없음으로 표시되어 \r\n상태와 diff가 불일치하며, 작은 불확실성도 revise로 보는 기준상 통과 처리할 수 없습니다.",
-                                          "suggestion":  "이번 task 결과에서 스크립트 변경이 남지 않도록 정리하고, diff/status 산출물을 다시 생성해 App Change Files가 문서 \r\n산출물 범위만 나타나도록 맞추십시오."
-                                      }
-                                  ]
+    "startedAt":  "2026-07-21T00:00:00+09:00",
+    "updatedAt":  "2026-07-21T06:28:42.0180182+00:00",
+    "stopReason":  "all_tasks_completed"
 }

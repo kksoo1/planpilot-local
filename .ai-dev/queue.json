@@ -1,14 +1,14 @@
 ﻿{
-    "goalTitle":  "Copilot CLI 또는 gh 연동 재검토",
+    "goalTitle":  "장기 실행 자동화 모니터링 정책",
     "goalSource":  ".ai-dev/goal.md",
-    "createdAt":  "2026-07-18T00:00:00+09:00",
-    "updatedAt":  "2026-07-20T15:19:39.5411907+00:00",
+    "createdAt":  "2026-07-21T00:00:00+09:00",
+    "updatedAt":  "2026-07-21T06:28:42.0180182+00:00",
     "currentTaskId":  null,
     "tasks":  [
                   {
                       "id":  "T001",
-                      "title":  "연동 필요성 검토 문서 작성",
-                      "description":  "Copilot CLI 또는 gh 연동이 현재 PlanPilot Local의 로컬 우선 방향과 MVP 범위에 맞는지 검토하고, 구현 전 판단 기준을 짧은 문서로 정리한다.",
+                      "title":  "모니터링 정책 초안 작성",
+                      "description":  "장기 실행 자동화의 상태 표시, 중단 기준, 사용자 확인 절차를 현재 앱 범위에 맞게 작은 정책으로 정리한다.",
                       "type":  "documentation",
                       "status":  "done",
                       "priority":  "P2",
@@ -16,14 +16,15 @@
 
                                     ],
                       "filesLikelyToChange":  [
-                                                  ".ai-dev/goal.md"
+                                                  ".ai-dev/goal.md",
+                                                  ".ai-dev/queue.json",
+                                                  ".ai-dev/state.json"
                                               ],
                       "verification":  [
-                                           "문서에 목표, 배경, 성공 기준, 제약사항, 범위 제외, 수동 검증 섹션이 포함되어 있는지 확인한다.",
-                                           "연동 구현을 바로 시작하지 않고 검토 결론과 다음 후보 작업만 남겼는지 확인한다."
+                                           "정책 문서에 상태 기준과 수동 검증 항목이 포함되어 있는지 확인한다."
                                        ],
-                      "commitMessage":  "Document CLI integration review goal",
-                      "completedAt":  "2026-07-20T15:19:39.5411907+00:00",
+                      "commitMessage":  "Document automation monitoring policy",
+                      "completedAt":  "2026-07-21T06:28:42.0180182+00:00",
                       "resultSummary":  "자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 구현 커밋 없음, 저장된 리뷰 pass에서 자동 완료"
                   }
               ]
