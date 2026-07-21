@@ -35,14 +35,14 @@
 
 ## Current Task
 
-- Task ID: T001
-- Title: 현재 task 흐름 검토
-- Description: task 타입, store 상태, 화면 렌더링 흐름을 확인해 병렬 task 개념을 적용할 수 있는지 검토한다.
-- Type: analysis
+- Task ID: T002
+- Title: 검토 결과 정리
+- Description: 병렬 task 실행 가능성, 필요한 후속 작업, 제외할 범위를 짧은 문서로 정리한다.
+- Type: documentation
 - Status: in_progress
 - Priority: P2
 - Depends on:
-- 없음
+- T001
 
 ## Task Scope
 
@@ -53,12 +53,11 @@
 
 ## Likely Files
 
-- 없음
+- .ai-dev/goal.md
 
 ## Verification
 
-- task 관련 타입과 상태 관리 위치를 확인한다.
-- 병렬 task 적용 시 필요한 최소 변경 범위를 메모한다.
+- 성공 기준과 제약사항이 검토 결과에 반영되어 있는지 확인한다.
 
 - 필요한 경우 `npm run build`는 사람이 별도로 실행한다.
 - 이 프롬프트는 자동으로 build, test, lint를 실행하라고 지시하지 않는다.
