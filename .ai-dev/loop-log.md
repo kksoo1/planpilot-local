@@ -1706,3 +1706,9 @@ Exit code: 1
 - Goal: 병렬 task 실행 가능성 검토
 - Source: .ai-dev/backlog.md / P2
 - Prepared goals: 2/2
+
+## 2026-07-21 16:20:30 - Autopilot stopped
+
+- Reason: all_goal_candidates_excluded
+- Result: All backlog goal candidates were already completed, prepared, or recorded in durable history, so autopilot will not create a duplicate goal. Excluded goal titles: 병렬 task 실행 가능성 검토; Codex 구현 실행 스크립트 추가; Codex CLI 완전 자동화 정책 문서화; full auto-cycle 초안 추가; Codex 리뷰 실행 스크립트 추가; package 변경 감지 메시지 개선; GitHub PR 연동 검토; 장기 실행 자동화 모니터링 정책; Autopilot DryRun codex-result dirty 방지; 자동 커밋과 task 완료 연결; Autopilot history dirty gate 충돌 수정; MaxTasks 1 end-to-end 검증; Verification task revise 자동 처리; full auto-cycle 로그 구조 개선; build/check 실패 후 revise 흐름 자동 안내; Codex 리뷰 JSON 추출 실패 처리 보강; Copilot CLI 또는 gh 연동 재검토. Candidate goal titles: Codex CLI 완전 자동화 정책 문서화; Codex 구현 실행 스크립트 추가; Codex 리뷰 실행 스크립트 추가; full auto-cycle 초안 추가; 자동 커밋과 task 완료 연결; MaxTasks 1 end-to-end 검증; full auto-cycle 로그 구조 개선; package 변경 감지 메시지 개선; build/check 실패 후 revise 흐름 자동 안내; Codex 리뷰 JSON 추출 실패 처리 보강; GitHub PR 연동 검토; Copilot CLI 또는 gh 연동 재검토; 장기 실행 자동화 모니터링 정책; 병렬 task 실행 가능성 검토. Durable history goal titles: Autopilot DryRun codex-result dirty 방지; 자동 커밋과 task 완료 연결; Autopilot history dirty gate 충돌 수정; MaxTasks 1 end-to-end 검증; Verification task revise 자동 처리; full auto-cycle 로그 구조 개선; package 변경 감지 메시지 개선; build/check 실패 후 revise 흐름 자동 안내; Codex 리뷰 JSON 추출 실패 처리 보강; GitHub PR 연동 검토; Copilot CLI 또는 gh 연동 재검토; 장기 실행 자동화 모니터링 정책; 병렬 task 실행 가능성 검토.
+- Prepared goals: 0/2
