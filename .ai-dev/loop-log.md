@@ -1784,3 +1784,22 @@ Exit code: 1
 - Task: T001 AI Dev 테스트 스크립트 추가
 - Result: 자동 완료: AI Dev 테스트 체계 구현, build/test/lint 통과, Codex 리뷰 pass, 구현 커밋 완료
 - Next task: 없음
+
+## 2026-07-31 - Revise verification completed
+
+- Task: T001 auto-cycle 검증 흐름 수정
+- Required change 반영: `ai-dev-check.ps1`를 `-BuildOnly` 없이 실행해 `.ai-dev/test-result.md`를 standard 모드 전체 검증 결과로 갱신했다.
+- Verification: `npm run build`, `npm run test`, `npm run lint` 모두 passed로 기록됐고, `npm run test` 내부 AI Dev automation tests는 `Passed=17, Failed=0`으로 종료됐다.
+- Scope: 리뷰 필수 변경인 검증 결과 갱신만 반영했고, 다음 task인 MaxSteps 57 동작 기반 테스트 보강은 이번 T001 범위 밖이라 구현하지 않았다.
+- Remaining risk: 현재 작업 트리 상태는 git 명령 제한 때문에 별도 확인하지 않았다.
+
+## 2026-07-31 17:26:42 - Commit created
+
+- Task: T001 auto-cycle 검증 흐름 수정
+- Commit: 8e535b53fd0da1430cb7037e96aa34ad47e5125e
+- Message: Fix auto-cycle verification mode
+## 2026-07-31 17:26:48 - Task completed
+
+- Task: T001 auto-cycle 검증 흐름 수정
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
+- Next task: T002 MaxSteps 전달 동작 검증 보강

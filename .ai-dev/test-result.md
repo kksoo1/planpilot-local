@@ -1,6 +1,6 @@
 ﻿# AI Dev Test Result
 
-## 2026-07-31 17:02:16
+## 2026-07-31 17:24:41
 
 - Overall result: passed
 - Current task: T001
@@ -29,7 +29,7 @@ dist/index.html                   0.46 kB │ gzip:   0.29 kB
 dist/assets/index-DvjxWt30.css    5.69 kB │ gzip:   1.93 kB
 dist/assets/index-DtLVvPCG.js   317.50 kB │ gzip: 100.16 kB
 
-[32m✓ built in 202ms[39m
+[32m✓ built in 190ms[39m
 ```
 ### npm run test
 
@@ -51,8 +51,6 @@ Repository: D:\ai-apps\planpilot-local
 [PASS] all-goal-candidates-excluded stopped reason
        Expected=all_goal_candidates_excluded ExitCode=1
 [PASS] all-goal-candidates-excluded expected_non_work classification
-[PASS] all-goal-candidates-excluded custom MaxSteps value forwarding
-       Expected output fragment: MaxSteps=7
 [PASS] all-goal-candidates-excluded baseline marker preservation
 [PASS] all-goal-candidates-excluded no new dirty paths
        NewDirtyPaths=
@@ -75,7 +73,7 @@ Repository: D:\ai-apps\planpilot-local
 [PASS] baseline-output-conflict no staged paths
        StagedPaths=
 
-Test summary: Passed=18, Failed=0
+Test summary: Passed=17, Failed=0
 ```
 ### npm run lint
 

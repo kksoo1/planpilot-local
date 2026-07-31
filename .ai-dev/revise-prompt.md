@@ -9,80 +9,77 @@
 
 # 목표
 
-AI Dev 자동화 테스트 체계를 추가한다.
+auto-cycle 전체 테스트 실행과 MaxSteps 전달 검증을 보강한다.
 
 ## 배경
 
-현재 `package.json`에 `test` 스크립트가 없어 `ai-dev-check.ps1` 실행 시 테스트 단계가 항상 skipped 처리된다. PowerShell 5.1에서 실행 가능한 자동화 검증을 추가해 AI Dev Loop의 핵심 동작을 반복 확인할 수 있게 한다.
+현재 `scripts/ai-dev-auto-cycle-full.ps1`은 implementation 및 verification task의 check와 check-revise 단계에서 `ai-dev-check.ps1`을 항상 `-BuildOnly`로 실행해 `npm test` 결과가 skipped로 덮어써질 수 있다. 또한 `scripts/ai-dev-test.ps1`의 MaxSteps 사용자 지정 검증은 정규식 확인에 머물러 실제 하위 호출 인수 전달을 충분히 검증하지 못한다.
 
 ## 성공 기준
 
-- `npm test`로 실행되는 테스트 스크립트가 추가된다.
-- PowerShell 5.1에서 실행 가능한 단위 및 통합 smoke test가 포함된다.
-- 테스트는 임시 Git worktree 또는 임시 디렉터리를 사용해 실제 저장소를 오염시키지 않는다.
-- auto-goal MaxSteps 기본값과 사용자 지정 값 전달을 검증한다.
-- `all_goal_candidates_excluded`의 `expected_non_work` 분류를 검증한다.
-- `dirty_worktree`와 `baseline_output_conflict` 상황에서 baseline 사용자 변경이 보존되는지 검증한다.
-- 실행 후 새로운 staged 또는 dirty 운영 파일이 남지 않는지 검증한다.
-- 테스트 실패 시 0이 아닌 종료 코드를 반환한다.
-- 성공 및 실패 항목이 명확히 출력된다.
-- 기존 build와 lint 흐름은 유지된다.
+- implementation 및 verification task의 check/check-revise 단계에서 package.json에 test script가 있으면 build, test, lint 전체 검증을 실행한다.
+- documentation 또는 analysis task에서 필요한 경우에만 BuildOnly 흐름을 사용한다.
+- MaxSteps 사용자 지정 검증은 격리된 임시 작업 공간에서 fake `ai-dev-auto-cycle-full.ps1`을 사용해 `ai-dev-auto-goal.ps1`이 지정된 MaxSteps 값을 실제 하위 호출 인수로 전달했는지 동작 기반으로 확인한다.
+- 예시로 MaxSteps 57 지정 시 하위 스크립트가 받은 인수에 57이 기록되는지 검증한다.
+- 기존 17개 expected_non_work 테스트와 baseline 보존 테스트를 유지한다.
+- 전체 `npm test`가 Failed=0으로 종료되어야 한다.
 
 ## 제약사항
 
-- PowerShell 5.1 호환성을 유지한다.
-- 저장소 운영 파일을 테스트 과정에서 오염시키지 않는다.
-- 기존 스크립트 구조와 파일 배치를 우선 따른다.
-- 한 번에 필요한 최소 파일만 변경한다.
-- 기존 build와 lint 동작을 변경하지 않는다.
+- 변경 범위는 관련 PowerShell 스크립트와 테스트에 한정한다.
+- 기존 테스트 의도를 유지하고 필요한 검증만 보강한다.
+- 로컬 저장소 구조와 기존 AI Dev Loop 상태 파일 형식을 존중한다.
+- 큰 구조 변경은 피하고 작은 수정으로 해결한다.
 
 ## 범위 제외
 
-- 앱 기능 변경은 포함하지 않는다.
-- UI 변경은 포함하지 않는다.
-- 데이터 저장 구조 변경은 포함하지 않는다.
-- 대규모 스크립트 재작성은 포함하지 않는다.
+- 신규 기능 추가는 제외한다.
+- UI 변경은 제외한다.
+- 데이터 저장 구조 변경은 제외한다.
+- 배포 관련 변경은 제외한다.
 
 ## 수동 검증
 
-- `npm test` 실행 결과가 성공하는지 확인한다.
-- `ai-dev-check.ps1` 실행 시 테스트 단계가 skipped되지 않는지 확인한다.
-- 테스트 실행 후 작업 트리에 의도하지 않은 운영 파일 변경이 남지 않는지 확인한다.
+- 허용된 경우 `npm test`를 실행해 Failed=0인지 확인한다.
+- MaxSteps 57 전달 검증 로그 또는 결과가 실제 하위 호출 인수 기반인지 확인한다.
 
 ## Current Task
 
 - Task ID: T001
-- Title: AI Dev 테스트 스크립트 추가
-- Description: 현재 AI Dev 관련 스크립트 구조를 확인한 뒤 PowerShell 5.1에서 실행 가능한 자동화 테스트를 추가하고 `npm test`로 연결한다.
+- Title: auto-cycle 검증 흐름 수정
+- Description: implementation 및 verification task의 check/check-revise 단계에서 test script가 있으면 build, test, lint 전체 검증을 실행하도록 `scripts/ai-dev-auto-cycle-full.ps1`의 BuildOnly 사용 조건을 조정한다.
 - Type: implementation
 - Status: in_progress
 - Priority: P0
 - Verification:
-- `npm test`가 테스트 스크립트를 실행한다.
-- MaxSteps 기본값과 사용자 지정 값 전달이 검증된다.
-- `expected_non_work`, baseline 사용자 변경 보존, 실행 후 작업 트리 청결성이 검증된다.
-- 실패 시 0이 아닌 종료 코드와 명확한 실패 출력이 제공된다.
+- package.json에 test script가 있는 경우 check/check-revise가 전체 검증 경로를 사용하는지 확인한다.
+- analysis 또는 documentation task에서만 필요한 경우 BuildOnly가 유지되는지 확인한다.
 
 ## Review Result
 
 - Decision: revise
 - Severity: medium
 - Next step: revise_with_codex
-- Summary: 앱 변경 자체에서 명확한 결함은 보이지 않지만, 제공된 검증 결과에서 npm test가 skipped라 현재 
-task의 핵심 성공 기준이 검증되지 않았다.
+- Summary: 코드 변경 방향은 현재 task 요구사항과
+ 대체로 일치하지만, 제공된 검증 결과에서 npm test가 BuildOnly로 skipped 처리되어 Strict Criteria와 
+성공 기준을 충족하지 못한다.
 
 ## Required Changes
 
-- File: unknown
-  - Reason: Test Result에 npm run test가 BuildOnly 옵션으로 skipped 처리되어 `np
-m test` 실행 성공, 실패 시 non-zero exit, 새 dirty/staged 파일 미발생 조건이 실제 검증되지 않았다.
-  - Suggestion: `npm test` 또는 테스트 단계를 포함한 ai-dev-check를 실행하고, 성공 결과와 작
-업 트리 오염 여부를 갱신된 검증 결과에 반영한다.
+- File: .ai-dev/test-result.md
+  - Reason: 이유 없음
+  - Suggestion: 현
+재 변경 후 check/check-revise 경로가 BuildOnly 없이 실행되는지 검증하고, npm run test가 실제 실행되
+어 passed/Failed=0으로 기록된 결과를 갱신한다.
 
 ## Optional Suggestions
 
 - optional_suggestions는 참고만 하며 구현하지 않는다.
-- 없음
+- File: scrip
+ts/ai-dev-auto-cycle-full.ps1
+  - Suggestion: Get-CheckCommandSpec 함수는 현재 ta
+sk type 기반으로 단순하게 분기해 요구 범위에는 맞는다. 향후 documentation/analysis에서 BuildOnly가 '
+필요한 경우'인지 더 세밀히 판단해야 한다면 별도 조건을 추가할 수 있다.
 
 ## Diff Context
 
@@ -90,44 +87,34 @@ m test` 실행 성공, 실패 시 non-zero exit, 새 dirty/staged 파일 미발�
 
 ## Generated At
 
-2026-07-31 16:45:38
+2026-07-31 17:12:33
 
 ## Git Status
 
 ```text
  M .ai-dev/codex-result.md
- M .ai-dev/codex-review-result.md
  M .ai-dev/current-task-prompt.md
- M .ai-dev/diff.md
  M .ai-dev/goal.md
- M .ai-dev/loop-log.md
  M .ai-dev/queue.json
- M .ai-dev/review-prompt.md
- M .ai-dev/review-response.json
- M .ai-dev/review.md
  M .ai-dev/state.json
  M .ai-dev/test-result.md
- M scripts/ai-dev-test.ps1
+ M scripts/ai-dev-auto-cycle-full.ps1
+?? .ai-dev/auto-goal-planning-prompt.md
 ```
 
 ## App Change Files
 
-- scripts/ai-dev-test.ps1
+- scripts/ai-dev-auto-cycle-full.ps1
 
 ## AI Dev Operational Artifact Files
 
 - .ai-dev/codex-result.md
-- .ai-dev/codex-review-result.md
 - .ai-dev/current-task-prompt.md
-- .ai-dev/diff.md
 - .ai-dev/goal.md
-- .ai-dev/loop-log.md
 - .ai-dev/queue.json
-- .ai-dev/review-prompt.md
-- .ai-dev/review-response.json
-- .ai-dev/review.md
 - .ai-dev/state.json
 - .ai-dev/test-result.md
+- .ai-dev/auto-goal-planning-prompt.md
 
 ## Review Diff Scope
 
@@ -136,53 +123,75 @@ m test` 실행 성공, 실패 시 non-zero exit, 새 dirty/staged 파일 미발�
 ## Unstaged Diff Stat
 
 ```text
- scripts/ai-dev-test.ps1 | 15 ++++++++++++++-
- 1 file changed, 14 insertions(+), 1 deletion(-)
+ scripts/ai-dev-auto-cycle-full.ps1 | 30 +++++++++++++++++++++++++++---
+ 1 file changed, 27 insertions(+), 3 deletions(-)
 ```
 
 ## Unstaged Diff
 
 ```text
-diff --git a/scripts/ai-dev-test.ps1 b/scripts/ai-dev-test.ps1
-index 018cddc..bf077de 100644
---- a/scripts/ai-dev-test.ps1
-+++ b/scripts/ai-dev-test.ps1
-@@ -275,6 +275,12 @@ function Invoke-IsolatedScenario {
-             "expected_non_work"
-         )
+diff --git a/scripts/ai-dev-auto-cycle-full.ps1 b/scripts/ai-dev-auto-cycle-full.ps1
+index 350b1b2..844d2d6 100644
+--- a/scripts/ai-dev-auto-cycle-full.ps1
++++ b/scripts/ai-dev-auto-cycle-full.ps1
+@@ -690,6 +690,27 @@ function Get-ReviewImplementationGate {
+     }
+ }
  
-+        $customMaxStepsMatched = $true
++function Get-CheckCommandSpec {
++    param(
++        [object]$CurrentTask
++    )
 +
-+        if ($Name -eq "all-goal-candidates-excluded") {
-+            $customMaxStepsMatched = $outputText.Contains("MaxSteps=7")
-+        }
++    $taskType = if ($null -ne $CurrentTask -and (Test-HasValue $CurrentTask.type)) { [string]$CurrentTask.type } else { "" }
++    $useBuildOnly = $taskType -in @("analysis", "documentation")
++    $arguments = @()
++    $command = "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-check.ps1"
 +
-         $markerPreserved = $true
- 
-         if ($null -ne $markerPath) {
-@@ -294,6 +300,13 @@ function Invoke-IsolatedScenario {
-             -Name "$Name expected_non_work classification" `
-             -Passed $classificationMatched
- 
-+        if ($Name -eq "all-goal-candidates-excluded") {
-+            Write-TestResult `
-+                -Name "$Name custom MaxSteps value forwarding" `
-+                -Passed $customMaxStepsMatched `
-+                -Detail "Expected output fragment: MaxSteps=7"
-+        }
++    if ($useBuildOnly) {
++        $arguments += "-BuildOnly"
++        $command = "$command -BuildOnly"
++    }
 +
-         Write-TestResult `
-             -Name "$Name baseline marker preservation" `
-             -Passed $markerPreserved
-@@ -368,7 +381,7 @@ Invoke-IsolatedScenario `
-         "-AllowDirty",
-         "-MaxGoals", "1",
-         "-MaxTasks", "1",
--        "-MaxSteps", "40"
-+        "-MaxSteps", "7"
-     )
++    return [PSCustomObject][ordered]@{
++        command = $command
++        arguments = $arguments
++    }
++}
++
+ function Get-ChangedAiDevOperationalFiles {
+     $status = Invoke-GitCapture @("status", "--porcelain") "git status --porcelain"
+     $changeLines = @($status -split "`r?`n" | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+@@ -1087,7 +1108,8 @@ while ($script:completedTaskCount -lt $MaxTasks) {
+         Invoke-CycleCommand $stepNumber "run-codex" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-codex.ps1 -AllowDirty" $scriptPaths.runCodex $runCodexArguments
+         $stepNumber++
  
- Invoke-IsolatedScenario `
+-        Invoke-CycleCommand $stepNumber "check" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-check.ps1 -BuildOnly" $scriptPaths.check @("-BuildOnly")
++        $checkSpec = Get-CheckCommandSpec $script:currentTask
++        Invoke-CycleCommand $stepNumber "check" $checkSpec.command $scriptPaths.check $checkSpec.arguments
+         $stepNumber++
+ 
+         Invoke-CycleCommand $stepNumber "save-diff" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-save-diff.ps1" $scriptPaths.saveDiff @()
+@@ -1125,7 +1147,8 @@ while ($script:completedTaskCount -lt $MaxTasks) {
+         $stepNumber++
+         $script:steps += New-StepResult $stepNumber "run-codex-revise" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-codex.ps1 -AllowDirty -PromptPath .ai-dev/revise-prompt.md" $false $true 0 "DryRun: Codex 재수정 실행을 실행하지 않았습니다."
+         $stepNumber++
+-        $script:steps += New-StepResult $stepNumber "check-revise" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-check.ps1 -BuildOnly" $false $true 0 "DryRun: 재수정 검증을 실행하지 않았습니다."
++        $checkSpec = Get-CheckCommandSpec $script:currentTask
++        $script:steps += New-StepResult $stepNumber "check-revise" $checkSpec.command $false $true 0 "DryRun: 재수정 검증을 실행하지 않았습니다."
+         $stepNumber++
+         $script:steps += New-StepResult $stepNumber "save-diff-revise" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-save-diff.ps1" $false $true 0 "DryRun: 재수정 diff 저장을 실행하지 않았습니다."
+         $stepNumber++
+@@ -1196,7 +1219,8 @@ while ($script:completedTaskCount -lt $MaxTasks) {
+         Invoke-CycleCommand $stepNumber "run-codex-revise" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-codex.ps1 -AllowDirty -PromptPath .ai-dev/revise-prompt.md" $scriptPaths.runCodex @("-AllowDirty", "-PromptPath", ".ai-dev/revise-prompt.md")
+         $stepNumber++
+ 
+-        Invoke-CycleCommand $stepNumber "check-revise" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-check.ps1 -BuildOnly" $scriptPaths.check @("-BuildOnly")
++        $checkSpec = Get-CheckCommandSpec $script:currentTask
++        Invoke-CycleCommand $stepNumber "check-revise" $checkSpec.command $scriptPaths.check $checkSpec.arguments
+         $stepNumber++
+ 
+         Invoke-CycleCommand $stepNumber "save-diff-revise" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-save-diff.ps1" $scriptPaths.saveDiff @()
 ```
 
 ## Staged Diff Stat
@@ -201,7 +210,7 @@ index 018cddc..bf077de 100644
 
 # AI Dev Test Result
 
-## 2026-07-31 16:45:27
+## 2026-07-31 17:12:22
 
 - Overall result: passed
 - Current task: T001
@@ -230,7 +239,7 @@ dist/index.html                   0.46 kB │ gzip:   0.29 kB
 dist/assets/index-DvjxWt30.css    5.69 kB │ gzip:   1.93 kB
 dist/assets/index-DtLVvPCG.js   317.50 kB │ gzip: 100.16 kB
 
-[32m✓ built in 213ms[39m
+[32m✓ built in 258ms[39m
 ```
 ### npm run test
 

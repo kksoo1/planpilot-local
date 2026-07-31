@@ -1,14 +1,14 @@
 ﻿{
-    "goalTitle":  "AI Dev 자동화 테스트 체계 추가",
+    "goalTitle":  "auto-cycle 전체 테스트 실행과 MaxSteps 전달 검증 보강",
     "goalSource":  ".ai-dev/goal.md",
-    "createdAt":  "2026-07-31T09:00:00+09:00",
-    "updatedAt":  "2026-07-31T08:04:21.3368744+00:00",
-    "currentTaskId":  null,
+    "createdAt":  "2026-07-31T00:00:00+09:00",
+    "updatedAt":  "2026-07-31T08:26:45.4936400+00:00",
+    "currentTaskId":  "T002",
     "tasks":  [
                   {
                       "id":  "T001",
-                      "title":  "AI Dev 테스트 스크립트 추가",
-                      "description":  "현재 AI Dev 관련 스크립트 구조를 확인한 뒤 PowerShell 5.1에서 실행 가능한 자동화 테스트를 추가하고 `npm test`로 연결한다.",
+                      "title":  "auto-cycle 검증 흐름 수정",
+                      "description":  "implementation 및 verification task의 check/check-revise 단계에서 test script가 있으면 build, test, lint 전체 검증을 실행하도록 `scripts/ai-dev-auto-cycle-full.ps1`의 BuildOnly 사용 조건을 조정한다.",
                       "type":  "implementation",
                       "status":  "done",
                       "priority":  "P0",
@@ -16,18 +16,35 @@
 
                                     ],
                       "filesLikelyToChange":  [
-                                                  "package.json",
-                                                  ".ai-dev/scripts/ai-dev-test.ps1"
+                                                  "scripts/ai-dev-auto-cycle-full.ps1"
                                               ],
                       "verification":  [
-                                           "`npm test`가 테스트 스크립트를 실행한다.",
-                                           "MaxSteps 기본값과 사용자 지정 값 전달이 검증된다.",
-                                           "`expected_non_work`, baseline 사용자 변경 보존, 실행 후 작업 트리 청결성이 검증된다.",
-                                           "실패 시 0이 아닌 종료 코드와 명확한 실패 출력이 제공된다."
+                                           "package.json에 test script가 있는 경우 check/check-revise가 전체 검증 경로를 사용하는지 확인한다.",
+                                           "analysis 또는 documentation task에서만 필요한 경우 BuildOnly가 유지되는지 확인한다."
                                        ],
-                      "commitMessage":  "Add AI Dev test automation",
-                      "completedAt":  "2026-07-31T08:04:21.3368744+00:00",
-                      "resultSummary":  "자동 완료: AI Dev 테스트 체계 구현, build/test/lint 통과, Codex 리뷰 pass, 구현 커밋 완료"
+                      "commitMessage":  "Fix auto-cycle verification mode",
+                      "completedAt":  "2026-07-31T08:26:45.4936400+00:00",
+                      "resultSummary":  "자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료"
+                  },
+                  {
+                      "id":  "T002",
+                      "title":  "MaxSteps 전달 동작 검증 보강",
+                      "description":  "`scripts/ai-dev-test.ps1`에서 격리된 임시 작업 공간과 fake `ai-dev-auto-cycle-full.ps1`을 사용해 사용자 지정 MaxSteps 값이 실제 하위 호출 인수로 전달되는지 검증한다.",
+                      "type":  "implementation",
+                      "status":  "in_progress",
+                      "priority":  "P0",
+                      "dependsOn":  [
+                                        "T001"
+                                    ],
+                      "filesLikelyToChange":  [
+                                                  "scripts/ai-dev-test.ps1"
+                                              ],
+                      "verification":  [
+                                           "MaxSteps 57 지정 시 fake 하위 스크립트가 받은 인수에 57이 기록되는지 확인한다.",
+                                           "기존 17개 expected_non_work 테스트와 baseline 보존 테스트가 계속 실행되는지 확인한다.",
+                                           "허용된 경우 전체 npm test가 Failed=0으로 종료되는지 확인한다."
+                                       ],
+                      "commitMessage":  "Verify MaxSteps forwarding behavior"
                   }
               ]
 }

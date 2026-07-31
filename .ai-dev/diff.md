@@ -2,7 +2,7 @@
 
 ## Generated At
 
-2026-07-31 17:02:27
+2026-07-31 17:24:52
 
 ## Git Status
 
@@ -20,12 +20,12 @@
  M .ai-dev/revise-prompt.md
  M .ai-dev/state.json
  M .ai-dev/test-result.md
- M scripts/ai-dev-test.ps1
+ M scripts/ai-dev-auto-cycle-full.ps1
 ```
 
 ## App Change Files
 
-- scripts/ai-dev-test.ps1
+- scripts/ai-dev-auto-cycle-full.ps1
 
 ## AI Dev Operational Artifact Files
 
@@ -50,53 +50,75 @@
 ## Unstaged Diff Stat
 
 ```text
- scripts/ai-dev-test.ps1 | 15 ++++++++++++++-
- 1 file changed, 14 insertions(+), 1 deletion(-)
+ scripts/ai-dev-auto-cycle-full.ps1 | 30 +++++++++++++++++++++++++++---
+ 1 file changed, 27 insertions(+), 3 deletions(-)
 ```
 
 ## Unstaged Diff
 
 ```text
-diff --git a/scripts/ai-dev-test.ps1 b/scripts/ai-dev-test.ps1
-index 018cddc..bf077de 100644
---- a/scripts/ai-dev-test.ps1
-+++ b/scripts/ai-dev-test.ps1
-@@ -275,6 +275,12 @@ function Invoke-IsolatedScenario {
-             "expected_non_work"
-         )
+diff --git a/scripts/ai-dev-auto-cycle-full.ps1 b/scripts/ai-dev-auto-cycle-full.ps1
+index 350b1b2..844d2d6 100644
+--- a/scripts/ai-dev-auto-cycle-full.ps1
++++ b/scripts/ai-dev-auto-cycle-full.ps1
+@@ -690,6 +690,27 @@ function Get-ReviewImplementationGate {
+     }
+ }
  
-+        $customMaxStepsMatched = $true
++function Get-CheckCommandSpec {
++    param(
++        [object]$CurrentTask
++    )
 +
-+        if ($Name -eq "all-goal-candidates-excluded") {
-+            $customMaxStepsMatched = $outputText.Contains("MaxSteps=7")
-+        }
++    $taskType = if ($null -ne $CurrentTask -and (Test-HasValue $CurrentTask.type)) { [string]$CurrentTask.type } else { "" }
++    $useBuildOnly = $taskType -in @("analysis", "documentation")
++    $arguments = @()
++    $command = "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-check.ps1"
 +
-         $markerPreserved = $true
- 
-         if ($null -ne $markerPath) {
-@@ -294,6 +300,13 @@ function Invoke-IsolatedScenario {
-             -Name "$Name expected_non_work classification" `
-             -Passed $classificationMatched
- 
-+        if ($Name -eq "all-goal-candidates-excluded") {
-+            Write-TestResult `
-+                -Name "$Name custom MaxSteps value forwarding" `
-+                -Passed $customMaxStepsMatched `
-+                -Detail "Expected output fragment: MaxSteps=7"
-+        }
++    if ($useBuildOnly) {
++        $arguments += "-BuildOnly"
++        $command = "$command -BuildOnly"
++    }
 +
-         Write-TestResult `
-             -Name "$Name baseline marker preservation" `
-             -Passed $markerPreserved
-@@ -368,7 +381,7 @@ Invoke-IsolatedScenario `
-         "-AllowDirty",
-         "-MaxGoals", "1",
-         "-MaxTasks", "1",
--        "-MaxSteps", "40"
-+        "-MaxSteps", "7"
-     )
++    return [PSCustomObject][ordered]@{
++        command = $command
++        arguments = $arguments
++    }
++}
++
+ function Get-ChangedAiDevOperationalFiles {
+     $status = Invoke-GitCapture @("status", "--porcelain") "git status --porcelain"
+     $changeLines = @($status -split "`r?`n" | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+@@ -1087,7 +1108,8 @@ while ($script:completedTaskCount -lt $MaxTasks) {
+         Invoke-CycleCommand $stepNumber "run-codex" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-codex.ps1 -AllowDirty" $scriptPaths.runCodex $runCodexArguments
+         $stepNumber++
  
- Invoke-IsolatedScenario `
+-        Invoke-CycleCommand $stepNumber "check" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-check.ps1 -BuildOnly" $scriptPaths.check @("-BuildOnly")
++        $checkSpec = Get-CheckCommandSpec $script:currentTask
++        Invoke-CycleCommand $stepNumber "check" $checkSpec.command $scriptPaths.check $checkSpec.arguments
+         $stepNumber++
+ 
+         Invoke-CycleCommand $stepNumber "save-diff" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-save-diff.ps1" $scriptPaths.saveDiff @()
+@@ -1125,7 +1147,8 @@ while ($script:completedTaskCount -lt $MaxTasks) {
+         $stepNumber++
+         $script:steps += New-StepResult $stepNumber "run-codex-revise" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-codex.ps1 -AllowDirty -PromptPath .ai-dev/revise-prompt.md" $false $true 0 "DryRun: Codex 재수정 실행을 실행하지 않았습니다."
+         $stepNumber++
+-        $script:steps += New-StepResult $stepNumber "check-revise" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-check.ps1 -BuildOnly" $false $true 0 "DryRun: 재수정 검증을 실행하지 않았습니다."
++        $checkSpec = Get-CheckCommandSpec $script:currentTask
++        $script:steps += New-StepResult $stepNumber "check-revise" $checkSpec.command $false $true 0 "DryRun: 재수정 검증을 실행하지 않았습니다."
+         $stepNumber++
+         $script:steps += New-StepResult $stepNumber "save-diff-revise" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-save-diff.ps1" $false $true 0 "DryRun: 재수정 diff 저장을 실행하지 않았습니다."
+         $stepNumber++
+@@ -1196,7 +1219,8 @@ while ($script:completedTaskCount -lt $MaxTasks) {
+         Invoke-CycleCommand $stepNumber "run-codex-revise" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-codex.ps1 -AllowDirty -PromptPath .ai-dev/revise-prompt.md" $scriptPaths.runCodex @("-AllowDirty", "-PromptPath", ".ai-dev/revise-prompt.md")
+         $stepNumber++
+ 
+-        Invoke-CycleCommand $stepNumber "check-revise" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-check.ps1 -BuildOnly" $scriptPaths.check @("-BuildOnly")
++        $checkSpec = Get-CheckCommandSpec $script:currentTask
++        Invoke-CycleCommand $stepNumber "check-revise" $checkSpec.command $scriptPaths.check $checkSpec.arguments
+         $stepNumber++
+ 
+         Invoke-CycleCommand $stepNumber "save-diff-revise" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-save-diff.ps1" $scriptPaths.saveDiff @()
 ```
 
 ## Staged Diff Stat
