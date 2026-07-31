@@ -1,33 +1,29 @@
 ﻿# 목표
-
-auto-goal 실행 시 `ai-dev-auto-goal.ps1`이 full-cycle을 안정적으로 호출할 수 있도록 MaxSteps 기본값 및 전달 흐름을 정리한다.
+자동화가 구현 시작 전 예상 가능한 사유로 중단될 때, 이번 실행에서 생성하거나 수정한 운영 파일만 안전하게 정리해 다음 auto-goal 실행이 수동 정리 없이 시작될 수 있게 한다.
 
 ## 배경
-
-현재 auto-goal 흐름에서 내부적으로 `ai-dev-auto-cycle-full.ps1`을 호출할 때 전달되는 MaxSteps 값이 full-cycle의 최소 요구 단계보다 작아 `max_steps_too_small_for_full_cycle`로 중단될 수 있다. 이로 인해 auto-goal이 생성한 task가 별도 수동 재실행 없이 full-cycle까지 이어지지 못한다.
+`ai-dev-autopilot.ps1` 또는 `ai-dev-auto-goal.ps1`이 `all_goal_candidates_excluded`, `baseline_output_conflict`, `dirty_worktree`, `max_steps_too_small_for_full_cycle` 같은 사유로 구현 단계 전에 종료되면 `state.json`, `codex-result.md`, `loop-log.md`, `autopilot-goal-history.json` 등 운영 파일이 불필요하게 dirty 상태로 남을 수 있다. 실행 전부터 존재하던 사용자 변경은 보존해야 하며, 자동화가 이번 실행에서 만든 변경만 정리 대상이어야 한다.
 
 ## 성공 기준
-
-- `ai-dev-auto-goal.ps1`의 기본 MaxSteps가 full-cycle 최소 요구 단계보다 작지 않다.
-- 사용자가 MaxSteps를 지정한 경우 full-cycle 호출 시 의도한 값이 안전하게 반영된다.
-- 기존 `AllowCodex`, `AllowReviewCodex`, `AllowCommit`, `AllowDirty` 전달 흐름은 유지된다.
-- auto-goal이 생성한 task가 기본 설정으로 full-cycle 단계까지 진행 가능하다.
+- 구현 시작 전 예상된 비작업 종료와 실제 실패를 구분해 기록한다.
+- 이번 실행에서 만든 운영 파일 변경만 정리하거나 메타 커밋 대상으로 분류한다.
+- 실행 전부터 존재하던 사용자 변경은 삭제하거나 복원하지 않는다.
+- 다음 auto-goal 실행이 수동 정리 없이 시작될 수 있다.
+- 정리 대상과 보존 대상의 판단 근거가 코드상 명확하다.
 
 ## 제약사항
-
-- 변경 범위는 auto-goal과 full-cycle 호출부 확인 및 최소 수정으로 제한한다.
-- 기존 플래그 전달 방식은 유지한다.
-- 관련 PowerShell 스크립트의 현재 구조를 우선 따른다.
+- 기존 사용자 변경을 되돌리지 않는다.
+- 운영 파일 정리 범위는 자동화 실행 중 생성된 변경으로 제한한다.
+- 한 번에 작은 변경으로 구현한다.
+- 기존 스크립트 구조와 기록 방식을 우선 따른다.
 
 ## 범위 제외
-
-- AI Dev Loop 전체 구조 재설계는 하지 않는다.
-- unrelated 스크립트 동작 변경은 하지 않는다.
-- UI나 앱 런타임 코드는 변경하지 않는다.
+- 자동화 실행 흐름의 대규모 재작성은 제외한다.
+- 새로운 저장소 구조 도입은 제외한다.
+- UI 기능 추가는 제외한다.
+- 알림 기능 추가는 제외한다.
 
 ## 수동 검증
-
-- `ai-dev-auto-goal.ps1`의 MaxSteps 기본값과 full-cycle 호출 인자를 확인한다.
-- 기본 MaxSteps가 full-cycle 최소 요구 단계 이상인지 확인한다.
-- 사용자가 MaxSteps를 지정했을 때 해당 값이 full-cycle 호출에 반영되는지 확인한다.
-- 기존 허용 플래그들이 기존 이름과 의미로 전달되는지 확인한다.
+- 구현 시작 전 중단 사유별로 운영 파일이 불필요하게 dirty 상태로 남지 않는지 확인한다.
+- 실행 전부터 수정되어 있던 운영 파일이 보존되는지 확인한다.
+- 성공, 예상된 비작업 종료, 실제 실패 기록이 구분되는지 확인한다.

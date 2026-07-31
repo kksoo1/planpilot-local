@@ -2,8 +2,8 @@
 
 ## Run
 
-- Started at: 2026-07-31 11:35:17
-- Ended at: 2026-07-31 11:36:27
+- Started at: 2026-07-31 15:42:52
+- Ended at: 2026-07-31 15:45:19
 - Exit code: 0
 - Review prompt: .ai-dev/review-prompt.md
 - Review response: .ai-dev/review-response.json
@@ -28,18 +28,18 @@ approval: never
 sandbox: workspace-write [workdir, /tmp, $TMPDIR]
 reasoning effort: medium
 reasoning summaries: none
-session id: 019fb606-a9b4-72b3-96cb-6879bf0070e8
+session id: 019fb6e9-58c2-78e3-9f29-06bfa6abae91
 --------
 user
 Read and follow the full review prompt at this absolute file path: D:\ai-ap
 ps\planpilot-local\.ai-dev\review-prompt.md
 codex
-리뷰 프롬프트를 확인하기 위해 지정된 파일만 읽겠습니다. 현재 단계에서는 수정이나 빌드 없이 지시사항을 파악합니다.
+지정된 리뷰 프롬프트를 먼저 읽고, 그 안의 범위와 출력 형식에 맞춰 진행하겠습니다.
 exec
 "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "
-Get-Content -LiteralPath \"D:\\ai-apps\\planpilot-local\\.ai-dev\\review-pr
-ompt.md\"" in D:\ai-apps\planpilot-local
- succeeded in 2000ms:
+Get-Content -LiteralPath 'D:\\ai-apps\\planpilot-local\\.ai-dev\\review-pro
+mpt.md'" in D:\ai-apps\planpilot-local
+ succeeded in 2164ms:
 # AI Dev Review Prompt
 
 ## Role
@@ -57,65 +57,61 @@ ompt.md\"" in D:\ai-apps\planpilot-local
 ## Project Goal
 
 # 목표
-
-auto-goal 실행 시 `ai-dev-auto-goal.ps1`이 full-cycle을 안정적으로 호출할 수 있도록 MaxSteps
- 기본값 및 전달 흐름을 정리한다.
+자동화가 구현 시작 전 예상 가능한 사유로 중단될 때, 이번 실행에서 생성하거나 수정한 운영 파일만 안전하게 정리해 다음 auto-go
+al 실행이 수동 정리 없이 시작될 수 있게 한다.
 
 ## 배경
-
-현재 auto-goal 흐름에서 내부적으로 `ai-dev-auto-cycle-full.ps1`을 호출할 때 전달되는 MaxSteps 값
-이 full-cycle의 최소 요구 단계보다 작아 `max_steps_too_small_for_full_cycle`로 중단될 수 있다.
- 이로 인해 auto-goal이 생성한 task가 별도 수동 재실행 없이 full-cycle까지 이어지지 못한다.
+`ai-dev-autopilot.ps1` 또는 `ai-dev-auto-goal.ps1`이 `all_goal_candidates_excl
+uded`, `baseline_output_conflict`, `dirty_worktree`, `max_steps_too_small_f
+or_full_cycle` 같은 사유로 구현 단계 전에 종료되면 `state.json`, `codex-result.md`, `loop-
+log.md`, `autopilot-goal-history.json` 등 운영 파일이 불필요하게 dirty 상태로 남을 수 있다. 실행
+ 전부터 존재하던 사용자 변경은 보존해야 하며, 자동화가 이번 실행에서 만든 변경만 정리 대상이어야 한다.
 
 ## 성공 기준
-
-- `ai-dev-auto-goal.ps1`의 기본 MaxSteps가 full-cycle 최소 요구 단계보다 작지 않다.
-- 사용자가 MaxSteps를 지정한 경우 full-cycle 호출 시 의도한 값이 안전하게 반영된다.
-- 기존 `AllowCodex`, `AllowReviewCodex`, `AllowCommit`, `AllowDirty` 전달 흐름은 유
-지된다.
-- auto-goal이 생성한 task가 기본 설정으로 full-cycle 단계까지 진행 가능하다.
+- 구현 시작 전 예상된 비작업 종료와 실제 실패를 구분해 기록한다.
+- 이번 실행에서 만든 운영 파일 변경만 정리하거나 메타 커밋 대상으로 분류한다.
+- 실행 전부터 존재하던 사용자 변경은 삭제하거나 복원하지 않는다.
+- 다음 auto-goal 실행이 수동 정리 없이 시작될 수 있다.
+- 정리 대상과 보존 대상의 판단 근거가 코드상 명확하다.
 
 ## 제약사항
-
-- 변경 범위는 auto-goal과 full-cycle 호출부 확인 및 최소 수정으로 제한한다.
-- 기존 플래그 전달 방식은 유지한다.
-- 관련 PowerShell 스크립트의 현재 구조를 우선 따른다.
+- 기존 사용자 변경을 되돌리지 않는다.
+- 운영 파일 정리 범위는 자동화 실행 중 생성된 변경으로 제한한다.
+- 한 번에 작은 변경으로 구현한다.
+- 기존 스크립트 구조와 기록 방식을 우선 따른다.
 
 ## 범위 제외
-
-- AI Dev Loop 전체 구조 재설계는 하지 않는다.
-- unrelated 스크립트 동작 변경은 하지 않는다.
-- UI나 앱 런타임 코드는 변경하지 않는다.
+- 자동화 실행 흐름의 대규모 재작성은 제외한다.
+- 새로운 저장소 구조 도입은 제외한다.
+- UI 기능 추가는 제외한다.
+- 알림 기능 추가는 제외한다.
 
 ## 수동 검증
-
-- `ai-dev-auto-goal.ps1`의 MaxSteps 기본값과 full-cycle 호출 인자를 확인한다.
-- 기본 MaxSteps가 full-cycle 최소 요구 단계 이상인지 확인한다.
-- 사용자가 MaxSteps를 지정했을 때 해당 값이 full-cycle 호출에 반영되는지 확인한다.
-- 기존 허용 플래그들이 기존 이름과 의미로 전달되는지 확인한다.
-
+- 구현 시작 전 중단 사유별로 운영 파일이 불필요하게 dirty 상태로 남지 않는지 확인한다.
+- 실행 전부터 수정되어 있던 운영 파일이 보존되는지 확인한다.
+- 성공, 예상된 비작업 종료, 실제 실패 기록이 구분되는지 확인한다.
 
 ## Current Task
 
 - Task ID: T001
-- Title: auto-goal MaxSteps 전달 안정화
-- Description: auto-goal 스크립트의 MaxSteps 기본값과 full-cycle 호출부를 확인하고, full-cyc
-le 최소 요구 단계보다 작아 중단되지 않도록 최소 범위로 조정한다. 기존 허용 플래그 전달 흐름은 유지한다.
+- Title: 운영 파일 정리 흐름 안정화
+- Description: 자동화가 구현 시작 전 예상된 사유로 중단될 때 이번 실행에서 만든 운영 파일 변경만 정리하거나 메타 기록 
+대상으로 분류하도록 기존 흐름을 점검하고 최소 수정한다.
 - Type: implementation
 - Status: in_progress
 - Priority: P0
 - Depends on:
 - 없음
 - Verification:
-- MaxSteps 기본값이 full-cycle 최소 요구 단계 이상인지 확인한다.
-- 사용자 지정 MaxSteps가 full-cycle 호출에 전달되는지 확인한다.
-- AllowCodex, AllowReviewCodex, AllowCommit, AllowDirty 전달 흐름이 유지되는지 확인한다.
+- 예상된 비작업 종료 사유에서 운영 파일 변경 처리 경로를 확인한다.
+- 실행 전부터 있던 사용자 변경을 보존하는 조건을 확인한다.
+- 성공, 예상된 비작업 종료, 실제 실패 기록이 구분되는지 확인한다.
 
 ## Test Result
 
 # AI Dev Test Result
 
-## 2026-07-31 11:35:02
+## 2026-07-31 15:26:27
 
 - Overall result: passed
 - Current task: T001
@@ -145,7 +141,7 @@ dist/index.html                   0.46 kB │ gzip:   0.29 kB
 dist/assets/index-DvjxWt30.css    5.69 kB │ gzip:   1.93 kB
 dist/assets/index-DtLVvPCG.js   317.50 kB │ gzip: 100.16 kB
 
-[32m✓ built in 254ms[39m
+[32m✓ built in 327ms[39m
 ```
 ### npm run test
 
@@ -165,6 +161,245 @@ package.json에 test script가 없습니다.
 > planpilot-local@0.0.0 lint
 > eslint .
 ```
+## Expected non-work cleanup verification
+
+- Environment: isolated real Git worktrees
+- Scripts under verification: scripts/ai-dev-auto-goal.ps1 and scripts/ai-d
+ev-autopilot.ps1
+- Verified scenarios: dirty_worktree, baseline_output_conflict, all_goal_ca
+ndidates_excluded
+
+### Scenario: dirty-worktree
+
+- Expected stopped reason: dirty_worktree
+- Exit code: 1
+- Original stopped reason preserved: True
+- expected_non_work classification preserved: True
+- Baseline user marker preserved: True
+- New dirty paths created: 0
+- No new dirty paths: True
+- Staged paths left behind: 0
+- No staged paths left behind: True
+- Manual git restore required for run-owned files: False
+
+Baseline status:
+```text
+ M .ai-dev/loop-log.md
+ M scripts/ai-dev-auto-goal.ps1
+ M scripts/ai-dev-autopilot.ps1
+```
+
+Status after execution:
+```text
+ M .ai-dev/loop-log.md
+ M scripts/ai-dev-auto-goal.ps1
+ M scripts/ai-dev-autopilot.ps1
+```
+
+New dirty paths:
+```text
+
+```
+
+Captured output:
+```text
+Step 1: validate-input
+  Command: check GoalTitle/GoalDescription
+  Executed: False
+  Skipped: False
+  Exit code: 0
+  Message: Input validation completed: Expected non-work verification
+Step 2: dirty-worktree-gate
+  Command: git status --porcelain
+  Executed: False
+  Skipped: True
+  Exit code: 1
+  Message: Baseline dirty count: 3
+Worktree is dirty. Use -AllowDirty only when this is intentional.
+ M .ai-dev/loop-log.md
+ M scripts/ai-dev-auto-goal.ps1
+ M scripts/ai-dev-autopilot.ps1
+Step 3: expected-non-work-cleanup
+  Command: restore current-run .ai-dev operational file snapshots
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: Expected pre-implementation stop. Restored only auto-goal operat
+ional files captured at run start; baseline user changes were preserved. Cl
+eaned run-owned files: .ai-dev/queue.json, .ai-dev/current-task-prompt.md, 
+.ai-dev/codex-result.md, .ai-dev/auto-goal-planning-prompt.md, .ai-dev/goal
+.md, .ai-dev/auto-goal-codex-result.md, .ai-dev/state.json
+Step 4: expected-non-work-meta-record
+  Command: write expected non-work final result
+  Executed: False
+  Skipped: True
+  Exit code: 0
+  Message: Expected pre-implementation stop is reported in console output o
+nly. -AllowCommit is not set, so no result file or other .ai-dev operationa
+l change is left behind.
+Stopped reason: dirty_worktree
+Outcome category: expected_non_work
+Completed: False
+Exit code: 1
+```
+
+### Scenario: baseline-output-conflict
+
+- Expected stopped reason: baseline_output_conflict
+- Exit code: 1
+- Original stopped reason preserved: True
+- expected_non_work classification preserved: True
+- Baseline user marker preserved: True
+- New dirty paths created: 0
+- No new dirty paths: True
+- Staged paths left behind: 0
+- No staged paths left behind: True
+- Manual git restore required for run-owned files: False
+
+Baseline status:
+```text
+ M .ai-dev/codex-result.md
+ M scripts/ai-dev-auto-goal.ps1
+ M scripts/ai-dev-autopilot.ps1
+```
+
+Status after execution:
+```text
+ M .ai-dev/codex-result.md
+ M scripts/ai-dev-auto-goal.ps1
+ M scripts/ai-dev-autopilot.ps1
+```
+
+New dirty paths:
+```text
+
+```
+
+Captured output:
+```text
+Step 1: validate-input
+  Command: check GoalTitle/GoalDescription
+  Executed: False
+  Skipped: False
+  Exit code: 0
+  Message: Input validation completed: Expected non-work verification
+Step 2: baseline-output-conflict-gate
+  Command: compare baseline dirty paths with planned auto-goal outputs
+  Executed: True
+  Skipped: False
+  Exit code: 1
+  Message: Baseline dirty paths conflict with planned auto-goal output path
+s. Auto-goal stopped before writing or deleting protected output files.
+Conflicting paths:
+.ai-dev/codex-result.md
+Step 3: expected-non-work-cleanup
+  Command: restore current-run .ai-dev operational file snapshots
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: Expected pre-implementation stop. Restored only auto-goal operat
+ional files captured at run start; baseline user changes were preserved. Cl
+eaned run-owned files: .ai-dev/queue.json, .ai-dev/current-task-prompt.md, 
+.ai-dev/auto-goal-planning-prompt.md, .ai-dev/goal.md, .ai-dev/auto-goal-co
+dex-result.md, .ai-dev/state.json
+Stopped reason: baseline_output_conflict
+Outcome category: expected_non_work
+Completed: False
+Exit code: 1
+```
+
+### Scenario: all-goal-candidates-excluded
+
+- Expected stopped reason: all_goal_candidates_excluded
+- Exit code: 1
+- Original stopped reason preserved: True
+- expected_non_work classification preserved: True
+- Baseline user marker preserved: True
+- New dirty paths created: 0
+- No new dirty paths: True
+- Staged paths left behind: 0
+- No staged paths left behind: True
+- Manual git restore required for run-owned files: False
+
+Baseline status:
+```text
+ M scripts/ai-dev-auto-goal.ps1
+ M scripts/ai-dev-autopilot.ps1
+```
+
+Status after execution:
+```text
+ M scripts/ai-dev-auto-goal.ps1
+ M scripts/ai-dev-autopilot.ps1
+```
+
+New dirty paths:
+```text
+
+```
+
+Captured output:
+```text
+Step 1: validate-input
+  Executed: False
+  Skipped: False
+  Exit code: 0
+  Message: Autopilot input validation completed. MaxGoals=1, MaxTasks=1, Ma
+xSteps=40
+Step 2: current-goal-gate
+  Executed: False
+  Skipped: False
+  Exit code: 0
+  Message: Current goal is completed. Previous goal: auto-goal MaxSteps 湲곕낯
+媛??덉젙??Step 3: generate-goal-candidate
+  Executed: False
+  Skipped: True
+  Exit code: 1
+  Message: Autopilot ?꾨낫媛 紐⑤몢 ?뚯쭊?섏뿀?듬땲?? ?꾩옱 ?곹깭: goalStatus=completed, c
+urrentTaskId=, openTaskCount=0, currentGoal=auto-goal MaxSteps 湲곕낯媛??덉젙?? ?
+쒖쇅??backlog ?꾨낫 ?? 14/14. 紐⑤뱺 ?꾨낫媛 ?꾩옱 goal, 以鍮??대젰, ?꾨즺 ?대젰 ?먮뒗 durable 
+history? 以묐났?섏뼱 ?좉퇋 goal???먮룞 ?앹꽦?섏? ?딆뒿?덈떎. ?ㅼ쓬 ?됰룞: 1. .ai-dev/backlog.m
+d???덈줈??backlog ??ぉ??異붽??⑸땲?? 2. ?대? ?꾨즺???꾨낫瑜??ㅼ떆 吏꾪뻾?댁빞 ?쒕떎硫?durable hist
+ory? ?꾨즺 ?대젰???щ엺??癒쇱? 寃?좏빀?덈떎. 3. 吏湲덉? ?먮룞 吏꾪뻾??硫덉텛怨??꾩옱 ?곹깭瑜??좎??⑸땲?? 
+怨꾩냽 吏꾪뻾?섎젮硫???backlog ??ぉ???꾩슂?⑸땲?? ?쒖쇅???꾨낫: Codex CLI ?꾩쟾 ?먮룞???뺤콉 臾몄꽌?? 
+Codex 援ы쁽 ?ㅽ뻾 ?ㅽ겕由쏀듃 異붽?; Codex 由щ럭 ?ㅽ뻾 ?ㅽ겕由쏀듃 異붽?; full auto-cycle 珥덉븞 異붽?
+; ?먮룞 而ㅻ컠怨?task ?꾨즺 ?곌껐; MaxTasks 1 end-to-end 寃利? full auto-cycle 濡쒓렇 援ъ“
+ 媛쒖꽑; package 蹂寃?媛먯? 硫붿떆吏 媛쒖꽑; build/check ?ㅽ뙣 ??revise ?먮쫫 ?먮룞 ?덈궡; Code
+x 由щ럭 JSON 異붿텧 ?ㅽ뙣 泥섎━ 蹂닿컯; GitHub PR ?곕룞 寃?? Copilot CLI ?먮뒗 gh ?곕룞 ?ш???
+ ?κ린 ?ㅽ뻾 ?먮룞??紐⑤땲?곕쭅 ?뺤콉; 蹂묐젹 task ?ㅽ뻾 媛?μ꽦 寃?? ?쒖쇅 湲곗? title: auto-goal 
+MaxSteps 湲곕낯媛??덉젙?? Codex 援ы쁽 ?ㅽ뻾 ?ㅽ겕由쏀듃 異붽?; Codex CLI ?꾩쟾 ?먮룞???뺤콉 臾몄꽌?? 
+full auto-cycle 珥덉븞 異붽?; Codex 由щ럭 ?ㅽ뻾 ?ㅽ겕由쏀듃 異붽?; package 蹂寃?媛먯? 硫붿떆吏 媛쒖
+꽑; GitHub PR ?곕룞 寃?? ?κ린 ?ㅽ뻾 ?먮룞??紐⑤땲?곕쭅 ?뺤콉; 蹂묐젹 task ?ㅽ뻾 媛?μ꽦 寃?? Auto
+pilot DryRun codex-result dirty 諛⑹?; ?먮룞 而ㅻ컠怨?task ?꾨즺 ?곌껐; Autopilot histo
+ry dirty gate 異⑸룎 ?섏젙; MaxTasks 1 end-to-end 寃利? Verification task revise 
+?먮룞 泥섎━; full auto-cycle 濡쒓렇 援ъ“ 媛쒖꽑; build/check ?ㅽ뙣 ??revise ?먮쫫 ?먮룞 ?덈궡;
+ Codex 由щ럭 JSON 異붿텧 ?ㅽ뙣 泥섎━ 蹂닿컯; Copilot CLI ?먮뒗 gh ?곕룞 ?ш??? Durable histo
+ry title: Autopilot DryRun codex-result dirty 諛⑹?; ?먮룞 而ㅻ컠怨?task ?꾨즺 ?곌껐; A
+utopilot history dirty gate 異⑸룎 ?섏젙; MaxTasks 1 end-to-end 寃利? Verificatio
+n task revise ?먮룞 泥섎━; full auto-cycle 濡쒓렇 援ъ“ 媛쒖꽑; package 蹂寃?媛먯? 硫붿떆吏 媛
+쒖꽑; build/check ?ㅽ뙣 ??revise ?먮쫫 ?먮룞 ?덈궡; Codex 由щ럭 JSON 異붿텧 ?ㅽ뙣 泥섎━ 蹂닿컯; G
+itHub PR ?곕룞 寃?? Copilot CLI ?먮뒗 gh ?곕룞 ?ш??? ?κ린 ?ㅽ뻾 ?먮룞??紐⑤땲?곕쭅 ?뺤콉; 蹂묐젹
+ task ?ㅽ뻾 媛?μ꽦 寃?? auto-goal MaxSteps 湲곕낯媛??덉젙??
+Step 4: expected-non-work-cleanup
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: Classification: expected_non_work. Original stopped reason: all_
+goal_candidates_excluded. Baseline dirty files skipped: . Cleaned run-owned
+ files: .ai-dev/loop-log.md, .ai-dev/autopilot-goal-history.json, .ai-dev/s
+tate.json. Meta commit created: False (skipped (-AllowCommit not set)). Nex
+t run without manual git restore: True. Restored only autopilot operational
+ files captured at run start; baseline user changes were preserved.
+Stopped reason: all_goal_candidates_excluded
+Outcome category: expected_non_work
+Operational cleanup performed: True
+Meta commit created: False
+Next run without manual restore: True
+Completed: False
+Prepared goals: 0/1
+Exit code: 1
+```
+
 
 ## Diff To Review
 
@@ -172,7 +407,7 @@ package.json에 test script가 없습니다.
 
 ## Generated At
 
-2026-07-31 11:35:12
+2026-07-31 15:42:47
 
 ## Git Status
 
@@ -182,18 +417,22 @@ package.json에 test script가 없습니다.
  M .ai-dev/current-task-prompt.md
  M .ai-dev/diff.md
  M .ai-dev/goal.md
+ M .ai-dev/loop-log.md
  M .ai-dev/queue.json
  M .ai-dev/review-prompt.md
  M .ai-dev/review-response.json
  M .ai-dev/review.md
+ M .ai-dev/revise-prompt.md
  M .ai-dev/state.json
  M .ai-dev/test-result.md
  M scripts/ai-dev-auto-goal.ps1
+ M scripts/ai-dev-autopilot.ps1
 ```
 
 ## App Change Files
 
 - scripts/ai-dev-auto-goal.ps1
+- scripts/ai-dev-autopilot.ps1
 
 ## AI Dev Operational Artifact Files
 
@@ -202,10 +441,12 @@ package.json에 test script가 없습니다.
 - .ai-dev/current-task-prompt.md
 - .ai-dev/diff.md
 - .ai-dev/goal.md
+- .ai-dev/loop-log.md
 - .ai-dev/queue.json
 - .ai-dev/review-prompt.md
 - .ai-dev/review-response.json
 - .ai-dev/review.md
+- .ai-dev/revise-prompt.md
 - .ai-dev/state.json
 - .ai-dev/test-result.md
 
@@ -217,26 +458,986 @@ package.json에 test script가 없습니다.
 ## Unstaged Diff Stat
 
 ```text
- scripts/ai-dev-auto-goal.ps1 | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/ai-dev-auto-goal.ps1 | 235 +++++++++++++++++++++++++++++++++-
+ scripts/ai-dev-autopilot.ps1 | 295 +++++++++++++++++++++++++++++++++++++++
+++--
+ 2 files changed, 512 insertions(+), 18 deletions(-)
 ```
 
 ## Unstaged Diff
 
 ```text
 diff --git a/scripts/ai-dev-auto-goal.ps1 b/scripts/ai-dev-auto-goal.ps1
-index be59b8d..5869e33 100644
+index 5869e33..070042f 100644
 --- a/scripts/ai-dev-auto-goal.ps1
 +++ b/scripts/ai-dev-auto-goal.ps1
-@@ -4,7 +4,7 @@
-     [AllowEmptyString()]
-     [string]$GoalDescription,
-     [int]$MaxTasks = 1,
--    [int]$MaxSteps = 20,
-+    [int]$MaxSteps = 40,
-     [switch]$DryRun,
-     [switch]$Json,
-     [switch]$AllowRun,
+@@ -30,6 +30,7 @@ $legacyAutoGoalResultRelativePath = ".ai-dev/auto-goal-co
+dex-result.md"
+ $aiDevOperationalRoot = ".ai-dev/"
+ $script:autoGoalCanWriteResultFile = $true
+ $script:autoGoalCanCleanTempArtifacts = $true
++$script:autoGoalOperationalFileSnapshots = @{}
+ 
+ function Resolve-RepoPath {
+     param([string]$Path)
+@@ -98,9 +99,18 @@ function New-AutoGoalResult {
+         [int]$ExitCode
+     )
+ 
++    $outcomeCategory = if (Test-IsExpectedPreImplementationStop $StoppedRe
+ason) {
++        "expected_non_work"
++    } elseif ($ExitCode -eq 0) {
++        "success"
++    } else {
++        "actual_failure"
++    }
++
+     return [PSCustomObject][ordered]@{
+         steps = @($Steps)
+         stoppedReason = $StoppedReason
++        outcomeCategory = $outcomeCategory
+         completed = $Completed
+         exitCode = $ExitCode
+         plan = $script:autoGoalPlanPreview
+@@ -145,6 +155,7 @@ function Write-AutoGoalResult {
+     }
+ 
+     Write-Host "Stopped reason: $($Result.stoppedReason)"
++    Write-Host "Outcome category: $($Result.outcomeCategory)"
+     Write-Host "Completed: $($Result.completed)"
+     Write-Host "Exit code: $($Result.exitCode)"
+ }
+@@ -172,6 +183,7 @@ function Save-AutoGoalResultFile {
+ ## Summary
+ 
+ - Stopped reason: $($result.stoppedReason)
++- Outcome category: $($result.outcomeCategory)
+ - Completed: $($result.completed)
+ - Exit code: $($result.exitCode)
+ - Result path: $($result.resultPath)
+@@ -184,6 +196,55 @@ $($stepLines -join "`r`n")
+     [System.IO.File]::WriteAllText($resolvedResultPath, $content, $utf8Wit
+hBom)
+ }
+ 
++function Invoke-AutoGoalExpectedNonWorkMetaCommit {
++    param([int]$StepNumber)
++
++    if ($DryRun) {
++        return New-StepResult $StepNumber "expected-non-work-meta-commit" 
+"git add/commit expected non-work result" $false $true 0 "DryRun: expected 
+non-work result meta commit was not executed."
++    }
++
++    if (-not $AllowCommit) {
++        return New-StepResult $StepNumber "expected-non-work-meta-commit" 
+"git add/commit expected non-work result" $false $true 0 "AllowCommit is no
+t set, so expected non-work result remains an uncommitted meta record."
++    }
++
++    $resultRelativePath = ConvertTo-NormalizedChangedPath (ConvertTo-RepoR
+elativePath $ResultPath)
++
++    if (@($script:autoGoalBaselineDirtyPaths) -contains $resultRelativePat
+h) {
++        return New-StepResult $StepNumber "expected-non-work-meta-commit" 
+"git add/commit expected non-work result" $false $true 0 "Expected non-work
+ result meta commit skipped because ResultPath was baseline dirty and prote
+cted: $resultRelativePath"
++    }
++
++    $statusOutput = & git status --short -- $resultRelativePath 2>&1 | Out
+-String
++    $statusExitCode = $LASTEXITCODE
++
++    if ($statusExitCode -ne 0) {
++        return New-StepResult $StepNumber "expected-non-work-meta-commit" 
+"git status --short -- <result file>" $true $false 1 "git status for expect
+ed non-work result failed. exit code: $statusExitCode`n$statusOutput"
++    }
++
++    if (-not (Test-HasValue $statusOutput)) {
++        return New-StepResult $StepNumber "expected-non-work-meta-commit" 
+"git status --short -- <result file>" $true $false 0 "Expected non-work res
+ult file had no changes to commit."
++    }
++
++    $addOutput = & git add -- $resultRelativePath 2>&1 | Out-String
++    $addExitCode = $LASTEXITCODE
++
++    if ($addExitCode -ne 0) {
++        & git restore --staged -- $resultRelativePath 2>&1 | Out-String | 
+Out-Null
++        $restoredPaths = @(Restore-AutoGoalCurrentRunOperationalChanges @(
+$resultRelativePath))
++        return New-StepResult $StepNumber "expected-non-work-meta-commit" 
+"git add -- <result file>" $true $false 1 "Expected non-work result git add
+ failed. exit code: $addExitCode`n$addOutput`nRestored run-owned files: $($
+restoredPaths -join ', ')"
++    }
++
++    $commitOutput = & git commit -m "chore(ai-dev): record expected non-wo
+rk stop" -- $resultRelativePath 2>&1 | Out-String
++    $commitExitCode = $LASTEXITCODE
++
++    if ($commitExitCode -ne 0) {
++        & git restore --staged -- $resultRelativePath 2>&1 | Out-String | 
+Out-Null
++        $restoredPaths = @(Restore-AutoGoalCurrentRunOperationalChanges @(
+$resultRelativePath))
++        return New-StepResult $StepNumber "expected-non-work-meta-commit" 
+"git commit -- <result file>" $true $false 1 "Expected non-work result comm
+it failed. exit code: $commitExitCode`n$commitOutput`nRestored run-owned fi
+les: $($restoredPaths -join ', ')"
++    }
++
++    return New-StepResult $StepNumber "expected-non-work-meta-commit" "git
+ add/commit expected non-work result" $true $false 0 $commitOutput.Trim()
++}
++
+ function Clear-AutoGoalTempArtifacts {
+     if (-not $script:autoGoalCanCleanTempArtifacts) {
+         return
+@@ -192,6 +253,12 @@ function Clear-AutoGoalTempArtifacts {
+     $currentResultPath = [System.IO.Path]::GetFullPath((Resolve-RepoPath $
+ResultPath))
+ 
+     foreach ($relativePath in @($planningPromptRelativePath, $legacyAutoGo
+alResultRelativePath)) {
++        $normalizedRelativePath = ConvertTo-NormalizedChangedPath (Convert
+To-RepoRelativePath $relativePath)
++
++        if (@($script:autoGoalBaselineDirtyPaths) -contains $normalizedRel
+ativePath) {
++            continue
++        }
++
+         $fullPath = [System.IO.Path]::GetFullPath((Resolve-RepoPath $relat
+ivePath))
+ 
+         if (-not $fullPath.StartsWith($repoRoot.TrimEnd("\") + "\", [Syste
+m.StringComparison]::OrdinalIgnoreCase)) {
+@@ -212,6 +279,98 @@ function Clear-AutoGoalTempArtifacts {
+     }
+ }
+ 
++function Test-IsExpectedPreImplementationStop {
++    param([string]$StoppedReason)
++
++    return @(
++        "baseline_output_conflict",
++        "dirty_worktree",
++        "max_steps_too_small_for_full_cycle"
++    ) -contains $StoppedReason
++}
++
++function Initialize-AutoGoalOperationalFileSnapshots {
++    $script:autoGoalOperationalFileSnapshots = @{}
++
++    foreach ($relativePath in @(Get-PlannedAutoGoalOutputPaths)) {
++        $fullPath = [System.IO.Path]::GetFullPath((Resolve-RepoPath $relat
+ivePath))
++
++        if (-not $fullPath.StartsWith($repoRoot.TrimEnd("\") + "\", [Syste
+m.StringComparison]::OrdinalIgnoreCase)) {
++            continue
++        }
++
++        $exists = [System.IO.File]::Exists($fullPath)
++        $bytes = $null
++
++        if ($exists) {
++            $bytes = [System.IO.File]::ReadAllBytes($fullPath)
++        }
++
++        $script:autoGoalOperationalFileSnapshots[$relativePath] = [PSCusto
+mObject][ordered]@{
++            path = $fullPath
++            existed = $exists
++            bytes = $bytes
++        }
++    }
++}
++
++function Restore-AutoGoalCurrentRunOperationalChanges {
++    param([string[]]$RelativePaths = @())
++
++    $restoredPaths = @()
++
++    if ($null -eq $script:autoGoalOperationalFileSnapshots) {
++        return @($restoredPaths)
++    }
++
++    $targetPaths = @($RelativePaths | ForEach-Object { ConvertTo-Normalize
+dChangedPath $_ } | Where-Object { Test-HasValue $_ } | Select-Object -Uniq
+ue)
++    $baselineDirtyPaths = @($script:autoGoalBaselineDirtyPaths)
++
++    foreach ($entry in @($script:autoGoalOperationalFileSnapshots.GetEnume
+rator())) {
++        $relativePath = ConvertTo-NormalizedChangedPath ([string]$entry.Ke
+y)
++        $snapshot = $entry.Value
++
++        if ($targetPaths.Count -gt 0 -and $targetPaths -notcontains $relat
+ivePath) {
++            continue
++        }
++
++        if ($baselineDirtyPaths -contains $relativePath) {
++            continue
++        }
++
++        $fullPath = [string]$snapshot.path
++
++        if (-not $fullPath.StartsWith($repoRoot.TrimEnd("\") + "\", [Syste
+m.StringComparison]::OrdinalIgnoreCase)) {
++            continue
++        }
++
++        try {
++            if ($snapshot.existed) {
++                [System.IO.File]::WriteAllBytes($fullPath, [byte[]]$snapsh
+ot.bytes)
++            } elseif ([System.IO.File]::Exists($fullPath)) {
++                [System.IO.File]::Delete($fullPath)
++            }
++            $restoredPaths += $relativePath
++        } catch {
++            Write-Warning "Failed to restore auto-goal operational file sn
+apshot: $fullPath"
++        }
++    }
++
++    return @($restoredPaths | Select-Object -Unique)
++}
++
++function Test-CanWriteExpectedNonWorkResultFile {
++    $resultRelativePath = ConvertTo-NormalizedChangedPath (ConvertTo-RepoR
+elativePath $ResultPath)
++    $snapshot = $script:autoGoalOperationalFileSnapshots[$resultRelativePa
+th]
++    $baselineDirtyPaths = @($script:autoGoalBaselineDirtyPaths)
++
++    if ($null -ne $snapshot -and $snapshot.existed -and $baselineDirtyPath
+s -contains $resultRelativePath) {
++        return $false
++    }
++
++    return $true
++}
++
+ function Stop-AutoGoal {
+     param(
+         [object[]]$Steps,
+@@ -220,19 +379,72 @@ function Stop-AutoGoal {
+         [int]$ExitCode
+     )
+ 
++    $isExpectedPreImplementationStop = Test-IsExpectedPreImplementationSto
+p $StoppedReason
++
+     if (-not $DryRun) {
+         Clear-AutoGoalTempArtifacts
++
++        if ($isExpectedPreImplementationStop) {
++            $cleanedRunOwnedPaths = @(Restore-AutoGoalCurrentRunOperationa
+lChanges)
++            $Steps += New-StepResult ($Steps.Count + 1) "expected-non-work
+-cleanup" "restore current-run .ai-dev operational file snapshots" $true $f
+alse 0 "Expected pre-implementation stop. Restored only auto-goal operation
+al files captured at run start; baseline user changes were preserved. Clean
+ed run-owned files: $($cleanedRunOwnedPaths -join ', ')"
++        }
+     }
+ 
++    $script:steps = @($Steps)
++
+     if (-not $DryRun -and (-not $Completed -or $ExitCode -ne 0)) {
+         if ($script:autoGoalCanWriteResultFile) {
+-            Save-AutoGoalResultFile $StoppedReason $false $ExitCode
++            if ($isExpectedPreImplementationStop) {
++                if ($AllowCommit) {
++                    if (Test-CanWriteExpectedNonWorkResultFile) {
++                        $Steps += New-StepResult ($Steps.Count + 1) "expec
+ted-non-work-meta-record" "write expected non-work final result" $true $fal
+se 0 "Expected pre-implementation stop is recorded as outcomeCategory=expec
+ted_non_work in the final result file because -AllowCommit is set."
++                        $script:steps = @($Steps)
++                        Save-AutoGoalResultFile $StoppedReason $false $Exi
+tCode
++                        $metaCommitStep = Invoke-AutoGoalExpectedNonWorkMe
+taCommit ($Steps.Count + 1)
++                        $Steps += $metaCommitStep
++                        $script:steps = @($Steps)
++
++                        if ($metaCommitStep.exitCode -ne 0) {
++                            $originalStoppedReason = $StoppedReason
++                            $StoppedReason = "expected_non_work_meta_commi
+t_failed"
++                            $isExpectedPreImplementationStop = $false
++                            $Completed = $false
++                            $ExitCode = 1
++                            $Steps += New-StepResult ($Steps.Count + 1) "e
+xpected-non-work-meta-failure" "classify expected non-work meta commit fail
+ure" $true $false 1 "Expected pre-implementation stop meta commit failed an
+d is reclassified as actual_failure. Original stopped reason: $originalStop
+pedReason"
++                            $script:steps = @($Steps)
++                        }
++                    } else {
++                        $resultRelativePath = ConvertTo-NormalizedChangedP
+ath (ConvertTo-RepoRelativePath $ResultPath)
++                        $Steps += New-StepResult ($Steps.Count + 1) "expec
+ted-non-work-meta-record" "write expected non-work final result" $false $tr
+ue 0 "Expected pre-implementation stop is reported in console output only. 
+ResultPath existed at run start and was baseline dirty, so auto-goal did no
+t overwrite preserved user changes: $resultRelativePath"
++                        $script:steps = @($Steps)
++                    }
++                } else {
++                    $Steps += New-StepResult ($Steps.Count + 1) "expected-
+non-work-meta-record" "write expected non-work final result" $false $true 0
+ "Expected pre-implementation stop is reported in console output only. -All
+owCommit is not set, so no result file or other .ai-dev operational change 
+is left behind."
++                    $script:steps = @($Steps)
++                }
++            } else {
++                Save-AutoGoalResultFile $StoppedReason $false $ExitCode
++            }
+         }
+     }
+     Write-AutoGoalResult (New-AutoGoalResult $Steps $StoppedReason $Comple
+ted $ExitCode)
+     exit $ExitCode
+ }
+ 
++function Get-StoppedReasonFromOutput {
++    param([string]$Output)
++
++    if (-not (Test-HasValue $Output)) {
++        return ""
++    }
++
++    if ($Output -match '(?m)^\s*Stopped reason:\s*(\S+)\s*$') {
++        return $Matches[1]
++    }
++
++    return ""
++}
++
+ function Get-InputPreview {
+     param([string]$RawInput)
+ 
+@@ -437,8 +649,10 @@ function Invoke-FinalAutoGoalChangeGate {
+     $addExitCode = $LASTEXITCODE
+ 
+     if ($addExitCode -ne 0) {
++        & git restore --staged -- $newAiDevPaths 2>&1 | Out-String | Out-N
+ull
++        $restoredPaths = @(Restore-AutoGoalCurrentRunOperationalChanges $n
+ewAiDevPaths)
+         $message = "auto-goal 최종 .ai-dev 메타 변경 git add 실패. exit code: $add
+ExitCode`n$addOutput"
+-        $script:steps += New-StepResult $StepNumber "final-change-gate" "g
+it add -- <final .ai-dev files>" $true $false 1 $message
++        $script:steps += New-StepResult $StepNumber "final-change-gate" "g
+it add -- <final .ai-dev files>" $true $false 1 "$message`nRestored run-own
+ed files: $($restoredPaths -join ', ')"
+         Stop-AutoGoal $script:steps "final_meta_add_failed" $false 1
+     }
+ 
+@@ -448,8 +662,10 @@ function Invoke-FinalAutoGoalChangeGate {
+     $commitExitCode = $LASTEXITCODE
+ 
+     if ($commitExitCode -ne 0) {
++        & git restore --staged -- $newAiDevPaths 2>&1 | Out-String | Out-N
+ull
++        $restoredPaths = @(Restore-AutoGoalCurrentRunOperationalChanges $n
+ewAiDevPaths)
+         $message = "auto-goal 최종 .ai-dev 메타 커밋 실패. exit code: $commitExitC
+ode`n$commitOutput"
+-        $script:steps += New-StepResult $StepNumber "final-change-gate" "g
+it commit -m '$metaCommitMessage' -- <final .ai-dev files>" $true $false 1 
+$message
++        $script:steps += New-StepResult $StepNumber "final-change-gate" "g
+it commit -m '$metaCommitMessage' -- <final .ai-dev files>" $true $false 1 
+"$message`nRestored run-owned files: $($restoredPaths -join ', ')"
+         Stop-AutoGoal $script:steps "final_meta_commit_failed" $false 1
+     }
+ 
+@@ -588,8 +804,10 @@ function Invoke-FinalPreparedResultGate {
+     $addExitCode = $LASTEXITCODE
+ 
+     if ($addExitCode -ne 0) {
++        & git restore --staged -- $newAiDevPaths 2>&1 | Out-String | Out-N
+ull
++        $restoredPaths = @(Restore-AutoGoalCurrentRunOperationalChanges $n
+ewAiDevPaths)
+         $message = "auto-goal 최종 .ai-dev 메타 변경 git add 실패. exit code: $add
+ExitCode`n$addOutput"
+-        $script:steps += New-StepResult $StepNumber "final-change-gate" "g
+it add -- <final .ai-dev files>" $true $false 1 $message
++        $script:steps += New-StepResult $StepNumber "final-change-gate" "g
+it add -- <final .ai-dev files>" $true $false 1 "$message`nRestored run-own
+ed files: $($restoredPaths -join ', ')"
+         Stop-AutoGoal $script:steps "final_meta_add_failed" $false 1
+     }
+ 
+@@ -599,8 +817,10 @@ function Invoke-FinalPreparedResultGate {
+     $commitExitCode = $LASTEXITCODE
+ 
+     if ($commitExitCode -ne 0) {
++        & git restore --staged -- $newAiDevPaths 2>&1 | Out-String | Out-N
+ull
++        $restoredPaths = @(Restore-AutoGoalCurrentRunOperationalChanges $n
+ewAiDevPaths)
+         $message = "auto-goal 최종 .ai-dev 메타 커밋 실패. exit code: $commitExitC
+ode`n$commitOutput"
+-        $script:steps += New-StepResult $StepNumber "final-change-gate" "g
+it commit -m '$metaCommitMessage' -- <final .ai-dev files>" $true $false 1 
+$message
++        $script:steps += New-StepResult $StepNumber "final-change-gate" "g
+it commit -m '$metaCommitMessage' -- <final .ai-dev files>" $true $false 1 
+"$message`nRestored run-owned files: $($restoredPaths -join ', ')"
+         Stop-AutoGoal $script:steps "final_meta_commit_failed" $false 1
+     }
+ 
+@@ -1107,7 +1327,9 @@ function Invoke-CycleCommand {
+     $script:steps += New-StepResult $StepNumber $Name $Command $true $fals
+e $exitCode $message
+ 
+     if ($exitCode -ne 0) {
+-        Stop-AutoGoal $script:steps "$Name`_failed" $false 1
++        $childStoppedReason = Get-StoppedReasonFromOutput $message
++        $stoppedReason = if (Test-IsExpectedPreImplementationStop $childSt
+oppedReason) { $childStoppedReason } else { "$Name`_failed" }
++        Stop-AutoGoal $script:steps $stoppedReason $false 1
+     }
+ }
+ 
+@@ -1174,6 +1396,7 @@ $resolvedQueuePath = [System.IO.Path]::GetFullPath((R
+esolve-RepoPath $queueRelat
+ $resolvedStatePath = [System.IO.Path]::GetFullPath((Resolve-RepoPath $stat
+eRelativePath))
+ $resolvedPlanningPromptPath = [System.IO.Path]::GetFullPath((Resolve-RepoP
+ath $planningPromptRelativePath))
+ $resolvedResultPath = [System.IO.Path]::GetFullPath((Resolve-RepoPath $Res
+ultPath))
++Initialize-AutoGoalOperationalFileSnapshots
+ 
+ if (-not (Test-HasValue $GoalTitle)) {
+     $script:steps += New-StepResult 0 "validate-input" "check GoalTitle" $
+false $false 1 "GoalTitle must not be empty."
+diff --git a/scripts/ai-dev-autopilot.ps1 b/scripts/ai-dev-autopilot.ps1
+index 52da0ce..4c8c3f2 100644
+--- a/scripts/ai-dev-autopilot.ps1
++++ b/scripts/ai-dev-autopilot.ps1
+@@ -38,6 +38,8 @@ $backlogPath = Join-Path $repoRoot $backlogRelativePath
+ $loopLogPath = Join-Path $repoRoot $loopLogRelativePath
+ $goalHistoryPath = Join-Path $repoRoot $goalHistoryRelativePath
+ $utf8WithBom = New-Object System.Text.UTF8Encoding($true)
++$script:autopilotOperationalFileSnapshots = @{}
++$script:autopilotBaselineDirtyPaths = @()
+ 
+ function Test-HasValue {
+     param([object]$Value)
+@@ -153,6 +155,10 @@ function Add-AutopilotGoalHistoryTitle {
+         return
+     }
+ 
++    if (Test-IsAutopilotBaselineDirtyPath $goalHistoryRelativePath) {
++        return
++    }
++
+     $now = [DateTimeOffset]::UtcNow.ToString("o")
+     $trimmedTitle = $Title.Trim()
+     $history = Read-AutopilotGoalHistory
+@@ -245,6 +251,10 @@ function Add-LoopLogEntry {
+         return
+     }
+ 
++    if (Test-IsAutopilotBaselineDirtyPath $loopLogRelativePath) {
++        return
++    }
++
+     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+     $entryLines = @("", "## $timestamp - $Title", "")
+     $entryLines += @($Lines)
+@@ -252,6 +262,178 @@ function Add-LoopLogEntry {
+     [System.IO.File]::AppendAllText($loopLogPath, ($entryLines -join "`r`n
+"), $utf8WithBom)
+ }
+ 
++function Test-IsExpectedAutopilotNonWorkStop {
++    param([string]$StoppedReason)
++
++    return @(
++        "all_goal_candidates_excluded",
++        "baseline_output_conflict",
++        "dirty_worktree",
++        "goal_candidate_not_found",
++        "current_goal_not_completed",
++        "max_steps_too_small_for_full_cycle"
++    ) -contains $StoppedReason
++}
++
++function Get-StoppedReasonFromOutput {
++    param([string]$Output)
++
++    if (-not (Test-HasValue $Output)) {
++        return ""
++    }
++
++    if ($Output -match '(?m)^\s*Stopped reason:\s*(\S+)\s*$') {
++        return $Matches[1]
++    }
++
++    if ($Output -match '(?m)"stoppedReason"\s*:\s*"([^"]+)"') {
++        return $Matches[1]
++    }
++
++    return ""
++}
++
++function ConvertTo-NormalizedChangedPath {
++    param([string]$RelativePath)
++
++    if (-not (Test-HasValue $RelativePath)) {
++        return $null
++    }
++
++    return $RelativePath.Trim().Trim('"').Replace('\', '/')
++}
++
++function Convert-ToChangedPath {
++    param([string]$ChangeLine)
++
++    if ([string]::IsNullOrWhiteSpace($ChangeLine)) {
++        return @()
++    }
++
++    $pathText = $ChangeLine
++
++    if ($ChangeLine.Length -ge 4 -and $ChangeLine.Substring(2, 1) -eq " ")
+ {
++        $pathText = $ChangeLine.Substring(3)
++    }
++
++    if ($pathText.Contains(" -> ")) {
++        return @($pathText -split " -> " | Where-Object { Test-HasValue $_
+ })
++    }
++
++    return @($pathText)
++}
++
++function Get-AutopilotBaselineDirtyPaths {
++    $statusOutput = & git status --porcelain 2>&1
++
++    if ($LASTEXITCODE -ne 0) {
++        throw "git status --porcelain failed while capturing autopilot bas
+eline dirty paths: $($statusOutput -join "`n")"
++    }
++
++    return @(
++        $statusOutput |
++            ForEach-Object { Convert-ToChangedPath $_ } |
++            Where-Object { Test-HasValue $_ } |
++            ForEach-Object { ConvertTo-NormalizedChangedPath $_ } |
++            Select-Object -Unique
++    )
++}
++
++function Test-IsAutopilotBaselineDirtyPath {
++    param([string]$RelativePath)
++
++    $normalizedRelativePath = ConvertTo-NormalizedChangedPath $RelativePat
+h
++    return @($script:autopilotBaselineDirtyPaths) -contains $normalizedRel
+ativePath
++}
++
++function Initialize-AutopilotOperationalFileSnapshots {
++    $script:autopilotOperationalFileSnapshots = @{}
++
++    foreach ($relativePath in @($stateRelativePath, $loopLogRelativePath, 
+$goalHistoryRelativePath)) {
++        $fullPath = [System.IO.Path]::GetFullPath((Join-Path $repoRoot $re
+lativePath))
++
++        if (-not $fullPath.StartsWith($repoRoot.TrimEnd("\") + "\", [Syste
+m.StringComparison]::OrdinalIgnoreCase)) {
++            continue
++        }
++
++        $exists = [System.IO.File]::Exists($fullPath)
++        $bytes = $null
++
++        if ($exists) {
++            $bytes = [System.IO.File]::ReadAllBytes($fullPath)
++        }
++
++        $script:autopilotOperationalFileSnapshots[$relativePath] = [PSCust
+omObject][ordered]@{
++            path = $fullPath
++            existed = $exists
++            bytes = $bytes
++        }
++    }
++}
++
++function Restore-AutopilotCurrentRunOperationalChanges {
++    param([string[]]$RelativePaths = @())
++
++    $restoredPaths = @()
++
++    if ($null -eq $script:autopilotOperationalFileSnapshots) {
++        return @($restoredPaths)
++    }
++
++    $targetPaths = @($RelativePaths | ForEach-Object { ConvertTo-Normalize
+dChangedPath $_ } | Where-Object { Test-HasValue $_ } | Select-Object -Uniq
+ue)
++
++    foreach ($entry in @($script:autopilotOperationalFileSnapshots.GetEnum
+erator())) {
++        $relativePath = ConvertTo-NormalizedChangedPath ([string]$entry.Ke
+y)
++        $snapshot = $entry.Value
++
++        if ($targetPaths.Count -gt 0 -and $targetPaths -notcontains $relat
+ivePath) {
++            continue
++        }
++
++        if (Test-IsAutopilotBaselineDirtyPath $relativePath) {
++            continue
++        }
++
++        $fullPath = [string]$snapshot.path
++
++        if (-not $fullPath.StartsWith($repoRoot.TrimEnd("\") + "\", [Syste
+m.StringComparison]::OrdinalIgnoreCase)) {
++            continue
++        }
++
++        try {
++            if ($snapshot.existed) {
++                [System.IO.File]::WriteAllBytes($fullPath, [byte[]]$snapsh
+ot.bytes)
++            } elseif ([System.IO.File]::Exists($fullPath)) {
++                [System.IO.File]::Delete($fullPath)
++            }
++            $restoredPaths += $relativePath
++        } catch {
++            Write-Warning "Failed to restore autopilot operational file sn
+apshot: $fullPath"
++        }
++    }
++
++    return @($restoredPaths | Select-Object -Unique)
++}
++
++function Add-AutopilotExpectedNonWorkLogEntry {
++    param(
++        [string]$StoppedReason,
++        [string]$Message,
++        [int]$PreparedGoals
++    )
++
++    $resultMessage = if (Test-HasValue $Message) { $Message } else { "Auto
+pilot stopped before implementation work." }
++
++    Add-LoopLogEntry "Autopilot expected non-work stop" @(
++        "- Reason: $StoppedReason",
++        "- Outcome category: expected_non_work",
++        "- Result: $resultMessage",
++        "- Prepared goals: $PreparedGoals/$MaxGoals",
++        "- Failure counter: not incremented",
++        "- Cleanup: restored current-run autopilot operational file snapsh
+ots before writing this meta log entry"
++    )
++}
++
+ function Invoke-AutopilotLoopLogMetaCommit {
+     param([int]$StepNumber)
+ 
+@@ -263,7 +445,25 @@ function Invoke-AutopilotLoopLogMetaCommit {
+         return New-StepResult $StepNumber "autopilot-meta-commit" $false $
+true 0 "AllowCommit is not set, so autopilot loop-log/history meta commit w
+as not executed."
+     }
+ 
+-    $statusOutput = & git status --short -- $autopilotMetaCommitRelativePa
+ths 2>&1 | Out-String
++    $skippedBaselinePaths = @(
++        @($loopLogRelativePath, $goalHistoryRelativePath) |
++            ForEach-Object { ConvertTo-NormalizedChangedPath $_ } |
++            Where-Object { Test-IsAutopilotBaselineDirtyPath $_ } |
++            Select-Object -Unique
++    )
++    $currentRunMetaPaths = @(
++        $loopLogRelativePath,
++        $goalHistoryRelativePath
++    ) |
++        ForEach-Object { ConvertTo-NormalizedChangedPath $_ } |
++        Where-Object { -not (Test-IsAutopilotBaselineDirtyPath $_) } |
++        Select-Object -Unique
++
++    if ($currentRunMetaPaths.Count -eq 0) {
++        return New-StepResult $StepNumber "autopilot-meta-commit" $false $
+true 0 "Autopilot meta commit skipped because all meta files were baseline 
+dirty and protected: $($skippedBaselinePaths -join ', ')"
++    }
++
++    $statusOutput = & git status --short -- $currentRunMetaPaths 2>&1 | Ou
+t-String
+     $statusExitCode = $LASTEXITCODE
+ 
+     if ($statusExitCode -ne 0) {
+@@ -271,25 +471,33 @@ function Invoke-AutopilotLoopLogMetaCommit {
+     }
+ 
+     if (-not (Test-HasValue $statusOutput)) {
+-        return New-StepResult $StepNumber "autopilot-meta-commit" $true $f
+alse 0 "Autopilot meta files had no changes to commit."
++        $message = "Autopilot meta files had no changes to commit."
++        if ($skippedBaselinePaths.Count -gt 0) {
++            $message = "$message Baseline dirty files skipped: $($skippedB
+aselinePaths -join ', ')"
++        }
++        return New-StepResult $StepNumber "autopilot-meta-commit" $true $f
+alse 0 $message
+     }
+ 
+-    $addOutput = & git add -- $autopilotMetaCommitRelativePaths 2>&1 | Out
+-String
++    $addOutput = & git add -- $currentRunMetaPaths 2>&1 | Out-String
+     $addExitCode = $LASTEXITCODE
+ 
+     if ($addExitCode -ne 0) {
+-        return New-StepResult $StepNumber "autopilot-meta-commit" $true $f
+alse 1 "Autopilot meta files git add failed. exit code: $addExitCode`n$addO
+utput"
++        & git restore --staged -- $currentRunMetaPaths 2>&1 | Out-String |
+ Out-Null
++        $restoredPaths = @(Restore-AutopilotCurrentRunOperationalChanges $
+currentRunMetaPaths)
++        return New-StepResult $StepNumber "autopilot-meta-commit" $true $f
+alse 1 "Autopilot meta files git add failed. exit code: $addExitCode`n$addO
+utput`nRestored run-owned files: $($restoredPaths -join ', ')"
+     }
+ 
+     $metaCommitMessage = "chore(ai-dev): record autopilot progress"
+-    $commitOutput = & git commit -m $metaCommitMessage -- $autopilotMetaCo
+mmitRelativePaths 2>&1 | Out-String
++    $commitOutput = & git commit -m $metaCommitMessage -- $currentRunMetaP
+aths 2>&1 | Out-String
+     $commitExitCode = $LASTEXITCODE
+ 
+     if ($commitExitCode -ne 0) {
+-        return New-StepResult $StepNumber "autopilot-meta-commit" $true $f
+alse 1 "Autopilot meta commit failed. exit code: $commitExitCode`n$commitOu
+tput"
++        & git restore --staged -- $currentRunMetaPaths 2>&1 | Out-String |
+ Out-Null
++        $restoredPaths = @(Restore-AutopilotCurrentRunOperationalChanges $
+currentRunMetaPaths)
++        return New-StepResult $StepNumber "autopilot-meta-commit" $true $f
+alse 1 "Autopilot meta commit failed. exit code: $commitExitCode`n$commitOu
+tput`nRestored run-owned files: $($restoredPaths -join ', ')"
+     }
+ 
+-    $remainingStatus = & git status --short -- $autopilotMetaCommitRelativ
+ePaths 2>&1 | Out-String
++    $remainingStatus = & git status --short -- $currentRunMetaPaths 2>&1 |
+ Out-String
+     $remainingStatusExitCode = $LASTEXITCODE
+ 
+     if ($remainingStatusExitCode -ne 0) {
+@@ -300,7 +508,7 @@ function Invoke-AutopilotLoopLogMetaCommit {
+         return New-StepResult $StepNumber "autopilot-meta-commit" $true $f
+alse 1 "Autopilot meta clean verification failed: git status --short still 
+reports meta changes after the autopilot meta commit.`n$remainingStatus"
+     }
+ 
+-    $message = ($commitOutput.Trim(), "Autopilot meta clean verification: 
+git status --short returned no autopilot meta changes.") -join "`n"
++    $message = ($commitOutput.Trim(), "Baseline dirty files skipped: $($sk
+ippedBaselinePaths -join ', ')", "Autopilot meta clean verification: git st
+atus --short returned no autopilot meta changes.") -join "`n"
+     return New-StepResult $StepNumber "autopilot-meta-commit" $true $false
+ 0 $message
+ }
+ 
+@@ -365,16 +573,31 @@ function New-AutopilotResult {
+         [string]$StoppedReason,
+         [bool]$Completed,
+         [int]$ExitCode,
+-        [int]$PreparedGoals
++        [int]$PreparedGoals,
++        [bool]$OperationalCleanupPerformed = $false,
++        [bool]$MetaCommitCreated = $false,
++        [bool]$NextRunWithoutManualRestore = $false
+     )
+ 
++    $outcomeCategory = if (Test-IsExpectedAutopilotNonWorkStop $StoppedRea
+son) {
++        "expected_non_work"
++    } elseif ($ExitCode -eq 0) {
++        "success"
++    } else {
++        "actual_failure"
++    }
++
+     return [PSCustomObject][ordered]@{
+         steps = @($Steps)
+         stoppedReason = $StoppedReason
++        outcomeCategory = $outcomeCategory
+         completed = $Completed
+         exitCode = $ExitCode
+         maxGoals = $MaxGoals
+         preparedGoals = $PreparedGoals
++        operationalCleanupPerformed = $OperationalCleanupPerformed
++        metaCommitCreated = $MetaCommitCreated
++        nextRunWithoutManualRestore = $NextRunWithoutManualRestore
+     }
+ }
+ 
+@@ -399,6 +622,10 @@ function Write-AutopilotResult {
+     }
+ 
+     Write-Host "Stopped reason: $($Result.stoppedReason)"
++    Write-Host "Outcome category: $($Result.outcomeCategory)"
++    Write-Host "Operational cleanup performed: $($Result.operationalCleanu
+pPerformed)"
++    Write-Host "Meta commit created: $($Result.metaCommitCreated)"
++    Write-Host "Next run without manual restore: $($Result.nextRunWithoutM
+anualRestore)"
+     Write-Host "Completed: $($Result.completed)"
+     Write-Host "Prepared goals: $($Result.preparedGoals)/$($Result.maxGoal
+s)"
+     Write-Host "Exit code: $($Result.exitCode)"
+@@ -414,7 +641,12 @@ function Stop-Autopilot {
+         [string]$FailureMessage = ""
+     )
+ 
+-    if ($ExitCode -ne 0 -and (Test-HasValue $FailureMessage)) {
++    $isExpectedNonWorkStop = Test-IsExpectedAutopilotNonWorkStop $StoppedR
+eason
++    $operationalCleanupPerformed = $false
++    $metaCommitCreated = $false
++    $nextRunWithoutManualRestore = ($ExitCode -eq 0)
++
++    if ($ExitCode -ne 0 -and (Test-HasValue $FailureMessage) -and -not $is
+ExpectedNonWorkStop) {
+         Save-AutopilotFailureState $StoppedReason $FailureMessage
+         Add-LoopLogEntry "Autopilot stopped" @(
+             "- Reason: $StoppedReason",
+@@ -423,7 +655,42 @@ function Stop-Autopilot {
+         )
+     }
+ 
+-    $result = New-AutopilotResult $Steps $StoppedReason $Completed $ExitCo
+de $PreparedGoals
++    if ($ExitCode -ne 0 -and $isExpectedNonWorkStop -and -not $DryRun) {
++        $cleanedRunOwnedPaths = @(Restore-AutopilotCurrentRunOperationalCh
+anges)
++        $operationalCleanupPerformed = $true
++        $metaCommitMessage = "skipped (-AllowCommit not set)"
++        $nextRunWithoutManualRestore = $true
++        $skippedBaselineMetaPaths = @(
++            @($loopLogRelativePath, $goalHistoryRelativePath) |
++                ForEach-Object { ConvertTo-NormalizedChangedPath $_ } |
++                Where-Object { Test-IsAutopilotBaselineDirtyPath $_ } |
++                Select-Object -Unique
++        )
++
++        if ($AllowCommit) {
++            Add-AutopilotExpectedNonWorkLogEntry $StoppedReason $FailureMe
+ssage $PreparedGoals
++            $metaCommitStep = Invoke-AutopilotLoopLogMetaCommit ($Steps.Co
+unt + 1)
++            $metaCommitCreated = ($metaCommitStep.exitCode -eq 0 -and $met
+aCommitStep.executed -and -not $metaCommitStep.skipped -and $metaCommitStep
+.message -notmatch 'had no changes to commit')
++            $metaCommitMessage = if ($metaCommitCreated) { "created" } els
+e { "not created: $($metaCommitStep.message)" }
++
++            if ($metaCommitStep.exitCode -ne 0) {
++                $cleanedRunOwnedPaths = @(Restore-AutopilotCurrentRunOpera
+tionalChanges)
++                $operationalCleanupPerformed = $true
++                $nextRunWithoutManualRestore = $true
++                $Steps += $metaCommitStep
++                $Steps += New-StepResult ($Steps.Count + 1) "expected-non-
+work-cleanup" $true $false 0 "Classification: expected_non_work. Original s
+topped reason: $StoppedReason. Baseline dirty files skipped: $($skippedBase
+lineMetaPaths -join ', '). Cleaned run-owned files: $($cleanedRunOwnedPaths
+ -join ', '). Meta commit created: false. Next run without manual git resto
+re: $nextRunWithoutManualRestore."
++                $result = New-AutopilotResult $Steps "autopilot_expected_n
+on_work_meta_commit_failed" $false 1 $PreparedGoals $operationalCleanupPerf
+ormed $false $nextRunWithoutManualRestore
++                Write-AutopilotResult $result
++                exit 1
++            }
++
++            $Steps += $metaCommitStep
++        }
++
++        $Steps += New-StepResult ($Steps.Count + 1) "expected-non-work-cle
+anup" $true $false 0 "Classification: expected_non_work. Original stopped r
+eason: $StoppedReason. Baseline dirty files skipped: $($skippedBaselineMeta
+Paths -join ', '). Cleaned run-owned files: $($cleanedRunOwnedPaths -join '
+, '). Meta commit created: $metaCommitCreated ($metaCommitMessage). Next ru
+n without manual git restore: $nextRunWithoutManualRestore. Restored only a
+utopilot operational files captured at run start; baseline user changes wer
+e preserved."
++    }
++
++    $result = New-AutopilotResult $Steps $StoppedReason $Completed $ExitCo
+de $PreparedGoals $operationalCleanupPerformed $metaCommitCreated $nextRunW
+ithoutManualRestore
+     Write-AutopilotResult $result
+     exit $ExitCode
+ }
+@@ -842,6 +1109,8 @@ function Invoke-AutoGoal {
+ }
+ 
+ Set-Location $repoRoot
++$script:autopilotBaselineDirtyPaths = @(Get-AutopilotBaselineDirtyPaths)
++Initialize-AutopilotOperationalFileSnapshots
+ 
+ $steps = @()
+ $preparedGoals = 0
+@@ -970,13 +1239,15 @@ for ($goalIndex = 1; $goalIndex -le $MaxGoals; $goal
+Index++) {
+     $steps += $autoGoalStep
+ 
+     if ($autoGoalStep.exitCode -ne 0) {
++        $childStoppedReason = Get-StoppedReasonFromOutput $autoGoalStep.me
+ssage
++        $stoppedReason = if (Test-IsExpectedAutopilotNonWorkStop $childSto
+ppedReason) { $childStoppedReason } else { "auto_goal_failed" }
+         $failureMessage = "Auto-goal failed with exit code $($autoGoalStep
+.exitCode): $($autoGoalStep.message)"
+ 
+         if (Test-HasValue $candidate.fallbackReason) {
+             $failureMessage = "$failureMessage Fallback context: $($candid
+ate.fallbackReason)"
+         }
+ 
+-        Stop-Autopilot $steps "auto_goal_failed" $false 1 $preparedGoals $
+failureMessage
++        Stop-Autopilot $steps $stoppedReason $false 1 $preparedGoals $fail
+ureMessage
+     }
+ 
+     $preparedGoals++
 ```
 
 ## Staged Diff Stat
@@ -313,17 +1514,2981 @@ index be59b8d..5869e33 100644
 - blocked: 요구사항 충돌, 데이터 위험, 패키지 추가, 대규모 리팩터링 등 사용자 판단 필요
 
 codex
-리뷰 기준상 diff 본문만으로는 full-cycle의 실제 최소 요구 단계와 호출부 전달 흐름을 확정할 수 없습니다. 관련 Power
-Shell 스크립트만 읽어서 변경이 성공 기준을 충족하는지 확인하겠습니다.
+리뷰 프롬프트의 diff가 중간 생략되어 있어서, 실제 변경 파일에서 관련 함수와 호출부만 확인해 판단하겠습니다. git 명령은 프로젝
+트 규칙상 사용하지 않고 파일 읽기만 하겠습니다.
 exec
 "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "
-Get-Content -LiteralPath \"D:\\ai-apps\\planpilot-local\\scripts\\ai-dev-au
-to-cycle-full.ps1\"" in D:\ai-apps\planpilot-local
+Select-String -Path 'D:\\ai-apps\\planpilot-local\\scripts\\ai-dev-auto-goa
+l.ps1' -Pattern 'autoGoalOperationalFileSnapshots|Test-IsExpectedPreImpleme
+ntationStop|Restore-AutoGoalCurrentRunOperationalChanges|Invoke-AutoGoalExp
+ectedNonWorkMetaCommit|Stop-AutoGoal|Initialize-AutoGoalOperationalFileSnap
+shots|baseline' -Context 4,8" in D:\ai-apps\planpilot-local
 exec
 "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "
-Get-Content -LiteralPath \"D:\\ai-apps\\planpilot-local\\scripts\\ai-dev-au
-to-goal.ps1\"" in D:\ai-apps\planpilot-local
- succeeded in 2575ms:
+Select-String -Path 'D:\\ai-apps\\planpilot-local\\scripts\\ai-dev-autopilo
+t.ps1' -Pattern 'autopilotOperationalFileSnapshots|Test-IsExpectedAutopilot
+NonWorkStop|Restore-AutopilotCurrentRunOperationalChanges|Invoke-AutopilotL
+oopLogMetaCommit|Stop-Autopilot|Initialize-AutopilotOperationalFileSnapshot
+s|Get-StoppedReasonFromOutput|baseline' -Context 4,8" in D:\ai-apps\planpil
+ot-local
+ succeeded in 2993ms:
+
+  scripts\ai-dev-autopilot.ps1:37:$backlogPath = Join-Path $repoRoot $backl
+ogRelativePath
+  scripts\ai-dev-autopilot.ps1:38:$loopLogPath = Join-Path $repoRoot $loopL
+ogRelativePath
+  scripts\ai-dev-autopilot.ps1:39:$goalHistoryPath = Join-Path $repoRoot $g
+oalHistoryRelativePath
+  scripts\ai-dev-autopilot.ps1:40:$utf8WithBom = New-Object System.Text.UTF
+8Encoding($true)
+> scripts\ai-dev-autopilot.ps1:41:$script:autopilotOperationalFileSnapshots
+ = @{}
+> scripts\ai-dev-autopilot.ps1:42:$script:autopilotBaselineDirtyPaths = @()
+  scripts\ai-dev-autopilot.ps1:43:
+  scripts\ai-dev-autopilot.ps1:44:function Test-HasValue {
+  scripts\ai-dev-autopilot.ps1:45:    param([object]$Value)
+  scripts\ai-dev-autopilot.ps1:46:
+  scripts\ai-dev-autopilot.ps1:47:    if ($null -eq $Value) {
+  scripts\ai-dev-autopilot.ps1:48:        return $false
+  scripts\ai-dev-autopilot.ps1:49:    }
+  scripts\ai-dev-autopilot.ps1:50:
+  scripts\ai-dev-autopilot.ps1:154:    if ($DryRun -or -not (Test-HasValue 
+$Title)) {
+  scripts\ai-dev-autopilot.ps1:155:        return
+  scripts\ai-dev-autopilot.ps1:156:    }
+  scripts\ai-dev-autopilot.ps1:157:
+> scripts\ai-dev-autopilot.ps1:158:    if (Test-IsAutopilotBaselineDirtyPat
+h $goalHistoryRelativePath) {
+  scripts\ai-dev-autopilot.ps1:159:        return
+  scripts\ai-dev-autopilot.ps1:160:    }
+  scripts\ai-dev-autopilot.ps1:161:
+  scripts\ai-dev-autopilot.ps1:162:    $now = [DateTimeOffset]::UtcNow.ToSt
+ring("o")
+  scripts\ai-dev-autopilot.ps1:163:    $trimmedTitle = $Title.Trim()
+  scripts\ai-dev-autopilot.ps1:164:    $history = Read-AutopilotGoalHistory
+  scripts\ai-dev-autopilot.ps1:165:    $goals = @($history.goals)
+  scripts\ai-dev-autopilot.ps1:166:    $existingGoal = $null
+  scripts\ai-dev-autopilot.ps1:250:    if ($DryRun) {
+  scripts\ai-dev-autopilot.ps1:251:        return
+  scripts\ai-dev-autopilot.ps1:252:    }
+  scripts\ai-dev-autopilot.ps1:253:
+> scripts\ai-dev-autopilot.ps1:254:    if (Test-IsAutopilotBaselineDirtyPat
+h $loopLogRelativePath) {
+  scripts\ai-dev-autopilot.ps1:255:        return
+  scripts\ai-dev-autopilot.ps1:256:    }
+  scripts\ai-dev-autopilot.ps1:257:
+  scripts\ai-dev-autopilot.ps1:258:    $timestamp = Get-Date -Format "yyyy-
+MM-dd HH:mm:ss"
+  scripts\ai-dev-autopilot.ps1:259:    $entryLines = @("", "## $timestamp -
+ $Title", "")
+  scripts\ai-dev-autopilot.ps1:260:    $entryLines += @($Lines)
+  scripts\ai-dev-autopilot.ps1:261:    $entryLines += ""
+  scripts\ai-dev-autopilot.ps1:262:    [System.IO.File]::AppendAllText($loo
+pLogPath, ($entryLines -join "`r`n"), $utf8W
+ithBom)
+  scripts\ai-dev-autopilot.ps1:263:}
+  scripts\ai-dev-autopilot.ps1:264:
+> scripts\ai-dev-autopilot.ps1:265:function Test-IsExpectedAutopilotNonWork
+Stop {
+  scripts\ai-dev-autopilot.ps1:266:    param([string]$StoppedReason)
+  scripts\ai-dev-autopilot.ps1:267:
+  scripts\ai-dev-autopilot.ps1:268:    return @(
+  scripts\ai-dev-autopilot.ps1:269:        "all_goal_candidates_excluded",
+> scripts\ai-dev-autopilot.ps1:270:        "baseline_output_conflict",
+  scripts\ai-dev-autopilot.ps1:271:        "dirty_worktree",
+  scripts\ai-dev-autopilot.ps1:272:        "goal_candidate_not_found",
+  scripts\ai-dev-autopilot.ps1:273:        "current_goal_not_completed",
+  scripts\ai-dev-autopilot.ps1:274:        "max_steps_too_small_for_full_cy
+cle"
+  scripts\ai-dev-autopilot.ps1:275:    ) -contains $StoppedReason
+  scripts\ai-dev-autopilot.ps1:276:}
+  scripts\ai-dev-autopilot.ps1:277:
+> scripts\ai-dev-autopilot.ps1:278:function Get-StoppedReasonFromOutput {
+  scripts\ai-dev-autopilot.ps1:279:    param([string]$Output)
+  scripts\ai-dev-autopilot.ps1:280:
+  scripts\ai-dev-autopilot.ps1:281:    if (-not (Test-HasValue $Output)) {
+  scripts\ai-dev-autopilot.ps1:282:        return ""
+  scripts\ai-dev-autopilot.ps1:283:    }
+  scripts\ai-dev-autopilot.ps1:284:
+  scripts\ai-dev-autopilot.ps1:285:    if ($Output -match '(?m)^\s*Stopped 
+reason:\s*(\S+)\s*$') {
+  scripts\ai-dev-autopilot.ps1:286:        return $Matches[1]
+  scripts\ai-dev-autopilot.ps1:322:
+  scripts\ai-dev-autopilot.ps1:323:    return @($pathText)
+  scripts\ai-dev-autopilot.ps1:324:}
+  scripts\ai-dev-autopilot.ps1:325:
+> scripts\ai-dev-autopilot.ps1:326:function Get-AutopilotBaselineDirtyPaths
+ {
+  scripts\ai-dev-autopilot.ps1:327:    $statusOutput = & git status --porce
+lain 2>&1
+  scripts\ai-dev-autopilot.ps1:328:
+  scripts\ai-dev-autopilot.ps1:329:    if ($LASTEXITCODE -ne 0) {
+> scripts\ai-dev-autopilot.ps1:330:        throw "git status --porcelain fa
+iled while capturing autopilot baseline dirt
+y paths: $($statusOutput -join "`n")"
+  scripts\ai-dev-autopilot.ps1:331:    }
+  scripts\ai-dev-autopilot.ps1:332:
+  scripts\ai-dev-autopilot.ps1:333:    return @(
+  scripts\ai-dev-autopilot.ps1:334:        $statusOutput |
+  scripts\ai-dev-autopilot.ps1:335:            ForEach-Object { Convert-ToC
+hangedPath $_ } |
+  scripts\ai-dev-autopilot.ps1:336:            Where-Object { Test-HasValue
+ $_ } |
+  scripts\ai-dev-autopilot.ps1:337:            ForEach-Object { ConvertTo-N
+ormalizedChangedPath $_ } |
+  scripts\ai-dev-autopilot.ps1:338:            Select-Object -Unique
+  scripts\ai-dev-autopilot.ps1:339:    )
+  scripts\ai-dev-autopilot.ps1:340:}
+  scripts\ai-dev-autopilot.ps1:341:
+> scripts\ai-dev-autopilot.ps1:342:function Test-IsAutopilotBaselineDirtyPa
+th {
+  scripts\ai-dev-autopilot.ps1:343:    param([string]$RelativePath)
+  scripts\ai-dev-autopilot.ps1:344:
+  scripts\ai-dev-autopilot.ps1:345:    $normalizedRelativePath = ConvertTo-
+NormalizedChangedPath $RelativePath
+> scripts\ai-dev-autopilot.ps1:346:    return @($script:autopilotBaselineDi
+rtyPaths) -contains $normalizedRelativePath
+  scripts\ai-dev-autopilot.ps1:347:}
+  scripts\ai-dev-autopilot.ps1:348:
+> scripts\ai-dev-autopilot.ps1:349:function Initialize-AutopilotOperational
+FileSnapshots {
+> scripts\ai-dev-autopilot.ps1:350:    $script:autopilotOperationalFileSnap
+shots = @{}
+  scripts\ai-dev-autopilot.ps1:351:
+  scripts\ai-dev-autopilot.ps1:352:    foreach ($relativePath in @($stateRe
+lativePath, $loopLogRelativePath, $goalHisto
+ryRelativePath)) {
+  scripts\ai-dev-autopilot.ps1:353:        $fullPath = [System.IO.Path]::Ge
+tFullPath((Join-Path $repoRoot $relativePath
+))
+  scripts\ai-dev-autopilot.ps1:354:
+  scripts\ai-dev-autopilot.ps1:355:        if (-not $fullPath.StartsWith($r
+epoRoot.TrimEnd("\") + "\", [System.StringCo
+mparison]::OrdinalIgnoreCase)) {
+  scripts\ai-dev-autopilot.ps1:356:            continue
+  scripts\ai-dev-autopilot.ps1:357:        }
+  scripts\ai-dev-autopilot.ps1:358:
+  scripts\ai-dev-autopilot.ps1:362:        if ($exists) {
+  scripts\ai-dev-autopilot.ps1:363:            $bytes = [System.IO.File]::R
+eadAllBytes($fullPath)
+  scripts\ai-dev-autopilot.ps1:364:        }
+  scripts\ai-dev-autopilot.ps1:365:
+> scripts\ai-dev-autopilot.ps1:366:        $script:autopilotOperationalFile
+Snapshots[$relativePath] = [PSCustomObject][
+ordered]@{
+  scripts\ai-dev-autopilot.ps1:367:            path = $fullPath
+  scripts\ai-dev-autopilot.ps1:368:            existed = $exists
+  scripts\ai-dev-autopilot.ps1:369:            bytes = $bytes
+  scripts\ai-dev-autopilot.ps1:370:        }
+  scripts\ai-dev-autopilot.ps1:371:    }
+  scripts\ai-dev-autopilot.ps1:372:}
+  scripts\ai-dev-autopilot.ps1:373:
+> scripts\ai-dev-autopilot.ps1:374:function Restore-AutopilotCurrentRunOper
+ationalChanges {
+  scripts\ai-dev-autopilot.ps1:375:    param([string[]]$RelativePaths = @()
+)
+  scripts\ai-dev-autopilot.ps1:376:
+  scripts\ai-dev-autopilot.ps1:377:    $restoredPaths = @()
+  scripts\ai-dev-autopilot.ps1:378:
+> scripts\ai-dev-autopilot.ps1:379:    if ($null -eq $script:autopilotOpera
+tionalFileSnapshots) {
+  scripts\ai-dev-autopilot.ps1:380:        return @($restoredPaths)
+  scripts\ai-dev-autopilot.ps1:381:    }
+  scripts\ai-dev-autopilot.ps1:382:
+  scripts\ai-dev-autopilot.ps1:383:    $targetPaths = @($RelativePaths | Fo
+rEach-Object { ConvertTo-NormalizedChangedPa
+th $_ } | Where-Object { Test-HasValue $_ } | Select-Object -Unique)
+  scripts\ai-dev-autopilot.ps1:384:
+> scripts\ai-dev-autopilot.ps1:385:    foreach ($entry in @($script:autopil
+otOperationalFileSnapshots.GetEnumerator()))
+ {
+  scripts\ai-dev-autopilot.ps1:386:        $relativePath = ConvertTo-Normal
+izedChangedPath ([string]$entry.Key)
+  scripts\ai-dev-autopilot.ps1:387:        $snapshot = $entry.Value
+  scripts\ai-dev-autopilot.ps1:388:
+  scripts\ai-dev-autopilot.ps1:389:        if ($targetPaths.Count -gt 0 -an
+d $targetPaths -notcontains $relativePath) {
+  scripts\ai-dev-autopilot.ps1:390:            continue
+  scripts\ai-dev-autopilot.ps1:391:        }
+  scripts\ai-dev-autopilot.ps1:392:
+> scripts\ai-dev-autopilot.ps1:393:        if (Test-IsAutopilotBaselineDirt
+yPath $relativePath) {
+  scripts\ai-dev-autopilot.ps1:394:            continue
+  scripts\ai-dev-autopilot.ps1:395:        }
+  scripts\ai-dev-autopilot.ps1:396:
+  scripts\ai-dev-autopilot.ps1:397:        $fullPath = [string]$snapshot.pa
+th
+  scripts\ai-dev-autopilot.ps1:398:
+  scripts\ai-dev-autopilot.ps1:399:        if (-not $fullPath.StartsWith($r
+epoRoot.TrimEnd("\") + "\", [System.StringCo
+mparison]::OrdinalIgnoreCase)) {
+  scripts\ai-dev-autopilot.ps1:400:            continue
+  scripts\ai-dev-autopilot.ps1:401:        }
+  scripts\ai-dev-autopilot.ps1:433:        "- Cleanup: restored current-run
+ autopilot operational file snapshots before
+ writing this meta log entry"
+  scripts\ai-dev-autopilot.ps1:434:    )
+  scripts\ai-dev-autopilot.ps1:435:}
+  scripts\ai-dev-autopilot.ps1:436:
+> scripts\ai-dev-autopilot.ps1:437:function Invoke-AutopilotLoopLogMetaComm
+it {
+  scripts\ai-dev-autopilot.ps1:438:    param([int]$StepNumber)
+  scripts\ai-dev-autopilot.ps1:439:
+  scripts\ai-dev-autopilot.ps1:440:    if ($DryRun) {
+  scripts\ai-dev-autopilot.ps1:441:        return New-StepResult $StepNumbe
+r "autopilot-meta-commit" $false $true 0 "Dr
+yRun: autopilot loop-log/history meta commit was not executed."
+  scripts\ai-dev-autopilot.ps1:442:    }
+  scripts\ai-dev-autopilot.ps1:443:
+  scripts\ai-dev-autopilot.ps1:444:    if (-not $AllowCommit) {
+  scripts\ai-dev-autopilot.ps1:445:        return New-StepResult $StepNumbe
+r "autopilot-meta-commit" $false $true 0 "Al
+lowCommit is not set, so autopilot loop-log/history meta commit was not exe
+cuted."
+  scripts\ai-dev-autopilot.ps1:446:    }
+  scripts\ai-dev-autopilot.ps1:447:
+> scripts\ai-dev-autopilot.ps1:448:    $skippedBaselinePaths = @(
+  scripts\ai-dev-autopilot.ps1:449:        @($loopLogRelativePath, $goalHis
+toryRelativePath) |
+  scripts\ai-dev-autopilot.ps1:450:            ForEach-Object { ConvertTo-N
+ormalizedChangedPath $_ } |
+> scripts\ai-dev-autopilot.ps1:451:            Where-Object { Test-IsAutopi
+lotBaselineDirtyPath $_ } |
+  scripts\ai-dev-autopilot.ps1:452:            Select-Object -Unique
+  scripts\ai-dev-autopilot.ps1:453:    )
+  scripts\ai-dev-autopilot.ps1:454:    $currentRunMetaPaths = @(
+  scripts\ai-dev-autopilot.ps1:455:        $loopLogRelativePath,
+  scripts\ai-dev-autopilot.ps1:456:        $goalHistoryRelativePath
+  scripts\ai-dev-autopilot.ps1:457:    ) |
+  scripts\ai-dev-autopilot.ps1:458:        ForEach-Object { ConvertTo-Norma
+lizedChangedPath $_ } |
+> scripts\ai-dev-autopilot.ps1:459:        Where-Object { -not (Test-IsAuto
+pilotBaselineDirtyPath $_) } |
+  scripts\ai-dev-autopilot.ps1:460:        Select-Object -Unique
+  scripts\ai-dev-autopilot.ps1:461:
+  scripts\ai-dev-autopilot.ps1:462:    if ($currentRunMetaPaths.Count -eq 0
+) {
+> scripts\ai-dev-autopilot.ps1:463:        return New-StepResult $StepNumbe
+r "autopilot-meta-commit" $false $true 0 "Au
+topilot meta commit skipped because all meta files were baseline dirty and 
+protected: $($skippedBaselinePaths -join ', 
+')"
+  scripts\ai-dev-autopilot.ps1:464:    }
+  scripts\ai-dev-autopilot.ps1:465:
+  scripts\ai-dev-autopilot.ps1:466:    $statusOutput = & git status --short
+ -- $currentRunMetaPaths 2>&1 | Out-String
+  scripts\ai-dev-autopilot.ps1:467:    $statusExitCode = $LASTEXITCODE
+  scripts\ai-dev-autopilot.ps1:468:
+  scripts\ai-dev-autopilot.ps1:469:    if ($statusExitCode -ne 0) {
+  scripts\ai-dev-autopilot.ps1:470:        return New-StepResult $StepNumbe
+r "autopilot-meta-commit" $true $false 1 "gi
+t status for autopilot meta files failed. exit code: $statusExitCode`n$stat
+usOutput"
+  scripts\ai-dev-autopilot.ps1:471:    }
+  scripts\ai-dev-autopilot.ps1:472:
+  scripts\ai-dev-autopilot.ps1:473:    if (-not (Test-HasValue $statusOutpu
+t)) {
+  scripts\ai-dev-autopilot.ps1:474:        $message = "Autopilot meta files
+ had no changes to commit."
+> scripts\ai-dev-autopilot.ps1:475:        if ($skippedBaselinePaths.Count 
+-gt 0) {
+> scripts\ai-dev-autopilot.ps1:476:            $message = "$message Baselin
+e dirty files skipped: $($skippedBaselinePat
+hs -join ', ')"
+  scripts\ai-dev-autopilot.ps1:477:        }
+  scripts\ai-dev-autopilot.ps1:478:        return New-StepResult $StepNumbe
+r "autopilot-meta-commit" $true $false 0 $me
+ssage
+  scripts\ai-dev-autopilot.ps1:479:    }
+  scripts\ai-dev-autopilot.ps1:480:
+  scripts\ai-dev-autopilot.ps1:481:    $addOutput = & git add -- $currentRu
+nMetaPaths 2>&1 | Out-String
+  scripts\ai-dev-autopilot.ps1:482:    $addExitCode = $LASTEXITCODE
+  scripts\ai-dev-autopilot.ps1:483:
+  scripts\ai-dev-autopilot.ps1:484:    if ($addExitCode -ne 0) {
+  scripts\ai-dev-autopilot.ps1:485:        & git restore --staged -- $curre
+ntRunMetaPaths 2>&1 | Out-String | Out-Null
+> scripts\ai-dev-autopilot.ps1:486:        $restoredPaths = @(Restore-Autop
+ilotCurrentRunOperationalChanges $currentRun
+MetaPaths)
+  scripts\ai-dev-autopilot.ps1:487:        return New-StepResult $StepNumbe
+r "autopilot-meta-commit" $true $false 1 "Au
+topilot meta files git add failed. exit code: $addExitCode`n$addOutput`nRes
+tored run-owned files: $($restoredPaths -joi
+n ', ')"
+  scripts\ai-dev-autopilot.ps1:488:    }
+  scripts\ai-dev-autopilot.ps1:489:
+  scripts\ai-dev-autopilot.ps1:490:    $metaCommitMessage = "chore(ai-dev):
+ record autopilot progress"
+  scripts\ai-dev-autopilot.ps1:491:    $commitOutput = & git commit -m $met
+aCommitMessage -- $currentRunMetaPaths 2>&1 
+| Out-String
+  scripts\ai-dev-autopilot.ps1:492:    $commitExitCode = $LASTEXITCODE
+  scripts\ai-dev-autopilot.ps1:493:
+  scripts\ai-dev-autopilot.ps1:494:    if ($commitExitCode -ne 0) {
+  scripts\ai-dev-autopilot.ps1:495:        & git restore --staged -- $curre
+ntRunMetaPaths 2>&1 | Out-String | Out-Null
+> scripts\ai-dev-autopilot.ps1:496:        $restoredPaths = @(Restore-Autop
+ilotCurrentRunOperationalChanges $currentRun
+MetaPaths)
+  scripts\ai-dev-autopilot.ps1:497:        return New-StepResult $StepNumbe
+r "autopilot-meta-commit" $true $false 1 "Au
+topilot meta commit failed. exit code: $commitExitCode`n$commitOutput`nRest
+ored run-owned files: $($restoredPaths -join
+ ', ')"
+  scripts\ai-dev-autopilot.ps1:498:    }
+  scripts\ai-dev-autopilot.ps1:499:
+  scripts\ai-dev-autopilot.ps1:500:    $remainingStatus = & git status --sh
+ort -- $currentRunMetaPaths 2>&1 | Out-Strin
+g
+  scripts\ai-dev-autopilot.ps1:501:    $remainingStatusExitCode = $LASTEXIT
+CODE
+  scripts\ai-dev-autopilot.ps1:502:
+  scripts\ai-dev-autopilot.ps1:503:    if ($remainingStatusExitCode -ne 0) 
+{
+  scripts\ai-dev-autopilot.ps1:504:        return New-StepResult $StepNumbe
+r "autopilot-meta-commit" $true $false 1 "Au
+topilot meta clean verification failed because git status failed. exit code
+: $remainingStatusExitCode`n$remainingStatus
+"
+  scripts\ai-dev-autopilot.ps1:507:    if (Test-HasValue $remainingStatus) 
+{
+  scripts\ai-dev-autopilot.ps1:508:        return New-StepResult $StepNumbe
+r "autopilot-meta-commit" $true $false 1 "Au
+topilot meta clean verification failed: git status --short still reports me
+ta changes after the autopilot meta commit.`
+n$remainingStatus"
+  scripts\ai-dev-autopilot.ps1:509:    }
+  scripts\ai-dev-autopilot.ps1:510:
+> scripts\ai-dev-autopilot.ps1:511:    $message = ($commitOutput.Trim(), "B
+aseline dirty files skipped: $($skippedBasel
+inePaths -join ', ')", "Autopilot meta clean verification: git status --sho
+rt returned no autopilot meta changes.") -jo
+in "`n"
+  scripts\ai-dev-autopilot.ps1:512:    return New-StepResult $StepNumber "a
+utopilot-meta-commit" $true $false 0 $messag
+e
+  scripts\ai-dev-autopilot.ps1:513:}
+  scripts\ai-dev-autopilot.ps1:514:
+  scripts\ai-dev-autopilot.ps1:515:function Save-AutopilotFailureState {
+  scripts\ai-dev-autopilot.ps1:516:    param(
+  scripts\ai-dev-autopilot.ps1:517:        [string]$StoppedReason,
+  scripts\ai-dev-autopilot.ps1:518:        [string]$Message
+  scripts\ai-dev-autopilot.ps1:519:    )
+  scripts\ai-dev-autopilot.ps1:578:        [bool]$MetaCommitCreated = $fals
+e,
+  scripts\ai-dev-autopilot.ps1:579:        [bool]$NextRunWithoutManualResto
+re = $false
+  scripts\ai-dev-autopilot.ps1:580:    )
+  scripts\ai-dev-autopilot.ps1:581:
+> scripts\ai-dev-autopilot.ps1:582:    $outcomeCategory = if (Test-IsExpect
+edAutopilotNonWorkStop $StoppedReason) {
+  scripts\ai-dev-autopilot.ps1:583:        "expected_non_work"
+  scripts\ai-dev-autopilot.ps1:584:    } elseif ($ExitCode -eq 0) {
+  scripts\ai-dev-autopilot.ps1:585:        "success"
+  scripts\ai-dev-autopilot.ps1:586:    } else {
+  scripts\ai-dev-autopilot.ps1:587:        "actual_failure"
+  scripts\ai-dev-autopilot.ps1:588:    }
+  scripts\ai-dev-autopilot.ps1:589:
+  scripts\ai-dev-autopilot.ps1:590:    return [PSCustomObject][ordered]@{
+  scripts\ai-dev-autopilot.ps1:630:    Write-Host "Prepared goals: $($Resul
+t.preparedGoals)/$($Result.maxGoals)"
+  scripts\ai-dev-autopilot.ps1:631:    Write-Host "Exit code: $($Result.exi
+tCode)"
+  scripts\ai-dev-autopilot.ps1:632:}
+  scripts\ai-dev-autopilot.ps1:633:
+> scripts\ai-dev-autopilot.ps1:634:function Stop-Autopilot {
+  scripts\ai-dev-autopilot.ps1:635:    param(
+  scripts\ai-dev-autopilot.ps1:636:        [object[]]$Steps,
+  scripts\ai-dev-autopilot.ps1:637:        [string]$StoppedReason,
+  scripts\ai-dev-autopilot.ps1:638:        [bool]$Completed,
+  scripts\ai-dev-autopilot.ps1:639:        [int]$ExitCode,
+  scripts\ai-dev-autopilot.ps1:640:        [int]$PreparedGoals,
+  scripts\ai-dev-autopilot.ps1:641:        [string]$FailureMessage = ""
+  scripts\ai-dev-autopilot.ps1:642:    )
+  scripts\ai-dev-autopilot.ps1:643:
+> scripts\ai-dev-autopilot.ps1:644:    $isExpectedNonWorkStop = Test-IsExpe
+ctedAutopilotNonWorkStop $StoppedReason
+  scripts\ai-dev-autopilot.ps1:645:    $operationalCleanupPerformed = $fals
+e
+  scripts\ai-dev-autopilot.ps1:646:    $metaCommitCreated = $false
+  scripts\ai-dev-autopilot.ps1:647:    $nextRunWithoutManualRestore = ($Exi
+tCode -eq 0)
+  scripts\ai-dev-autopilot.ps1:648:
+  scripts\ai-dev-autopilot.ps1:649:    if ($ExitCode -ne 0 -and (Test-HasVa
+lue $FailureMessage) -and -not $isExpectedNo
+nWorkStop) {
+  scripts\ai-dev-autopilot.ps1:650:        Save-AutopilotFailureState $Stop
+pedReason $FailureMessage
+  scripts\ai-dev-autopilot.ps1:651:        Add-LoopLogEntry "Autopilot stop
+ped" @(
+  scripts\ai-dev-autopilot.ps1:652:            "- Reason: $StoppedReason",
+  scripts\ai-dev-autopilot.ps1:655:        )
+  scripts\ai-dev-autopilot.ps1:656:    }
+  scripts\ai-dev-autopilot.ps1:657:
+  scripts\ai-dev-autopilot.ps1:658:    if ($ExitCode -ne 0 -and $isExpected
+NonWorkStop -and -not $DryRun) {
+> scripts\ai-dev-autopilot.ps1:659:        $cleanedRunOwnedPaths = @(Restor
+e-AutopilotCurrentRunOperationalChanges)
+  scripts\ai-dev-autopilot.ps1:660:        $operationalCleanupPerformed = $
+true
+  scripts\ai-dev-autopilot.ps1:661:        $metaCommitMessage = "skipped (-
+AllowCommit not set)"
+  scripts\ai-dev-autopilot.ps1:662:        $nextRunWithoutManualRestore = $
+true
+> scripts\ai-dev-autopilot.ps1:663:        $skippedBaselineMetaPaths = @(
+  scripts\ai-dev-autopilot.ps1:664:            @($loopLogRelativePath, $goa
+lHistoryRelativePath) |
+  scripts\ai-dev-autopilot.ps1:665:                ForEach-Object { Convert
+To-NormalizedChangedPath $_ } |
+> scripts\ai-dev-autopilot.ps1:666:                Where-Object { Test-IsAu
+topilotBaselineDirtyPath $_ } |
+  scripts\ai-dev-autopilot.ps1:667:                Select-Object -Unique
+  scripts\ai-dev-autopilot.ps1:668:        )
+  scripts\ai-dev-autopilot.ps1:669:
+  scripts\ai-dev-autopilot.ps1:670:        if ($AllowCommit) {
+  scripts\ai-dev-autopilot.ps1:671:            Add-AutopilotExpectedNonWork
+LogEntry $StoppedReason $FailureMessage $Pre
+paredGoals
+> scripts\ai-dev-autopilot.ps1:672:            $metaCommitStep = Invoke-Aut
+opilotLoopLogMetaCommit ($Steps.Count + 1)
+  scripts\ai-dev-autopilot.ps1:673:            $metaCommitCreated = ($metaC
+ommitStep.exitCode -eq 0 -and $metaCommitSte
+p.executed -and -not $metaCommitStep.skipped -and $metaCommitStep.message -
+notmatch 'had no changes to commit')
+  scripts\ai-dev-autopilot.ps1:674:            $metaCommitMessage = if ($me
+taCommitCreated) { "created" } else { "not c
+reated: $($metaCommitStep.message)" }
+  scripts\ai-dev-autopilot.ps1:675:
+  scripts\ai-dev-autopilot.ps1:676:            if ($metaCommitStep.exitCode
+ -ne 0) {
+> scripts\ai-dev-autopilot.ps1:677:                $cleanedRunOwnedPaths = 
+@(Restore-AutopilotCurrentRunOperationalChan
+ges)
+  scripts\ai-dev-autopilot.ps1:678:                $operationalCleanupPerfo
+rmed = $true
+  scripts\ai-dev-autopilot.ps1:679:                $nextRunWithoutManualRes
+tore = $true
+  scripts\ai-dev-autopilot.ps1:680:                $Steps += $metaCommitSte
+p
+> scripts\ai-dev-autopilot.ps1:681:                $Steps += New-StepResult
+ ($Steps.Count + 1) "expected-non-work-clean
+up" $true $false 0 "Classification: expected_non_work. Original stopped rea
+son: $StoppedReason. Baseline dirty files sk
+ipped: $($skippedBaselineMetaPaths -join ', '). Cleaned run-owned files: $(
+$cleanedRunOwnedPaths -join ', '). Meta comm
+it created: false. Next run without manual git restore: $nextRunWithoutManu
+alRestore."
+  scripts\ai-dev-autopilot.ps1:682:                $result = New-AutopilotR
+esult $Steps "autopilot_expected_non_work_me
+ta_commit_failed" $false 1 $PreparedGoals $operationalCleanupPerformed $fal
+se $nextRunWithoutManualRestore
+  scripts\ai-dev-autopilot.ps1:683:                Write-AutopilotResult $r
+esult
+  scripts\ai-dev-autopilot.ps1:684:                exit 1
+  scripts\ai-dev-autopilot.ps1:685:            }
+  scripts\ai-dev-autopilot.ps1:686:
+  scripts\ai-dev-autopilot.ps1:687:            $Steps += $metaCommitStep
+  scripts\ai-dev-autopilot.ps1:688:        }
+  scripts\ai-dev-autopilot.ps1:689:
+> scripts\ai-dev-autopilot.ps1:690:        $Steps += New-StepResult ($Steps
+.Count + 1) "expected-non-work-cleanup" $tru
+e $false 0 "Classification: expected_non_work. Original stopped reason: $St
+oppedReason. Baseline dirty files skipped: $
+($skippedBaselineMetaPaths -join ', '). Cleaned run-owned files: $($cleaned
+RunOwnedPaths -join ', '). Meta commit creat
+ed: $metaCommitCreated ($metaCommitMessage). Next run without manual git re
+store: $nextRunWithoutManualRestore. Restore
+d only autopilot operational files captured at run start; baseline user cha
+nges were preserved."
+  scripts\ai-dev-autopilot.ps1:691:    }
+  scripts\ai-dev-autopilot.ps1:692:
+  scripts\ai-dev-autopilot.ps1:693:    $result = New-AutopilotResult $Steps
+ $StoppedReason $Completed $ExitCode $Prepar
+edGoals $operationalCleanupPerformed $metaCommitCreated $nextRunWithoutManu
+alRestore
+  scripts\ai-dev-autopilot.ps1:694:    Write-AutopilotResult $result
+  scripts\ai-dev-autopilot.ps1:695:    exit $ExitCode
+  scripts\ai-dev-autopilot.ps1:696:}
+  scripts\ai-dev-autopilot.ps1:697:
+  scripts\ai-dev-autopilot.ps1:698:function Get-CurrentGoalGate {
+  scripts\ai-dev-autopilot.ps1:1108:    return New-StepResult $StepNumber "
+auto-goal" $true $false $exitCode $message $
+Candidate
+  scripts\ai-dev-autopilot.ps1:1109:}
+  scripts\ai-dev-autopilot.ps1:1110:
+  scripts\ai-dev-autopilot.ps1:1111:Set-Location $repoRoot
+> scripts\ai-dev-autopilot.ps1:1112:$script:autopilotBaselineDirtyPaths = @
+(Get-AutopilotBaselineDirtyPaths)
+> scripts\ai-dev-autopilot.ps1:1113:Initialize-AutopilotOperationalFileSnap
+shots
+  scripts\ai-dev-autopilot.ps1:1114:
+  scripts\ai-dev-autopilot.ps1:1115:$steps = @()
+  scripts\ai-dev-autopilot.ps1:1116:$preparedGoals = 0
+  scripts\ai-dev-autopilot.ps1:1117:$usedTitles = @()
+  scripts\ai-dev-autopilot.ps1:1118:$durableHistoryTitles = @()
+  scripts\ai-dev-autopilot.ps1:1119:
+  scripts\ai-dev-autopilot.ps1:1120:if ($MaxGoals -lt 1) {
+  scripts\ai-dev-autopilot.ps1:1121:    $message = "MaxGoals must be at lea
+st 1."
+  scripts\ai-dev-autopilot.ps1:1122:    $steps += New-StepResult 0 "validat
+e-input" $false $false 1 $message
+> scripts\ai-dev-autopilot.ps1:1123:    Stop-Autopilot $steps "max_goals_mu
+st_be_at_least_1" $false 1 $preparedGoals $m
+essage
+  scripts\ai-dev-autopilot.ps1:1124:}
+  scripts\ai-dev-autopilot.ps1:1125:
+  scripts\ai-dev-autopilot.ps1:1126:if ($MaxTasks -lt 1) {
+  scripts\ai-dev-autopilot.ps1:1127:    $message = "MaxTasks must be at lea
+st 1."
+  scripts\ai-dev-autopilot.ps1:1128:    $steps += New-StepResult 0 "validat
+e-input" $false $false 1 $message
+> scripts\ai-dev-autopilot.ps1:1129:    Stop-Autopilot $steps "max_tasks_mu
+st_be_at_least_1" $false 1 $preparedGoals $m
+essage
+  scripts\ai-dev-autopilot.ps1:1130:}
+  scripts\ai-dev-autopilot.ps1:1131:
+  scripts\ai-dev-autopilot.ps1:1132:if ($MaxSteps -lt 1) {
+  scripts\ai-dev-autopilot.ps1:1133:    $message = "MaxSteps must be at lea
+st 1."
+  scripts\ai-dev-autopilot.ps1:1134:    $steps += New-StepResult 0 "validat
+e-input" $false $false 1 $message
+> scripts\ai-dev-autopilot.ps1:1135:    Stop-Autopilot $steps "max_steps_mu
+st_be_at_least_1" $false 1 $preparedGoals $m
+essage
+  scripts\ai-dev-autopilot.ps1:1136:}
+  scripts\ai-dev-autopilot.ps1:1137:
+  scripts\ai-dev-autopilot.ps1:1138:foreach ($requiredPath in @($goalPath, 
+$queuePath, $statePath, $backlogPath)) {
+  scripts\ai-dev-autopilot.ps1:1139:    if (-not (Test-Path -LiteralPath $r
+equiredPath -PathType Leaf)) {
+  scripts\ai-dev-autopilot.ps1:1140:        $message = "Required file is mi
+ssing: $requiredPath"
+  scripts\ai-dev-autopilot.ps1:1141:        $steps += New-StepResult 0 "pre
+pare" $false $false 1 $message
+> scripts\ai-dev-autopilot.ps1:1142:        Stop-Autopilot $steps "required
+_file_missing" $false 1 $preparedGoals $mess
+age
+  scripts\ai-dev-autopilot.ps1:1143:    }
+  scripts\ai-dev-autopilot.ps1:1144:}
+  scripts\ai-dev-autopilot.ps1:1145:
+  scripts\ai-dev-autopilot.ps1:1146:$steps += New-StepResult 1 "validate-in
+put" $false $false 0 "Autopilot input valida
+tion completed. MaxGoals=$MaxGoals, MaxTasks=$MaxTasks, MaxSteps=$MaxSteps"
+  scripts\ai-dev-autopilot.ps1:1147:
+  scripts\ai-dev-autopilot.ps1:1148:for ($goalIndex = 1; $goalIndex -le $Ma
+xGoals; $goalIndex++) {
+  scripts\ai-dev-autopilot.ps1:1149:    try {
+  scripts\ai-dev-autopilot.ps1:1150:        $gate = Get-CurrentGoalGate
+  scripts\ai-dev-autopilot.ps1:1151:    } catch {
+  scripts\ai-dev-autopilot.ps1:1152:        $message = $_.Exception.Message
+  scripts\ai-dev-autopilot.ps1:1153:        $steps += New-StepResult ($step
+s.Count + 1) "current-goal-gate" $false $fal
+se 1 $message
+> scripts\ai-dev-autopilot.ps1:1154:        Stop-Autopilot $steps "current_
+goal_gate_failed" $false 1 $preparedGoals $m
+essage
+  scripts\ai-dev-autopilot.ps1:1155:    }
+  scripts\ai-dev-autopilot.ps1:1156:
+  scripts\ai-dev-autopilot.ps1:1157:    if (-not $gate.passed) {
+  scripts\ai-dev-autopilot.ps1:1158:        $message = "Current goal is not
+ completed, so autopilot will not create the
+ next goal. goalStatus=$($gate.goalStatus), currentTaskId=$($gate.currentTa
+skId), openTaskCount=$($gate.openTaskCount)"
+  scripts\ai-dev-autopilot.ps1:1159:        $steps += New-StepResult ($step
+s.Count + 1) "current-goal-gate" $false $tru
+e 1 $message
+> scripts\ai-dev-autopilot.ps1:1160:        Stop-Autopilot $steps "current_
+goal_not_completed" $false 1 $preparedGoals 
+$message
+  scripts\ai-dev-autopilot.ps1:1161:    }
+  scripts\ai-dev-autopilot.ps1:1162:
+  scripts\ai-dev-autopilot.ps1:1163:    $steps += New-StepResult ($steps.Co
+unt + 1) "current-goal-gate" $false $false 0
+ "Current goal is completed. Previous goal: $($gate.goalTitle)"
+  scripts\ai-dev-autopilot.ps1:1164:
+  scripts\ai-dev-autopilot.ps1:1165:    try {
+  scripts\ai-dev-autopilot.ps1:1166:        Add-AutopilotGoalHistoryTitle (
+[string]$gate.goalTitle) "completed"
+  scripts\ai-dev-autopilot.ps1:1167:    } catch {
+  scripts\ai-dev-autopilot.ps1:1168:        $message = $_.Exception.Message
+  scripts\ai-dev-autopilot.ps1:1169:        $steps += New-StepResult ($step
+s.Count + 1) "goal-history" $false $false 1 
+$message
+> scripts\ai-dev-autopilot.ps1:1170:        Stop-Autopilot $steps "goal_his
+tory_update_failed" $false 1 $preparedGoals 
+$message
+  scripts\ai-dev-autopilot.ps1:1171:    }
+  scripts\ai-dev-autopilot.ps1:1172:
+  scripts\ai-dev-autopilot.ps1:1173:    try {
+  scripts\ai-dev-autopilot.ps1:1174:        $excludedTitles = @(Get-Exclude
+dGoalTitles $usedTitles $gate)
+  scripts\ai-dev-autopilot.ps1:1175:        $durableHistoryTitles = @(Get-A
+utopilotGoalHistoryTitles)
+  scripts\ai-dev-autopilot.ps1:1176:        $allCandidates = @(Get-BacklogC
+andidates)
+  scripts\ai-dev-autopilot.ps1:1177:        $candidates = @($allCandidates 
+| Where-Object { $excludedTitles -notcontain
+s ([string]$_.title) })
+  scripts\ai-dev-autopilot.ps1:1178:    } catch {
+  scripts\ai-dev-autopilot.ps1:1179:        $message = $_.Exception.Message
+  scripts\ai-dev-autopilot.ps1:1180:        $steps += New-StepResult ($step
+s.Count + 1) "generate-goal-candidate" $fals
+e $false 1 $message
+> scripts\ai-dev-autopilot.ps1:1181:        Stop-Autopilot $steps "goal_can
+didate_generation_failed" $false 1 $prepared
+Goals $message
+  scripts\ai-dev-autopilot.ps1:1182:    }
+  scripts\ai-dev-autopilot.ps1:1183:
+  scripts\ai-dev-autopilot.ps1:1184:    if ($candidates.Count -eq 0) {
+  scripts\ai-dev-autopilot.ps1:1185:        $excludedTitleSummary = Format-
+ExcludedGoalTitles $excludedTitles
+  scripts\ai-dev-autopilot.ps1:1186:        $candidateTitles = @($allCandid
+ates | ForEach-Object { [string]$_.title } |
+ Where-Object { Test-HasValue $_ } | Select-Object -Unique)
+  scripts\ai-dev-autopilot.ps1:1187:        $candidateTitleSummary = Format
+-ExcludedGoalTitles $candidateTitles
+  scripts\ai-dev-autopilot.ps1:1188:        $historyTitleSummary = Format-E
+xcludedGoalTitles $durableHistoryTitles
+  scripts\ai-dev-autopilot.ps1:1189:        $candidateCount = $allCandidate
+s.Count
+  scripts\ai-dev-autopilot.ps1:1192:
+  scripts\ai-dev-autopilot.ps1:1193:        if ($allCandidates.Count -gt 0)
+ {
+  scripts\ai-dev-autopilot.ps1:1194:            $message = "Autopilot 후보가 모
+두 소진되었습니다. 현재 상태: goalStatus=$($gate.goalSta
+tus), currentTaskId=$($gate.currentTaskId), openTaskCount=$($gate.openTaskC
+ount), currentGoal=$currentGoalTitle. 제외된 ba
+cklog 후보 수: $excludedCandidateCount/$candidateCount. 모든 후보가 현재 goal, 준비 이력,
+ 완료 이력 또는 durable history와 중복되어 신규 goal을 자동 
+생성하지 않습니다. 다음 행동: 1. .ai-dev/backlog.md에 새로운 backlog 항목을 추가합니다. 2. 이미 완료된 후
+보를 다시 진행해야 한다면 durable history와 완료 이력을 사람이 먼
+저 검토합니다. 3. 지금은 자동 진행을 멈추고 현재 상태를 유지합니다. 계속 진행하려면 새 backlog 항목이 필요합니다. 제외된 
+후보: $candidateTitleSummary. 제외 기준 title: $ex
+cludedTitleSummary. Durable history title: $historyTitleSummary."
+  scripts\ai-dev-autopilot.ps1:1195:            $steps += New-StepResult ($
+steps.Count + 1) "generate-goal-candidate" $
+false $true 1 $message
+> scripts\ai-dev-autopilot.ps1:1196:            Stop-Autopilot $steps "all_
+goal_candidates_excluded" $false 1 $prepared
+Goals $message
+  scripts\ai-dev-autopilot.ps1:1197:        }
+  scripts\ai-dev-autopilot.ps1:1198:
+  scripts\ai-dev-autopilot.ps1:1199:        $message = "No actionable next 
+goal candidate was found in the backlog afte
+r excluding current, prepared, completed, or durable history goal titles. E
+xcluded goal titles: $excludedTitleSummary. 
+Durable history goal titles: $historyTitleSummary. Check backlog encoding, 
+empty items, completed or deferred sections,
+ and duplicate backlog titles."
+  scripts\ai-dev-autopilot.ps1:1200:        $steps += New-StepResult ($step
+s.Count + 1) "generate-goal-candidate" $fals
+e $true 1 $message
+> scripts\ai-dev-autopilot.ps1:1201:        Stop-Autopilot $steps "goal_can
+didate_not_found" $false 1 $preparedGoals $m
+essage
+  scripts\ai-dev-autopilot.ps1:1202:    }
+  scripts\ai-dev-autopilot.ps1:1203:
+  scripts\ai-dev-autopilot.ps1:1204:    $candidate = $candidates | Select-O
+bject -First 1
+  scripts\ai-dev-autopilot.ps1:1205:    $usedTitles += [string]$candidate.t
+itle
+  scripts\ai-dev-autopilot.ps1:1206:    $candidateMessage = "Next goal cand
+idate generated from $($candidate.source) pr
+iority $($candidate.priority)."
+  scripts\ai-dev-autopilot.ps1:1207:
+  scripts\ai-dev-autopilot.ps1:1208:    try {
+  scripts\ai-dev-autopilot.ps1:1209:        Add-AutopilotGoalHistoryTitle (
+[string]$candidate.title) "selected"
+  scripts\ai-dev-autopilot.ps1:1210:    } catch {
+  scripts\ai-dev-autopilot.ps1:1211:        $message = $_.Exception.Message
+  scripts\ai-dev-autopilot.ps1:1212:        $steps += New-StepResult ($step
+s.Count + 1) "goal-history" $false $false 1 
+$message $candidate
+> scripts\ai-dev-autopilot.ps1:1213:        Stop-Autopilot $steps "goal_his
+tory_update_failed" $false 1 $preparedGoals 
+$message
+  scripts\ai-dev-autopilot.ps1:1214:    }
+  scripts\ai-dev-autopilot.ps1:1215:
+  scripts\ai-dev-autopilot.ps1:1216:    if (Test-HasValue $candidate.fallba
+ckReason) {
+  scripts\ai-dev-autopilot.ps1:1217:        $candidateMessage = "$candidate
+Message $($candidate.fallbackReason)"
+  scripts\ai-dev-autopilot.ps1:1218:    }
+  scripts\ai-dev-autopilot.ps1:1219:
+  scripts\ai-dev-autopilot.ps1:1220:    $steps += New-StepResult ($steps.Co
+unt + 1) "generate-goal-candidate" $false $f
+alse 0 $candidateMessage $candidate
+  scripts\ai-dev-autopilot.ps1:1221:
+  scripts\ai-dev-autopilot.ps1:1222:    if ($AllowCommit) {
+> scripts\ai-dev-autopilot.ps1:1223:        $metaCommitStep = Invoke-Autopi
+lotLoopLogMetaCommit ($steps.Count + 1)
+  scripts\ai-dev-autopilot.ps1:1224:        $steps += $metaCommitStep
+  scripts\ai-dev-autopilot.ps1:1225:
+  scripts\ai-dev-autopilot.ps1:1226:        if ($metaCommitStep.exitCode -n
+e 0) {
+> scripts\ai-dev-autopilot.ps1:1227:            Stop-Autopilot $steps "auto
+pilot_meta_commit_failed" $false 1 $prepared
+Goals $metaCommitStep.message
+  scripts\ai-dev-autopilot.ps1:1228:        }
+  scripts\ai-dev-autopilot.ps1:1229:    }
+  scripts\ai-dev-autopilot.ps1:1230:
+  scripts\ai-dev-autopilot.ps1:1231:    try {
+  scripts\ai-dev-autopilot.ps1:1232:        $autoGoalStep = Invoke-AutoGoal
+ $candidate ($steps.Count + 1)
+  scripts\ai-dev-autopilot.ps1:1233:    } catch {
+  scripts\ai-dev-autopilot.ps1:1234:        $message = "Auto-goal failed be
+fore completion: $($_.Exception.Message)"
+  scripts\ai-dev-autopilot.ps1:1235:        $steps += New-StepResult ($step
+s.Count + 1) "auto-goal" $false $false 1 $me
+ssage $candidate
+> scripts\ai-dev-autopilot.ps1:1236:        Stop-Autopilot $steps "auto_goa
+l_failed" $false 1 $preparedGoals $message
+  scripts\ai-dev-autopilot.ps1:1237:    }
+  scripts\ai-dev-autopilot.ps1:1238:
+  scripts\ai-dev-autopilot.ps1:1239:    $steps += $autoGoalStep
+  scripts\ai-dev-autopilot.ps1:1240:
+  scripts\ai-dev-autopilot.ps1:1241:    if ($autoGoalStep.exitCode -ne 0) {
+> scripts\ai-dev-autopilot.ps1:1242:        $childStoppedReason = Get-Stopp
+edReasonFromOutput $autoGoalStep.message
+> scripts\ai-dev-autopilot.ps1:1243:        $stoppedReason = if (Test-IsExp
+ectedAutopilotNonWorkStop $childStoppedReaso
+n) { $childStoppedReason } else { "auto_goal_failed" }
+  scripts\ai-dev-autopilot.ps1:1244:        $failureMessage = "Auto-goal fa
+iled with exit code $($autoGoalStep.exitCode
+): $($autoGoalStep.message)"
+  scripts\ai-dev-autopilot.ps1:1245:
+  scripts\ai-dev-autopilot.ps1:1246:        if (Test-HasValue $candidate.fa
+llbackReason) {
+  scripts\ai-dev-autopilot.ps1:1247:            $failureMessage = "$failure
+Message Fallback context: $($candidate.fallb
+ackReason)"
+  scripts\ai-dev-autopilot.ps1:1248:        }
+  scripts\ai-dev-autopilot.ps1:1249:
+> scripts\ai-dev-autopilot.ps1:1250:        Stop-Autopilot $steps $stoppedR
+eason $false 1 $preparedGoals $failureMessag
+e
+  scripts\ai-dev-autopilot.ps1:1251:    }
+  scripts\ai-dev-autopilot.ps1:1252:
+  scripts\ai-dev-autopilot.ps1:1253:    $preparedGoals++
+  scripts\ai-dev-autopilot.ps1:1254:    $loopLogLines = @(
+  scripts\ai-dev-autopilot.ps1:1255:        "- Goal: $($candidate.title)",
+  scripts\ai-dev-autopilot.ps1:1256:        "- Source: $($candidate.source)
+ / $($candidate.priority)",
+  scripts\ai-dev-autopilot.ps1:1257:        "- Prepared goals: $preparedGoa
+ls/$MaxGoals"
+  scripts\ai-dev-autopilot.ps1:1258:    )
+  scripts\ai-dev-autopilot.ps1:1265:        Add-AutopilotGoalHistoryTitle (
+[string]$candidate.title) "prepared"
+  scripts\ai-dev-autopilot.ps1:1266:    } catch {
+  scripts\ai-dev-autopilot.ps1:1267:        $message = $_.Exception.Message
+  scripts\ai-dev-autopilot.ps1:1268:        $steps += New-StepResult ($step
+s.Count + 1) "goal-history" $false $false 1 
+$message $candidate
+> scripts\ai-dev-autopilot.ps1:1269:        Stop-Autopilot $steps "goal_his
+tory_update_failed" $false 1 $preparedGoals 
+$message
+  scripts\ai-dev-autopilot.ps1:1270:    }
+  scripts\ai-dev-autopilot.ps1:1271:
+  scripts\ai-dev-autopilot.ps1:1272:    Add-LoopLogEntry "Autopilot goal pr
+epared" $loopLogLines
+  scripts\ai-dev-autopilot.ps1:1273:
+  scripts\ai-dev-autopilot.ps1:1274:    if ($AllowCommit) {
+> scripts\ai-dev-autopilot.ps1:1275:        $metaCommitStep = Invoke-Autopi
+lotLoopLogMetaCommit ($steps.Count + 1)
+  scripts\ai-dev-autopilot.ps1:1276:        $steps += $metaCommitStep
+  scripts\ai-dev-autopilot.ps1:1277:
+  scripts\ai-dev-autopilot.ps1:1278:        if ($metaCommitStep.exitCode -n
+e 0) {
+> scripts\ai-dev-autopilot.ps1:1279:            Stop-Autopilot $steps "auto
+pilot_meta_commit_failed" $false 1 $prepared
+Goals $metaCommitStep.message
+  scripts\ai-dev-autopilot.ps1:1280:        }
+  scripts\ai-dev-autopilot.ps1:1281:    }
+  scripts\ai-dev-autopilot.ps1:1282:
+  scripts\ai-dev-autopilot.ps1:1283:    if (-not ($AllowRun -or $AllowCodex
+ -or $AllowReviewCodex -or $AllowCommit)) {
+> scripts\ai-dev-autopilot.ps1:1284:        Stop-Autopilot $steps "prepared
+_without_full_cycle" $true 0 $preparedGoals
+  scripts\ai-dev-autopilot.ps1:1285:    }
+  scripts\ai-dev-autopilot.ps1:1286:}
+  scripts\ai-dev-autopilot.ps1:1287:
+> scripts\ai-dev-autopilot.ps1:1288:Stop-Autopilot $steps "max_goals_reache
+d" $true 0 $preparedGoals
+
+
+
+ succeeded in 3283ms:
+
+  scripts\ai-dev-auto-goal.ps1:29:$legacyAutoGoalResultRelativePath = ".ai-
+dev/auto-goal-codex-result.md"
+  scripts\ai-dev-auto-goal.ps1:30:$aiDevOperationalRoot = ".ai-dev/"
+  scripts\ai-dev-auto-goal.ps1:31:$script:autoGoalCanWriteResultFile = $tru
+e
+  scripts\ai-dev-auto-goal.ps1:32:$script:autoGoalCanCleanTempArtifacts = $
+true
+> scripts\ai-dev-auto-goal.ps1:33:$script:autoGoalOperationalFileSnapshots 
+= @{}
+  scripts\ai-dev-auto-goal.ps1:34:
+  scripts\ai-dev-auto-goal.ps1:35:function Resolve-RepoPath {
+  scripts\ai-dev-auto-goal.ps1:36:    param([string]$Path)
+  scripts\ai-dev-auto-goal.ps1:37:
+  scripts\ai-dev-auto-goal.ps1:38:    if ([System.IO.Path]::IsPathRooted($P
+ath)) {
+  scripts\ai-dev-auto-goal.ps1:39:        return $Path
+  scripts\ai-dev-auto-goal.ps1:40:    }
+  scripts\ai-dev-auto-goal.ps1:41:
+  scripts\ai-dev-auto-goal.ps1:98:        [bool]$Completed,
+  scripts\ai-dev-auto-goal.ps1:99:        [int]$ExitCode
+  scripts\ai-dev-auto-goal.ps1:100:    )
+  scripts\ai-dev-auto-goal.ps1:101:
+> scripts\ai-dev-auto-goal.ps1:102:    $outcomeCategory = if (Test-IsExpect
+edPreImplementationStop $StoppedReason) {
+  scripts\ai-dev-auto-goal.ps1:103:        "expected_non_work"
+  scripts\ai-dev-auto-goal.ps1:104:    } elseif ($ExitCode -eq 0) {
+  scripts\ai-dev-auto-goal.ps1:105:        "success"
+  scripts\ai-dev-auto-goal.ps1:106:    } else {
+  scripts\ai-dev-auto-goal.ps1:107:        "actual_failure"
+  scripts\ai-dev-auto-goal.ps1:108:    }
+  scripts\ai-dev-auto-goal.ps1:109:
+  scripts\ai-dev-auto-goal.ps1:110:    return [PSCustomObject][ordered]@{
+  scripts\ai-dev-auto-goal.ps1:195:
+  scripts\ai-dev-auto-goal.ps1:196:    [System.IO.File]::WriteAllText($reso
+lvedResultPath, $content, $utf8WithBom)
+  scripts\ai-dev-auto-goal.ps1:197:}
+  scripts\ai-dev-auto-goal.ps1:198:
+> scripts\ai-dev-auto-goal.ps1:199:function Invoke-AutoGoalExpectedNonWorkM
+etaCommit {
+  scripts\ai-dev-auto-goal.ps1:200:    param([int]$StepNumber)
+  scripts\ai-dev-auto-goal.ps1:201:
+  scripts\ai-dev-auto-goal.ps1:202:    if ($DryRun) {
+  scripts\ai-dev-auto-goal.ps1:203:        return New-StepResult $StepNumbe
+r "expected-non-work-meta-commit" "git add/c
+ommit expected non-work result" $false $true 0 "DryRun: expected non-work r
+esult meta commit was not executed."
+  scripts\ai-dev-auto-goal.ps1:204:    }
+  scripts\ai-dev-auto-goal.ps1:205:
+  scripts\ai-dev-auto-goal.ps1:206:    if (-not $AllowCommit) {
+  scripts\ai-dev-auto-goal.ps1:207:        return New-StepResult $StepNumbe
+r "expected-non-work-meta-commit" "git add/c
+ommit expected non-work result" $false $true 0 "AllowCommit is not set, so 
+expected non-work result remains an uncommit
+ted meta record."
+  scripts\ai-dev-auto-goal.ps1:208:    }
+  scripts\ai-dev-auto-goal.ps1:209:
+  scripts\ai-dev-auto-goal.ps1:210:    $resultRelativePath = ConvertTo-Norm
+alizedChangedPath (ConvertTo-RepoRelativePat
+h $ResultPath)
+  scripts\ai-dev-auto-goal.ps1:211:
+> scripts\ai-dev-auto-goal.ps1:212:    if (@($script:autoGoalBaselineDirtyP
+aths) -contains $resultRelativePath) {
+> scripts\ai-dev-auto-goal.ps1:213:        return New-StepResult $StepNumbe
+r "expected-non-work-meta-commit" "git add/c
+ommit expected non-work result" $false $true 0 "Expected non-work result me
+ta commit skipped because ResultPath was bas
+eline dirty and protected: $resultRelativePath"
+  scripts\ai-dev-auto-goal.ps1:214:    }
+  scripts\ai-dev-auto-goal.ps1:215:
+  scripts\ai-dev-auto-goal.ps1:216:    $statusOutput = & git status --short
+ -- $resultRelativePath 2>&1 | Out-String
+  scripts\ai-dev-auto-goal.ps1:217:    $statusExitCode = $LASTEXITCODE
+  scripts\ai-dev-auto-goal.ps1:218:
+  scripts\ai-dev-auto-goal.ps1:219:    if ($statusExitCode -ne 0) {
+  scripts\ai-dev-auto-goal.ps1:220:        return New-StepResult $StepNumbe
+r "expected-non-work-meta-commit" "git statu
+s --short -- <result file>" $true $false 1 "git status for expected non-wor
+k result failed. exit code: $statusExitCode`
+n$statusOutput"
+  scripts\ai-dev-auto-goal.ps1:221:    }
+  scripts\ai-dev-auto-goal.ps1:228:    $addExitCode = $LASTEXITCODE
+  scripts\ai-dev-auto-goal.ps1:229:
+  scripts\ai-dev-auto-goal.ps1:230:    if ($addExitCode -ne 0) {
+  scripts\ai-dev-auto-goal.ps1:231:        & git restore --staged -- $resul
+tRelativePath 2>&1 | Out-String | Out-Null
+> scripts\ai-dev-auto-goal.ps1:232:        $restoredPaths = @(Restore-AutoG
+oalCurrentRunOperationalChanges @($resultRel
+ativePath))
+  scripts\ai-dev-auto-goal.ps1:233:        return New-StepResult $StepNumbe
+r "expected-non-work-meta-commit" "git add -
+- <result file>" $true $false 1 "Expected non-work result git add failed. e
+xit code: $addExitCode`n$addOutput`nRestored
+ run-owned files: $($restoredPaths -join ', ')"
+  scripts\ai-dev-auto-goal.ps1:234:    }
+  scripts\ai-dev-auto-goal.ps1:235:
+  scripts\ai-dev-auto-goal.ps1:236:    $commitOutput = & git commit -m "cho
+re(ai-dev): record expected non-work stop" -
+- $resultRelativePath 2>&1 | Out-String
+  scripts\ai-dev-auto-goal.ps1:237:    $commitExitCode = $LASTEXITCODE
+  scripts\ai-dev-auto-goal.ps1:238:
+  scripts\ai-dev-auto-goal.ps1:239:    if ($commitExitCode -ne 0) {
+  scripts\ai-dev-auto-goal.ps1:240:        & git restore --staged -- $resul
+tRelativePath 2>&1 | Out-String | Out-Null
+> scripts\ai-dev-auto-goal.ps1:241:        $restoredPaths = @(Restore-AutoG
+oalCurrentRunOperationalChanges @($resultRel
+ativePath))
+  scripts\ai-dev-auto-goal.ps1:242:        return New-StepResult $StepNumbe
+r "expected-non-work-meta-commit" "git commi
+t -- <result file>" $true $false 1 "Expected non-work result commit failed.
+ exit code: $commitExitCode`n$commitOutput`n
+Restored run-owned files: $($restoredPaths -join ', ')"
+  scripts\ai-dev-auto-goal.ps1:243:    }
+  scripts\ai-dev-auto-goal.ps1:244:
+  scripts\ai-dev-auto-goal.ps1:245:    return New-StepResult $StepNumber "e
+xpected-non-work-meta-commit" "git add/commi
+t expected non-work result" $true $false 0 $commitOutput.Trim()
+  scripts\ai-dev-auto-goal.ps1:246:}
+  scripts\ai-dev-auto-goal.ps1:247:
+  scripts\ai-dev-auto-goal.ps1:248:function Clear-AutoGoalTempArtifacts {
+  scripts\ai-dev-auto-goal.ps1:249:    if (-not $script:autoGoalCanCleanTem
+pArtifacts) {
+  scripts\ai-dev-auto-goal.ps1:254:
+  scripts\ai-dev-auto-goal.ps1:255:    foreach ($relativePath in @($plannin
+gPromptRelativePath, $legacyAutoGoalResultRe
+lativePath)) {
+  scripts\ai-dev-auto-goal.ps1:256:        $normalizedRelativePath = Conver
+tTo-NormalizedChangedPath (ConvertTo-RepoRel
+ativePath $relativePath)
+  scripts\ai-dev-auto-goal.ps1:257:
+> scripts\ai-dev-auto-goal.ps1:258:        if (@($script:autoGoalBaselineDi
+rtyPaths) -contains $normalizedRelativePath)
+ {
+  scripts\ai-dev-auto-goal.ps1:259:            continue
+  scripts\ai-dev-auto-goal.ps1:260:        }
+  scripts\ai-dev-auto-goal.ps1:261:
+  scripts\ai-dev-auto-goal.ps1:262:        $fullPath = [System.IO.Path]::Ge
+tFullPath((Resolve-RepoPath $relativePath))
+  scripts\ai-dev-auto-goal.ps1:263:
+  scripts\ai-dev-auto-goal.ps1:264:        if (-not $fullPath.StartsWith($r
+epoRoot.TrimEnd("\") + "\", [System.StringCo
+mparison]::OrdinalIgnoreCase)) {
+  scripts\ai-dev-auto-goal.ps1:265:            continue
+  scripts\ai-dev-auto-goal.ps1:266:        }
+  scripts\ai-dev-auto-goal.ps1:278:        }
+  scripts\ai-dev-auto-goal.ps1:279:    }
+  scripts\ai-dev-auto-goal.ps1:280:}
+  scripts\ai-dev-auto-goal.ps1:281:
+> scripts\ai-dev-auto-goal.ps1:282:function Test-IsExpectedPreImplementatio
+nStop {
+  scripts\ai-dev-auto-goal.ps1:283:    param([string]$StoppedReason)
+  scripts\ai-dev-auto-goal.ps1:284:
+  scripts\ai-dev-auto-goal.ps1:285:    return @(
+> scripts\ai-dev-auto-goal.ps1:286:        "baseline_output_conflict",
+  scripts\ai-dev-auto-goal.ps1:287:        "dirty_worktree",
+  scripts\ai-dev-auto-goal.ps1:288:        "max_steps_too_small_for_full_cy
+cle"
+  scripts\ai-dev-auto-goal.ps1:289:    ) -contains $StoppedReason
+  scripts\ai-dev-auto-goal.ps1:290:}
+  scripts\ai-dev-auto-goal.ps1:291:
+> scripts\ai-dev-auto-goal.ps1:292:function Initialize-AutoGoalOperationalF
+ileSnapshots {
+> scripts\ai-dev-auto-goal.ps1:293:    $script:autoGoalOperationalFileSnaps
+hots = @{}
+  scripts\ai-dev-auto-goal.ps1:294:
+  scripts\ai-dev-auto-goal.ps1:295:    foreach ($relativePath in @(Get-Plan
+nedAutoGoalOutputPaths)) {
+  scripts\ai-dev-auto-goal.ps1:296:        $fullPath = [System.IO.Path]::Ge
+tFullPath((Resolve-RepoPath $relativePath))
+  scripts\ai-dev-auto-goal.ps1:297:
+  scripts\ai-dev-auto-goal.ps1:298:        if (-not $fullPath.StartsWith($r
+epoRoot.TrimEnd("\") + "\", [System.StringCo
+mparison]::OrdinalIgnoreCase)) {
+  scripts\ai-dev-auto-goal.ps1:299:            continue
+  scripts\ai-dev-auto-goal.ps1:300:        }
+  scripts\ai-dev-auto-goal.ps1:301:
+  scripts\ai-dev-auto-goal.ps1:305:        if ($exists) {
+  scripts\ai-dev-auto-goal.ps1:306:            $bytes = [System.IO.File]::R
+eadAllBytes($fullPath)
+  scripts\ai-dev-auto-goal.ps1:307:        }
+  scripts\ai-dev-auto-goal.ps1:308:
+> scripts\ai-dev-auto-goal.ps1:309:        $script:autoGoalOperationalFileS
+napshots[$relativePath] = [PSCustomObject][o
+rdered]@{
+  scripts\ai-dev-auto-goal.ps1:310:            path = $fullPath
+  scripts\ai-dev-auto-goal.ps1:311:            existed = $exists
+  scripts\ai-dev-auto-goal.ps1:312:            bytes = $bytes
+  scripts\ai-dev-auto-goal.ps1:313:        }
+  scripts\ai-dev-auto-goal.ps1:314:    }
+  scripts\ai-dev-auto-goal.ps1:315:}
+  scripts\ai-dev-auto-goal.ps1:316:
+> scripts\ai-dev-auto-goal.ps1:317:function Restore-AutoGoalCurrentRunOpera
+tionalChanges {
+  scripts\ai-dev-auto-goal.ps1:318:    param([string[]]$RelativePaths = @()
+)
+  scripts\ai-dev-auto-goal.ps1:319:
+  scripts\ai-dev-auto-goal.ps1:320:    $restoredPaths = @()
+  scripts\ai-dev-auto-goal.ps1:321:
+> scripts\ai-dev-auto-goal.ps1:322:    if ($null -eq $script:autoGoalOperat
+ionalFileSnapshots) {
+  scripts\ai-dev-auto-goal.ps1:323:        return @($restoredPaths)
+  scripts\ai-dev-auto-goal.ps1:324:    }
+  scripts\ai-dev-auto-goal.ps1:325:
+  scripts\ai-dev-auto-goal.ps1:326:    $targetPaths = @($RelativePaths | Fo
+rEach-Object { ConvertTo-NormalizedChangedPa
+th $_ } | Where-Object { Test-HasValue $_ } | Select-Object -Unique)
+> scripts\ai-dev-auto-goal.ps1:327:    $baselineDirtyPaths = @($script:auto
+GoalBaselineDirtyPaths)
+  scripts\ai-dev-auto-goal.ps1:328:
+> scripts\ai-dev-auto-goal.ps1:329:    foreach ($entry in @($script:autoGoa
+lOperationalFileSnapshots.GetEnumerator())) 
+{
+  scripts\ai-dev-auto-goal.ps1:330:        $relativePath = ConvertTo-Normal
+izedChangedPath ([string]$entry.Key)
+  scripts\ai-dev-auto-goal.ps1:331:        $snapshot = $entry.Value
+  scripts\ai-dev-auto-goal.ps1:332:
+  scripts\ai-dev-auto-goal.ps1:333:        if ($targetPaths.Count -gt 0 -an
+d $targetPaths -notcontains $relativePath) {
+  scripts\ai-dev-auto-goal.ps1:334:            continue
+  scripts\ai-dev-auto-goal.ps1:335:        }
+  scripts\ai-dev-auto-goal.ps1:336:
+> scripts\ai-dev-auto-goal.ps1:337:        if ($baselineDirtyPaths -contain
+s $relativePath) {
+  scripts\ai-dev-auto-goal.ps1:338:            continue
+  scripts\ai-dev-auto-goal.ps1:339:        }
+  scripts\ai-dev-auto-goal.ps1:340:
+  scripts\ai-dev-auto-goal.ps1:341:        $fullPath = [string]$snapshot.pa
+th
+  scripts\ai-dev-auto-goal.ps1:342:
+  scripts\ai-dev-auto-goal.ps1:343:        if (-not $fullPath.StartsWith($r
+epoRoot.TrimEnd("\") + "\", [System.StringCo
+mparison]::OrdinalIgnoreCase)) {
+  scripts\ai-dev-auto-goal.ps1:344:            continue
+  scripts\ai-dev-auto-goal.ps1:345:        }
+  scripts\ai-dev-auto-goal.ps1:360:}
+  scripts\ai-dev-auto-goal.ps1:361:
+  scripts\ai-dev-auto-goal.ps1:362:function Test-CanWriteExpectedNonWorkRes
+ultFile {
+  scripts\ai-dev-auto-goal.ps1:363:    $resultRelativePath = ConvertTo-Norm
+alizedChangedPath (ConvertTo-RepoRelativePat
+h $ResultPath)
+> scripts\ai-dev-auto-goal.ps1:364:    $snapshot = $script:autoGoalOperatio
+nalFileSnapshots[$resultRelativePath]
+> scripts\ai-dev-auto-goal.ps1:365:    $baselineDirtyPaths = @($script:auto
+GoalBaselineDirtyPaths)
+  scripts\ai-dev-auto-goal.ps1:366:
+> scripts\ai-dev-auto-goal.ps1:367:    if ($null -ne $snapshot -and $snapsh
+ot.existed -and $baselineDirtyPaths -contain
+s $resultRelativePath) {
+  scripts\ai-dev-auto-goal.ps1:368:        return $false
+  scripts\ai-dev-auto-goal.ps1:369:    }
+  scripts\ai-dev-auto-goal.ps1:370:
+  scripts\ai-dev-auto-goal.ps1:371:    return $true
+  scripts\ai-dev-auto-goal.ps1:372:}
+  scripts\ai-dev-auto-goal.ps1:373:
+> scripts\ai-dev-auto-goal.ps1:374:function Stop-AutoGoal {
+  scripts\ai-dev-auto-goal.ps1:375:    param(
+  scripts\ai-dev-auto-goal.ps1:376:        [object[]]$Steps,
+  scripts\ai-dev-auto-goal.ps1:377:        [string]$StoppedReason,
+  scripts\ai-dev-auto-goal.ps1:378:        [bool]$Completed,
+  scripts\ai-dev-auto-goal.ps1:379:        [int]$ExitCode
+  scripts\ai-dev-auto-goal.ps1:380:    )
+  scripts\ai-dev-auto-goal.ps1:381:
+> scripts\ai-dev-auto-goal.ps1:382:    $isExpectedPreImplementationStop = T
+est-IsExpectedPreImplementationStop $Stopped
+Reason
+  scripts\ai-dev-auto-goal.ps1:383:
+  scripts\ai-dev-auto-goal.ps1:384:    if (-not $DryRun) {
+  scripts\ai-dev-auto-goal.ps1:385:        Clear-AutoGoalTempArtifacts
+  scripts\ai-dev-auto-goal.ps1:386:
+  scripts\ai-dev-auto-goal.ps1:387:        if ($isExpectedPreImplementation
+Stop) {
+> scripts\ai-dev-auto-goal.ps1:388:            $cleanedRunOwnedPaths = @(Re
+store-AutoGoalCurrentRunOperationalChanges)
+> scripts\ai-dev-auto-goal.ps1:389:            $Steps += New-StepResult ($S
+teps.Count + 1) "expected-non-work-cleanup" 
+"restore current-run .ai-dev operational file snapshots" $true $false 0 "Ex
+pected pre-implementation stop. Restored onl
+y auto-goal operational files captured at run start; baseline user changes 
+were preserved. Cleaned run-owned files: $($
+cleanedRunOwnedPaths -join ', ')"
+  scripts\ai-dev-auto-goal.ps1:390:        }
+  scripts\ai-dev-auto-goal.ps1:391:    }
+  scripts\ai-dev-auto-goal.ps1:392:
+  scripts\ai-dev-auto-goal.ps1:393:    $script:steps = @($Steps)
+  scripts\ai-dev-auto-goal.ps1:394:
+  scripts\ai-dev-auto-goal.ps1:395:    if (-not $DryRun -and (-not $Complet
+ed -or $ExitCode -ne 0)) {
+  scripts\ai-dev-auto-goal.ps1:396:        if ($script:autoGoalCanWriteResu
+ltFile) {
+  scripts\ai-dev-auto-goal.ps1:397:            if ($isExpectedPreImplementa
+tionStop) {
+  scripts\ai-dev-auto-goal.ps1:399:                    if (Test-CanWriteExp
+ectedNonWorkResultFile) {
+  scripts\ai-dev-auto-goal.ps1:400:                        $Steps += New-St
+epResult ($Steps.Count + 1) "expected-non-wo
+rk-meta-record" "write expected non-work final result" $true $false 0 "Expe
+cted pre-implementation stop is recorded as 
+outcomeCategory=expected_non_work in the final result file because -AllowCo
+mmit is set."
+  scripts\ai-dev-auto-goal.ps1:401:                        $script:steps = 
+@($Steps)
+  scripts\ai-dev-auto-goal.ps1:402:                        Save-AutoGoalRes
+ultFile $StoppedReason $false $ExitCode
+> scripts\ai-dev-auto-goal.ps1:403:                        $metaCommitStep 
+= Invoke-AutoGoalExpectedNonWorkMetaCommit (
+$Steps.Count + 1)
+  scripts\ai-dev-auto-goal.ps1:404:                        $Steps += $metaC
+ommitStep
+  scripts\ai-dev-auto-goal.ps1:405:                        $script:steps = 
+@($Steps)
+  scripts\ai-dev-auto-goal.ps1:406:
+  scripts\ai-dev-auto-goal.ps1:407:                        if ($metaCommitS
+tep.exitCode -ne 0) {
+  scripts\ai-dev-auto-goal.ps1:408:                            $originalSto
+ppedReason = $StoppedReason
+  scripts\ai-dev-auto-goal.ps1:409:                            $StoppedReas
+on = "expected_non_work_meta_commit_failed"
+  scripts\ai-dev-auto-goal.ps1:410:                            $isExpectedP
+reImplementationStop = $false
+  scripts\ai-dev-auto-goal.ps1:411:                            $Completed =
+ $false
+  scripts\ai-dev-auto-goal.ps1:414:                            $script:step
+s = @($Steps)
+  scripts\ai-dev-auto-goal.ps1:415:                        }
+  scripts\ai-dev-auto-goal.ps1:416:                    } else {
+  scripts\ai-dev-auto-goal.ps1:417:                        $resultRelativeP
+ath = ConvertTo-NormalizedChangedPath (Conve
+rtTo-RepoRelativePath $ResultPath)
+> scripts\ai-dev-auto-goal.ps1:418:                        $Steps += New-St
+epResult ($Steps.Count + 1) "expected-non-wo
+rk-meta-record" "write expected non-work final result" $false $true 0 "Expe
+cted pre-implementation stop is reported in 
+console output only. ResultPath existed at run start and was baseline dirty
+, so auto-goal did not overwrite preserved u
+ser changes: $resultRelativePath"
+  scripts\ai-dev-auto-goal.ps1:419:                        $script:steps = 
+@($Steps)
+  scripts\ai-dev-auto-goal.ps1:420:                    }
+  scripts\ai-dev-auto-goal.ps1:421:                } else {
+  scripts\ai-dev-auto-goal.ps1:422:                    $Steps += New-StepRe
+sult ($Steps.Count + 1) "expected-non-work-m
+eta-record" "write expected non-work final result" $false $true 0 "Expected
+ pre-implementation stop is reported in cons
+ole output only. -AllowCommit is not set, so no result file or other .ai-de
+v operational change is left behind."
+  scripts\ai-dev-auto-goal.ps1:423:                    $script:steps = @($S
+teps)
+  scripts\ai-dev-auto-goal.ps1:424:                }
+  scripts\ai-dev-auto-goal.ps1:425:            } else {
+  scripts\ai-dev-auto-goal.ps1:426:                Save-AutoGoalResultFile 
+$StoppedReason $false $ExitCode
+  scripts\ai-dev-auto-goal.ps1:476:    $statusOutput = & git @Arguments 2>&
+1
+  scripts\ai-dev-auto-goal.ps1:477:
+  scripts\ai-dev-auto-goal.ps1:478:    if ($LASTEXITCODE -ne 0) {
+  scripts\ai-dev-auto-goal.ps1:479:        $script:steps += New-StepResult 
+$FailureStep $FailureName $CommandText $fals
+e $false 1 "git status failed: $($statusOutput -join "`n")"
+> scripts\ai-dev-auto-goal.ps1:480:        Stop-AutoGoal $script:steps "git
+_status_failed" $false 1
+  scripts\ai-dev-auto-goal.ps1:481:    }
+  scripts\ai-dev-auto-goal.ps1:482:
+  scripts\ai-dev-auto-goal.ps1:483:    return @($statusOutput | Where-Objec
+t { -not [string]::IsNullOrWhiteSpace($_) })
+  scripts\ai-dev-auto-goal.ps1:484:}
+  scripts\ai-dev-auto-goal.ps1:485:
+  scripts\ai-dev-auto-goal.ps1:486:function Get-GitStatusLines {
+  scripts\ai-dev-auto-goal.ps1:487:    param(
+  scripts\ai-dev-auto-goal.ps1:488:        [int]$FailureStep = 2,
+  scripts\ai-dev-auto-goal.ps1:553:        ForEach-Object { ConvertTo-Norma
+lizedChangedPath (ConvertTo-RepoRelativePath
+ $_) } |
+  scripts\ai-dev-auto-goal.ps1:554:        Select-Object -Unique
+  scripts\ai-dev-auto-goal.ps1:555:}
+  scripts\ai-dev-auto-goal.ps1:556:
+> scripts\ai-dev-auto-goal.ps1:557:function Invoke-BaselineOutputConflictGa
+te {
+  scripts\ai-dev-auto-goal.ps1:558:    param(
+> scripts\ai-dev-auto-goal.ps1:559:        [string[]]$BaselineDirtyPaths,
+  scripts\ai-dev-auto-goal.ps1:560:        [string[]]$PlannedOutputPaths
+  scripts\ai-dev-auto-goal.ps1:561:    )
+  scripts\ai-dev-auto-goal.ps1:562:
+  scripts\ai-dev-auto-goal.ps1:563:    $conflictingPaths = @(
+> scripts\ai-dev-auto-goal.ps1:564:        $BaselineDirtyPaths |
+  scripts\ai-dev-auto-goal.ps1:565:            Where-Object { $PlannedOutpu
+tPaths -contains $_ } |
+  scripts\ai-dev-auto-goal.ps1:566:            Select-Object -Unique
+  scripts\ai-dev-auto-goal.ps1:567:    )
+  scripts\ai-dev-auto-goal.ps1:568:
+  scripts\ai-dev-auto-goal.ps1:569:    if ($conflictingPaths.Count -eq 0) {
+  scripts\ai-dev-auto-goal.ps1:570:        return
+  scripts\ai-dev-auto-goal.ps1:571:    }
+  scripts\ai-dev-auto-goal.ps1:572:
+  scripts\ai-dev-auto-goal.ps1:573:    $script:autoGoalCanWriteResultFile =
+ $false
+  scripts\ai-dev-auto-goal.ps1:574:    $script:autoGoalCanCleanTempArtifact
+s = $false
+> scripts\ai-dev-auto-goal.ps1:575:    $message = "Baseline dirty paths con
+flict with planned auto-goal output paths. A
+uto-goal stopped before writing or deleting protected output files.`nConfli
+cting paths:`n$($conflictingPaths -join "`n"
+)"
+> scripts\ai-dev-auto-goal.ps1:576:    $script:steps += New-StepResult 2 "b
+aseline-output-conflict-gate" "compare basel
+ine dirty paths with planned auto-goal outputs" $true $false 1 $message
+> scripts\ai-dev-auto-goal.ps1:577:    Stop-AutoGoal $script:steps "baselin
+e_output_conflict" $false 1
+  scripts\ai-dev-auto-goal.ps1:578:}
+  scripts\ai-dev-auto-goal.ps1:579:
+  scripts\ai-dev-auto-goal.ps1:580:function Invoke-FinalAutoGoalChangeGate 
+{
+  scripts\ai-dev-auto-goal.ps1:581:    param(
+  scripts\ai-dev-auto-goal.ps1:582:        [int]$StepNumber
+  scripts\ai-dev-auto-goal.ps1:583:    )
+  scripts\ai-dev-auto-goal.ps1:584:
+  scripts\ai-dev-auto-goal.ps1:585:    Clear-AutoGoalTempArtifacts
+  scripts\ai-dev-auto-goal.ps1:586:
+  scripts\ai-dev-auto-goal.ps1:587:    $statusLines = @(Get-GitStatusLines 
+$StepNumber "final-change-gate")
+  scripts\ai-dev-auto-goal.ps1:588:    $command = "cleanup auto-goal temp a
+rtifacts, git status --short"
+> scripts\ai-dev-auto-goal.ps1:589:    $baselineDirtyPaths = @($script:auto
+GoalBaselineDirtyPaths)
+> scripts\ai-dev-auto-goal.ps1:590:    $baselineDirtyCount = $baselineDirty
+Paths.Count
+  scripts\ai-dev-auto-goal.ps1:591:    $finalDirtyCount = $statusLines.Coun
+t
+  scripts\ai-dev-auto-goal.ps1:592:
+> scripts\ai-dev-auto-goal.ps1:593:    if ($statusLines.Count -eq 0 -and $b
+aselineDirtyCount -gt 0) {
+> scripts\ai-dev-auto-goal.ps1:594:        $message = "Final clean verifica
+tion failed: baseline dirty paths from auto-
+goal start are no longer visible in git status. They may have been committe
+d or otherwise swallowed, so auto-goal will 
+not report completed.`nBaseline dirty count: $baselineDirtyCount`nFinal dir
+ty count: $finalDirtyCount`nFinal .ai-dev me
+ta commit created: skipped (baseline dirty disappeared).`nBaseline dirty pa
+ths:`n$($baselineDirtyPaths -join "`n")"
+  scripts\ai-dev-auto-goal.ps1:595:        $script:steps += New-StepResult 
+$StepNumber "final-change-gate" $command $tr
+ue $false 1 $message
+> scripts\ai-dev-auto-goal.ps1:596:        Stop-AutoGoal $script:steps "fin
+al_baseline_dirty_disappeared" $false 1
+  scripts\ai-dev-auto-goal.ps1:597:    }
+  scripts\ai-dev-auto-goal.ps1:598:
+  scripts\ai-dev-auto-goal.ps1:599:    if ($statusLines.Count -eq 0) {
+> scripts\ai-dev-auto-goal.ps1:600:        $message = "Baseline dirty count
+: $baselineDirtyCount`nFinal dirty count: $f
+inalDirtyCount`nFinal .ai-dev meta commit created: skipped (no final change
+s).`nFinal clean verification: git status --
+short returned no changes."
+  scripts\ai-dev-auto-goal.ps1:601:        $script:steps += New-StepResult 
+$StepNumber "final-change-gate" $command $tr
+ue $false 0 $message
+  scripts\ai-dev-auto-goal.ps1:602:        return
+  scripts\ai-dev-auto-goal.ps1:603:    }
+  scripts\ai-dev-auto-goal.ps1:604:
+  scripts\ai-dev-auto-goal.ps1:605:    $changedPaths = @(
+  scripts\ai-dev-auto-goal.ps1:606:        $statusLines |
+  scripts\ai-dev-auto-goal.ps1:607:            ForEach-Object { Convert-ToC
+hangedPath $_ } |
+  scripts\ai-dev-auto-goal.ps1:608:            Where-Object { Test-HasValue
+ $_ } |
+  scripts\ai-dev-auto-goal.ps1:609:            ForEach-Object { ConvertTo-N
+ormalizedChangedPath $_ } |
+  scripts\ai-dev-auto-goal.ps1:610:            Select-Object -Unique
+  scripts\ai-dev-auto-goal.ps1:611:    )
+> scripts\ai-dev-auto-goal.ps1:612:    $baselineRemainingPaths = @($changed
+Paths | Where-Object { $baselineDirtyPaths -
+contains $_ })
+> scripts\ai-dev-auto-goal.ps1:613:    $baselineMissingPaths = @($baselineD
+irtyPaths | Where-Object { $changedPaths -no
+tcontains $_ })
+  scripts\ai-dev-auto-goal.ps1:614:    $nonAiDevPaths = @($changedPaths | W
+here-Object { -not (Test-IsAiDevOperationalP
+ath $_) })
+> scripts\ai-dev-auto-goal.ps1:615:    $newAiDevPaths = @($changedPaths | W
+here-Object { (Test-IsAiDevOperationalPath $
+_) -and ($baselineDirtyPaths -notcontains $_) })
+  scripts\ai-dev-auto-goal.ps1:616:
+> scripts\ai-dev-auto-goal.ps1:617:    if ($baselineMissingPaths.Count -gt 
+0) {
+> scripts\ai-dev-auto-goal.ps1:618:        $message = "Final clean verifica
+tion failed: baseline dirty paths from auto-
+goal start disappeared before completion. They may have been committed or o
+therwise swallowed, so auto-goal will not re
+port completed.`nBaseline dirty count: $baselineDirtyCount`nFinal dirty cou
+nt: $finalDirtyCount`nFinal .ai-dev meta com
+mit created: skipped (baseline dirty disappeared).`nMissing baseline dirty 
+paths:`n$($baselineMissingPaths -join "`n")`
+n$($statusLines -join "`n")"
+  scripts\ai-dev-auto-goal.ps1:619:        $script:steps += New-StepResult 
+$StepNumber "final-change-gate" $command $tr
+ue $false 1 $message
+> scripts\ai-dev-auto-goal.ps1:620:        Stop-AutoGoal $script:steps "fin
+al_baseline_dirty_disappeared" $false 1
+  scripts\ai-dev-auto-goal.ps1:621:    }
+  scripts\ai-dev-auto-goal.ps1:622:
+> scripts\ai-dev-auto-goal.ps1:623:    if ($baselineRemainingPaths.Count -g
+t 0) {
+> scripts\ai-dev-auto-goal.ps1:624:        $message = "Final clean verifica
+tion failed: baseline dirty files remain, so
+ auto-goal will not report completed.`nBaseline dirty count: $baselineDirty
+Count`nFinal dirty count: $finalDirtyCount`n
+Final .ai-dev meta commit created: skipped (baseline dirty remains).`nRemai
+ning baseline dirty paths:`n$($baselineRemai
+ningPaths -join "`n")`n$($statusLines -join "`n")"
+  scripts\ai-dev-auto-goal.ps1:625:        $script:steps += New-StepResult 
+$StepNumber "final-change-gate" $command $tr
+ue $false 1 $message
+> scripts\ai-dev-auto-goal.ps1:626:        Stop-AutoGoal $script:steps "fin
+al_baseline_dirty_remains" $false 1
+  scripts\ai-dev-auto-goal.ps1:627:    }
+  scripts\ai-dev-auto-goal.ps1:628:
+  scripts\ai-dev-auto-goal.ps1:629:    if ($nonAiDevPaths.Count -gt 0) {
+> scripts\ai-dev-auto-goal.ps1:630:        $message = "Final clean verifica
+tion failed: non-.ai-dev changes remain, so 
+auto-goal will not report completed.`nBaseline dirty count: $baselineDirtyC
+ount`nFinal dirty count: $finalDirtyCount`nF
+inal .ai-dev meta commit created: skipped (non-.ai-dev dirty remains).`n$($
+statusLines -join "`n")"
+  scripts\ai-dev-auto-goal.ps1:631:        $script:steps += New-StepResult 
+$StepNumber "final-change-gate" $command $tr
+ue $false 1 $message
+> scripts\ai-dev-auto-goal.ps1:632:        Stop-AutoGoal $script:steps "fin
+al_non_ai_dev_changes" $false 1
+  scripts\ai-dev-auto-goal.ps1:633:    }
+  scripts\ai-dev-auto-goal.ps1:634:
+  scripts\ai-dev-auto-goal.ps1:635:    if ($newAiDevPaths.Count -eq 0) {
+> scripts\ai-dev-auto-goal.ps1:636:        $message = "Final clean verifica
+tion failed: dirty paths remain, but none ar
+e new .ai-dev operational changes that auto-goal may commit.`nBaseline dirt
+y count: $baselineDirtyCount`nFinal dirty co
+unt: $finalDirtyCount`nFinal .ai-dev meta commit created: skipped (no eligi
+ble .ai-dev changes).`n$($statusLines -join 
+"`n")"
+  scripts\ai-dev-auto-goal.ps1:637:        $script:steps += New-StepResult 
+$StepNumber "final-change-gate" $command $tr
+ue $false 1 $message
+> scripts\ai-dev-auto-goal.ps1:638:        Stop-AutoGoal $script:steps "fin
+al_no_eligible_meta_changes" $false 1
+  scripts\ai-dev-auto-goal.ps1:639:    }
+  scripts\ai-dev-auto-goal.ps1:640:
+  scripts\ai-dev-auto-goal.ps1:641:    if (-not $AllowCommit) {
+> scripts\ai-dev-auto-goal.ps1:642:        $message = "Final clean verifica
+tion failed: only new .ai-dev operational ch
+anges remain, but -AllowCommit is required to create the final meta commit.
+`nBaseline dirty count: $baselineDirtyCount`
+nFinal dirty count: $finalDirtyCount`nFinal .ai-dev meta commit created: sk
+ipped (-AllowCommit missing).`n$($statusLine
+s -join "`n")"
+  scripts\ai-dev-auto-goal.ps1:643:        $script:steps += New-StepResult 
+$StepNumber "final-change-gate" $command $tr
+ue $false 1 $message
+> scripts\ai-dev-auto-goal.ps1:644:        Stop-AutoGoal $script:steps "fin
+al_ai_dev_changes_require_commit" $false 1
+  scripts\ai-dev-auto-goal.ps1:645:    }
+  scripts\ai-dev-auto-goal.ps1:646:
+  scripts\ai-dev-auto-goal.ps1:647:    $addArguments = @("add", "--") + $ne
+wAiDevPaths
+  scripts\ai-dev-auto-goal.ps1:648:    $addOutput = & git @addArguments 2>&
+1 | Out-String
+  scripts\ai-dev-auto-goal.ps1:649:    $addExitCode = $LASTEXITCODE
+  scripts\ai-dev-auto-goal.ps1:650:
+  scripts\ai-dev-auto-goal.ps1:651:    if ($addExitCode -ne 0) {
+  scripts\ai-dev-auto-goal.ps1:652:        & git restore --staged -- $newAi
+DevPaths 2>&1 | Out-String | Out-Null
+> scripts\ai-dev-auto-goal.ps1:653:        $restoredPaths = @(Restore-AutoG
+oalCurrentRunOperationalChanges $newAiDevPat
+hs)
+  scripts\ai-dev-auto-goal.ps1:654:        $message = "auto-goal 최종 .ai-dev
+ 메타 변경 git add 실패. exit code: $addExitCode`n
+$addOutput"
+  scripts\ai-dev-auto-goal.ps1:655:        $script:steps += New-StepResult 
+$StepNumber "final-change-gate" "git add -- 
+<final .ai-dev files>" $true $false 1 "$message`nRestored run-owned files: 
+$($restoredPaths -join ', ')"
+> scripts\ai-dev-auto-goal.ps1:656:        Stop-AutoGoal $script:steps "fin
+al_meta_add_failed" $false 1
+  scripts\ai-dev-auto-goal.ps1:657:    }
+  scripts\ai-dev-auto-goal.ps1:658:
+  scripts\ai-dev-auto-goal.ps1:659:    $metaCommitMessage = "chore(ai-dev):
+ record final auto-goal state"
+  scripts\ai-dev-auto-goal.ps1:660:    $commitArguments = @("commit", "-m",
+ $metaCommitMessage, "--") + $newAiDevPaths
+  scripts\ai-dev-auto-goal.ps1:661:    $commitOutput = & git @commitArgumen
+ts 2>&1 | Out-String
+  scripts\ai-dev-auto-goal.ps1:662:    $commitExitCode = $LASTEXITCODE
+  scripts\ai-dev-auto-goal.ps1:663:
+  scripts\ai-dev-auto-goal.ps1:664:    if ($commitExitCode -ne 0) {
+  scripts\ai-dev-auto-goal.ps1:665:        & git restore --staged -- $newAi
+DevPaths 2>&1 | Out-String | Out-Null
+> scripts\ai-dev-auto-goal.ps1:666:        $restoredPaths = @(Restore-AutoG
+oalCurrentRunOperationalChanges $newAiDevPat
+hs)
+  scripts\ai-dev-auto-goal.ps1:667:        $message = "auto-goal 최종 .ai-dev
+ 메타 커밋 실패. exit code: $commitExitCode`n$comm
+itOutput"
+  scripts\ai-dev-auto-goal.ps1:668:        $script:steps += New-StepResult 
+$StepNumber "final-change-gate" "git commit 
+-m '$metaCommitMessage' -- <final .ai-dev files>" $true $false 1 "$message`
+nRestored run-owned files: $($restoredPaths 
+-join ', ')"
+> scripts\ai-dev-auto-goal.ps1:669:        Stop-AutoGoal $script:steps "fin
+al_meta_commit_failed" $false 1
+  scripts\ai-dev-auto-goal.ps1:670:    }
+  scripts\ai-dev-auto-goal.ps1:671:
+  scripts\ai-dev-auto-goal.ps1:672:    $remainingStatus = @(Get-GitStatusLi
+nes $StepNumber "final-change-gate")
+  scripts\ai-dev-auto-goal.ps1:673:
+  scripts\ai-dev-auto-goal.ps1:674:    if ($remainingStatus.Count -gt 0) {
+> scripts\ai-dev-auto-goal.ps1:675:        $message = "Final clean verifica
+tion failed: changes remain after the final 
+.ai-dev meta commit, so auto-goal will not report completed.`nBaseline dirt
+y count: $baselineDirtyCount`nFinal dirty co
+unt: $finalDirtyCount`nFinal .ai-dev meta commit created: yes`nFinal clean 
+verification: failed; git status --short sti
+ll reports $($remainingStatus.Count) change(s).`n$($remainingStatus -join "
+`n")"
+  scripts\ai-dev-auto-goal.ps1:676:        $script:steps += New-StepResult 
+$StepNumber "final-change-gate" "git status 
+--short" $true $false 1 $message
+> scripts\ai-dev-auto-goal.ps1:677:        Stop-AutoGoal $script:steps "fin
+al_worktree_dirty" $false 1
+  scripts\ai-dev-auto-goal.ps1:678:    }
+  scripts\ai-dev-auto-goal.ps1:679:
+> scripts\ai-dev-auto-goal.ps1:680:    $message = ($commitOutput.Trim(), "B
+aseline dirty count: $baselineDirtyCount", "
+Final dirty count: $finalDirtyCount", "Final .ai-dev meta commit created: y
+es", "Final clean verification: git status -
+-short returned no changes.") -join "`n"
+  scripts\ai-dev-auto-goal.ps1:681:    $script:steps += New-StepResult $Ste
+pNumber "final-change-gate" "git add/commit 
+final .ai-dev operational changes, git status --short" $true $false 0 $mess
+age
+  scripts\ai-dev-auto-goal.ps1:682:}
+  scripts\ai-dev-auto-goal.ps1:683:
+  scripts\ai-dev-auto-goal.ps1:684:function Invoke-CompletedCleanVerificati
+on {
+  scripts\ai-dev-auto-goal.ps1:685:    param([int]$StepNumber)
+  scripts\ai-dev-auto-goal.ps1:686:
+  scripts\ai-dev-auto-goal.ps1:687:    $remainingStatus = @(Get-GitStatusLi
+nes $StepNumber "completed-clean-gate")
+  scripts\ai-dev-auto-goal.ps1:688:
+  scripts\ai-dev-auto-goal.ps1:689:    if ($remainingStatus.Count -gt 0) {
+  scripts\ai-dev-auto-goal.ps1:690:        $message = "Completed clean veri
+fication failed: git status --short still re
+ports $($remainingStatus.Count) change(s) after all result/state files were
+ written and the final gate ran.`n$($remaini
+ngStatus -join "`n")"
+  scripts\ai-dev-auto-goal.ps1:691:        $script:steps += New-StepResult 
+$StepNumber "completed-clean-gate" "git stat
+us --short" $true $false 1 $message
+> scripts\ai-dev-auto-goal.ps1:692:        Stop-AutoGoal $script:steps "com
+pleted_worktree_dirty" $false 1
+  scripts\ai-dev-auto-goal.ps1:693:    }
+  scripts\ai-dev-auto-goal.ps1:694:
+  scripts\ai-dev-auto-goal.ps1:695:    $script:steps += New-StepResult $Ste
+pNumber "completed-clean-gate" "git status -
+-short" $true $false 0 "Completed clean verification passed: git status --s
+hort returned no changes after all result/st
+ate files were written."
+  scripts\ai-dev-auto-goal.ps1:696:}
+  scripts\ai-dev-auto-goal.ps1:697:
+  scripts\ai-dev-auto-goal.ps1:698:function Invoke-FinalPreparedResultGate 
+{
+  scripts\ai-dev-auto-goal.ps1:699:    param(
+  scripts\ai-dev-auto-goal.ps1:700:        [int]$StepNumber,
+  scripts\ai-dev-auto-goal.ps1:704:
+  scripts\ai-dev-auto-goal.ps1:705:    Clear-AutoGoalTempArtifacts
+  scripts\ai-dev-auto-goal.ps1:706:
+  scripts\ai-dev-auto-goal.ps1:707:    $command = "write final result, git 
+add/commit final .ai-dev operational changes
+, git status --short"
+> scripts\ai-dev-auto-goal.ps1:708:    $baselineDirtyPaths = @($script:auto
+GoalBaselineDirtyPaths)
+> scripts\ai-dev-auto-goal.ps1:709:    $baselineDirtyCount = $baselineDirty
+Paths.Count
+  scripts\ai-dev-auto-goal.ps1:710:    $preparedGateStepsWritten = $false
+  scripts\ai-dev-auto-goal.ps1:711:
+  scripts\ai-dev-auto-goal.ps1:712:    Save-AutoGoalResultFile $StoppedReas
+on $true 0
+  scripts\ai-dev-auto-goal.ps1:713:
+  scripts\ai-dev-auto-goal.ps1:714:    $statusLines = @(Get-GitStatusLines 
+$StepNumber "final-change-gate")
+  scripts\ai-dev-auto-goal.ps1:715:    $finalDirtyCount = $statusLines.Coun
+t
+  scripts\ai-dev-auto-goal.ps1:716:
+> scripts\ai-dev-auto-goal.ps1:717:    if ($statusLines.Count -eq 0 -and $b
+aselineDirtyCount -gt 0) {
+> scripts\ai-dev-auto-goal.ps1:718:        $message = "Final clean verifica
+tion failed: baseline dirty paths from auto-
+goal start are no longer visible in git status. They may have been committe
+d or otherwise swallowed, so auto-goal will 
+not report completed.`nBaseline dirty count: $baselineDirtyCount`nFinal dir
+ty count: $finalDirtyCount`nFinal .ai-dev me
+ta commit created: skipped (baseline dirty disappeared).`nBaseline dirty pa
+ths:`n$($baselineDirtyPaths -join "`n")"
+  scripts\ai-dev-auto-goal.ps1:719:        $script:steps += New-StepResult 
+$StepNumber "final-change-gate" $command $tr
+ue $false 1 $message
+> scripts\ai-dev-auto-goal.ps1:720:        Stop-AutoGoal $script:steps "fin
+al_baseline_dirty_disappeared" $false 1
+  scripts\ai-dev-auto-goal.ps1:721:    }
+  scripts\ai-dev-auto-goal.ps1:722:
+  scripts\ai-dev-auto-goal.ps1:723:    if ($statusLines.Count -eq 0) {
+> scripts\ai-dev-auto-goal.ps1:724:        $message = "Baseline dirty count
+: $baselineDirtyCount`nFinal dirty count: $f
+inalDirtyCount before writing final gate entries.`nFinal .ai-dev meta commi
+t created: pending if final gate entries dir
+ty the result file.`nFinal clean verification: git status --short will be r
+equired after the final result file is writt
+en."
+  scripts\ai-dev-auto-goal.ps1:725:        $script:steps += New-StepResult 
+$StepNumber "final-change-gate" $command $tr
+ue $false 0 $message
+  scripts\ai-dev-auto-goal.ps1:726:        $script:steps += New-StepResult 
+$CleanGateStepNumber "completed-clean-gate" 
+"git status --short" $true $false 0 "Completed clean verification passed: g
+it status --short returned no changes after 
+the final result file was written."
+  scripts\ai-dev-auto-goal.ps1:727:        Save-AutoGoalResultFile $Stopped
+Reason $true 0
+  scripts\ai-dev-auto-goal.ps1:728:        $preparedGateStepsWritten = $tru
+e
+  scripts\ai-dev-auto-goal.ps1:729:        $statusLines = @(Get-GitStatusLi
+nes $StepNumber "final-change-gate")
+  scripts\ai-dev-auto-goal.ps1:730:        $finalDirtyCount = $statusLines.
+Count
+  scripts\ai-dev-auto-goal.ps1:731:
+  scripts\ai-dev-auto-goal.ps1:732:        if ($statusLines.Count -eq 0) {
+  scripts\ai-dev-auto-goal.ps1:740:            Where-Object { Test-HasValue
+ $_ } |
+  scripts\ai-dev-auto-goal.ps1:741:            ForEach-Object { ConvertTo-N
+ormalizedChangedPath $_ } |
+  scripts\ai-dev-auto-goal.ps1:742:            Select-Object -Unique
+  scripts\ai-dev-auto-goal.ps1:743:    )
+> scripts\ai-dev-auto-goal.ps1:744:    $baselineRemainingPaths = @($changed
+Paths | Where-Object { $baselineDirtyPaths -
+contains $_ })
+> scripts\ai-dev-auto-goal.ps1:745:    $baselineMissingPaths = @($baselineD
+irtyPaths | Where-Object { $changedPaths -no
+tcontains $_ })
+  scripts\ai-dev-auto-goal.ps1:746:    $nonAiDevPaths = @($changedPaths | W
+here-Object { -not (Test-IsAiDevOperationalP
+ath $_) })
+> scripts\ai-dev-auto-goal.ps1:747:    $newAiDevPaths = @($changedPaths | W
+here-Object { (Test-IsAiDevOperationalPath $
+_) -and ($baselineDirtyPaths -notcontains $_) })
+  scripts\ai-dev-auto-goal.ps1:748:
+> scripts\ai-dev-auto-goal.ps1:749:    if ($baselineMissingPaths.Count -gt 
+0) {
+> scripts\ai-dev-auto-goal.ps1:750:        $message = "Final clean verifica
+tion failed: baseline dirty paths from auto-
+goal start disappeared before completion. They may have been committed or o
+therwise swallowed, so auto-goal will not re
+port completed.`nBaseline dirty count: $baselineDirtyCount`nFinal dirty cou
+nt: $finalDirtyCount`nFinal .ai-dev meta com
+mit created: skipped (baseline dirty disappeared).`nMissing baseline dirty 
+paths:`n$($baselineMissingPaths -join "`n")`
+n$($statusLines -join "`n")"
+  scripts\ai-dev-auto-goal.ps1:751:        $script:steps += New-StepResult 
+$StepNumber "final-change-gate" $command $tr
+ue $false 1 $message
+> scripts\ai-dev-auto-goal.ps1:752:        Stop-AutoGoal $script:steps "fin
+al_baseline_dirty_disappeared" $false 1
+  scripts\ai-dev-auto-goal.ps1:753:    }
+  scripts\ai-dev-auto-goal.ps1:754:
+> scripts\ai-dev-auto-goal.ps1:755:    if ($baselineRemainingPaths.Count -g
+t 0) {
+> scripts\ai-dev-auto-goal.ps1:756:        $message = "Final clean verifica
+tion failed: baseline dirty files remain, so
+ auto-goal will not report completed.`nBaseline dirty count: $baselineDirty
+Count`nFinal dirty count: $finalDirtyCount`n
+Final .ai-dev meta commit created: skipped (baseline dirty remains).`nRemai
+ning baseline dirty paths:`n$($baselineRemai
+ningPaths -join "`n")`n$($statusLines -join "`n")"
+  scripts\ai-dev-auto-goal.ps1:757:        $script:steps += New-StepResult 
+$StepNumber "final-change-gate" $command $tr
+ue $false 1 $message
+> scripts\ai-dev-auto-goal.ps1:758:        Stop-AutoGoal $script:steps "fin
+al_baseline_dirty_remains" $false 1
+  scripts\ai-dev-auto-goal.ps1:759:    }
+  scripts\ai-dev-auto-goal.ps1:760:
+  scripts\ai-dev-auto-goal.ps1:761:    if ($nonAiDevPaths.Count -gt 0) {
+> scripts\ai-dev-auto-goal.ps1:762:        $message = "Final clean verifica
+tion failed: non-.ai-dev changes remain, so 
+auto-goal will not report completed.`nBaseline dirty count: $baselineDirtyC
+ount`nFinal dirty count: $finalDirtyCount`nF
+inal .ai-dev meta commit created: skipped (non-.ai-dev dirty remains).`n$($
+statusLines -join "`n")"
+  scripts\ai-dev-auto-goal.ps1:763:        $script:steps += New-StepResult 
+$StepNumber "final-change-gate" $command $tr
+ue $false 1 $message
+> scripts\ai-dev-auto-goal.ps1:764:        Stop-AutoGoal $script:steps "fin
+al_non_ai_dev_changes" $false 1
+  scripts\ai-dev-auto-goal.ps1:765:    }
+  scripts\ai-dev-auto-goal.ps1:766:
+  scripts\ai-dev-auto-goal.ps1:767:    if ($newAiDevPaths.Count -eq 0) {
+> scripts\ai-dev-auto-goal.ps1:768:        $message = "Final clean verifica
+tion failed: dirty paths remain, but none ar
+e new .ai-dev operational changes that auto-goal may commit.`nBaseline dirt
+y count: $baselineDirtyCount`nFinal dirty co
+unt: $finalDirtyCount`nFinal .ai-dev meta commit created: skipped (no eligi
+ble .ai-dev changes).`n$($statusLines -join 
+"`n")"
+  scripts\ai-dev-auto-goal.ps1:769:        $script:steps += New-StepResult 
+$StepNumber "final-change-gate" $command $tr
+ue $false 1 $message
+> scripts\ai-dev-auto-goal.ps1:770:        Stop-AutoGoal $script:steps "fin
+al_no_eligible_meta_changes" $false 1
+  scripts\ai-dev-auto-goal.ps1:771:    }
+  scripts\ai-dev-auto-goal.ps1:772:
+  scripts\ai-dev-auto-goal.ps1:773:    if (-not $AllowCommit) {
+> scripts\ai-dev-auto-goal.ps1:774:        $message = "Final clean verifica
+tion failed: only new .ai-dev operational ch
+anges remain, but -AllowCommit is required to create the final meta commit.
+`nBaseline dirty count: $baselineDirtyCount`
+nFinal dirty count: $finalDirtyCount`nFinal .ai-dev meta commit created: sk
+ipped (-AllowCommit missing).`n$($statusLine
+s -join "`n")"
+  scripts\ai-dev-auto-goal.ps1:775:        $script:steps += New-StepResult 
+$StepNumber "final-change-gate" $command $tr
+ue $false 1 $message
+> scripts\ai-dev-auto-goal.ps1:776:        Stop-AutoGoal $script:steps "fin
+al_ai_dev_changes_require_commit" $false 1
+  scripts\ai-dev-auto-goal.ps1:777:    }
+  scripts\ai-dev-auto-goal.ps1:778:
+  scripts\ai-dev-auto-goal.ps1:779:    if (-not $preparedGateStepsWritten) 
+{
+> scripts\ai-dev-auto-goal.ps1:780:        $message = "Baseline dirty count
+: $baselineDirtyCount`nFinal dirty count: $f
+inalDirtyCount`nFinal .ai-dev meta commit created: pending; this final resu
+lt file is written before that commit and in
+cluded in it.`nFinal .ai-dev paths to commit:`n$($newAiDevPaths -join "`n")
+"
+  scripts\ai-dev-auto-goal.ps1:781:        $script:steps += New-StepResult 
+$StepNumber "final-change-gate" $command $tr
+ue $false 0 $message
+  scripts\ai-dev-auto-goal.ps1:782:        $script:steps += New-StepResult 
+$CleanGateStepNumber "completed-clean-gate" 
+"git status --short" $true $false 0 "Completed clean verification is enforc
+ed immediately after the final .ai-dev meta 
+commit; completed=true is returned only if git status --short reports no ch
+anges."
+  scripts\ai-dev-auto-goal.ps1:783:        Save-AutoGoalResultFile $Stopped
+Reason $true 0
+  scripts\ai-dev-auto-goal.ps1:784:    }
+  scripts\ai-dev-auto-goal.ps1:785:
+  scripts\ai-dev-auto-goal.ps1:786:    $statusLines = @(Get-GitStatusLines 
+$StepNumber "final-change-gate")
+  scripts\ai-dev-auto-goal.ps1:787:    $newAiDevPaths = @(
+  scripts\ai-dev-auto-goal.ps1:788:        $statusLines |
+  scripts\ai-dev-auto-goal.ps1:789:            ForEach-Object { Convert-ToC
+hangedPath $_ } |
+  scripts\ai-dev-auto-goal.ps1:790:            Where-Object { Test-HasValue
+ $_ } |
+  scripts\ai-dev-auto-goal.ps1:791:            ForEach-Object { ConvertTo-N
+ormalizedChangedPath $_ } |
+> scripts\ai-dev-auto-goal.ps1:792:            Where-Object { (Test-IsAiDev
+OperationalPath $_) -and ($baselineDirtyPath
+s -notcontains $_) } |
+  scripts\ai-dev-auto-goal.ps1:793:            Select-Object -Unique
+  scripts\ai-dev-auto-goal.ps1:794:    )
+  scripts\ai-dev-auto-goal.ps1:795:
+  scripts\ai-dev-auto-goal.ps1:796:    if ($newAiDevPaths.Count -eq 0) {
+  scripts\ai-dev-auto-goal.ps1:797:        $message = "Final clean verifica
+tion failed: no final .ai-dev operational pa
+ths were available to commit after the final result file was written.`n$($s
+tatusLines -join "`n")"
+  scripts\ai-dev-auto-goal.ps1:798:        $script:steps += New-StepResult 
+$StepNumber "final-change-gate" $command $tr
+ue $false 1 $message
+> scripts\ai-dev-auto-goal.ps1:799:        Stop-AutoGoal $script:steps "fin
+al_no_eligible_meta_changes" $false 1
+  scripts\ai-dev-auto-goal.ps1:800:    }
+  scripts\ai-dev-auto-goal.ps1:801:
+  scripts\ai-dev-auto-goal.ps1:802:    $addArguments = @("add", "--") + $ne
+wAiDevPaths
+  scripts\ai-dev-auto-goal.ps1:803:    $addOutput = & git @addArguments 2>&
+1 | Out-String
+  scripts\ai-dev-auto-goal.ps1:804:    $addExitCode = $LASTEXITCODE
+  scripts\ai-dev-auto-goal.ps1:805:
+  scripts\ai-dev-auto-goal.ps1:806:    if ($addExitCode -ne 0) {
+  scripts\ai-dev-auto-goal.ps1:807:        & git restore --staged -- $newAi
+DevPaths 2>&1 | Out-String | Out-Null
+> scripts\ai-dev-auto-goal.ps1:808:        $restoredPaths = @(Restore-AutoG
+oalCurrentRunOperationalChanges $newAiDevPat
+hs)
+  scripts\ai-dev-auto-goal.ps1:809:        $message = "auto-goal 최종 .ai-dev
+ 메타 변경 git add 실패. exit code: $addExitCode`n
+$addOutput"
+  scripts\ai-dev-auto-goal.ps1:810:        $script:steps += New-StepResult 
+$StepNumber "final-change-gate" "git add -- 
+<final .ai-dev files>" $true $false 1 "$message`nRestored run-owned files: 
+$($restoredPaths -join ', ')"
+> scripts\ai-dev-auto-goal.ps1:811:        Stop-AutoGoal $script:steps "fin
+al_meta_add_failed" $false 1
+  scripts\ai-dev-auto-goal.ps1:812:    }
+  scripts\ai-dev-auto-goal.ps1:813:
+  scripts\ai-dev-auto-goal.ps1:814:    $metaCommitMessage = "chore(ai-dev):
+ record final auto-goal state"
+  scripts\ai-dev-auto-goal.ps1:815:    $commitArguments = @("commit", "-m",
+ $metaCommitMessage, "--") + $newAiDevPaths
+  scripts\ai-dev-auto-goal.ps1:816:    $commitOutput = & git @commitArgumen
+ts 2>&1 | Out-String
+  scripts\ai-dev-auto-goal.ps1:817:    $commitExitCode = $LASTEXITCODE
+  scripts\ai-dev-auto-goal.ps1:818:
+  scripts\ai-dev-auto-goal.ps1:819:    if ($commitExitCode -ne 0) {
+  scripts\ai-dev-auto-goal.ps1:820:        & git restore --staged -- $newAi
+DevPaths 2>&1 | Out-String | Out-Null
+> scripts\ai-dev-auto-goal.ps1:821:        $restoredPaths = @(Restore-AutoG
+oalCurrentRunOperationalChanges $newAiDevPat
+hs)
+  scripts\ai-dev-auto-goal.ps1:822:        $message = "auto-goal 최종 .ai-dev
+ 메타 커밋 실패. exit code: $commitExitCode`n$comm
+itOutput"
+  scripts\ai-dev-auto-goal.ps1:823:        $script:steps += New-StepResult 
+$StepNumber "final-change-gate" "git commit 
+-m '$metaCommitMessage' -- <final .ai-dev files>" $true $false 1 "$message`
+nRestored run-owned files: $($restoredPaths 
+-join ', ')"
+> scripts\ai-dev-auto-goal.ps1:824:        Stop-AutoGoal $script:steps "fin
+al_meta_commit_failed" $false 1
+  scripts\ai-dev-auto-goal.ps1:825:    }
+  scripts\ai-dev-auto-goal.ps1:826:
+  scripts\ai-dev-auto-goal.ps1:827:    $remainingStatus = @(Get-GitStatusLi
+nes $CleanGateStepNumber "completed-clean-ga
+te")
+  scripts\ai-dev-auto-goal.ps1:828:
+  scripts\ai-dev-auto-goal.ps1:829:    if ($remainingStatus.Count -gt 0) {
+  scripts\ai-dev-auto-goal.ps1:830:        $message = "Completed clean veri
+fication failed: changes remain after the fi
+nal .ai-dev meta commit, so auto-goal will not report completed.`n$($remain
+ingStatus -join "`n")"
+  scripts\ai-dev-auto-goal.ps1:831:        $script:steps += New-StepResult 
+$CleanGateStepNumber "completed-clean-gate" 
+"git status --short" $true $false 1 $message
+> scripts\ai-dev-auto-goal.ps1:832:        Stop-AutoGoal $script:steps "com
+pleted_worktree_dirty" $false 1
+  scripts\ai-dev-auto-goal.ps1:833:    }
+  scripts\ai-dev-auto-goal.ps1:834:}
+  scripts\ai-dev-auto-goal.ps1:835:
+  scripts\ai-dev-auto-goal.ps1:836:function Complete-AutoGoal {
+  scripts\ai-dev-auto-goal.ps1:837:    param(
+  scripts\ai-dev-auto-goal.ps1:838:        [int]$PreFinalGateStepNumber,
+  scripts\ai-dev-auto-goal.ps1:839:        [int]$ResultStepNumber,
+  scripts\ai-dev-auto-goal.ps1:840:        [int]$PostFinalGateStepNumber,
+  scripts\ai-dev-auto-goal.ps1:845:    Invoke-FinalAutoGoalChangeGate $PreF
+inalGateStepNumber
+  scripts\ai-dev-auto-goal.ps1:846:    $script:steps += New-StepResult $Res
+ultStepNumber "write-final-result" (ConvertT
+o-RepoRelativePath $ResultPath) $true $false 0 "Final success result file i
+s written after the pre-result final change 
+gate and before the final .ai-dev meta commit."
+  scripts\ai-dev-auto-goal.ps1:847:    Invoke-FinalPreparedResultGate $Post
+FinalGateStepNumber $CleanGateStepNumber $St
+oppedReason
+  scripts\ai-dev-auto-goal.ps1:848:    $script:autoGoalCanCleanTempArtifact
+s = $false
+> scripts\ai-dev-auto-goal.ps1:849:    Stop-AutoGoal $script:steps $Stopped
+Reason $true 0
+  scripts\ai-dev-auto-goal.ps1:850:}
+  scripts\ai-dev-auto-goal.ps1:851:
+  scripts\ai-dev-auto-goal.ps1:852:function Get-JsonObjectCandidates {
+  scripts\ai-dev-auto-goal.ps1:853:    param([string]$RawInput)
+  scripts\ai-dev-auto-goal.ps1:854:
+  scripts\ai-dev-auto-goal.ps1:855:    $candidates = @()
+  scripts\ai-dev-auto-goal.ps1:856:    $seen = @{}
+  scripts\ai-dev-auto-goal.ps1:857:
+  scripts\ai-dev-auto-goal.ps1:1327:    $script:steps += New-StepResult $St
+epNumber $Name $Command $true $false $exitCo
+de $message
+  scripts\ai-dev-auto-goal.ps1:1328:
+  scripts\ai-dev-auto-goal.ps1:1329:    if ($exitCode -ne 0) {
+  scripts\ai-dev-auto-goal.ps1:1330:        $childStoppedReason = Get-Stopp
+edReasonFromOutput $message
+> scripts\ai-dev-auto-goal.ps1:1331:        $stoppedReason = if (Test-IsExp
+ectedPreImplementationStop $childStoppedReas
+on) { $childStoppedReason } else { "$Name`_failed" }
+> scripts\ai-dev-auto-goal.ps1:1332:        Stop-AutoGoal $script:steps $st
+oppedReason $false 1
+  scripts\ai-dev-auto-goal.ps1:1333:    }
+  scripts\ai-dev-auto-goal.ps1:1334:}
+  scripts\ai-dev-auto-goal.ps1:1335:
+  scripts\ai-dev-auto-goal.ps1:1336:function Get-FullCycleArguments {
+  scripts\ai-dev-auto-goal.ps1:1337:    $arguments = @("-MaxTasks", ([strin
+g]$MaxTasks), "-MaxSteps", ([string]$MaxStep
+s))
+  scripts\ai-dev-auto-goal.ps1:1338:
+  scripts\ai-dev-auto-goal.ps1:1339:    if ($AllowCodex) {
+  scripts\ai-dev-auto-goal.ps1:1340:        $arguments += "-AllowCodex"
+  scripts\ai-dev-auto-goal.ps1:1351:    # auto-goal writes goal/queue/state
+/current prompt/result files after the initi
+al dirty gate.
+  scripts\ai-dev-auto-goal.ps1:1352:    # The downstream full cycle must to
+lerate those intended artifacts.
+  scripts\ai-dev-auto-goal.ps1:1353:    $arguments += "-AllowDirty"
+  scripts\ai-dev-auto-goal.ps1:1354:
+> scripts\ai-dev-auto-goal.ps1:1355:    if ($script:autoGoalBaselineDirtyPa
+ths.Count -gt 0) {
+> scripts\ai-dev-auto-goal.ps1:1356:        $arguments += "-ProtectedBaseli
+neDirtyPaths"
+> scripts\ai-dev-auto-goal.ps1:1357:        $arguments += ($script:autoGoal
+BaselineDirtyPaths -join ",")
+  scripts\ai-dev-auto-goal.ps1:1358:    }
+  scripts\ai-dev-auto-goal.ps1:1359:
+  scripts\ai-dev-auto-goal.ps1:1360:    if ($null -ne $CommitFiles -and $Co
+mmitFiles.Count -gt 0) {
+  scripts\ai-dev-auto-goal.ps1:1361:        $normalizedFiles = @($CommitFil
+es | ForEach-Object { $_ -split "," } | Wher
+e-Object { -not [string]::IsNullOrWhiteSpace($_) })
+  scripts\ai-dev-auto-goal.ps1:1362:
+  scripts\ai-dev-auto-goal.ps1:1363:        if ($normalizedFiles.Count -gt 
+0) {
+  scripts\ai-dev-auto-goal.ps1:1364:            $arguments += "-CommitFiles
+"
+  scripts\ai-dev-auto-goal.ps1:1365:            $arguments += ($normalizedF
+iles -join ",")
+  scripts\ai-dev-auto-goal.ps1:1388:Set-Location $repoRoot
+  scripts\ai-dev-auto-goal.ps1:1389:
+  scripts\ai-dev-auto-goal.ps1:1390:$script:steps = @()
+  scripts\ai-dev-auto-goal.ps1:1391:$script:autoGoalPlanPreview = $null
+> scripts\ai-dev-auto-goal.ps1:1392:$script:autoGoalBaselineStatusLines = @
+()
+> scripts\ai-dev-auto-goal.ps1:1393:$script:autoGoalBaselineDirtyPaths = @(
+)
+  scripts\ai-dev-auto-goal.ps1:1394:$resolvedGoalPath = [System.IO.Path]::G
+etFullPath((Resolve-RepoPath $goalRelativePa
+th))
+  scripts\ai-dev-auto-goal.ps1:1395:$resolvedQueuePath = [System.IO.Path]::
+GetFullPath((Resolve-RepoPath $queueRelative
+Path))
+  scripts\ai-dev-auto-goal.ps1:1396:$resolvedStatePath = [System.IO.Path]::
+GetFullPath((Resolve-RepoPath $stateRelative
+Path))
+  scripts\ai-dev-auto-goal.ps1:1397:$resolvedPlanningPromptPath = [System.I
+O.Path]::GetFullPath((Resolve-RepoPath $plan
+ningPromptRelativePath))
+  scripts\ai-dev-auto-goal.ps1:1398:$resolvedResultPath = [System.IO.Path]:
+:GetFullPath((Resolve-RepoPath $ResultPath))
+> scripts\ai-dev-auto-goal.ps1:1399:Initialize-AutoGoalOperationalFileSnaps
+hots
+  scripts\ai-dev-auto-goal.ps1:1400:
+  scripts\ai-dev-auto-goal.ps1:1401:if (-not (Test-HasValue $GoalTitle)) {
+  scripts\ai-dev-auto-goal.ps1:1402:    $script:steps += New-StepResult 0 "
+validate-input" "check GoalTitle" $false $fa
+lse 1 "GoalTitle must not be empty."
+> scripts\ai-dev-auto-goal.ps1:1403:    Stop-AutoGoal $script:steps "invali
+d_goal_title" $false 1
+  scripts\ai-dev-auto-goal.ps1:1404:}
+  scripts\ai-dev-auto-goal.ps1:1405:
+  scripts\ai-dev-auto-goal.ps1:1406:if (-not (Test-HasValue $GoalDescriptio
+n)) {
+  scripts\ai-dev-auto-goal.ps1:1407:    $script:steps += New-StepResult 0 "
+validate-input" "check GoalDescription" $fal
+se $false 1 "GoalDescription must not be empty."
+> scripts\ai-dev-auto-goal.ps1:1408:    Stop-AutoGoal $script:steps "invali
+d_goal_description" $false 1
+  scripts\ai-dev-auto-goal.ps1:1409:}
+  scripts\ai-dev-auto-goal.ps1:1410:
+  scripts\ai-dev-auto-goal.ps1:1411:if ($MaxTasks -lt 1) {
+  scripts\ai-dev-auto-goal.ps1:1412:    $script:steps += New-StepResult 0 "
+validate-input" "check MaxTasks" $false $fal
+se 1 "MaxTasks must be at least 1."
+> scripts\ai-dev-auto-goal.ps1:1413:    Stop-AutoGoal $script:steps "max_ta
+sks_must_be_at_least_1" $false 1
+  scripts\ai-dev-auto-goal.ps1:1414:}
+  scripts\ai-dev-auto-goal.ps1:1415:
+  scripts\ai-dev-auto-goal.ps1:1416:if ($MaxSteps -lt 1) {
+  scripts\ai-dev-auto-goal.ps1:1417:    $script:steps += New-StepResult 0 "
+validate-input" "check MaxSteps" $false $fal
+se 1 "MaxSteps must be at least 1."
+> scripts\ai-dev-auto-goal.ps1:1418:    Stop-AutoGoal $script:steps "max_st
+eps_must_be_at_least_1" $false 1
+  scripts\ai-dev-auto-goal.ps1:1419:}
+  scripts\ai-dev-auto-goal.ps1:1420:
+  scripts\ai-dev-auto-goal.ps1:1421:$makePromptPath = Join-Path $PSScriptRo
+ot "ai-dev-make-prompt.ps1"
+  scripts\ai-dev-auto-goal.ps1:1422:$autoCycleFullPath = Join-Path $PSScrip
+tRoot "ai-dev-auto-cycle-full.ps1"
+  scripts\ai-dev-auto-goal.ps1:1423:
+  scripts\ai-dev-auto-goal.ps1:1424:foreach ($requiredScript in @($makeProm
+ptPath, $autoCycleFullPath)) {
+  scripts\ai-dev-auto-goal.ps1:1425:    if (-not (Test-Path -LiteralPath $r
+equiredScript -PathType Leaf)) {
+  scripts\ai-dev-auto-goal.ps1:1426:        $script:steps += New-StepResult
+ 0 "prepare" "check required scripts" $false
+ $false 1 "Missing required script: $requiredScript"
+> scripts\ai-dev-auto-goal.ps1:1427:        Stop-AutoGoal $script:steps "pr
+epare_failed" $false 1
+  scripts\ai-dev-auto-goal.ps1:1428:    }
+  scripts\ai-dev-auto-goal.ps1:1429:}
+  scripts\ai-dev-auto-goal.ps1:1430:
+  scripts\ai-dev-auto-goal.ps1:1431:$shouldRunFullCycle = [bool]($AllowRun 
+-or $AllowCodex -or $AllowReviewCodex -or $A
+llowCommit)
+  scripts\ai-dev-auto-goal.ps1:1432:$fullCycleArguments = @(Get-FullCycleAr
+guments)
+  scripts\ai-dev-auto-goal.ps1:1433:$fullCycleCommandText = "powershell -Ex
+ecutionPolicy Bypass -File scripts/ai-dev-au
+to-cycle-full.ps1 $($fullCycleArguments -join ' ')".Trim()
+  scripts\ai-dev-auto-goal.ps1:1434:
+  scripts\ai-dev-auto-goal.ps1:1435:$script:steps += New-StepResult 1 "vali
+date-input" "check GoalTitle/GoalDescription
+" $false $false 0 "Input validation completed: $GoalTitle"
+  scripts\ai-dev-auto-goal.ps1:1439:    $previewValidationErrors = @(Get-Au
+toGoalValidationErrors $script:autoGoalPlanP
+review)
+  scripts\ai-dev-auto-goal.ps1:1440:
+  scripts\ai-dev-auto-goal.ps1:1441:    if ($previewValidationErrors.Count 
+-gt 0) {
+  scripts\ai-dev-auto-goal.ps1:1442:        $script:steps += New-StepResult
+ 2 "preview-plan" "local dry-run plan previe
+w" $false $false 1 "DryRun preview plan validation failed: $($previewValida
+tionErrors -join '; ')"
+> scripts\ai-dev-auto-goal.ps1:1443:        Stop-AutoGoal $script:steps "dr
+y_run_preview_invalid" $false 1
+  scripts\ai-dev-auto-goal.ps1:1444:    }
+  scripts\ai-dev-auto-goal.ps1:1445:
+  scripts\ai-dev-auto-goal.ps1:1446:    $plannedAutoGoalOutputPaths = @(Get
+-PlannedAutoGoalOutputPaths)
+> scripts\ai-dev-auto-goal.ps1:1447:    $script:steps += New-StepResult 2 "
+dirty-worktree-gate" "git status --porcelain
+; compare baseline dirty paths with planned auto-goal outputs" $false $true
+ 0 "DryRun: baseline dirty capture, dirty wo
+rktree gate, and baseline output conflict gate were not executed. Would che
+ck planned output paths: $($plannedAutoGoalO
+utputPaths -join ', ')"
+  scripts\ai-dev-auto-goal.ps1:1448:    $script:steps += New-StepResult 3 "
+plan-goal" "codex exec <auto-goal planning p
+rompt>" $false $true 0 "DryRun: Codex goal planning was not executed. Previ
+ew currentTaskId: T001, task: $GoalTitle"
+  scripts\ai-dev-auto-goal.ps1:1449:    $script:steps += New-StepResult 4 "
+validate-generated-json" "goal/queue/state J
+SON validation" $false $true 0 "DryRun: preview goal/queue/state plan passe
+d local schema validation."
+  scripts\ai-dev-auto-goal.ps1:1450:    $script:steps += New-StepResult 5 "
+write-state-files" "$goalRelativePath, $queu
+eRelativePath, $stateRelativePath" $false $true 0 "DryRun: state files were
+ not written."
+  scripts\ai-dev-auto-goal.ps1:1451:    $script:steps += New-StepResult 6 "
+make-prompt" "powershell -ExecutionPolicy By
+pass -File scripts/ai-dev-make-prompt.ps1" $false $true 0 "DryRun: current-
+task-prompt.md was not generated."
+  scripts\ai-dev-auto-goal.ps1:1452:
+  scripts\ai-dev-auto-goal.ps1:1453:    if ($shouldRunFullCycle) {
+  scripts\ai-dev-auto-goal.ps1:1454:        $script:steps += New-StepResult
+ 7 "auto-cycle-full" $fullCycleCommandText $
+false $true 0 "DryRun: explicit run option is present, but full cycle was n
+ot executed. -AllowRun only invokes the full
+-cycle wrapper; implementation and review still require -AllowCodex and -Al
+lowReviewCodex."
+  scripts\ai-dev-auto-goal.ps1:1455:    } else {
+  scripts\ai-dev-auto-goal.ps1:1456:        $script:steps += New-StepResult
+ 7 "auto-cycle-full" $fullCycleCommandText $
+false $true 0 "DryRun: full cycle requires -AllowRun or explicit execution 
+options. -AllowRun only invokes the full-cyc
+le wrapper; implementation and review still require -AllowCodex and -AllowR
+eviewCodex."
+  scripts\ai-dev-auto-goal.ps1:1457:    }
+  scripts\ai-dev-auto-goal.ps1:1458:
+> scripts\ai-dev-auto-goal.ps1:1459:    Stop-AutoGoal $script:steps "dry_ru
+n" $false 0
+  scripts\ai-dev-auto-goal.ps1:1460:}
+  scripts\ai-dev-auto-goal.ps1:1461:
+> scripts\ai-dev-auto-goal.ps1:1462:$script:autoGoalBaselineStatusLines = @
+(Get-GitPorcelainStatusLines)
+> scripts\ai-dev-auto-goal.ps1:1463:$script:autoGoalBaselineDirtyPaths = @(
+> scripts\ai-dev-auto-goal.ps1:1464:    $script:autoGoalBaselineStatusLines
+ |
+  scripts\ai-dev-auto-goal.ps1:1465:        ForEach-Object { Convert-ToChan
+gedPath $_ } |
+  scripts\ai-dev-auto-goal.ps1:1466:        Where-Object { Test-HasValue $_
+ } |
+  scripts\ai-dev-auto-goal.ps1:1467:        ForEach-Object { ConvertTo-Norm
+alizedChangedPath $_ } |
+  scripts\ai-dev-auto-goal.ps1:1468:        Select-Object -Unique
+  scripts\ai-dev-auto-goal.ps1:1469:)
+  scripts\ai-dev-auto-goal.ps1:1470:$plannedAutoGoalOutputPaths = @(Get-Pla
+nnedAutoGoalOutputPaths)
+> scripts\ai-dev-auto-goal.ps1:1471:Invoke-BaselineOutputConflictGate $scri
+pt:autoGoalBaselineDirtyPaths $plannedAutoGo
+alOutputPaths
+  scripts\ai-dev-auto-goal.ps1:1472:
+> scripts\ai-dev-auto-goal.ps1:1473:$statusLines = @($script:autoGoalBaseli
+neStatusLines)
+> scripts\ai-dev-auto-goal.ps1:1474:$baselineDirtyCount = $script:autoGoalB
+aselineDirtyPaths.Count
+  scripts\ai-dev-auto-goal.ps1:1475:
+  scripts\ai-dev-auto-goal.ps1:1476:if ($statusLines.Count -gt 0 -and -not 
+$AllowDirty) {
+  scripts\ai-dev-auto-goal.ps1:1477:    $dirtyText = ($statusLines -join "`
+n")
+> scripts\ai-dev-auto-goal.ps1:1478:    $script:steps += New-StepResult 2 "
+dirty-worktree-gate" "git status --porcelain
+" $false $true 1 "Baseline dirty count: $baselineDirtyCount`nWorktree is di
+rty. Use -AllowDirty only when this is inten
+tional.`n$dirtyText"
+> scripts\ai-dev-auto-goal.ps1:1479:    Stop-AutoGoal $script:steps "dirty_
+worktree" $false 1
+  scripts\ai-dev-auto-goal.ps1:1480:}
+  scripts\ai-dev-auto-goal.ps1:1481:
+  scripts\ai-dev-auto-goal.ps1:1482:if ($statusLines.Count -gt 0) {
+> scripts\ai-dev-auto-goal.ps1:1483:    $script:steps += New-StepResult 2 "
+dirty-worktree-gate" "git status --porcelain
+" $true $false 0 "AllowDirty is set. Baseline dirty count: $baselineDirtyCo
+unt"
+  scripts\ai-dev-auto-goal.ps1:1484:} else {
+> scripts\ai-dev-auto-goal.ps1:1485:    $script:steps += New-StepResult 2 "
+dirty-worktree-gate" "git status --porcelain
+" $true $false 0 "Baseline dirty count: 0. Worktree is clean."
+  scripts\ai-dev-auto-goal.ps1:1486:}
+  scripts\ai-dev-auto-goal.ps1:1487:
+  scripts\ai-dev-auto-goal.ps1:1488:$fullCycleArguments = @(Get-FullCycleAr
+guments)
+  scripts\ai-dev-auto-goal.ps1:1489:$fullCycleCommandText = "powershell -Ex
+ecutionPolicy Bypass -File scripts/ai-dev-au
+to-cycle-full.ps1 $($fullCycleArguments -join ' ')".Trim()
+  scripts\ai-dev-auto-goal.ps1:1490:
+  scripts\ai-dev-auto-goal.ps1:1491:$codexCommand = Get-Command codex -Erro
+rAction SilentlyContinue
+  scripts\ai-dev-auto-goal.ps1:1492:
+  scripts\ai-dev-auto-goal.ps1:1493:if ($null -eq $codexCommand) {
+  scripts\ai-dev-auto-goal.ps1:1494:    $script:steps += New-StepResult 3 "
+plan-goal" "codex exec <auto-goal planning p
+rompt>" $false $false 1 "Codex CLI was not found."
+> scripts\ai-dev-auto-goal.ps1:1495:    Stop-AutoGoal $script:steps "codex_
+not_found" $false 1
+  scripts\ai-dev-auto-goal.ps1:1496:}
+  scripts\ai-dev-auto-goal.ps1:1497:
+  scripts\ai-dev-auto-goal.ps1:1498:$plannerPrompt = New-CodexAutoGoalPromp
+t $GoalTitle.Trim() $GoalDescription.Trim()
+  scripts\ai-dev-auto-goal.ps1:1499:$codexPrompt = New-CodexAutoGoalWrapper
+Prompt $resolvedPlanningPromptPath
+  scripts\ai-dev-auto-goal.ps1:1500:$commandText = "codex exec <short wrapp
+er pointing to $planningPromptRelativePath>"
+  scripts\ai-dev-auto-goal.ps1:1501:[System.IO.File]::WriteAllText($resolve
+dPlanningPromptPath, $plannerPrompt, $utf8Wi
+thBom)
+  scripts\ai-dev-auto-goal.ps1:1502:$startedAt = Get-Date -Format "yyyy-MM-
+dd HH:mm:ss"
+  scripts\ai-dev-auto-goal.ps1:1503:$codexOutput = & codex exec $codexPromp
+t 2>&1 | Out-String
+  scripts\ai-dev-auto-goal.ps1:1526:[System.IO.File]::WriteAllText($resolve
+dResultPath, $resultContent, $utf8WithBom)
+  scripts\ai-dev-auto-goal.ps1:1527:
+  scripts\ai-dev-auto-goal.ps1:1528:if ($codexExitCode -ne 0) {
+  scripts\ai-dev-auto-goal.ps1:1529:    $script:steps += New-StepResult 3 "
+plan-goal" "codex exec <auto-goal planning p
+rompt>" $true $false 1 "Codex goal planning failed. Result: $(ConvertTo-Rep
+oRelativePath $ResultPath)"
+> scripts\ai-dev-auto-goal.ps1:1530:    Stop-AutoGoal $script:steps "codex_
+plan_failed" $false 1
+  scripts\ai-dev-auto-goal.ps1:1531:}
+  scripts\ai-dev-auto-goal.ps1:1532:
+  scripts\ai-dev-auto-goal.ps1:1533:$script:steps += New-StepResult 3 "plan
+-goal" "codex exec <auto-goal planning promp
+t>" $true $false 0 "Codex goal planning completed. Result: $(ConvertTo-Repo
+RelativePath $ResultPath)"
+  scripts\ai-dev-auto-goal.ps1:1534:
+  scripts\ai-dev-auto-goal.ps1:1535:try {
+  scripts\ai-dev-auto-goal.ps1:1536:    $autoGoalPlan = ConvertFrom-CodexAu
+toGoalOutput $codexOutput
+  scripts\ai-dev-auto-goal.ps1:1537:} catch {
+  scripts\ai-dev-auto-goal.ps1:1538:    $preview = Get-InputPreview $codexO
+utput
+  scripts\ai-dev-auto-goal.ps1:1539:    $script:steps += New-StepResult 4 "
+validate-generated-json" "goal/queue/state J
+SON validation" $false $false 1 "Codex plan JSON extraction failed: $($_.Ex
+ception.Message) Output preview: $preview"
+> scripts\ai-dev-auto-goal.ps1:1540:    Stop-AutoGoal $script:steps "genera
+ted_json_invalid" $false 1
+  scripts\ai-dev-auto-goal.ps1:1541:}
+  scripts\ai-dev-auto-goal.ps1:1542:
+  scripts\ai-dev-auto-goal.ps1:1543:$script:steps += New-StepResult 4 "vali
+date-generated-json" "goal/queue/state JSON 
+validation" $false $false 0 "goalMarkdown, queue, and state JSON validation
+ completed. currentTaskId: $($autoGoalPlan.P
+arsed.queue.currentTaskId)"
+  scripts\ai-dev-auto-goal.ps1:1544:$script:autoGoalPlanPreview = $autoGoal
+Plan.Parsed
+  scripts\ai-dev-auto-goal.ps1:1545:
+  scripts\ai-dev-auto-goal.ps1:1546:$goalMarkdown = [string]$autoGoalPlan.P
+arsed.goalMarkdown
+  scripts\ai-dev-auto-goal.ps1:1547:$queueJson = $autoGoalPlan.Parsed.queue
+ | ConvertTo-Json -Depth 30
+  scripts\ai-dev-auto-goal.ps1:1548:$stateJson = $autoGoalPlan.Parsed.state
+ | ConvertTo-Json -Depth 30
+  scripts\ai-dev-auto-goal.ps1:1565:try {
+  scripts\ai-dev-auto-goal.ps1:1566:    $goalStatusAfterFullCycle = Get-Cur
+rentGoalStatus
+  scripts\ai-dev-auto-goal.ps1:1567:} catch {
+  scripts\ai-dev-auto-goal.ps1:1568:    $script:steps += New-StepResult 8 "
+verify-goal-status" "$stateRelativePath goal
+Status 확인" $false $false 1 $_.Exception.Message
+> scripts\ai-dev-auto-goal.ps1:1569:    Stop-AutoGoal $script:steps "goal_s
+tatus_verify_failed" $false 1
+  scripts\ai-dev-auto-goal.ps1:1570:}
+  scripts\ai-dev-auto-goal.ps1:1571:
+  scripts\ai-dev-auto-goal.ps1:1572:if ($goalStatusAfterFullCycle -ne "comp
+leted") {
+  scripts\ai-dev-auto-goal.ps1:1573:    $script:steps += New-StepResult 8 "
+verify-goal-status" "$stateRelativePath goal
+Status 확인" $false $true 1 "auto-cycle-full은 성공 종료했지만 goalStatus가 completed가
+ 아닙니다: $goalStatusAfterFullCycle"
+> scripts\ai-dev-auto-goal.ps1:1574:    Stop-AutoGoal $script:steps "auto_c
+ycle_incomplete" $false 1
+  scripts\ai-dev-auto-goal.ps1:1575:}
+  scripts\ai-dev-auto-goal.ps1:1576:
+  scripts\ai-dev-auto-goal.ps1:1577:$script:steps += New-StepResult 8 "veri
+fy-goal-status" "$stateRelativePath goalStat
+us 확인" $false $false 0 "auto-cycle-full 성공 후 goalStatus completed 확인."
+  scripts\ai-dev-auto-goal.ps1:1578:
+  scripts\ai-dev-auto-goal.ps1:1579:Complete-AutoGoal 9 10 11 12 "completed
+"
+  scripts\ai-dev-auto-goal.ps1:1580:
+
+
+
+codex
+핵심 변경부는 운영 파일 스냅샷 복원, expected_non_work 분류, 메타 커밋 경로 제한입니다. 이제 기존 함수 시그니처와 
+새 호출이 맞는지 좁혀 확인하겠습니다.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "
+Get-Content -LiteralPath 'D:\\ai-apps\\planpilot-local\\scripts\\ai-dev-aut
+opilot.ps1' -TotalCount 740" in D:\ai-apps\planpilot-local
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "
+Get-Content -LiteralPath 'D:\\ai-apps\\planpilot-local\\scripts\\ai-dev-aut
+o-goal.ps1' -TotalCount 460" in D:\ai-apps\planpilot-local
+ succeeded in 2523ms:
+param(
+    [int]$MaxGoals = 1,
+    [int]$MaxTasks = 1,
+    [int]$MaxSteps = 22,
+    [switch]$DryRun,
+    [switch]$Json,
+    [switch]$AllowRun,
+    [switch]$AllowCodex,
+    [switch]$AllowReviewCodex,
+    [switch]$AllowCommit,
+    [switch]$AllowDirty,
+    [string[]]$CommitFiles
+)
+
+. "$PSScriptRoot\ai-dev-env.ps1"
+
+$repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
+$goalRelativePath = ".ai-dev/goal.md"
+$queueRelativePath = ".ai-dev/queue.json"
+$stateRelativePath = ".ai-dev/state.json"
+$backlogRelativePath = ".ai-dev/backlog.md"
+$loopLogRelativePath = ".ai-dev/loop-log.md"
+$goalHistoryRelativePath = ".ai-dev/autopilot-goal-history.json"
+$autopilotMetaCommitRelativePaths = @(
+    ".ai-dev/codex-result.md",
+    ".ai-dev/current-task-prompt.md",
+    ".ai-dev/goal.md",
+    ".ai-dev/queue.json",
+    ".ai-dev/state.json",
+    ".ai-dev/test-result.md",
+    $loopLogRelativePath,
+    $goalHistoryRelativePath
+)
+$goalPath = Join-Path $repoRoot $goalRelativePath
+$queuePath = Join-Path $repoRoot $queueRelativePath
+$statePath = Join-Path $repoRoot $stateRelativePath
+$backlogPath = Join-Path $repoRoot $backlogRelativePath
+$loopLogPath = Join-Path $repoRoot $loopLogRelativePath
+$goalHistoryPath = Join-Path $repoRoot $goalHistoryRelativePath
+$utf8WithBom = New-Object System.Text.UTF8Encoding($true)
+$script:autopilotOperationalFileSnapshots = @{}
+$script:autopilotBaselineDirtyPaths = @()
+
+function Test-HasValue {
+    param([object]$Value)
+
+    if ($null -eq $Value) {
+        return $false
+    }
+
+    if ($Value -is [string]) {
+        return -not [string]::IsNullOrWhiteSpace($Value)
+    }
+
+    return $true
+}
+
+function Read-JsonFile {
+    param(
+        [string]$Path,
+        [string]$RelativePath
+    )
+
+    try {
+        return Get-Content -Raw -Encoding UTF8 -LiteralPath $Path | Convert
+From-Json
+    } catch {
+        throw "Failed to parse JSON file $($RelativePath): $($_.Exception.M
+essage)"
+    }
+}
+
+function Write-JsonFile {
+    param(
+        [string]$Path,
+        [object]$Value
+    )
+
+    $json = $Value | ConvertTo-Json -Depth 20
+    [System.IO.File]::WriteAllText($Path, $json, $utf8WithBom)
+}
+
+function New-EmptyGoalHistory {
+    return [PSCustomObject][ordered]@{
+        version = 1
+        updatedAt = ""
+        goals = @()
+    }
+}
+
+function Read-AutopilotGoalHistory {
+    if (-not (Test-Path -LiteralPath $goalHistoryPath -PathType Leaf)) {
+        return New-EmptyGoalHistory
+    }
+
+    $history = Read-JsonFile $goalHistoryPath $goalHistoryRelativePath
+
+    if ($null -eq $history) {
+        return New-EmptyGoalHistory
+    }
+
+    if ($history -is [array]) {
+        $normalized = New-EmptyGoalHistory
+        $normalized.goals = @($history)
+        return $normalized
+    }
+
+    if ($history.PSObject.Properties.Name -notcontains "goals" -or $null -e
+q $history.goals) {
+        Set-ObjectProperty $history "goals" @()
+    }
+
+    if ($history.PSObject.Properties.Name -notcontains "version") {
+        Set-ObjectProperty $history "version" 1
+    }
+
+    if ($history.PSObject.Properties.Name -notcontains "updatedAt") {
+        Set-ObjectProperty $history "updatedAt" ""
+    }
+
+    return $history
+}
+
+function Get-AutopilotGoalHistoryTitles {
+    try {
+        $history = Read-AutopilotGoalHistory
+    } catch {
+        throw "Failed to read durable autopilot goal history: $($_.Exceptio
+n.Message)"
+    }
+
+    $titles = @()
+
+    foreach ($goal in @($history.goals)) {
+        if ($null -eq $goal) {
+            continue
+        }
+
+        if ($goal -is [string]) {
+            $titles = @(Add-UniqueTitle $titles $goal)
+            continue
+        }
+
+        if ($goal.PSObject.Properties.Name -contains "title") {
+            $titles = @(Add-UniqueTitle $titles ([string]$goal.title))
+        }
+    }
+
+    return @($titles)
+}
+
+function Add-AutopilotGoalHistoryTitle {
+    param(
+        [string]$Title,
+        [string]$Event
+    )
+
+    if ($DryRun -or -not (Test-HasValue $Title)) {
+        return
+    }
+
+    if (Test-IsAutopilotBaselineDirtyPath $goalHistoryRelativePath) {
+        return
+    }
+
+    $now = [DateTimeOffset]::UtcNow.ToString("o")
+    $trimmedTitle = $Title.Trim()
+    $history = Read-AutopilotGoalHistory
+    $goals = @($history.goals)
+    $existingGoal = $null
+
+    foreach ($goal in $goals) {
+        if ($null -eq $goal) {
+            continue
+        }
+
+        $goalTitle = ""
+
+        if ($goal -is [string]) {
+            $goalTitle = [string]$goal
+        } elseif ($goal.PSObject.Properties.Name -contains "title") {
+            $goalTitle = [string]$goal.title
+        }
+
+        if ($goalTitle.Trim() -eq $trimmedTitle) {
+            $existingGoal = $goal
+            break
+        }
+    }
+
+    if ($null -eq $existingGoal -or $existingGoal -is [string]) {
+        $events = @([PSCustomObject][ordered]@{
+            event = $Event
+            at = $now
+        })
+
+        $goalEntry = [PSCustomObject][ordered]@{
+            title = $trimmedTitle
+            firstSeenAt = $now
+            lastSeenAt = $now
+            lastEvent = $Event
+            events = $events
+        }
+
+        $goals = @($goals | Where-Object { -not ($_ -is [string] -and $_.Tr
+im() -eq $trimmedTitle) })
+        $goals = @($goals) + @($goalEntry)
+    } else {
+        if ($existingGoal.PSObject.Properties.Name -notcontains "firstSeenA
+t" -or -not (Test-HasValue $existingGoal.firstSeenAt)) {
+            Set-ObjectProperty $existingGoal "firstSeenAt" $now
+        }
+
+        Set-ObjectProperty $existingGoal "lastSeenAt" $now
+        Set-ObjectProperty $existingGoal "lastEvent" $Event
+
+        $events = @()
+        if ($existingGoal.PSObject.Properties.Name -contains "events" -and 
+$null -ne $existingGoal.events) {
+            $events = @($existingGoal.events)
+        }
+
+        $events = @($events) + @([PSCustomObject][ordered]@{
+            event = $Event
+            at = $now
+        })
+
+        Set-ObjectProperty $existingGoal "events" $events
+    }
+
+    Set-ObjectProperty $history "version" 1
+    Set-ObjectProperty $history "updatedAt" $now
+    Set-ObjectProperty $history "goals" @($goals)
+    Write-JsonFile $goalHistoryPath $history
+}
+
+function Set-ObjectProperty {
+    param(
+        [object]$InputObject,
+        [string]$Name,
+        [object]$Value
+    )
+
+    if ($InputObject.PSObject.Properties.Name -contains $Name) {
+        $InputObject.$Name = $Value
+    } else {
+        $InputObject | Add-Member -NotePropertyName $Name -NotePropertyValu
+e $Value
+    }
+}
+
+function Add-LoopLogEntry {
+    param(
+        [string]$Title,
+        [string[]]$Lines
+    )
+
+    if ($DryRun) {
+        return
+    }
+
+    if (Test-IsAutopilotBaselineDirtyPath $loopLogRelativePath) {
+        return
+    }
+
+    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    $entryLines = @("", "## $timestamp - $Title", "")
+    $entryLines += @($Lines)
+    $entryLines += ""
+    [System.IO.File]::AppendAllText($loopLogPath, ($entryLines -join "`r`n"
+), $utf8WithBom)
+}
+
+function Test-IsExpectedAutopilotNonWorkStop {
+    param([string]$StoppedReason)
+
+    return @(
+        "all_goal_candidates_excluded",
+        "baseline_output_conflict",
+        "dirty_worktree",
+        "goal_candidate_not_found",
+        "current_goal_not_completed",
+        "max_steps_too_small_for_full_cycle"
+    ) -contains $StoppedReason
+}
+
+function Get-StoppedReasonFromOutput {
+    param([string]$Output)
+
+    if (-not (Test-HasValue $Output)) {
+        return ""
+    }
+
+    if ($Output -match '(?m)^\s*Stopped reason:\s*(\S+)\s*$') {
+        return $Matches[1]
+    }
+
+    if ($Output -match '(?m)"stoppedReason"\s*:\s*"([^"]+)"') {
+        return $Matches[1]
+    }
+
+    return ""
+}
+
+function ConvertTo-NormalizedChangedPath {
+    param([string]$RelativePath)
+
+    if (-not (Test-HasValue $RelativePath)) {
+        return $null
+    }
+
+    return $RelativePath.Trim().Trim('"').Replace('\', '/')
+}
+
+function Convert-ToChangedPath {
+    param([string]$ChangeLine)
+
+    if ([string]::IsNullOrWhiteSpace($ChangeLine)) {
+        return @()
+    }
+
+    $pathText = $ChangeLine
+
+    if ($ChangeLine.Length -ge 4 -and $ChangeLine.Substring(2, 1) -eq " ") 
+{
+        $pathText = $ChangeLine.Substring(3)
+    }
+
+    if ($pathText.Contains(" -> ")) {
+        return @($pathText -split " -> " | Where-Object { Test-HasValue $_ 
+})
+    }
+
+    return @($pathText)
+}
+
+function Get-AutopilotBaselineDirtyPaths {
+    $statusOutput = & git status --porcelain 2>&1
+
+    if ($LASTEXITCODE -ne 0) {
+        throw "git status --porcelain failed while capturing autopilot base
+line dirty paths: $($statusOutput -join "`n")"
+    }
+
+    return @(
+        $statusOutput |
+            ForEach-Object { Convert-ToChangedPath $_ } |
+            Where-Object { Test-HasValue $_ } |
+            ForEach-Object { ConvertTo-NormalizedChangedPath $_ } |
+            Select-Object -Unique
+    )
+}
+
+function Test-IsAutopilotBaselineDirtyPath {
+    param([string]$RelativePath)
+
+    $normalizedRelativePath = ConvertTo-NormalizedChangedPath $RelativePath
+    return @($script:autopilotBaselineDirtyPaths) -contains $normalizedRela
+tivePath
+}
+
+function Initialize-AutopilotOperationalFileSnapshots {
+    $script:autopilotOperationalFileSnapshots = @{}
+
+    foreach ($relativePath in @($stateRelativePath, $loopLogRelativePath, $
+goalHistoryRelativePath)) {
+        $fullPath = [System.IO.Path]::GetFullPath((Join-Path $repoRoot $rel
+ativePath))
+
+        if (-not $fullPath.StartsWith($repoRoot.TrimEnd("\") + "\", [System
+.StringComparison]::OrdinalIgnoreCase)) {
+            continue
+        }
+
+        $exists = [System.IO.File]::Exists($fullPath)
+        $bytes = $null
+
+        if ($exists) {
+            $bytes = [System.IO.File]::ReadAllBytes($fullPath)
+        }
+
+        $script:autopilotOperationalFileSnapshots[$relativePath] = [PSCusto
+mObject][ordered]@{
+            path = $fullPath
+            existed = $exists
+            bytes = $bytes
+        }
+    }
+}
+
+function Restore-AutopilotCurrentRunOperationalChanges {
+    param([string[]]$RelativePaths = @())
+
+    $restoredPaths = @()
+
+    if ($null -eq $script:autopilotOperationalFileSnapshots) {
+        return @($restoredPaths)
+    }
+
+    $targetPaths = @($RelativePaths | ForEach-Object { ConvertTo-Normalized
+ChangedPath $_ } | Where-Object { Test-HasValue $_ } | Select-Object -Uniqu
+e)
+
+    foreach ($entry in @($script:autopilotOperationalFileSnapshots.GetEnume
+rator())) {
+        $relativePath = ConvertTo-NormalizedChangedPath ([string]$entry.Key
+)
+        $snapshot = $entry.Value
+
+        if ($targetPaths.Count -gt 0 -and $targetPaths -notcontains $relati
+vePath) {
+            continue
+        }
+
+        if (Test-IsAutopilotBaselineDirtyPath $relativePath) {
+            continue
+        }
+
+        $fullPath = [string]$snapshot.path
+
+        if (-not $fullPath.StartsWith($repoRoot.TrimEnd("\") + "\", [System
+.StringComparison]::OrdinalIgnoreCase)) {
+            continue
+        }
+
+        try {
+            if ($snapshot.existed) {
+                [System.IO.File]::WriteAllBytes($fullPath, [byte[]]$snapsho
+t.bytes)
+            } elseif ([System.IO.File]::Exists($fullPath)) {
+                [System.IO.File]::Delete($fullPath)
+            }
+            $restoredPaths += $relativePath
+        } catch {
+            Write-Warning "Failed to restore autopilot operational file sna
+pshot: $fullPath"
+        }
+    }
+
+    return @($restoredPaths | Select-Object -Unique)
+}
+
+function Add-AutopilotExpectedNonWorkLogEntry {
+    param(
+        [string]$StoppedReason,
+        [string]$Message,
+        [int]$PreparedGoals
+    )
+
+    $resultMessage = if (Test-HasValue $Message) { $Message } else { "Autop
+ilot stopped before implementation work." }
+
+    Add-LoopLogEntry "Autopilot expected non-work stop" @(
+        "- Reason: $StoppedReason",
+        "- Outcome category: expected_non_work",
+        "- Result: $resultMessage",
+        "- Prepared goals: $PreparedGoals/$MaxGoals",
+        "- Failure counter: not incremented",
+        "- Cleanup: restored current-run autopilot operational file snapsho
+ts before writing this meta log entry"
+    )
+}
+
+function Invoke-AutopilotLoopLogMetaCommit {
+    param([int]$StepNumber)
+
+    if ($DryRun) {
+        return New-StepResult $StepNumber "autopilot-meta-commit" $false $t
+rue 0 "DryRun: autopilot loop-log/history meta commit was not executed."
+    }
+
+    if (-not $AllowCommit) {
+        return New-StepResult $StepNumber "autopilot-meta-commit" $false $t
+rue 0 "AllowCommit is not set, so autopilot loop-log/history meta commit wa
+s not executed."
+    }
+
+    $skippedBaselinePaths = @(
+        @($loopLogRelativePath, $goalHistoryRelativePath) |
+            ForEach-Object { ConvertTo-NormalizedChangedPath $_ } |
+            Where-Object { Test-IsAutopilotBaselineDirtyPath $_ } |
+            Select-Object -Unique
+    )
+    $currentRunMetaPaths = @(
+        $loopLogRelativePath,
+        $goalHistoryRelativePath
+    ) |
+        ForEach-Object { ConvertTo-NormalizedChangedPath $_ } |
+        Where-Object { -not (Test-IsAutopilotBaselineDirtyPath $_) } |
+        Select-Object -Unique
+
+    if ($currentRunMetaPaths.Count -eq 0) {
+        return New-StepResult $StepNumber "autopilot-meta-commit" $false $t
+rue 0 "Autopilot meta commit skipped because all meta files were baseline d
+irty and protected: $($skippedBaselinePaths -join ', ')"
+    }
+
+    $statusOutput = & git status --short -- $currentRunMetaPaths 2>&1 | Out
+-String
+    $statusExitCode = $LASTEXITCODE
+
+    if ($statusExitCode -ne 0) {
+        return New-StepResult $StepNumber "autopilot-meta-commit" $true $fa
+lse 1 "git status for autopilot meta files failed. exit code: $statusExitCo
+de`n$statusOutput"
+    }
+
+    if (-not (Test-HasValue $statusOutput)) {
+        $message = "Autopilot meta files had no changes to commit."
+        if ($skippedBaselinePaths.Count -gt 0) {
+            $message = "$message Baseline dirty files skipped: $($skippedBa
+selinePaths -join ', ')"
+        }
+        return New-StepResult $StepNumber "autopilot-meta-commit" $true $fa
+lse 0 $message
+    }
+
+    $addOutput = & git add -- $currentRunMetaPaths 2>&1 | Out-String
+    $addExitCode = $LASTEXITCODE
+
+    if ($addExitCode -ne 0) {
+        & git restore --staged -- $currentRunMetaPaths 2>&1 | Out-String | 
+Out-Null
+        $restoredPaths = @(Restore-AutopilotCurrentRunOperationalChanges $c
+urrentRunMetaPaths)
+        return New-StepResult $StepNumber "autopilot-meta-commit" $true $fa
+lse 1 "Autopilot meta files git add failed. exit code: $addExitCode`n$addOu
+tput`nRestored run-owned files: $($restoredPaths -join ', ')"
+    }
+
+    $metaCommitMessage = "chore(ai-dev): record autopilot progress"
+    $commitOutput = & git commit -m $metaCommitMessage -- $currentRunMetaPa
+ths 2>&1 | Out-String
+    $commitExitCode = $LASTEXITCODE
+
+    if ($commitExitCode -ne 0) {
+        & git restore --staged -- $currentRunMetaPaths 2>&1 | Out-String | 
+Out-Null
+        $restoredPaths = @(Restore-AutopilotCurrentRunOperationalChanges $c
+urrentRunMetaPaths)
+        return New-StepResult $StepNumber "autopilot-meta-commit" $true $fa
+lse 1 "Autopilot meta commit failed. exit code: $commitExitCode`n$commitOut
+put`nRestored run-owned files: $($restoredPaths -join ', ')"
+    }
+
+    $remainingStatus = & git status --short -- $currentRunMetaPaths 2>&1 | 
+Out-String
+    $remainingStatusExitCode = $LASTEXITCODE
+
+    if ($remainingStatusExitCode -ne 0) {
+        return New-StepResult $StepNumber "autopilot-meta-commit" $true $fa
+lse 1 "Autopilot meta clean verification failed because git status failed. 
+exit code: $remainingStatusExitCode`n$remainingStatus"
+    }
+
+    if (Test-HasValue $remainingStatus) {
+        return New-StepResult $StepNumber "autopilot-meta-commit" $true $fa
+lse 1 "Autopilot meta clean verification failed: git status --short still r
+eports meta changes after the autopilot meta commit.`n$remainingStatus"
+    }
+
+    $message = ($commitOutput.Trim(), "Baseline dirty files skipped: $($ski
+ppedBaselinePaths -join ', ')", "Autopilot meta clean verification: git sta
+tus --short returned no autopilot meta changes.") -join "`n"
+    return New-StepResult $StepNumber "autopilot-meta-commit" $true $false 
+0 $message
+}
+
+function Save-AutopilotFailureState {
+    param(
+        [string]$StoppedReason,
+        [string]$Message
+    )
+
+    if ($DryRun) {
+        return
+    }
+
+    try {
+        $state = Read-JsonFile $statePath $stateRelativePath
+        $previousReason = if (Test-HasValue $state.stopReason) { [string]$s
+tate.stopReason } else { "" }
+        $previousRepeatedFailureCount = 0
+
+        if (Test-HasValue $state.repeatedFailureCount) {
+            $previousRepeatedFailureCount = [int]$state.repeatedFailureCoun
+t
+        }
+
+        $nextRepeatedFailureCount = if ($previousReason -eq $StoppedReason)
+ { $previousRepeatedFailureCount + 1 } else { 1 }
+
+        Set-ObjectProperty $state "lastCommand" "autopilot"
+        Set-ObjectProperty $state "lastCommandStatus" "failed"
+        Set-ObjectProperty $state "lastErrorSummary" $Message
+        Set-ObjectProperty $state "repeatedFailureCount" $nextRepeatedFailu
+reCount
+        Set-ObjectProperty $state "stopReason" $StoppedReason
+        Set-ObjectProperty $state "updatedAt" ([DateTimeOffset]::UtcNow.ToS
+tring("o"))
+        Write-JsonFile $statePath $state
+    } catch {
+        Write-Warning "Failed to record autopilot failure state: $($_.Excep
+tion.Message)"
+    }
+}
+
+function New-StepResult {
+    param(
+        [int]$Step,
+        [string]$Name,
+        [bool]$Executed,
+        [bool]$Skipped,
+        [int]$ExitCode,
+        [string]$Message,
+        [object]$GoalCandidate = $null
+    )
+
+    return [PSCustomObject][ordered]@{
+        step = $Step
+        name = $Name
+        executed = $Executed
+        skipped = $Skipped
+        exitCode = $ExitCode
+        message = $Message
+        goalCandidate = $GoalCandidate
+    }
+}
+
+function New-AutopilotResult {
+    param(
+        [object[]]$Steps,
+        [string]$StoppedReason,
+        [bool]$Completed,
+        [int]$ExitCode,
+        [int]$PreparedGoals,
+        [bool]$OperationalCleanupPerformed = $false,
+        [bool]$MetaCommitCreated = $false,
+        [bool]$NextRunWithoutManualRestore = $false
+    )
+
+    $outcomeCategory = if (Test-IsExpectedAutopilotNonWorkStop $StoppedReas
+on) {
+        "expected_non_work"
+    } elseif ($ExitCode -eq 0) {
+        "success"
+    } else {
+        "actual_failure"
+    }
+
+    return [PSCustomObject][ordered]@{
+        steps = @($Steps)
+        stoppedReason = $StoppedReason
+        outcomeCategory = $outcomeCategory
+        completed = $Completed
+        exitCode = $ExitCode
+        maxGoals = $MaxGoals
+        preparedGoals = $PreparedGoals
+        operationalCleanupPerformed = $OperationalCleanupPerformed
+        metaCommitCreated = $MetaCommitCreated
+        nextRunWithoutManualRestore = $NextRunWithoutManualRestore
+    }
+}
+
+function Write-AutopilotResult {
+    param([object]$Result)
+
+    if ($Json) {
+        $Result | ConvertTo-Json -Depth 30
+        return
+    }
+
+    foreach ($step in @($Result.steps)) {
+        Write-Host "Step $($step.step): $($step.name)"
+        Write-Host "  Executed: $($step.executed)"
+        Write-Host "  Skipped: $($step.skipped)"
+        Write-Host "  Exit code: $($step.exitCode)"
+        Write-Host "  Message: $($step.message)"
+
+        if ($null -ne $step.goalCandidate) {
+            Write-Host "  Goal candidate: $($step.goalCandidate.title)"
+        }
+    }
+
+    Write-Host "Stopped reason: $($Result.stoppedReason)"
+    Write-Host "Outcome category: $($Result.outcomeCategory)"
+    Write-Host "Operational cleanup performed: $($Result.operationalCleanup
+Performed)"
+    Write-Host "Meta commit created: $($Result.metaCommitCreated)"
+    Write-Host "Next run without manual restore: $($Result.nextRunWithoutMa
+nualRestore)"
+    Write-Host "Completed: $($Result.completed)"
+    Write-Host "Prepared goals: $($Result.preparedGoals)/$($Result.maxGoals
+)"
+    Write-Host "Exit code: $($Result.exitCode)"
+}
+
+function Stop-Autopilot {
+    param(
+        [object[]]$Steps,
+        [string]$StoppedReason,
+        [bool]$Completed,
+        [int]$ExitCode,
+        [int]$PreparedGoals,
+        [string]$FailureMessage = ""
+    )
+
+    $isExpectedNonWorkStop = Test-IsExpectedAutopilotNonWorkStop $StoppedRe
+ason
+    $operationalCleanupPerformed = $false
+    $metaCommitCreated = $false
+    $nextRunWithoutManualRestore = ($ExitCode -eq 0)
+
+    if ($ExitCode -ne 0 -and (Test-HasValue $FailureMessage) -and -not $isE
+xpectedNonWorkStop) {
+        Save-AutopilotFailureState $StoppedReason $FailureMessage
+        Add-LoopLogEntry "Autopilot stopped" @(
+            "- Reason: $StoppedReason",
+            "- Result: $FailureMessage",
+            "- Prepared goals: $PreparedGoals/$MaxGoals"
+        )
+    }
+
+    if ($ExitCode -ne 0 -and $isExpectedNonWorkStop -and -not $DryRun) {
+        $cleanedRunOwnedPaths = @(Restore-AutopilotCurrentRunOperationalCha
+nges)
+        $operationalCleanupPerformed = $true
+        $metaCommitMessage = "skipped (-AllowCommit not set)"
+        $nextRunWithoutManualRestore = $true
+        $skippedBaselineMetaPaths = @(
+            @($loopLogRelativePath, $goalHistoryRelativePath) |
+                ForEach-Object { ConvertTo-NormalizedChangedPath $_ } |
+                Where-Object { Test-IsAutopilotBaselineDirtyPath $_ } |
+                Select-Object -Unique
+        )
+
+        if ($AllowCommit) {
+            Add-AutopilotExpectedNonWorkLogEntry $StoppedReason $FailureMes
+sage $PreparedGoals
+            $metaCommitStep = Invoke-AutopilotLoopLogMetaCommit ($Steps.Cou
+nt + 1)
+            $metaCommitCreated = ($metaCommitStep.exitCode -eq 0 -and $meta
+CommitStep.executed -and -not $metaCommitStep.skipped -and $metaCommitStep.
+message -notmatch 'had no changes to commit')
+            $metaCommitMessage = if ($metaCommitCreated) { "created" } else
+ { "not created: $($metaCommitStep.message)" }
+
+            if ($metaCommitStep.exitCode -ne 0) {
+                $cleanedRunOwnedPaths = @(Restore-AutopilotCurrentRunOperat
+ionalChanges)
+                $operationalCleanupPerformed = $true
+                $nextRunWithoutManualRestore = $true
+                $Steps += $metaCommitStep
+                $Steps += New-StepResult ($Steps.Count + 1) "expected-non-w
+ork-cleanup" $true $false 0 "Classification: expected_non_work. Original st
+opped reason: $StoppedReason. Baseline dirty files skipped: $($skippedBasel
+ineMetaPaths -join ', '). Cleaned run-owned files: $($cleanedRunOwnedPaths 
+-join ', '). Meta commit created: false. Next run without manual git restor
+e: $nextRunWithoutManualRestore."
+                $result = New-AutopilotResult $Steps "autopilot_expected_no
+n_work_meta_commit_failed" $false 1 $PreparedGoals $operationalCleanupPerfo
+rmed $false $nextRunWithoutManualRestore
+                Write-AutopilotResult $result
+                exit 1
+            }
+
+            $Steps += $metaCommitStep
+        }
+
+        $Steps += New-StepResult ($Steps.Count + 1) "expected-non-work-clea
+nup" $true $false 0 "Classification: expected_non_work. Original stopped re
+ason: $StoppedReason. Baseline dirty files skipped: $($skippedBaselineMetaP
+aths -join ', '). Cleaned run-owned files: $($cleanedRunOwnedPaths -join ',
+ '). Meta commit created: $metaCommitCreated ($metaCommitMessage). Next run
+ without manual git restore: $nextRunWithoutManualRestore. Restored only au
+topilot operational files captured at run start; baseline user changes were
+ preserved."
+    }
+
+    $result = New-AutopilotResult $Steps $StoppedReason $Completed $ExitCod
+e $PreparedGoals $operationalCleanupPerformed $metaCommitCreated $nextRunWi
+thoutManualRestore
+    Write-AutopilotResult $result
+    exit $ExitCode
+}
+
+function Get-CurrentGoalGate {
+    $queue = Read-JsonFile $queuePath $queueRelativePath
+    $state = Read-JsonFile $statePath $stateRelativePath
+    $tasks = @($queue.tasks)
+    $openTasks = @($tasks | Where-Object { @("pending", "in_progress", "rev
+iew_required", "failed", "blocked") -contains ([string]$_.status) })
+    $goalStatus = if (Test-HasValue $state.goalStatus) { [string]$state.goa
+lStatus } else { "" }
+    $currentTaskId = if (Test-HasValue $state.currentTaskId) { [string]$sta
+te.currentTaskId } elseif (Test-HasValue $queue.currentTaskId) { [string]$q
+ueue.currentTaskId } else { "" }
+
+    return [PSCustomObject][ordered]@{
+        passed = ($goalStatus -eq "completed" -and -not (Test-HasValue $cur
+rentTaskId) -and $openTasks.Count -eq 0)
+        goalTitle = if (Test-HasValue $queue.goalTitle) { [string]$queue.go
+alTitle } else { "" }
+        goalStatus = $goalStatus
+        currentTaskId = $currentTaskId
+        openTaskCount = $openTasks.Count
+    }
+}
+
+function Test-IsUsableBacklogText {
+    param([string]$Text)
+
+    if (-not (Test-HasValue $Text)) {
+        return $false
+    }
+
+    $trimmed = $Text.Trim()
+
+    if ($trimmed.Length -lt 4) {
+        return $false
+    }
+
+    if ($trimmed -notmatch '[\p{L}\p{N}]') {
+        return $false
+    }
+
+    return $true
+}
+
+function Get-BacklogTitleSuspicionReason {
+    param([string]$Text)
+
+    if (-not (Test-IsUsableBacklogText $Text)) {
+        return "not_usable"
+    }
+
+ succeeded in 2548ms:
 param(
     [AllowEmptyString()]
     [string]$GoalTitle,
@@ -356,6 +4521,7 @@ $legacyAutoGoalResultRelativePath = ".ai-dev/auto-goal-codex-result.md"
 $aiDevOperationalRoot = ".ai-dev/"
 $script:autoGoalCanWriteResultFile = $true
 $script:autoGoalCanCleanTempArtifacts = $true
+$script:autoGoalOperationalFileSnapshots = @{}
 
 function Resolve-RepoPath {
     param([string]$Path)
@@ -426,9 +4592,19 @@ function New-AutoGoalResult {
         [int]$ExitCode
     )
 
+    $outcomeCategory = if (Test-IsExpectedPreImplementationStop $StoppedRea
+son) {
+        "expected_non_work"
+    } elseif ($ExitCode -eq 0) {
+        "success"
+    } else {
+        "actual_failure"
+    }
+
     return [PSCustomObject][ordered]@{
         steps = @($Steps)
         stoppedReason = $StoppedReason
+        outcomeCategory = $outcomeCategory
         completed = $Completed
         exitCode = $ExitCode
         plan = $script:autoGoalPlanPreview
@@ -475,6 +4651,7 @@ join ', '))"
     }
 
     Write-Host "Stopped reason: $($Result.stoppedReason)"
+    Write-Host "Outcome category: $($Result.outcomeCategory)"
     Write-Host "Completed: $($Result.completed)"
     Write-Host "Exit code: $($Result.exitCode)"
 }
@@ -504,6 +4681,7 @@ xitCode
 ## Summary
 
 - Stopped reason: $($result.stoppedReason)
+- Outcome category: $($result.outcomeCategory)
 - Completed: $($result.completed)
 - Exit code: $($result.exitCode)
 - Result path: $($result.resultPath)
@@ -517,6 +4695,81 @@ $($stepLines -join "`r`n")
 Bom)
 }
 
+function Invoke-AutoGoalExpectedNonWorkMetaCommit {
+    param([int]$StepNumber)
+
+    if ($DryRun) {
+        return New-StepResult $StepNumber "expected-non-work-meta-commit" "
+git add/commit expected non-work result" $false $true 0 "DryRun: expected n
+on-work result meta commit was not executed."
+    }
+
+    if (-not $AllowCommit) {
+        return New-StepResult $StepNumber "expected-non-work-meta-commit" "
+git add/commit expected non-work result" $false $true 0 "AllowCommit is not
+ set, so expected non-work result remains an uncommitted meta record."
+    }
+
+    $resultRelativePath = ConvertTo-NormalizedChangedPath (ConvertTo-RepoRe
+lativePath $ResultPath)
+
+    if (@($script:autoGoalBaselineDirtyPaths) -contains $resultRelativePath
+) {
+        return New-StepResult $StepNumber "expected-non-work-meta-commit" "
+git add/commit expected non-work result" $false $true 0 "Expected non-work 
+result meta commit skipped because ResultPath was baseline dirty and protec
+ted: $resultRelativePath"
+    }
+
+    $statusOutput = & git status --short -- $resultRelativePath 2>&1 | Out-
+String
+    $statusExitCode = $LASTEXITCODE
+
+    if ($statusExitCode -ne 0) {
+        return New-StepResult $StepNumber "expected-non-work-meta-commit" "
+git status --short -- <result file>" $true $false 1 "git status for expecte
+d non-work result failed. exit code: $statusExitCode`n$statusOutput"
+    }
+
+    if (-not (Test-HasValue $statusOutput)) {
+        return New-StepResult $StepNumber "expected-non-work-meta-commit" "
+git status --short -- <result file>" $true $false 0 "Expected non-work resu
+lt file had no changes to commit."
+    }
+
+    $addOutput = & git add -- $resultRelativePath 2>&1 | Out-String
+    $addExitCode = $LASTEXITCODE
+
+    if ($addExitCode -ne 0) {
+        & git restore --staged -- $resultRelativePath 2>&1 | Out-String | O
+ut-Null
+        $restoredPaths = @(Restore-AutoGoalCurrentRunOperationalChanges @($
+resultRelativePath))
+        return New-StepResult $StepNumber "expected-non-work-meta-commit" "
+git add -- <result file>" $true $false 1 "Expected non-work result git add 
+failed. exit code: $addExitCode`n$addOutput`nRestored run-owned files: $($r
+estoredPaths -join ', ')"
+    }
+
+    $commitOutput = & git commit -m "chore(ai-dev): record expected non-wor
+k stop" -- $resultRelativePath 2>&1 | Out-String
+    $commitExitCode = $LASTEXITCODE
+
+    if ($commitExitCode -ne 0) {
+        & git restore --staged -- $resultRelativePath 2>&1 | Out-String | O
+ut-Null
+        $restoredPaths = @(Restore-AutoGoalCurrentRunOperationalChanges @($
+resultRelativePath))
+        return New-StepResult $StepNumber "expected-non-work-meta-commit" "
+git commit -- <result file>" $true $false 1 "Expected non-work result commi
+t failed. exit code: $commitExitCode`n$commitOutput`nRestored run-owned fil
+es: $($restoredPaths -join ', ')"
+    }
+
+    return New-StepResult $StepNumber "expected-non-work-meta-commit" "git 
+add/commit expected non-work result" $true $false 0 $commitOutput.Trim()
+}
+
 function Clear-AutoGoalTempArtifacts {
     if (-not $script:autoGoalCanCleanTempArtifacts) {
         return
@@ -527,6 +4780,14 @@ esultPath))
 
     foreach ($relativePath in @($planningPromptRelativePath, $legacyAutoGoa
 lResultRelativePath)) {
+        $normalizedRelativePath = ConvertTo-NormalizedChangedPath (ConvertT
+o-RepoRelativePath $relativePath)
+
+        if (@($script:autoGoalBaselineDirtyPaths) -contains $normalizedRela
+tivePath) {
+            continue
+        }
+
         $fullPath = [System.IO.Path]::GetFullPath((Resolve-RepoPath $relati
 vePath))
 
@@ -551,6 +4812,112 @@ vePath"
     }
 }
 
+function Test-IsExpectedPreImplementationStop {
+    param([string]$StoppedReason)
+
+    return @(
+        "baseline_output_conflict",
+        "dirty_worktree",
+        "max_steps_too_small_for_full_cycle"
+    ) -contains $StoppedReason
+}
+
+function Initialize-AutoGoalOperationalFileSnapshots {
+    $script:autoGoalOperationalFileSnapshots = @{}
+
+    foreach ($relativePath in @(Get-PlannedAutoGoalOutputPaths)) {
+        $fullPath = [System.IO.Path]::GetFullPath((Resolve-RepoPath $relati
+vePath))
+
+        if (-not $fullPath.StartsWith($repoRoot.TrimEnd("\") + "\", [System
+.StringComparison]::OrdinalIgnoreCase)) {
+            continue
+        }
+
+        $exists = [System.IO.File]::Exists($fullPath)
+        $bytes = $null
+
+        if ($exists) {
+            $bytes = [System.IO.File]::ReadAllBytes($fullPath)
+        }
+
+        $script:autoGoalOperationalFileSnapshots[$relativePath] = [PSCustom
+Object][ordered]@{
+            path = $fullPath
+            existed = $exists
+            bytes = $bytes
+        }
+    }
+}
+
+function Restore-AutoGoalCurrentRunOperationalChanges {
+    param([string[]]$RelativePaths = @())
+
+    $restoredPaths = @()
+
+    if ($null -eq $script:autoGoalOperationalFileSnapshots) {
+        return @($restoredPaths)
+    }
+
+    $targetPaths = @($RelativePaths | ForEach-Object { ConvertTo-Normalized
+ChangedPath $_ } | Where-Object { Test-HasValue $_ } | Select-Object -Uniqu
+e)
+    $baselineDirtyPaths = @($script:autoGoalBaselineDirtyPaths)
+
+    foreach ($entry in @($script:autoGoalOperationalFileSnapshots.GetEnumer
+ator())) {
+        $relativePath = ConvertTo-NormalizedChangedPath ([string]$entry.Key
+)
+        $snapshot = $entry.Value
+
+        if ($targetPaths.Count -gt 0 -and $targetPaths -notcontains $relati
+vePath) {
+            continue
+        }
+
+        if ($baselineDirtyPaths -contains $relativePath) {
+            continue
+        }
+
+        $fullPath = [string]$snapshot.path
+
+        if (-not $fullPath.StartsWith($repoRoot.TrimEnd("\") + "\", [System
+.StringComparison]::OrdinalIgnoreCase)) {
+            continue
+        }
+
+        try {
+            if ($snapshot.existed) {
+                [System.IO.File]::WriteAllBytes($fullPath, [byte[]]$snapsho
+t.bytes)
+            } elseif ([System.IO.File]::Exists($fullPath)) {
+                [System.IO.File]::Delete($fullPath)
+            }
+            $restoredPaths += $relativePath
+        } catch {
+            Write-Warning "Failed to restore auto-goal operational file sna
+pshot: $fullPath"
+        }
+    }
+
+    return @($restoredPaths | Select-Object -Unique)
+}
+
+function Test-CanWriteExpectedNonWorkResultFile {
+    $resultRelativePath = ConvertTo-NormalizedChangedPath (ConvertTo-RepoRe
+lativePath $ResultPath)
+    $snapshot = $script:autoGoalOperationalFileSnapshots[$resultRelativePat
+h]
+    $baselineDirtyPaths = @($script:autoGoalBaselineDirtyPaths)
+
+    if ($null -ne $snapshot -and $snapshot.existed -and $baselineDirtyPaths
+ -contains $resultRelativePath) {
+        return $false
+    }
+
+    return $true
+}
+
 function Stop-AutoGoal {
     param(
         [object[]]$Steps,
@@ -559,18 +4926,96 @@ function Stop-AutoGoal {
         [int]$ExitCode
     )
 
+    $isExpectedPreImplementationStop = Test-IsExpectedPreImplementationStop
+ $StoppedReason
+
     if (-not $DryRun) {
         Clear-AutoGoalTempArtifacts
+
+        if ($isExpectedPreImplementationStop) {
+            $cleanedRunOwnedPaths = @(Restore-AutoGoalCurrentRunOperational
+Changes)
+            $Steps += New-StepResult ($Steps.Count + 1) "expected-non-work-
+cleanup" "restore current-run .ai-dev operational file snapshots" $true $fa
+lse 0 "Expected pre-implementation stop. Restored only auto-goal operationa
+l files captured at run start; baseline user changes were preserved. Cleane
+d run-owned files: $($cleanedRunOwnedPaths -join ', ')"
+        }
     }
+
+    $script:steps = @($Steps)
 
     if (-not $DryRun -and (-not $Completed -or $ExitCode -ne 0)) {
         if ($script:autoGoalCanWriteResultFile) {
-            Save-AutoGoalResultFile $StoppedReason $false $ExitCode
+            if ($isExpectedPreImplementationStop) {
+                if ($AllowCommit) {
+                    if (Test-CanWriteExpectedNonWorkResultFile) {
+                        $Steps += New-StepResult ($Steps.Count + 1) "expect
+ed-non-work-meta-record" "write expected non-work final result" $true $fals
+e 0 "Expected pre-implementation stop is recorded as outcomeCategory=expect
+ed_non_work in the final result file because -AllowCommit is set."
+                        $script:steps = @($Steps)
+                        Save-AutoGoalResultFile $StoppedReason $false $Exit
+Code
+                        $metaCommitStep = Invoke-AutoGoalExpectedNonWorkMet
+aCommit ($Steps.Count + 1)
+                        $Steps += $metaCommitStep
+                        $script:steps = @($Steps)
+
+                        if ($metaCommitStep.exitCode -ne 0) {
+                            $originalStoppedReason = $StoppedReason
+                            $StoppedReason = "expected_non_work_meta_commit
+_failed"
+                            $isExpectedPreImplementationStop = $false
+                            $Completed = $false
+                            $ExitCode = 1
+                            $Steps += New-StepResult ($Steps.Count + 1) "ex
+pected-non-work-meta-failure" "classify expected non-work meta commit failu
+re" $true $false 1 "Expected pre-implementation stop meta commit failed and
+ is reclassified as actual_failure. Original stopped reason: $originalStopp
+edReason"
+                            $script:steps = @($Steps)
+                        }
+                    } else {
+                        $resultRelativePath = ConvertTo-NormalizedChangedPa
+th (ConvertTo-RepoRelativePath $ResultPath)
+                        $Steps += New-StepResult ($Steps.Count + 1) "expect
+ed-non-work-meta-record" "write expected non-work final result" $false $tru
+e 0 "Expected pre-implementation stop is reported in console output only. R
+esultPath existed at run start and was baseline dirty, so auto-goal did not
+ overwrite preserved user changes: $resultRelativePath"
+                        $script:steps = @($Steps)
+                    }
+                } else {
+                    $Steps += New-StepResult ($Steps.Count + 1) "expected-n
+on-work-meta-record" "write expected non-work final result" $false $true 0 
+"Expected pre-implementation stop is reported in console output only. -Allo
+wCommit is not set, so no result file or other .ai-dev operational change i
+s left behind."
+                    $script:steps = @($Steps)
+                }
+            } else {
+                Save-AutoGoalResultFile $StoppedReason $false $ExitCode
+            }
         }
     }
     Write-AutoGoalResult (New-AutoGoalResult $Steps $StoppedReason $Complet
 ed $ExitCode)
     exit $ExitCode
+}
+
+function Get-StoppedReasonFromOutput {
+    param([string]$Output)
+
+    if (-not (Test-HasValue $Output)) {
+        return ""
+    }
+
+    if ($Output -match '(?m)^\s*Stopped reason:\s*(\S+)\s*$') {
+        return $Matches[1]
+    }
+
+    return ""
 }
 
 function Get-InputPreview {
@@ -586,140 +5031,477 @@ function Get-InputPreview {
         return "<empty>"
     }
 
-    if ($normalized.Length -le 500) {
-        return $normalized
-    }
 
-    return $normalized.Substring(0, 500)
-}
+codex
+현재까지는 큰 범위 이탈은 보이지 않습니다. 다만 변경이 운영 파일 복원과 git 메타 커밋을 직접 다루므로, 실패 경로에서 사용자 변
+경을 덮거나 staged 상태를 남길 가능성을 추가로 확인하고 있습니다.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "
+Select-String -Path 'D:\\ai-apps\\planpilot-local\\scripts\\ai-dev-auto-goa
+l.ps1' -Pattern 'function Get-PlannedAutoGoalOutputPaths|function Invoke-Fi
+nalAutoGoalChangeGate|function Invoke-FinalPreparedResultGate|function Get-
+FullCycleArguments|ProtectedBaselineDirtyPaths|CommitFiles' -Context 3,12" 
+in D:\ai-apps\planpilot-local
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "
+Select-String -Path 'D:\\ai-apps\\planpilot-local\\scripts\\ai-dev-autopilo
+t.ps1' -Pattern 'function Invoke-AutoGoal|ProtectedBaselineDirtyPaths|Commi
+tFiles|AllowCommit|AllowDirty|autoGoal' -Context 3,14" in D:\ai-apps\planpi
+lot-local
+ succeeded in 2690ms:
 
-function Invoke-GitStatusLines {
-    param(
-        [string[]]$Arguments,
-        [string]$CommandText,
-        [int]$FailureStep = 2,
-        [string]$FailureName = "dirty-worktree-gate"
-    )
-
-    $statusOutput = & git @Arguments 2>&1
-
-    if ($LASTEXITCODE -ne 0) {
-        $script:steps += New-StepResult $FailureStep $FailureName $CommandT
-ext $false $false 1 "git status failed: $($statusOutput -join "`n")"
-        Stop-AutoGoal $script:steps "git_status_failed" $false 1
-    }
-
-    return @($statusOutput | Where-Object { -not [string]::IsNullOrWhiteSpa
-ce($_) })
-}
-
-function Get-GitStatusLines {
-    param(
-        [int]$FailureStep = 2,
-        [string]$FailureName = "dirty-worktree-gate"
-    )
-
-    return @(Invoke-GitStatusLines -Arguments @("status", "--short") -Comma
-ndText "git status --short" -FailureStep $FailureStep -FailureName $Failure
-Name)
-}
-
-function Get-GitPorcelainStatusLines {
-    param(
-        [int]$FailureStep = 2,
-        [string]$FailureName = "dirty-worktree-gate"
-    )
-
-    return @(Invoke-GitStatusLines -Arguments @("status", "--porcelain") -C
-ommandText "git status --porcelain" -FailureStep $FailureStep -FailureName 
-$FailureName)
-}
-
-function Convert-ToChangedPath {
-    param([string]$ChangeLine)
-
-    if ([string]::IsNullOrWhiteSpace($ChangeLine)) {
-        return @()
-    }
-
-    $pathText = $ChangeLine
-
-    if ($ChangeLine.Length -ge 4 -and $ChangeLine.Substring(2, 1) -eq " ") 
+  scripts\ai-dev-auto-goal.ps1:12:    [switch]$AllowReviewCodex,
+  scripts\ai-dev-auto-goal.ps1:13:    [switch]$AllowCommit,
+  scripts\ai-dev-auto-goal.ps1:14:    [switch]$AllowDirty,
+> scripts\ai-dev-auto-goal.ps1:15:    [string[]]$CommitFiles,
+  scripts\ai-dev-auto-goal.ps1:16:    [string]$ResultPath = ".ai-dev/codex-
+result.md"
+  scripts\ai-dev-auto-goal.ps1:17:)
+  scripts\ai-dev-auto-goal.ps1:18:
+  scripts\ai-dev-auto-goal.ps1:19:. "$PSScriptRoot\ai-dev-env.ps1"
+  scripts\ai-dev-auto-goal.ps1:20:
+  scripts\ai-dev-auto-goal.ps1:21:$repoRoot = (Resolve-Path (Join-Path $PSS
+criptRoot "..")).Path
+  scripts\ai-dev-auto-goal.ps1:22:$utf8WithBom = New-Object System.Text.UTF
+8Encoding($true)
+  scripts\ai-dev-auto-goal.ps1:23:$codeFence = '```'
+  scripts\ai-dev-auto-goal.ps1:24:$goalRelativePath = ".ai-dev/goal.md"
+  scripts\ai-dev-auto-goal.ps1:25:$queueRelativePath = ".ai-dev/queue.json"
+  scripts\ai-dev-auto-goal.ps1:26:$stateRelativePath = ".ai-dev/state.json"
+  scripts\ai-dev-auto-goal.ps1:27:$promptRelativePath = ".ai-dev/current-ta
+sk-prompt.md"
+  scripts\ai-dev-auto-goal.ps1:538:    return $normalizedRelativePath.Start
+sWith($aiDevOperationalRoot, [System.StringC
+omparison]::OrdinalIgnoreCase)
+  scripts\ai-dev-auto-goal.ps1:539:}
+  scripts\ai-dev-auto-goal.ps1:540:
+> scripts\ai-dev-auto-goal.ps1:541:function Get-PlannedAutoGoalOutputPaths 
 {
-        $pathText = $ChangeLine.Substring(3)
-    }
+  scripts\ai-dev-auto-goal.ps1:542:    return @(
+  scripts\ai-dev-auto-goal.ps1:543:        $ResultPath,
+  scripts\ai-dev-auto-goal.ps1:544:        $goalRelativePath,
+  scripts\ai-dev-auto-goal.ps1:545:        $queueRelativePath,
+  scripts\ai-dev-auto-goal.ps1:546:        $stateRelativePath,
+  scripts\ai-dev-auto-goal.ps1:547:        $promptRelativePath,
+  scripts\ai-dev-auto-goal.ps1:548:        $planningPromptRelativePath,
+  scripts\ai-dev-auto-goal.ps1:549:        ".ai-dev/codex-result.md",
+  scripts\ai-dev-auto-goal.ps1:550:        $legacyAutoGoalResultRelativePat
+h
+  scripts\ai-dev-auto-goal.ps1:551:    ) |
+  scripts\ai-dev-auto-goal.ps1:552:        Where-Object { Test-HasValue $_ 
+} |
+  scripts\ai-dev-auto-goal.ps1:553:        ForEach-Object { ConvertTo-Norma
+lizedChangedPath (ConvertTo-RepoRelativePath
+ $_) } |
+  scripts\ai-dev-auto-goal.ps1:577:    Stop-AutoGoal $script:steps "baselin
+e_output_conflict" $false 1
+  scripts\ai-dev-auto-goal.ps1:578:}
+  scripts\ai-dev-auto-goal.ps1:579:
+> scripts\ai-dev-auto-goal.ps1:580:function Invoke-FinalAutoGoalChangeGate 
+{
+  scripts\ai-dev-auto-goal.ps1:581:    param(
+  scripts\ai-dev-auto-goal.ps1:582:        [int]$StepNumber
+  scripts\ai-dev-auto-goal.ps1:583:    )
+  scripts\ai-dev-auto-goal.ps1:584:
+  scripts\ai-dev-auto-goal.ps1:585:    Clear-AutoGoalTempArtifacts
+  scripts\ai-dev-auto-goal.ps1:586:
+  scripts\ai-dev-auto-goal.ps1:587:    $statusLines = @(Get-GitStatusLines 
+$StepNumber "final-change-gate")
+  scripts\ai-dev-auto-goal.ps1:588:    $command = "cleanup auto-goal temp a
+rtifacts, git status --short"
+  scripts\ai-dev-auto-goal.ps1:589:    $baselineDirtyPaths = @($script:auto
+GoalBaselineDirtyPaths)
+  scripts\ai-dev-auto-goal.ps1:590:    $baselineDirtyCount = $baselineDirty
+Paths.Count
+  scripts\ai-dev-auto-goal.ps1:591:    $finalDirtyCount = $statusLines.Coun
+t
+  scripts\ai-dev-auto-goal.ps1:592:
+  scripts\ai-dev-auto-goal.ps1:695:    $script:steps += New-StepResult $Ste
+pNumber "completed-clean-gate" "git status -
+-short" $true $false 0 "Completed clean verification passed: git status --s
+hort returned no changes after all result/st
+ate files were written."
+  scripts\ai-dev-auto-goal.ps1:696:}
+  scripts\ai-dev-auto-goal.ps1:697:
+> scripts\ai-dev-auto-goal.ps1:698:function Invoke-FinalPreparedResultGate 
+{
+  scripts\ai-dev-auto-goal.ps1:699:    param(
+  scripts\ai-dev-auto-goal.ps1:700:        [int]$StepNumber,
+  scripts\ai-dev-auto-goal.ps1:701:        [int]$CleanGateStepNumber,
+  scripts\ai-dev-auto-goal.ps1:702:        [string]$StoppedReason
+  scripts\ai-dev-auto-goal.ps1:703:    )
+  scripts\ai-dev-auto-goal.ps1:704:
+  scripts\ai-dev-auto-goal.ps1:705:    Clear-AutoGoalTempArtifacts
+  scripts\ai-dev-auto-goal.ps1:706:
+  scripts\ai-dev-auto-goal.ps1:707:    $command = "write final result, git 
+add/commit final .ai-dev operational changes
+, git status --short"
+  scripts\ai-dev-auto-goal.ps1:708:    $baselineDirtyPaths = @($script:auto
+GoalBaselineDirtyPaths)
+  scripts\ai-dev-auto-goal.ps1:709:    $baselineDirtyCount = $baselineDirty
+Paths.Count
+  scripts\ai-dev-auto-goal.ps1:710:    $preparedGateStepsWritten = $false
+  scripts\ai-dev-auto-goal.ps1:1333:    }
+  scripts\ai-dev-auto-goal.ps1:1334:}
+  scripts\ai-dev-auto-goal.ps1:1335:
+> scripts\ai-dev-auto-goal.ps1:1336:function Get-FullCycleArguments {
+  scripts\ai-dev-auto-goal.ps1:1337:    $arguments = @("-MaxTasks", ([strin
+g]$MaxTasks), "-MaxSteps", ([string]$MaxStep
+s))
+  scripts\ai-dev-auto-goal.ps1:1338:
+  scripts\ai-dev-auto-goal.ps1:1339:    if ($AllowCodex) {
+  scripts\ai-dev-auto-goal.ps1:1340:        $arguments += "-AllowCodex"
+  scripts\ai-dev-auto-goal.ps1:1341:    }
+  scripts\ai-dev-auto-goal.ps1:1342:
+  scripts\ai-dev-auto-goal.ps1:1343:    if ($AllowReviewCodex) {
+  scripts\ai-dev-auto-goal.ps1:1344:        $arguments += "-AllowReviewCode
+x"
+  scripts\ai-dev-auto-goal.ps1:1345:    }
+  scripts\ai-dev-auto-goal.ps1:1346:
+  scripts\ai-dev-auto-goal.ps1:1347:    if ($AllowCommit) {
+  scripts\ai-dev-auto-goal.ps1:1348:        $arguments += "-AllowCommit"
+  scripts\ai-dev-auto-goal.ps1:1353:    $arguments += "-AllowDirty"
+  scripts\ai-dev-auto-goal.ps1:1354:
+  scripts\ai-dev-auto-goal.ps1:1355:    if ($script:autoGoalBaselineDirtyPa
+ths.Count -gt 0) {
+> scripts\ai-dev-auto-goal.ps1:1356:        $arguments += "-ProtectedBaseli
+neDirtyPaths"
+  scripts\ai-dev-auto-goal.ps1:1357:        $arguments += ($script:autoGoal
+BaselineDirtyPaths -join ",")
+  scripts\ai-dev-auto-goal.ps1:1358:    }
+  scripts\ai-dev-auto-goal.ps1:1359:
+> scripts\ai-dev-auto-goal.ps1:1360:    if ($null -ne $CommitFiles -and $Co
+mmitFiles.Count -gt 0) {
+> scripts\ai-dev-auto-goal.ps1:1361:        $normalizedFiles = @($CommitFil
+es | ForEach-Object { $_ -split "," } | Wher
+e-Object { -not [string]::IsNullOrWhiteSpace($_) })
+  scripts\ai-dev-auto-goal.ps1:1362:
+  scripts\ai-dev-auto-goal.ps1:1363:        if ($normalizedFiles.Count -gt 
+0) {
+> scripts\ai-dev-auto-goal.ps1:1364:            $arguments += "-CommitFiles
+"
+  scripts\ai-dev-auto-goal.ps1:1365:            $arguments += ($normalizedF
+iles -join ",")
+  scripts\ai-dev-auto-goal.ps1:1366:        }
+  scripts\ai-dev-auto-goal.ps1:1367:    }
+  scripts\ai-dev-auto-goal.ps1:1368:
+  scripts\ai-dev-auto-goal.ps1:1369:    return $arguments
+  scripts\ai-dev-auto-goal.ps1:1370:}
+  scripts\ai-dev-auto-goal.ps1:1371:
+  scripts\ai-dev-auto-goal.ps1:1372:function Get-CurrentGoalStatus {
+  scripts\ai-dev-auto-goal.ps1:1373:    $statePath = [System.IO.Path]::GetF
+ullPath((Resolve-RepoPath $stateRelativePath
+))
+  scripts\ai-dev-auto-goal.ps1:1374:
+  scripts\ai-dev-auto-goal.ps1:1375:    try {
+  scripts\ai-dev-auto-goal.ps1:1376:        $state = Get-Content -Raw -Enco
+ding UTF8 -LiteralPath $statePath | ConvertF
+rom-Json
 
-    if ($pathText.Contains(" -> ")) {
-        return @($pathText -split " -> " | Where-Object { Test-HasValue $_ 
-})
-    }
 
-    return @($pathText)
-}
 
-function ConvertTo-NormalizedChangedPath {
-    param([string]$RelativePath)
+ succeeded in 2728ms:
 
-    if (-not (Test-HasValue $RelativePath)) {
-        return $null
-    }
+  scripts\ai-dev-autopilot.ps1:7:    [switch]$AllowRun,
+  scripts\ai-dev-autopilot.ps1:8:    [switch]$AllowCodex,
+  scripts\ai-dev-autopilot.ps1:9:    [switch]$AllowReviewCodex,
+> scripts\ai-dev-autopilot.ps1:10:    [switch]$AllowCommit,
+> scripts\ai-dev-autopilot.ps1:11:    [switch]$AllowDirty,
+> scripts\ai-dev-autopilot.ps1:12:    [string[]]$CommitFiles
+  scripts\ai-dev-autopilot.ps1:13:)
+  scripts\ai-dev-autopilot.ps1:14:
+  scripts\ai-dev-autopilot.ps1:15:. "$PSScriptRoot\ai-dev-env.ps1"
+  scripts\ai-dev-autopilot.ps1:16:
+  scripts\ai-dev-autopilot.ps1:17:$repoRoot = (Resolve-Path (Join-Path $PSS
+criptRoot "..")).Path
+  scripts\ai-dev-autopilot.ps1:18:$goalRelativePath = ".ai-dev/goal.md"
+  scripts\ai-dev-autopilot.ps1:19:$queueRelativePath = ".ai-dev/queue.json"
+  scripts\ai-dev-autopilot.ps1:20:$stateRelativePath = ".ai-dev/state.json"
+  scripts\ai-dev-autopilot.ps1:21:$backlogRelativePath = ".ai-dev/backlog.m
+d"
+  scripts\ai-dev-autopilot.ps1:22:$loopLogRelativePath = ".ai-dev/loop-log.
+md"
+  scripts\ai-dev-autopilot.ps1:23:$goalHistoryRelativePath = ".ai-dev/autop
+ilot-goal-history.json"
+  scripts\ai-dev-autopilot.ps1:24:$autopilotMetaCommitRelativePaths = @(
+  scripts\ai-dev-autopilot.ps1:25:    ".ai-dev/codex-result.md",
+  scripts\ai-dev-autopilot.ps1:26:    ".ai-dev/current-task-prompt.md",
+  scripts\ai-dev-autopilot.ps1:441:        return New-StepResult $StepNumbe
+r "autopilot-meta-commit" $false $true 0 "Dr
+yRun: autopilot loop-log/history meta commit was not executed."
+  scripts\ai-dev-autopilot.ps1:442:    }
+  scripts\ai-dev-autopilot.ps1:443:
+> scripts\ai-dev-autopilot.ps1:444:    if (-not $AllowCommit) {
+> scripts\ai-dev-autopilot.ps1:445:        return New-StepResult $StepNumbe
+r "autopilot-meta-commit" $false $true 0 "Al
+lowCommit is not set, so autopilot loop-log/history meta commit was not exe
+cuted."
+  scripts\ai-dev-autopilot.ps1:446:    }
+  scripts\ai-dev-autopilot.ps1:447:
+  scripts\ai-dev-autopilot.ps1:448:    $skippedBaselinePaths = @(
+  scripts\ai-dev-autopilot.ps1:449:        @($loopLogRelativePath, $goalHis
+toryRelativePath) |
+  scripts\ai-dev-autopilot.ps1:450:            ForEach-Object { ConvertTo-N
+ormalizedChangedPath $_ } |
+  scripts\ai-dev-autopilot.ps1:451:            Where-Object { Test-IsAutopi
+lotBaselineDirtyPath $_ } |
+  scripts\ai-dev-autopilot.ps1:452:            Select-Object -Unique
+  scripts\ai-dev-autopilot.ps1:453:    )
+  scripts\ai-dev-autopilot.ps1:454:    $currentRunMetaPaths = @(
+  scripts\ai-dev-autopilot.ps1:455:        $loopLogRelativePath,
+  scripts\ai-dev-autopilot.ps1:456:        $goalHistoryRelativePath
+  scripts\ai-dev-autopilot.ps1:457:    ) |
+  scripts\ai-dev-autopilot.ps1:458:        ForEach-Object { ConvertTo-Norma
+lizedChangedPath $_ } |
+  scripts\ai-dev-autopilot.ps1:459:        Where-Object { -not (Test-IsAuto
+pilotBaselineDirtyPath $_) } |
+  scripts\ai-dev-autopilot.ps1:658:    if ($ExitCode -ne 0 -and $isExpected
+NonWorkStop -and -not $DryRun) {
+  scripts\ai-dev-autopilot.ps1:659:        $cleanedRunOwnedPaths = @(Restor
+e-AutopilotCurrentRunOperationalChanges)
+  scripts\ai-dev-autopilot.ps1:660:        $operationalCleanupPerformed = $
+true
+> scripts\ai-dev-autopilot.ps1:661:        $metaCommitMessage = "skipped (-
+AllowCommit not set)"
+  scripts\ai-dev-autopilot.ps1:662:        $nextRunWithoutManualRestore = $
+true
+  scripts\ai-dev-autopilot.ps1:663:        $skippedBaselineMetaPaths = @(
+  scripts\ai-dev-autopilot.ps1:664:            @($loopLogRelativePath, $goa
+lHistoryRelativePath) |
+  scripts\ai-dev-autopilot.ps1:665:                ForEach-Object { Convert
+To-NormalizedChangedPath $_ } |
+  scripts\ai-dev-autopilot.ps1:666:                Where-Object { Test-IsAu
+topilotBaselineDirtyPath $_ } |
+  scripts\ai-dev-autopilot.ps1:667:                Select-Object -Unique
+  scripts\ai-dev-autopilot.ps1:668:        )
+  scripts\ai-dev-autopilot.ps1:669:
+> scripts\ai-dev-autopilot.ps1:670:        if ($AllowCommit) {
+  scripts\ai-dev-autopilot.ps1:671:            Add-AutopilotExpectedNonWork
+LogEntry $StoppedReason $FailureMessage $Pre
+paredGoals
+  scripts\ai-dev-autopilot.ps1:672:            $metaCommitStep = Invoke-Aut
+opilotLoopLogMetaCommit ($Steps.Count + 1)
+  scripts\ai-dev-autopilot.ps1:673:            $metaCommitCreated = ($metaC
+ommitStep.exitCode -eq 0 -and $metaCommitSte
+p.executed -and -not $metaCommitStep.skipped -and $metaCommitStep.message -
+notmatch 'had no changes to commit')
+  scripts\ai-dev-autopilot.ps1:674:            $metaCommitMessage = if ($me
+taCommitCreated) { "created" } else { "not c
+reated: $($metaCommitStep.message)" }
+  scripts\ai-dev-autopilot.ps1:675:
+  scripts\ai-dev-autopilot.ps1:676:            if ($metaCommitStep.exitCode
+ -ne 0) {
+  scripts\ai-dev-autopilot.ps1:677:                $cleanedRunOwnedPaths = 
+@(Restore-AutopilotCurrentRunOperationalChan
+ges)
+  scripts\ai-dev-autopilot.ps1:678:                $operationalCleanupPerfo
+rmed = $true
+  scripts\ai-dev-autopilot.ps1:679:                $nextRunWithoutManualRes
+tore = $true
+  scripts\ai-dev-autopilot.ps1:680:                $Steps += $metaCommitSte
+p
+  scripts\ai-dev-autopilot.ps1:681:                $Steps += New-StepResult
+ ($Steps.Count + 1) "expected-non-work-clean
+up" $true $false 0 "Classification: expected_non_work. Original stopped rea
+son: $StoppedReason. Baseline dirty files sk
+ipped: $($skippedBaselineMetaPaths -join ', '). Cleaned run-owned files: $(
+$cleanedRunOwnedPaths -join ', '). Meta comm
+it created: false. Next run without manual git restore: $nextRunWithoutManu
+alRestore."
+  scripts\ai-dev-autopilot.ps1:682:                $result = New-AutopilotR
+esult $Steps "autopilot_expected_non_work_me
+ta_commit_failed" $false 1 $PreparedGoals $operationalCleanupPerformed $fal
+se $nextRunWithoutManualRestore
+  scripts\ai-dev-autopilot.ps1:683:                Write-AutopilotResult $r
+esult
+  scripts\ai-dev-autopilot.ps1:684:                exit 1
+  scripts\ai-dev-autopilot.ps1:1041:    return ($filteredTitles -join "; ")
+  scripts\ai-dev-autopilot.ps1:1042:}
+  scripts\ai-dev-autopilot.ps1:1043:
+> scripts\ai-dev-autopilot.ps1:1044:function Invoke-AutoGoal {
+  scripts\ai-dev-autopilot.ps1:1045:    param(
+  scripts\ai-dev-autopilot.ps1:1046:        [object]$Candidate,
+  scripts\ai-dev-autopilot.ps1:1047:        [int]$StepNumber
+  scripts\ai-dev-autopilot.ps1:1048:    )
+  scripts\ai-dev-autopilot.ps1:1049:
+> scripts\ai-dev-autopilot.ps1:1050:    $autoGoalPath = Join-Path $PSScript
+Root "ai-dev-auto-goal.ps1"
+  scripts\ai-dev-autopilot.ps1:1051:
+> scripts\ai-dev-autopilot.ps1:1052:    if (-not (Test-Path -LiteralPath $a
+utoGoalPath -PathType Leaf)) {
+  scripts\ai-dev-autopilot.ps1:1053:        throw "Required script is missi
+ng: scripts/ai-dev-auto-goal.ps1"
+  scripts\ai-dev-autopilot.ps1:1054:    }
+  scripts\ai-dev-autopilot.ps1:1055:
+  scripts\ai-dev-autopilot.ps1:1056:    $arguments = @(
+  scripts\ai-dev-autopilot.ps1:1057:        "-GoalTitle", [string]$Candidat
+e.title,
+  scripts\ai-dev-autopilot.ps1:1058:        "-GoalDescription", [string]$Ca
+ndidate.description,
+  scripts\ai-dev-autopilot.ps1:1059:        "-MaxTasks", [string]$MaxTasks,
+  scripts\ai-dev-autopilot.ps1:1060:        "-MaxSteps", [string]$MaxSteps
+  scripts\ai-dev-autopilot.ps1:1061:    )
+  scripts\ai-dev-autopilot.ps1:1062:
+  scripts\ai-dev-autopilot.ps1:1063:    if ($DryRun) {
+  scripts\ai-dev-autopilot.ps1:1064:        $arguments += "-DryRun"
+  scripts\ai-dev-autopilot.ps1:1065:    }
+  scripts\ai-dev-autopilot.ps1:1066:
+  scripts\ai-dev-autopilot.ps1:1080:        $arguments += "-AllowReviewCode
+x"
+  scripts\ai-dev-autopilot.ps1:1081:    }
+  scripts\ai-dev-autopilot.ps1:1082:
+> scripts\ai-dev-autopilot.ps1:1083:    if ($AllowCommit) {
+> scripts\ai-dev-autopilot.ps1:1084:        $arguments += "-AllowCommit"
+  scripts\ai-dev-autopilot.ps1:1085:    }
+  scripts\ai-dev-autopilot.ps1:1086:
+> scripts\ai-dev-autopilot.ps1:1087:    if ($AllowDirty) {
+> scripts\ai-dev-autopilot.ps1:1088:        $arguments += "-AllowDirty"
+  scripts\ai-dev-autopilot.ps1:1089:    }
+  scripts\ai-dev-autopilot.ps1:1090:
+> scripts\ai-dev-autopilot.ps1:1091:    if ($null -ne $CommitFiles -and $Co
+mmitFiles.Count -gt 0) {
+> scripts\ai-dev-autopilot.ps1:1092:        $normalizedFiles = @($CommitFil
+es | ForEach-Object { $_ -split "," } | Wher
+e-Object { Test-HasValue $_ })
+  scripts\ai-dev-autopilot.ps1:1093:
+  scripts\ai-dev-autopilot.ps1:1094:        if ($normalizedFiles.Count -gt 
+0) {
+> scripts\ai-dev-autopilot.ps1:1095:            $arguments += "-CommitFiles
+"
+  scripts\ai-dev-autopilot.ps1:1096:            $arguments += ($normalizedF
+iles -join ",")
+  scripts\ai-dev-autopilot.ps1:1097:        }
+  scripts\ai-dev-autopilot.ps1:1098:    }
+  scripts\ai-dev-autopilot.ps1:1099:
+> scripts\ai-dev-autopilot.ps1:1100:    $output = & powershell -ExecutionPo
+licy Bypass -File $autoGoalPath @arguments 2
+>&1 | Out-String
+  scripts\ai-dev-autopilot.ps1:1101:    $exitCode = $LASTEXITCODE
+  scripts\ai-dev-autopilot.ps1:1102:    $message = $output.Trim()
+  scripts\ai-dev-autopilot.ps1:1103:
+  scripts\ai-dev-autopilot.ps1:1104:    if (-not (Test-HasValue $message)) 
+{
+  scripts\ai-dev-autopilot.ps1:1105:        $message = "ai-dev-auto-goal.ps
+1 completed without output."
+  scripts\ai-dev-autopilot.ps1:1106:    }
+  scripts\ai-dev-autopilot.ps1:1107:
+  scripts\ai-dev-autopilot.ps1:1108:    return New-StepResult $StepNumber "
+auto-goal" $true $false $exitCode $message $
+Candidate
+  scripts\ai-dev-autopilot.ps1:1109:}
+  scripts\ai-dev-autopilot.ps1:1110:
+  scripts\ai-dev-autopilot.ps1:1111:Set-Location $repoRoot
+  scripts\ai-dev-autopilot.ps1:1112:$script:autopilotBaselineDirtyPaths = @
+(Get-AutopilotBaselineDirtyPaths)
+  scripts\ai-dev-autopilot.ps1:1113:Initialize-AutopilotOperationalFileSnap
+shots
+  scripts\ai-dev-autopilot.ps1:1114:
+  scripts\ai-dev-autopilot.ps1:1219:
+  scripts\ai-dev-autopilot.ps1:1220:    $steps += New-StepResult ($steps.Co
+unt + 1) "generate-goal-candidate" $false $f
+alse 0 $candidateMessage $candidate
+  scripts\ai-dev-autopilot.ps1:1221:
+> scripts\ai-dev-autopilot.ps1:1222:    if ($AllowCommit) {
+  scripts\ai-dev-autopilot.ps1:1223:        $metaCommitStep = Invoke-Autopi
+lotLoopLogMetaCommit ($steps.Count + 1)
+  scripts\ai-dev-autopilot.ps1:1224:        $steps += $metaCommitStep
+  scripts\ai-dev-autopilot.ps1:1225:
+  scripts\ai-dev-autopilot.ps1:1226:        if ($metaCommitStep.exitCode -n
+e 0) {
+  scripts\ai-dev-autopilot.ps1:1227:            Stop-Autopilot $steps "auto
+pilot_meta_commit_failed" $false 1 $prepared
+Goals $metaCommitStep.message
+  scripts\ai-dev-autopilot.ps1:1228:        }
+  scripts\ai-dev-autopilot.ps1:1229:    }
+  scripts\ai-dev-autopilot.ps1:1230:
+  scripts\ai-dev-autopilot.ps1:1231:    try {
+> scripts\ai-dev-autopilot.ps1:1232:        $autoGoalStep = Invoke-AutoGoal
+ $candidate ($steps.Count + 1)
+  scripts\ai-dev-autopilot.ps1:1233:    } catch {
+  scripts\ai-dev-autopilot.ps1:1234:        $message = "Auto-goal failed be
+fore completion: $($_.Exception.Message)"
+  scripts\ai-dev-autopilot.ps1:1235:        $steps += New-StepResult ($step
+s.Count + 1) "auto-goal" $false $false 1 $me
+ssage $candidate
+  scripts\ai-dev-autopilot.ps1:1236:        Stop-Autopilot $steps "auto_goa
+l_failed" $false 1 $preparedGoals $message
+  scripts\ai-dev-autopilot.ps1:1237:    }
+  scripts\ai-dev-autopilot.ps1:1238:
+> scripts\ai-dev-autopilot.ps1:1239:    $steps += $autoGoalStep
+  scripts\ai-dev-autopilot.ps1:1240:
+> scripts\ai-dev-autopilot.ps1:1241:    if ($autoGoalStep.exitCode -ne 0) {
+> scripts\ai-dev-autopilot.ps1:1242:        $childStoppedReason = Get-Stopp
+edReasonFromOutput $autoGoalStep.message
+  scripts\ai-dev-autopilot.ps1:1243:        $stoppedReason = if (Test-IsExp
+ectedAutopilotNonWorkStop $childStoppedReaso
+n) { $childStoppedReason } else { "auto_goal_failed" }
+> scripts\ai-dev-autopilot.ps1:1244:        $failureMessage = "Auto-goal fa
+iled with exit code $($autoGoalStep.exitCode
+): $($autoGoalStep.message)"
+  scripts\ai-dev-autopilot.ps1:1245:
+  scripts\ai-dev-autopilot.ps1:1246:        if (Test-HasValue $candidate.fa
+llbackReason) {
+  scripts\ai-dev-autopilot.ps1:1247:            $failureMessage = "$failure
+Message Fallback context: $($candidate.fallb
+ackReason)"
+  scripts\ai-dev-autopilot.ps1:1248:        }
+  scripts\ai-dev-autopilot.ps1:1249:
+  scripts\ai-dev-autopilot.ps1:1250:        Stop-Autopilot $steps $stoppedR
+eason $false 1 $preparedGoals $failureMessag
+e
+  scripts\ai-dev-autopilot.ps1:1251:    }
+  scripts\ai-dev-autopilot.ps1:1252:
+  scripts\ai-dev-autopilot.ps1:1253:    $preparedGoals++
+  scripts\ai-dev-autopilot.ps1:1254:    $loopLogLines = @(
+  scripts\ai-dev-autopilot.ps1:1255:        "- Goal: $($candidate.title)",
+  scripts\ai-dev-autopilot.ps1:1256:        "- Source: $($candidate.source)
+ / $($candidate.priority)",
+  scripts\ai-dev-autopilot.ps1:1257:        "- Prepared goals: $preparedGoa
+ls/$MaxGoals"
+  scripts\ai-dev-autopilot.ps1:1258:    )
+  scripts\ai-dev-autopilot.ps1:1271:
+  scripts\ai-dev-autopilot.ps1:1272:    Add-LoopLogEntry "Autopilot goal pr
+epared" $loopLogLines
+  scripts\ai-dev-autopilot.ps1:1273:
+> scripts\ai-dev-autopilot.ps1:1274:    if ($AllowCommit) {
+  scripts\ai-dev-autopilot.ps1:1275:        $metaCommitStep = Invoke-Autopi
+lotLoopLogMetaCommit ($steps.Count + 1)
+  scripts\ai-dev-autopilot.ps1:1276:        $steps += $metaCommitStep
+  scripts\ai-dev-autopilot.ps1:1277:
+  scripts\ai-dev-autopilot.ps1:1278:        if ($metaCommitStep.exitCode -n
+e 0) {
+  scripts\ai-dev-autopilot.ps1:1279:            Stop-Autopilot $steps "auto
+pilot_meta_commit_failed" $false 1 $prepared
+Goals $metaCommitStep.message
+  scripts\ai-dev-autopilot.ps1:1280:        }
+  scripts\ai-dev-autopilot.ps1:1281:    }
+  scripts\ai-dev-autopilot.ps1:1282:
+> scripts\ai-dev-autopilot.ps1:1283:    if (-not ($AllowRun -or $AllowCodex
+ -or $AllowReviewCodex -or $AllowCommit)) {
+  scripts\ai-dev-autopilot.ps1:1284:        Stop-Autopilot $steps "prepared
+_without_full_cycle" $true 0 $preparedGoals
+  scripts\ai-dev-autopilot.ps1:1285:    }
+  scripts\ai-dev-autopilot.ps1:1286:}
+  scripts\ai-dev-autopilot.ps1:1287:
+  scripts\ai-dev-autopilot.ps1:1288:Stop-Autopilot $steps "max_goals_reache
+d" $true 0 $preparedGoals
 
-    return $RelativePath.Trim().Trim('"').Replace('\', '/')
-}
 
-function Test-IsAiDevOperationalPath {
-    param([string]$RelativePath)
 
-    $normalizedRelativePath = ConvertTo-NormalizedChangedPath $RelativePath
-    return $normalizedRelativePath.StartsWith($aiDevOperationalRoot, [Syste
-m.StringComparison]::OrdinalIgnoreCase)
-}
-
-function Get-PlannedAutoGoalOutputPaths {
-    return @(
-        $ResultPath,
-        $goalRelativePath,
-        $queueRelativePath,
-        $stateRelativePath,
-        $promptRelativePath,
-        $planningPromptRelativePath,
-        ".ai-dev/codex-result.md",
-        $legacyAutoGoalResultRelativePath
-    ) |
-        Where-Object { Test-HasValue $_ } |
-        ForEach-Object { ConvertTo-NormalizedChangedPath (ConvertTo-RepoRel
-ativePath $_) } |
-        Select-Object -Unique
-}
-
-function Invoke-BaselineOutputConflictGate {
-    param(
-        [string[]]$BaselineDirtyPaths,
-        [string[]]$PlannedOutputPaths
-    )
-
-    $conflictingPaths = @(
-        $BaselineDirtyPaths |
-            Where-Object { $PlannedOutputPaths -contains $_ } |
-            Select-Object -Unique
-    )
-
-    if ($conflictingPaths.Count -eq 0) {
-        return
-    }
-
-    $script:autoGoalCanWriteResultFile = $false
-    $script:autoGoalCanCleanTempArtifacts = $false
-    $message = "Baseline dirty paths conflict with planned auto-goal output
- paths. Auto-goal stopped before writing or deleting protected output files
-.`nConflicting paths:`n$($conflictingPaths -join "`n")"
-    $script:steps += New-StepResult 2 "baseline-output-conflict-gate" "comp
-are baseline dirty paths with planned auto-goal outputs" $true $false 1 $me
-ssage
-    Stop-AutoGoal $script:steps "baseline_output_conflict" $false 1
-}
-
-function Invoke-FinalAutoGoalChangeGate {
+codex
+한 가지 눈에 띄는 점은 autopilot의 메타 커밋 대상이 축소되었다는 점입니다. 이것이 기존 성공 경로의 최종 정리와 충돌하는지 
+확인하기 위해 auto-goal 최종 게이트 쪽을 읽고 있습니다.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "
+Get-Content -LiteralPath 'D:\\ai-apps\\planpilot-local\\scripts\\ai-dev-aut
+o-goal.ps1' | Select-Object -Skip 1460 -First 130" in D:\ai-apps\planpilot-
+local
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "
+Get-Content -LiteralPath 'D:\\ai-apps\\planpilot-local\\scripts\\ai-dev-aut
+o-goal.ps1' | Select-Object -Skip 580 -First 260" in D:\ai-apps\planpilot-l
+ocal
+ succeeded in 2790ms:
     param(
         [int]$StepNumber
     )
@@ -836,10 +5618,15 @@ false 1
     $addExitCode = $LASTEXITCODE
 
     if ($addExitCode -ne 0) {
+        & git restore --staged -- $newAiDevPaths 2>&1 | Out-String | Out-Nu
+ll
+        $restoredPaths = @(Restore-AutoGoalCurrentRunOperationalChanges $ne
+wAiDevPaths)
         $message = "auto-goal 최종 .ai-dev 메타 변경 git add 실패. exit code: $addE
 xitCode`n$addOutput"
         $script:steps += New-StepResult $StepNumber "final-change-gate" "gi
-t add -- <final .ai-dev files>" $true $false 1 $message
+t add -- <final .ai-dev files>" $true $false 1 "$message`nRestored run-owne
+d files: $($restoredPaths -join ', ')"
         Stop-AutoGoal $script:steps "final_meta_add_failed" $false 1
     }
 
@@ -850,11 +5637,15 @@ DevPaths
     $commitExitCode = $LASTEXITCODE
 
     if ($commitExitCode -ne 0) {
+        & git restore --staged -- $newAiDevPaths 2>&1 | Out-String | Out-Nu
+ll
+        $restoredPaths = @(Restore-AutoGoalCurrentRunOperationalChanges $ne
+wAiDevPaths)
         $message = "auto-goal 최종 .ai-dev 메타 커밋 실패. exit code: $commitExitCo
 de`n$commitOutput"
         $script:steps += New-StepResult $StepNumber "final-change-gate" "gi
-t commit -m '$metaCommitMessage' -- <final .ai-dev files>" $true $false 1 $
-message
+t commit -m '$metaCommitMessage' -- <final .ai-dev files>" $true $false 1 "
+$message`nRestored run-owned files: $($restoredPaths -join ', ')"
         Stop-AutoGoal $script:steps "final_meta_commit_failed" $false 1
     }
 
@@ -1075,10 +5866,15 @@ mmand $true $false 1 $message
     $addExitCode = $LASTEXITCODE
 
     if ($addExitCode -ne 0) {
+        & git restore --staged -- $newAiDevPaths 2>&1 | Out-String | Out-Nu
+ll
+        $restoredPaths = @(Restore-AutoGoalCurrentRunOperationalChanges $ne
+wAiDevPaths)
         $message = "auto-goal 최종 .ai-dev 메타 변경 git add 실패. exit code: $addE
 xitCode`n$addOutput"
         $script:steps += New-StepResult $StepNumber "final-change-gate" "gi
-t add -- <final .ai-dev files>" $true $false 1 $message
+t add -- <final .ai-dev files>" $true $false 1 "$message`nRestored run-owne
+d files: $($restoredPaths -join ', ')"
         Stop-AutoGoal $script:steps "final_meta_add_failed" $false 1
     }
 
@@ -1089,11 +5885,15 @@ DevPaths
     $commitExitCode = $LASTEXITCODE
 
     if ($commitExitCode -ne 0) {
+        & git restore --staged -- $newAiDevPaths 2>&1 | Out-String | Out-Nu
+ll
+        $restoredPaths = @(Restore-AutoGoalCurrentRunOperationalChanges $ne
+wAiDevPaths)
         $message = "auto-goal 최종 .ai-dev 메타 커밋 실패. exit code: $commitExitCo
 de`n$commitOutput"
         $script:steps += New-StepResult $StepNumber "final-change-gate" "gi
-t commit -m '$metaCommitMessage' -- <final .ai-dev files>" $true $false 1 $
-message
+t commit -m '$metaCommitMessage' -- <final .ai-dev files>" $true $false 1 "
+$message`nRestored run-owned files: $($restoredPaths -join ', ')"
         Stop-AutoGoal $script:steps "final_meta_commit_failed" $false 1
     }
 
@@ -1115,710 +5915,8 @@ function Complete-AutoGoal {
         [int]$PreFinalGateStepNumber,
         [int]$ResultStepNumber,
         [int]$PostFinalGateStepNumber,
-        [int]$CleanGateStepNumber,
-        [string]$StoppedReason
-    )
 
-    Invoke-FinalAutoGoalChangeGate $PreFinalGateStepNumber
-    $script:steps += New-StepResult $ResultStepNumber "write-final-result" 
-(ConvertTo-RepoRelativePath $ResultPath) $true $false 0 "Final success resu
-lt file is written after the pre-result final change gate and before the fi
-nal .ai-dev meta commit."
-    Invoke-FinalPreparedResultGate $PostFinalGateStepNumber $CleanGateStepN
-umber $StoppedReason
-    $script:autoGoalCanCleanTempArtifacts = $false
-    Stop-AutoGoal $script:steps $StoppedReason $true 0
-}
-
-function Get-JsonObjectCandidates {
-    param([string]$RawInput)
-
-    $candidates = @()
-    $seen = @{}
-
-    for ($start = 0; $start -lt $RawInput.Length; $start++) {
-        if ($RawInput[$start] -ne "{") {
-            continue
-        }
-
-        $depth = 0
-        $inString = $false
-        $escaped = $false
-
-        for ($index = $start; $index -lt $RawInput.Length; $index++) {
-            $char = $RawInput[$index]
-
-            if ($escaped) {
-                $escaped = $false
-                continue
-            }
-
-            if ($char -eq "\") {
-                $escaped = $true
-                continue
-            }
-
-            if ($char -eq '"') {
-                $inString = -not $inString
-                continue
-            }
-
-            if ($inString) {
-                continue
-            }
-
-            if ($char -eq "{") {
-                $depth++
-                continue
-            }
-
-            if ($char -eq "}") {
-                $depth--
-
-                if ($depth -eq 0) {
-                    $candidateText = $RawInput.Substring($start, $index - $
-start + 1).Trim()
-
-                    if (-not $seen.ContainsKey($candidateText)) {
-                        $seen[$candidateText] = $true
-                        $candidates += [PSCustomObject]@{
-                            Start = $start
-                            Text = $candidateText
-                            HasPlanShape = ($candidateText -match '"goalMar
-kdown"\s*:' -and $candidateText -match '"queue"\s*:' -and $candidateText -m
-atch '"state"\s*:')
-                        }
-                    }
-
-                    break
-                }
-            }
-        }
-    }
-
-    return @($candidates | Sort-Object -Property @{ Expression = "HasPlanSh
-ape"; Descending = $true }, @{ Expression = "Start"; Descending = $true } |
- ForEach-Object { $_.Text })
-}
-
-function Get-MissingFields {
-    param(
-        [object]$InputObject,
-        [string[]]$RequiredFields
-    )
-
-    $missingFields = @()
-
-    foreach ($field in $RequiredFields) {
-        if (-not ($InputObject.PSObject.Properties.Name -contains $field)) 
-{
-            $missingFields += $field
-        }
-    }
-
-    return $missingFields
-}
-
-function Get-QueueValidationErrors {
-    param([object]$Queue)
-
-    $errors = @()
-    $requiredFields = @("goalTitle", "goalSource", "createdAt", "updatedAt"
-, "currentTaskId", "tasks")
-
-    foreach ($field in @(Get-MissingFields $Queue $requiredFields)) {
-        $errors += "queue missing field: $field"
-    }
-
-    if ($errors.Count -gt 0) {
-        return $errors
-    }
-
-    if (-not (Test-HasValue $Queue.goalTitle)) {
-        $errors += "queue.goalTitle must not be empty."
-    }
-
-    if ($Queue.goalSource -ne $goalRelativePath) {
-        $errors += "queue.goalSource must be $goalRelativePath."
-    }
-
-    if ($Queue.tasks -isnot [System.Collections.IEnumerable] -or $Queue.tas
-ks -is [string]) {
-        $errors += "queue.tasks must be an array."
-        return $errors
-    }
-
-    $tasks = @($Queue.tasks)
-
-    if ($tasks.Count -lt 1) {
-        $errors += "queue.tasks must contain at least one task."
-        return $errors
-    }
-
-    if ($tasks.Count -gt 3) {
-        $errors += "queue.tasks must contain no more than three tasks."
-    }
-
-    if ($Queue.currentTaskId -ne "T001") {
-        $errors += "queue.currentTaskId must be T001."
-    }
-
-    $taskIds = @()
-
-    foreach ($task in $tasks) {
-        $taskRequiredFields = @("id", "title", "description", "type", "stat
-us", "priority", "dependsOn", "filesLikelyToChange", "verification", "commi
-tMessage")
-        $taskMissingFields = @(Get-MissingFields $task $taskRequiredFields)
-
-        foreach ($field in $taskMissingFields) {
-            $errors += "task missing field: $field"
-        }
-
-        if ($taskMissingFields.Count -gt 0) {
-            continue
-        }
-
-        if (-not (Test-HasValue $task.id)) {
-            $errors += "task.id must not be empty."
-        } else {
-            $taskIds += [string]$task.id
-        }
-
-        if (-not (Test-HasValue $task.title)) {
-            $errors += "task.title must not be empty."
-        }
-
-        if (-not (Test-HasValue $task.description)) {
-            $errors += "task.description must not be empty."
-        }
-
-        if (@("analysis", "implementation", "documentation", "verification"
-) -notcontains $task.type) {
-            $errors += "invalid task.type: $($task.type)"
-        }
-
-        if (@("pending", "in_progress", "done", "blocked") -notcontains $ta
-sk.status) {
-            $errors += "invalid task.status: $($task.status)"
-        }
-
-        if (@("P0", "P1", "P2") -notcontains $task.priority) {
-            $errors += "invalid task.priority: $($task.priority)"
-        }
-
-        if ($task.dependsOn -isnot [System.Collections.IEnumerable] -or $ta
-sk.dependsOn -is [string]) {
-            $errors += "task.dependsOn must be an array: $($task.id)"
-        }
-
-        if ($task.filesLikelyToChange -isnot [System.Collections.IEnumerabl
-e] -or $task.filesLikelyToChange -is [string]) {
-            $errors += "task.filesLikelyToChange must be an array: $($task.
-id)"
-        }
-
-        if ($task.verification -isnot [System.Collections.IEnumerable] -or 
-$task.verification -is [string]) {
-            $errors += "task.verification must be an array: $($task.id)"
-        }
-    }
-
-    if ((@($tasks | Where-Object { $_.status -eq "in_progress" })).Count -n
-e 1) {
-        $errors += "queue.tasks must contain exactly one in_progress task."
-    }
-
-    if (-not (Test-HasValue $Queue.currentTaskId)) {
-        $errors += "queue.currentTaskId must not be empty."
-    } elseif ($taskIds -notcontains [string]$Queue.currentTaskId) {
-        $errors += "queue.currentTaskId does not match a task: $($Queue.cur
-rentTaskId)"
-    }
-
-    $firstTask = $tasks | Where-Object { $_.id -eq "T001" } | Select-Object
- -First 1
-    if ($null -eq $firstTask) {
-        $errors += "queue.tasks must include T001."
-    } elseif ($firstTask.status -ne "in_progress") {
-        $errors += "T001 must be in_progress."
-    }
-
-    foreach ($laterTask in @($tasks | Where-Object { $_.id -ne "T001" })) {
-        if ($laterTask.status -ne "pending") {
-            $errors += "later tasks must be pending: $($laterTask.id)"
-        }
-    }
-
-    return $errors
-}
-
-function Get-StateValidationErrors {
-    param(
-        [object]$State,
-        [object]$Queue
-    )
-
-    $errors = @()
-    $requiredFields = @("goalStatus", "currentTaskId", "currentLoop", "maxL
-oopsPerTask", "repeatedFailureCount", "lastCommand", "lastCommandStatus", "
-lastErrorSummary", "lastReviewDecision", "lastReviewSeverity", "lastCommitH
-ash", "startedAt", "updatedAt", "stopReason")
-
-    foreach ($field in @(Get-MissingFields $State $requiredFields)) {
-        $errors += "state missing field: $field"
-    }
-
-    if ($errors.Count -gt 0) {
-        return $errors
-    }
-
-    if (@("idle", "in_progress", "completed", "blocked") -notcontains $Stat
-e.goalStatus) {
-        $errors += "invalid state.goalStatus: $($State.goalStatus)"
-    }
-
-    if ($State.currentTaskId -ne $Queue.currentTaskId) {
-        $errors += "state.currentTaskId must match queue.currentTaskId."
-    }
-
-    if ($State.currentTaskId -ne "T001") {
-        $errors += "state.currentTaskId must be T001."
-    }
-
-    if (@("not_started", "passed", "failed", "blocked") -notcontains $State
-.lastCommandStatus) {
-        $errors += "invalid state.lastCommandStatus: $($State.lastCommandSt
-atus)"
-    }
-
-    if (@("not_started", "pass", "revise", "blocked") -notcontains $State.l
-astReviewDecision) {
-        $errors += "invalid state.lastReviewDecision: $($State.lastReviewDe
-cision)"
-    }
-
-    return $errors
-}
-
-function Get-AutoGoalValidationErrors {
-    param([object]$Plan)
-
-    $errors = @()
-
-    foreach ($field in @(Get-MissingFields $Plan @("goalMarkdown", "queue",
- "state"))) {
-        $errors += "plan missing field: $field"
-    }
-
-    if ($errors.Count -gt 0) {
-        return $errors
-    }
-
-    if (-not (Test-HasValue $Plan.goalMarkdown)) {
-        $errors += "goalMarkdown must not be empty."
-    }
-
-    $errors += @(Get-QueueValidationErrors $Plan.queue)
-    $errors += @(Get-StateValidationErrors $Plan.state $Plan.queue)
-
-    return $errors
-}
-
-function New-DryRunAutoGoalPlan {
-    param(
-        [string]$Title,
-        [string]$Description
-    )
-
-    $now = (Get-Date).ToUniversalTime().ToString("o")
-    $safeTitle = $Title.Trim()
-    $safeDescription = $Description.Trim()
-
-    $plan = [PSCustomObject][ordered]@{
-        goalMarkdown = @"
-# 목표
-
-$safeTitle
-
-## 배경
-
-$safeDescription
-
-## 성공 기준
-
-- 입력한 목표에서 현재 작업을 준비한다.
-- full auto-cycle 실행 전에 현재 작업 프롬프트가 생성된다.
-- full auto-cycle은 명시적인 허용 옵션이 있을 때만 실행된다.
-
-## 제약사항
-
-- 서버 API, 로그인, 클라우드 동기화, npm install, 위험한 git 명령은 사용하지 않는다.
-- 저장소 정책과 현재 작업 범위를 따른다.
-
-## 범위 제외
-
-- 패키지 변경
-- DB 삭제 또는 초기화
-- 광범위한 리팩터링
-
-## 수동 검증
-
-- DryRun 계획과 JSON 출력을 검토한다.
-- 현재 작업 프롬프트 생성 여부를 확인한다.
-- 필요한 경우 빌드와 검증은 별도로 실행한다.
-"@
-        queue = [PSCustomObject][ordered]@{
-            goalTitle = $safeTitle
-            goalSource = $goalRelativePath
-            createdAt = $now
-            updatedAt = $now
-            currentTaskId = "T001"
-            tasks = @(
-                [PSCustomObject][ordered]@{
-                    id = "T001"
-                    title = $safeTitle
-                    description = $safeDescription
-                    type = "implementation"
-                    status = "in_progress"
-                    priority = "P0"
-                    dependsOn = @()
-                    filesLikelyToChange = @()
-                    verification = @(
-                        "변경 범위가 현재 목표와 일치하는지 확인한다.",
-                        "필요한 경우 npm run build를 별도로 실행한다."
-                    )
-                    commitMessage = $null
-                }
-            )
-        }
-        state = [PSCustomObject][ordered]@{
-            goalStatus = "in_progress"
-            currentTaskId = "T001"
-            currentLoop = 0
-            maxLoopsPerTask = 2
-            repeatedFailureCount = 0
-            lastCommand = $null
-            lastCommandStatus = "not_started"
-            lastErrorSummary = $null
-            lastReviewDecision = "not_started"
-            lastReviewSeverity = $null
-            lastCommitHash = $null
-            startedAt = $now
-            updatedAt = $now
-            stopReason = $null
-        }
-    }
-
-    return $plan
-}
-
-function ConvertFrom-CodexAutoGoalOutput {
-    param([string]$RawInput)
-
-    $validationFailures = @()
-
-    foreach ($candidate in Get-JsonObjectCandidates $RawInput) {
-        try {
-            $parsed = $candidate | ConvertFrom-Json
-
-            if ($null -eq $parsed -or $parsed -is [System.Array]) {
-                continue
-            }
-
-            $validationErrors = @(Get-AutoGoalValidationErrors $parsed)
-
-            if ($validationErrors.Count -gt 0) {
-                $validationFailures += "Candidate validation failed: $($val
-idationErrors -join '; ')"
-                continue
-            }
-
-            return [PSCustomObject]@{
-                Parsed = $parsed
-                JsonText = ($parsed | ConvertTo-Json -Depth 30)
-            }
-        } catch {
-        }
-    }
-
-    if ($validationFailures.Count -gt 0) {
-        throw "No valid auto-goal JSON object was found in Codex output. Va
-lidation errors: $($validationFailures -join ' | ')"
-    }
-
-    throw "No valid auto-goal JSON object was found in Codex output."
-}
-
-function New-CodexAutoGoalPrompt {
-    param(
-        [string]$Title,
-        [string]$Description
-    )
-
-    return @"
-You are preparing local AI Dev Loop state files for the repository at $repo
-Root.
-
-Return exactly one JSON object and no markdown fences or commentary.
-
-The user supplied this new goal:
-Title: $Title
-Description: $Description
-
-Create a small, safe goal plan for this repository. The response object mus
-t have these fields:
-- goalMarkdown: .ai-dev/goal.md에 작성할 마크다운 문자열입니다. "# 목표", "배경", "성공 기준", "제
-약사항", "범위 제외", "수동 검증" 섹션을 한국어로 포함해야 합니다.
-- queue: an object for .ai-dev/queue.json.
-- state: an object for .ai-dev/state.json.
-
-queue rules:
-- goalTitle must equal the supplied title.
-- goalSource must be ".ai-dev/goal.md".
-- createdAt and updatedAt are required and must be ISO 8601 strings.
-- currentTaskId must be "T001".
-- tasks must contain one to three tasks.
-- T001 must be status "in_progress"; later tasks, if any, must be "pending"
-.
-- each task must include id, title, description, type, status, priority, de
-pendsOn, filesLikelyToChange, verification, commitMessage.
-- type must be one of analysis, implementation, documentation, verification
-.
-- priority must be P0, P1, or P2.
-- dependsOn, filesLikelyToChange, and verification must be arrays.
-- commitMessage must be null or a short English commit message.
-
-state rules:
-- goalStatus must be "in_progress".
-- currentTaskId must be "T001".
-- currentLoop must be 0.
-- maxLoopsPerTask must be 2.
-- repeatedFailureCount must be 0.
-- lastCommand must be null.
-- lastCommandStatus must be "not_started".
-- lastErrorSummary must be null.
-- lastReviewDecision must be "not_started".
-- lastReviewSeverity must be null.
-- lastCommitHash must be null.
-- startedAt and updatedAt must be ISO 8601 strings.
-- stopReason must be null.
-
-Safety rules:
-- Do not mention server APIs, login, cloud sync, npm install, git reset, gi
-t clean, git push, DB deletion, or broad rewrites as implementation steps.
-- Prefer one small implementation task when the goal is small.
-- Use Korean for user-facing task titles, descriptions, verification, and g
-oalMarkdown.
-"@
-}
-
-function New-CodexAutoGoalWrapperPrompt {
-    param(
-        [string]$PromptFilePath
-    )
-
-    return "Read and follow the full auto-goal planning prompt at this abso
-lute file path: $PromptFilePath"
-}
-
-function Invoke-CycleCommand {
-    param(
-        [int]$StepNumber,
-        [string]$Name,
-        [string]$Command,
-        [string]$ScriptPath,
-        [string[]]$Arguments
-    )
-
-    if ($DryRun) {
-        $script:steps += New-StepResult $StepNumber $Name $Command $false $
-true 0 "DryRun: child script was not executed."
-        return
-    }
-
-    $output = & powershell -ExecutionPolicy Bypass -File $ScriptPath @Argum
-ents 2>&1 | Out-String
-    $exitCode = $LASTEXITCODE
-    $message = $output.Trim()
-
-    if ([string]::IsNullOrWhiteSpace($message)) {
-        $message = "completed"
-    }
-
-    $script:steps += New-StepResult $StepNumber $Name $Command $true $false
- $exitCode $message
-
-    if ($exitCode -ne 0) {
-        Stop-AutoGoal $script:steps "$Name`_failed" $false 1
-    }
-}
-
-function Get-FullCycleArguments {
-    $arguments = @("-MaxTasks", ([string]$MaxTasks), "-MaxSteps", ([string]
-$MaxSteps))
-
-    if ($AllowCodex) {
-        $arguments += "-AllowCodex"
-    }
-
-    if ($AllowReviewCodex) {
-        $arguments += "-AllowReviewCodex"
-    }
-
-    if ($AllowCommit) {
-        $arguments += "-AllowCommit"
-    }
-
-    # auto-goal writes goal/queue/state/current prompt/result files after t
-he initial dirty gate.
-    # The downstream full cycle must tolerate those intended artifacts.
-    $arguments += "-AllowDirty"
-
-    if ($script:autoGoalBaselineDirtyPaths.Count -gt 0) {
-        $arguments += "-ProtectedBaselineDirtyPaths"
-        $arguments += ($script:autoGoalBaselineDirtyPaths -join ",")
-    }
-
-    if ($null -ne $CommitFiles -and $CommitFiles.Count -gt 0) {
-        $normalizedFiles = @($CommitFiles | ForEach-Object { $_ -split "," 
-} | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
-
-        if ($normalizedFiles.Count -gt 0) {
-            $arguments += "-CommitFiles"
-            $arguments += ($normalizedFiles -join ",")
-        }
-    }
-
-    return $arguments
-}
-
-function Get-CurrentGoalStatus {
-    $statePath = [System.IO.Path]::GetFullPath((Resolve-RepoPath $stateRela
-tivePath))
-
-    try {
-        $state = Get-Content -Raw -Encoding UTF8 -LiteralPath $statePath | 
-ConvertFrom-Json
-    } catch {
-        throw "$stateRelativePath JSON 파싱에 실패했습니다: $($_.Exception.Message)"
-    }
-
-    if ($null -eq $state -or -not ($state.PSObject.Properties.Name -contain
-s "goalStatus")) {
-        throw "$stateRelativePath 파일에서 goalStatus를 찾을 수 없습니다."
-    }
-
-    return [string]$state.goalStatus
-}
-
-Set-Location $repoRoot
-
-$script:steps = @()
-$script:autoGoalPlanPreview = $null
-$script:autoGoalBaselineStatusLines = @()
-$script:autoGoalBaselineDirtyPaths = @()
-$resolvedGoalPath = [System.IO.Path]::GetFullPath((Resolve-RepoPath $goalRe
-lativePath))
-$resolvedQueuePath = [System.IO.Path]::GetFullPath((Resolve-RepoPath $queue
-RelativePath))
-$resolvedStatePath = [System.IO.Path]::GetFullPath((Resolve-RepoPath $state
-RelativePath))
-$resolvedPlanningPromptPath = [System.IO.Path]::GetFullPath((Resolve-RepoPa
-th $planningPromptRelativePath))
-$resolvedResultPath = [System.IO.Path]::GetFullPath((Resolve-RepoPath $Resu
-ltPath))
-
-if (-not (Test-HasValue $GoalTitle)) {
-    $script:steps += New-StepResult 0 "validate-input" "check GoalTitle" $f
-alse $false 1 "GoalTitle must not be empty."
-    Stop-AutoGoal $script:steps "invalid_goal_title" $false 1
-}
-
-if (-not (Test-HasValue $GoalDescription)) {
-    $script:steps += New-StepResult 0 "validate-input" "check GoalDescripti
-on" $false $false 1 "GoalDescription must not be empty."
-    Stop-AutoGoal $script:steps "invalid_goal_description" $false 1
-}
-
-if ($MaxTasks -lt 1) {
-    $script:steps += New-StepResult 0 "validate-input" "check MaxTasks" $fa
-lse $false 1 "MaxTasks must be at least 1."
-    Stop-AutoGoal $script:steps "max_tasks_must_be_at_least_1" $false 1
-}
-
-if ($MaxSteps -lt 1) {
-    $script:steps += New-StepResult 0 "validate-input" "check MaxSteps" $fa
-lse $false 1 "MaxSteps must be at least 1."
-    Stop-AutoGoal $script:steps "max_steps_must_be_at_least_1" $false 1
-}
-
-$makePromptPath = Join-Path $PSScriptRoot "ai-dev-make-prompt.ps1"
-$autoCycleFullPath = Join-Path $PSScriptRoot "ai-dev-auto-cycle-full.ps1"
-
-foreach ($requiredScript in @($makePromptPath, $autoCycleFullPath)) {
-    if (-not (Test-Path -LiteralPath $requiredScript -PathType Leaf)) {
-        $script:steps += New-StepResult 0 "prepare" "check required scripts
-" $false $false 1 "Missing required script: $requiredScript"
-        Stop-AutoGoal $script:steps "prepare_failed" $false 1
-    }
-}
-
-$shouldRunFullCycle = [bool]($AllowRun -or $AllowCodex -or $AllowReviewCode
-x -or $AllowCommit)
-$fullCycleArguments = @(Get-FullCycleArguments)
-$fullCycleCommandText = "powershell -ExecutionPolicy Bypass -File scripts/a
-i-dev-auto-cycle-full.ps1 $($fullCycleArguments -join ' ')".Trim()
-
-$script:steps += New-StepResult 1 "validate-input" "check GoalTitle/GoalDes
-cription" $false $false 0 "Input validation completed: $GoalTitle"
-
-if ($DryRun) {
-    $script:autoGoalPlanPreview = New-DryRunAutoGoalPlan $GoalTitle.Trim() 
-$GoalDescription.Trim()
-    $previewValidationErrors = @(Get-AutoGoalValidationErrors $script:autoG
-oalPlanPreview)
-
-    if ($previewValidationErrors.Count -gt 0) {
-        $script:steps += New-StepResult 2 "preview-plan" "local dry-run pla
-n preview" $false $false 1 "DryRun preview plan validation failed: $($previ
-ewValidationErrors -join '; ')"
-        Stop-AutoGoal $script:steps "dry_run_preview_invalid" $false 1
-    }
-
-    $plannedAutoGoalOutputPaths = @(Get-PlannedAutoGoalOutputPaths)
-    $script:steps += New-StepResult 2 "dirty-worktree-gate" "git status --p
-orcelain; compare baseline dirty paths with planned auto-goal outputs" $fal
-se $true 0 "DryRun: baseline dirty capture, dirty worktree gate, and baseli
-ne output conflict gate were not executed. Would check planned output paths
-: $($plannedAutoGoalOutputPaths -join ', ')"
-    $script:steps += New-StepResult 3 "plan-goal" "codex exec <auto-goal pl
-anning prompt>" $false $true 0 "DryRun: Codex goal planning was not execute
-d. Preview currentTaskId: T001, task: $GoalTitle"
-    $script:steps += New-StepResult 4 "validate-generated-json" "goal/queue
-/state JSON validation" $false $true 0 "DryRun: preview goal/queue/state pl
-an passed local schema validation."
-    $script:steps += New-StepResult 5 "write-state-files" "$goalRelativePat
-h, $queueRelativePath, $stateRelativePath" $false $true 0 "DryRun: state fi
-les were not written."
-    $script:steps += New-StepResult 6 "make-prompt" "powershell -ExecutionP
-olicy Bypass -File scripts/ai-dev-make-prompt.ps1" $false $true 0 "DryRun: 
-current-task-prompt.md was not generated."
-
-    if ($shouldRunFullCycle) {
-        $script:steps += New-StepResult 7 "auto-cycle-full" $fullCycleComma
-ndText $false $true 0 "DryRun: explicit run option is present, but full cyc
-le was not executed. -AllowRun only invokes the full-cycle wrapper; impleme
-ntation and review still require -AllowCodex and -AllowReviewCodex."
-    } else {
-        $script:steps += New-StepResult 7 "auto-cycle-full" $fullCycleComma
-ndText $false $true 0 "DryRun: full cycle requires -AllowRun or explicit ex
-ecution options. -AllowRun only invokes the full-cycle wrapper; implementat
-ion and review still require -AllowCodex and -AllowReviewCodex."
-    }
-
-    Stop-AutoGoal $script:steps "dry_run" $false 0
-}
+ succeeded in 2822ms:
 
 $script:autoGoalBaselineStatusLines = @(Get-GitPorcelainStatusLines)
 $script:autoGoalBaselineDirtyPaths = @(
@@ -1976,2820 +6074,614 @@ goalStatus 확인" $false $false 0 "auto-cycle-full 성공 후 goalStatus comple
 Complete-AutoGoal 9 10 11 12 "completed"
 
 
- succeeded in 2617ms:
-param(
-    [int]$MaxTasks = 1,
-    [int]$MaxSteps = 22,
-    [switch]$DryRun,
-    [switch]$Json,
-    [switch]$AllowCodex,
-    [switch]$AllowReviewCodex,
-    [switch]$AllowCommit,
-    [switch]$AllowDirty,
-    [string[]]$ProtectedBaselineDirtyPaths,
-    [string[]]$CommitFiles
-)
-
-. $PSScriptRoot\ai-dev-env.ps1
-
-$repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
-$queueRelativePath = ".ai-dev/queue.json"
-$stateRelativePath = ".ai-dev/state.json"
-$reviewResponseRelativePath = ".ai-dev/review-response.json"
-$aiDevOperationalRoot = ".ai-dev/"
-$queuePath = Join-Path $repoRoot $queueRelativePath
-$statePath = Join-Path $repoRoot $stateRelativePath
-$reviewResponsePath = Join-Path $repoRoot $reviewResponseRelativePath
-$utf8WithBom = New-Object System.Text.UTF8Encoding($true)
-
-function Test-HasValue {
-    param(
-        [object]$Value
-    )
-
-    if ($null -eq $Value) {
-        return $false
-    }
-
-    if ($Value -is [string]) {
-        return -not [string]::IsNullOrWhiteSpace($Value)
-    }
-
-    return $true
-}
-
-function Read-JsonFile {
-    param(
-        [string]$Path,
-        [string]$RelativePath
-    )
-
-    try {
-        return Get-Content -Raw -Encoding UTF8 -LiteralPath $Path | Convert
-From-Json
-    } catch {
-        throw "$RelativePath JSON 파싱에 실패했습니다: $($_.Exception.Message)"
-    }
-}
-
-function Set-ObjectProperty {
-    param(
-        [object]$InputObject,
-        [string]$Name,
-        [object]$Value
-    )
-
-    if ($InputObject.PSObject.Properties.Name -contains $Name) {
-        $InputObject.$Name = $Value
-    } else {
-        $InputObject | Add-Member -NotePropertyName $Name -NotePropertyValu
-e $Value
-    }
-}
-
-function Write-JsonFile {
-    param(
-        [string]$Path,
-        [object]$Value
-    )
-
-    $json = $Value | ConvertTo-Json -Depth 20
-    [System.IO.File]::WriteAllText($Path, $json, $utf8WithBom)
-}
-
-function Save-CycleFailureState {
-    param(
-        [string]$Command,
-        [string]$ErrorSummary,
-        [object]$ReviewGate = $null
-    )
-
-    try {
-        $state = Read-JsonFile $statePath $stateRelativePath
-
-        if ($null -ne $ReviewGate -and (Test-HasValue $ReviewGate.decision)
-) {
-            Set-ObjectProperty $state "lastReviewDecision" ([string]$Review
-Gate.decision)
-        }
-
-        if ($null -ne $ReviewGate -and (Test-HasValue $ReviewGate.severity)
-) {
-            Set-ObjectProperty $state "lastReviewSeverity" ([string]$Review
-Gate.severity)
-        }
-
-        if ($null -ne $ReviewGate -and (Test-HasValue $ReviewGate.nextStep)
-) {
-            Set-ObjectProperty $state "lastReviewNextStep" ([string]$Review
-Gate.nextStep)
-        }
-
-        if ($null -ne $ReviewGate -and (Test-HasValue $ReviewGate.summary))
- {
-            Set-ObjectProperty $state "lastReviewSummary" ([string]$ReviewG
-ate.summary)
-        }
-
-        if ($null -ne $ReviewGate -and ($ReviewGate.PSObject.Properties.Nam
-e -contains "requiredChanges")) {
-            Set-ObjectProperty $state "lastReviewRequiredChanges" @($Review
-Gate.requiredChanges)
-        }
-
-        Set-ObjectProperty $state "lastCommand" $Command
-        Set-ObjectProperty $state "lastCommandStatus" "failed"
-        Set-ObjectProperty $state "lastErrorSummary" $ErrorSummary
-        Set-ObjectProperty $state "updatedAt" ([DateTimeOffset]::UtcNow.ToS
-tring("o"))
-        Write-JsonFile $statePath $state
-    } catch {
-        Write-Warning "상태 파일에 실패 사유를 기록하지 못했습니다: $($_.Exception.Message)"
-    }
-}
-
-function Get-CurrentTask {
-    param(
-        [object]$Queue,
-        [object]$State
-    )
-
-    $tasks = @($Queue.tasks)
-    $currentTaskId = $null
-
-    if (Test-HasValue $State.currentTaskId) {
-        $currentTaskId = [string]$State.currentTaskId
-    } elseif (Test-HasValue $Queue.currentTaskId) {
-        $currentTaskId = [string]$Queue.currentTaskId
-    } else {
-        $inProgressTask = $tasks | Where-Object { $_.status -eq "in_progres
-s" } | Select-Object -First 1
-
-        if ($null -ne $inProgressTask) {
-            $currentTaskId = [string]$inProgressTask.id
-        } else {
-            $pendingTask = $tasks | Where-Object { $_.status -eq "pending" 
-} | Select-Object -First 1
-
-            if ($null -ne $pendingTask) {
-                $currentTaskId = [string]$pendingTask.id
-            }
-        }
-    }
-
-    if (-not (Test-HasValue $currentTaskId)) {
-        return $null
-    }
-
-    return $tasks | Where-Object { $_.id -eq $currentTaskId } | Select-Obje
-ct -First 1
-}
-
-function Get-NextTask {
-    param(
-        [object]$Queue,
-        [object]$State,
-        [object]$CompletedTask
-    )
-
-    $currentTask = Get-CurrentTask $Queue $State
-    $completedTaskId = if ($null -ne $CompletedTask -and (Test-HasValue $Co
-mpletedTask.id)) { [string]$CompletedTask.id } else { $null }
-
-    if ($null -ne $currentTask -and $currentTask.status -ne "done" -and $cu
-rrentTask.id -ne $completedTaskId) {
-        return $currentTask
-    }
-
-    return @($Queue.tasks) |
-        Where-Object { $_.status -in @("in_progress", "pending") -and $_.id
- -ne $completedTaskId } |
-        Select-Object -First 1
-}
-
-function Update-PostCompleteTaskContext {
-    param(
-        [object]$CompletedTask
-    )
-
-    $completedTaskForContext = $null
-    $completedTaskId = $null
-
-    if ($null -ne $CompletedTask) {
-        $completedTaskId = if (Test-HasValue $CompletedTask.id) { [string]$
-CompletedTask.id } else { $null }
-        $completedTaskForContext = [PSCustomObject][ordered]@{
-            id = [string]$CompletedTask.id
-            title = [string]$CompletedTask.title
-            status = "done"
-            type = [string]$CompletedTask.type
-        }
-    }
-
-    $script:completedTask = $completedTaskForContext
-    $script:completedTaskCount++
-    $script:currentTask = $null
-    $script:nextTask = $null
-
-    try {
-        $queueAfterComplete = Read-JsonFile $queuePath $queueRelativePath
-        $stateAfterComplete = Read-JsonFile $statePath $stateRelativePath
-
-        if (Test-HasValue $completedTaskId) {
-            $refreshedCompletedTask = @($queueAfterComplete.tasks) |
-                Where-Object { $_.id -eq $completedTaskId } |
-                Select-Object -First 1
-
-            if ($null -ne $refreshedCompletedTask) {
-                $script:completedTask = $refreshedCompletedTask
-            }
-        }
-
-        $currentTaskAfterComplete = Get-CurrentTask $queueAfterComplete $st
-ateAfterComplete
-
-        if ($null -ne $currentTaskAfterComplete -and $currentTaskAfterCompl
-ete.status -ne "done" -and $currentTaskAfterComplete.id -ne $completedTaskI
-d) {
-            $script:currentTask = $currentTaskAfterComplete
-        }
-
-        $script:nextTask = Get-NextTask $queueAfterComplete $stateAfterComp
-lete $script:completedTask
-    } catch {
-        Write-Warning "complete-task 이후 task context를 최신 queue/state로 갱신하지 
-못했습니다: $($_.Exception.Message)"
-    }
-}
-
-function ConvertTo-TaskContext {
-    param(
-        [object]$Task
-    )
-
-    if ($null -eq $Task) {
-        return $null
-    }
-
-    return [PSCustomObject][ordered]@{
-        id = [string]$Task.id
-        title = [string]$Task.title
-        status = [string]$Task.status
-        type = [string]$Task.type
-    }
-}
-
-function New-StepResult {
-    param(
-        [int]$Step,
-        [string]$Name,
-        [string]$Command,
-        [bool]$Executed,
-        [bool]$Skipped,
-        [int]$ExitCode,
-        [string]$Message
-    )
-
-    return [PSCustomObject][ordered]@{
-        step = $Step
-        name = $Name
-        command = $Command
-        executed = $Executed
-        skipped = $Skipped
-        exitCode = $ExitCode
-        message = $Message
-    }
-}
-
-function New-CycleResult {
-    param(
-        [object[]]$Steps,
-        [string]$StoppedReason,
-        [bool]$Completed,
-        [int]$ExitCode
-    )
-
-    $lastStep = @($Steps) | Select-Object -Last 1
-    $currentTask = $script:currentTask
-    $completedTask = $script:completedTask
-    $nextTask = $script:nextTask
-    $currentTaskContext = ConvertTo-TaskContext $currentTask
-    $completedTaskContext = ConvertTo-TaskContext $completedTask
-    $nextTaskContext = ConvertTo-TaskContext $nextTask
-    $taskContext = $currentTaskContext
-    $lastStepContext = $null
-
-    if ($null -eq $taskContext -and $null -ne $completedTaskContext) {
-        $taskContext = $completedTaskContext
-    }
-
-    if ($null -ne $lastStep) {
-        $lastStepContext = [PSCustomObject][ordered]@{
-            step = $lastStep.step
-            name = $lastStep.name
-            executed = $lastStep.executed
-            skipped = $lastStep.skipped
-            exitCode = $lastStep.exitCode
-        }
-    }
-
-    return [PSCustomObject][ordered]@{
-        steps = @($Steps)
-        stoppedReason = $StoppedReason
-        completed = $Completed
-        exitCode = $ExitCode
-        context = [PSCustomObject][ordered]@{
-            task = $taskContext
-            completedTask = $completedTaskContext
-            currentTask = $currentTaskContext
-            nextTask = $nextTaskContext
-            completedTaskCount = $script:completedTaskCount
-            maxTasks = $MaxTasks
-            maxSteps = $MaxSteps
-            stepCount = @($Steps).Count
-            lastStep = $lastStepContext
-        }
-    }
-}
-
-function Write-CycleResult {
-    param(
-        [object]$Result
-    )
-
-    if ($Json) {
-        $Result | ConvertTo-Json -Depth 20
-        return
-    }
-
-    foreach ($step in @($Result.steps)) {
-        Write-Host "Step $($step.step): $($step.name)"
-        Write-Host "  Command: $($step.command)"
-        Write-Host "  Executed: $($step.executed)"
-        Write-Host "  Skipped: $($step.skipped)"
-        Write-Host "  Exit code: $($step.exitCode)"
-        Write-Host "  Message: $($step.message)"
-    }
-
-    Write-Host "Stopped reason: $($Result.stoppedReason)"
-    Write-Host "Completed: $($Result.completed)"
-    Write-Host "Exit code: $($Result.exitCode)"
-    Write-Host "Context:"
-    if ($null -ne $Result.context.task) {
-        Write-Host "  Task: $($Result.context.task.id) $($Result.context.ta
-sk.title)"
-        Write-Host "  Task status: $($Result.context.task.status)"
-    } else {
-        Write-Host "  Task: none"
-    }
-    if ($null -ne $Result.context.completedTask) {
-        Write-Host "  Completed task: $($Result.context.completedTask.id) $
-($Result.context.completedTask.title)"
-    } else {
-        Write-Host "  Completed task: none"
-    }
-    if ($null -ne $Result.context.currentTask) {
-        Write-Host "  Current task: $($Result.context.currentTask.id) $($Re
-sult.context.currentTask.title)"
-    } else {
-        Write-Host "  Current task: none"
-    }
-    if ($null -ne $Result.context.nextTask) {
-        Write-Host "  Next task: $($Result.context.nextTask.id) $($Result.c
-ontext.nextTask.title)"
-    } else {
-        Write-Host "  Next task: none"
-    }
-    Write-Host "  Completed tasks: $($Result.context.completedTaskCount) / 
-$($Result.context.maxTasks)"
-    Write-Host "  Steps recorded: $($Result.context.stepCount) / $($Result.
-context.maxSteps)"
-    if ($null -ne $Result.context.lastStep) {
-        Write-Host "  Last step: $($Result.context.lastStep.step) $($Result
-.context.lastStep.name) exit=$($Result.context.lastStep.exitCode)"
-    } else {
-        Write-Host "  Last step: none"
-    }
-
-}
-
-function Stop-Cycle {
-    param(
-        [object[]]$Steps,
-        [string]$StoppedReason,
-        [bool]$Completed,
-        [int]$ExitCode
-    )
-
-    $result = New-CycleResult $Steps $StoppedReason $Completed $ExitCode
-    Write-CycleResult $result
-    exit $ExitCode
-}
-
-function Complete-Cycle {
-    param(
-        [object[]]$Steps,
-        [string]$StoppedReason,
-        [int]$StepNumber
-    )
-
-    try {
-        $remainingStatus = Invoke-GitCapture -Arguments @("status", "--shor
-t") -DisplayName "git status --short"
-
-        if (-not [string]::IsNullOrWhiteSpace($remainingStatus)) {
-            $changeLines = @($remainingStatus -split "`r?`n" | Where-Object
- { -not [string]::IsNullOrWhiteSpace($_) })
-            $changedPaths = @(
-                $changeLines |
-                    ForEach-Object { Convert-ToChangedPath $_ } |
-                    ForEach-Object { ConvertTo-NormalizedChangedPath $_ } |
-                    Where-Object { Test-HasValue $_ } |
-                    Select-Object -Unique
-            )
-            $protectedPaths = @($changedPaths | Where-Object { Test-IsProte
-ctedBaselineDirtyPath $_ })
-            $nonAiDevPaths = @($changedPaths | Where-Object { -not (Test-Is
-AiDevOperationalPath $_) })
-            $eligibleAiDevPaths = @($changedPaths | Where-Object { (Test-Is
-AiDevOperationalPath $_) -and -not (Test-IsProtectedBaselineDirtyPath $_) }
-)
-
-            if ($nonAiDevPaths.Count -gt 0) {
-                $Steps += New-StepResult $StepNumber "completed-clean-gate"
- "git status --short" $true $false 1 "Completed clean verification failed: 
-non-.ai-dev changes remain after all full-cycle result/state files were wri
-tten.`n$remainingStatus"
-                Stop-Cycle $Steps "completed_non_ai_dev_changes" $false 1
-            }
-
-            if ($protectedPaths.Count -gt 0) {
-                $Steps += New-StepResult $StepNumber "completed-clean-gate"
- "git status --short" $true $false 1 "Completed clean verification failed: 
-protected baseline dirty .ai-dev paths remain and must not be absorbed into
- the final meta commit.`n$($protectedPaths -join "`n")`n$remainingStatus"
-                Stop-Cycle $Steps "completed_protected_baseline_dirty" $fal
-se 1
-            }
-
-            if ($eligibleAiDevPaths.Count -eq 0) {
-                $Steps += New-StepResult $StepNumber "completed-clean-gate"
- "git status --short" $true $false 1 "Completed clean verification failed: 
-worktree still has changes, but none are eligible new .ai-dev operational c
-hanges.`n$remainingStatus"
-                Stop-Cycle $Steps "completed_no_eligible_meta_changes" $fal
-se 1
-            }
-
-            if (-not $AllowCommit) {
-                $Steps += New-StepResult $StepNumber "completed-clean-gate"
- "git status --short" $true $false 1 "Completed clean verification failed: 
-only new .ai-dev operational changes remain, but -AllowCommit is required f
-or the final auto-cycle meta commit.`n$remainingStatus"
-                Stop-Cycle $Steps "completed_ai_dev_changes_require_commit"
- $false 1
-            }
-
-            if ($DryRun) {
-                $Steps += New-StepResult $StepNumber "completed-clean-gate"
- "git status --short; git add/commit final .ai-dev operational changes; git
- status --short" $false $true 0 "DryRun: only new .ai-dev operational chang
-es remain, but the final auto-cycle meta commit was not created.`n$remainin
-gStatus"
-                Stop-Cycle $Steps "dry_run" $false 0
-            }
-
-            $addOutput = & git add -- $eligibleAiDevPaths 2>&1 | Out-String
-            $addExitCode = $LASTEXITCODE
-
-            if ($addExitCode -ne 0) {
-                $Steps += New-StepResult $StepNumber "completed-clean-gate"
- "git add -- <final .ai-dev files>" $true $false 1 "Final auto-cycle .ai-de
-v meta add failed. exit code: $addExitCode`n$addOutput"
-                Stop-Cycle $Steps "completed_meta_add_failed" $false 1
-            }
-
-            $metaCommitMessage = "chore(ai-dev): record final auto-cycle st
-ate"
-            $commitOutput = & git commit -m $metaCommitMessage -- $eligible
-AiDevPaths 2>&1 | Out-String
-            $commitExitCode = $LASTEXITCODE
-
-            if ($commitExitCode -ne 0) {
-                $Steps += New-StepResult $StepNumber "completed-clean-gate"
- "git commit -m '$metaCommitMessage' -- <final .ai-dev files>" $true $false
- 1 "Final auto-cycle .ai-dev meta commit failed. exit code: $commitExitCode
-`n$commitOutput"
-                Stop-Cycle $Steps "completed_meta_commit_failed" $false 1
-            }
-
-            $remainingStatus = Invoke-GitCapture -Arguments @("status", "--
-short") -DisplayName "git status --short"
-
-            if (-not [string]::IsNullOrWhiteSpace($remainingStatus)) {
-                $Steps += New-StepResult $StepNumber "completed-clean-gate"
- "git status --short" $true $false 1 "Completed clean verification failed: 
-changes remain after the final auto-cycle .ai-dev meta commit.`n$remainingS
-tatus"
-                Stop-Cycle $Steps "completed_worktree_dirty" $false 1
-            }
-
-            $message = ($commitOutput.Trim(), "Final auto-cycle .ai-dev met
-a commit created: yes", "Completed clean verification passed: git status --
-short returned no changes.") -join "`n"
-            $Steps += New-StepResult $StepNumber "completed-clean-gate" "gi
-t status --short; git add/commit final .ai-dev operational changes; git sta
-tus --short" $true $false 0 $message
-            Stop-Cycle $Steps $StoppedReason $true 0
-        }
-
-        $Steps += New-StepResult $StepNumber "completed-clean-gate" "git st
-atus --short" $true $false 0 "Completed clean verification passed: git stat
-us --short returned no changes."
-        Stop-Cycle $Steps $StoppedReason $true 0
-    } catch {
-        $Steps += New-StepResult $StepNumber "completed-clean-gate" "git st
-atus --short" $false $false 1 $_.Exception.Message
-        Stop-Cycle $Steps "completed_clean_gate_failed" $false 1
-    }
-}
-
-function Invoke-CycleCommand {
-    param(
-        [int]$StepNumber,
-        [string]$Name,
-        [string]$Command,
-        [string]$ScriptPath,
-        [string[]]$Arguments
-    )
-
-    if ($DryRun) {
-        $script:steps += New-StepResult $StepNumber $Name $Command $false $
-true 0 "DryRun: 하위 스크립트를 실행하지 않았습니다."
-        return
-    }
-
-    $output = & powershell -ExecutionPolicy Bypass -File $ScriptPath @Argum
-ents 2>&1 | Out-String
-    $exitCode = $LASTEXITCODE
-    $message = $output.Trim()
-
-    if ([string]::IsNullOrWhiteSpace($message)) {
-        $message = "완료"
-    }
-
-    $script:steps += New-StepResult $StepNumber $Name $Command $true $false
- $exitCode $message
-
-    if ($exitCode -ne 0) {
-        Stop-Cycle $script:steps "$Name`_failed" $false 1
-    }
-}
-
-function Get-ScriptPath {
-    param(
-        [string]$Name
-    )
-
-    $scriptPath = Join-Path $PSScriptRoot $Name
-
-    if (-not (Test-Path -LiteralPath $scriptPath -PathType Leaf)) {
-        throw "필수 스크립트를 찾을 수 없습니다: scripts/$Name"
-    }
-
-    return $scriptPath
-}
-
-function Invoke-GitCapture {
-    param(
-        [string[]]$Arguments,
-        [string]$DisplayName
-    )
-
-    $output = & git @Arguments 2>&1 | Out-String
-    $exitCode = $LASTEXITCODE
-
-    if ($exitCode -ne 0) {
-        throw "$DisplayName 실행에 실패했습니다. exit code: $exitCode`n$output"
-    }
-
-    return $output.TrimEnd()
-}
-
-function Test-PackageFileChanged {
-    $status = Invoke-GitCapture @("status", "--porcelain", "--", "package.j
-son", "package-lock.json") "git status --porcelain -- package.json package-
-lock.json"
-    return -not [string]::IsNullOrWhiteSpace($status)
-}
-
-function Convert-ToChangedPath {
-    param(
-        [string]$ChangeLine
-    )
-
-    if ([string]::IsNullOrWhiteSpace($ChangeLine)) {
-        return @()
-    }
-
-    $pathText = $ChangeLine
-
-    if ($ChangeLine.Length -ge 4 -and $ChangeLine.Substring(2, 1) -eq " ") 
+codex
+검증 로그에 포함된 세 가지 시나리오는 변경 목표를 직접 덮고 있습니다. 남은 판단 포인트는 누락된 expected stop 사유와 출
+력 JSON의 테스트 판정 처리입니다.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "
+Select-String -Path 'D:\\ai-apps\\planpilot-local\\scripts\\*.ps1' -Pattern
+ 'max_steps_too_small_for_full_cycle|baseline_output_conflict|dirty_worktre
+e|all_goal_candidates_excluded|goal_candidate_not_found|current_goal_not_co
+mpleted'" in D:\ai-apps\planpilot-local
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "
+Select-String -Path 'D:\\ai-apps\\planpilot-local\\.ai-dev\\diff.md' -Patte
+rn '"'^diff --git|''^@@|max_steps_too_small_for_full_cycle|Test-IsExpected|
+Restore-|MetaCommit|BaselineDirty|OperationalFileSnapshots|Stop-AutoGoal|St
+op-Autopilot'"' -Context 0,2" in D:\ai-apps\planpilot-local
+ succeeded in 2675ms:
+
+> .ai-dev\diff.md:63:diff --git a/scripts/ai-dev-auto-goal.ps1 b/scripts/ai
+-dev-auto-goal.ps1
+  .ai-dev\diff.md:64:index 5869e33..070042f 100644
+  .ai-dev\diff.md:65:--- a/scripts/ai-dev-auto-goal.ps1
+> .ai-dev\diff.md:67:@@ -30,6 +30,7 @@ $legacyAutoGoalResultRelativePath = 
+".ai-dev/auto-goal-codex-result.md"
+  .ai-dev\diff.md:68: $aiDevOperationalRoot = ".ai-dev/"
+  .ai-dev\diff.md:69: $script:autoGoalCanWriteResultFile = $true
+> .ai-dev\diff.md:71:+$script:autoGoalOperationalFileSnapshots = @{}
+  .ai-dev\diff.md:72: 
+  .ai-dev\diff.md:73: function Resolve-RepoPath {
+> .ai-dev\diff.md:75:@@ -98,9 +99,18 @@ function New-AutoGoalResult {
+  .ai-dev\diff.md:76:         [int]$ExitCode
+  .ai-dev\diff.md:77:     )
+> .ai-dev\diff.md:79:+    $outcomeCategory = if (Test-IsExpectedPreImplemen
+tationStop $StoppedReason) {
+  .ai-dev\diff.md:80:+        "expected_non_work"
+  .ai-dev\diff.md:81:+    } elseif ($ExitCode -eq 0) {
+> .ai-dev\diff.md:94:@@ -145,6 +155,7 @@ function Write-AutoGoalResult {
+  .ai-dev\diff.md:95:     }
+  .ai-dev\diff.md:96: 
+> .ai-dev\diff.md:102:@@ -172,6 +183,7 @@ function Save-AutoGoalResultFile 
 {
-        $pathText = $ChangeLine.Substring(3)
-    }
-
-    if ($pathText.Contains(" -> ")) {
-        return @($pathText -split " -> " | Where-Object { Test-HasValue $_ 
-})
-    }
-
-    return @($pathText)
-}
-
-function ConvertTo-NormalizedChangedPath {
-    param(
-        [string]$RelativePath
-    )
-
-    if (-not (Test-HasValue $RelativePath)) {
-        return $null
-    }
-
-    return $RelativePath.Trim().Trim('"').Replace('\', '/')
-}
-
-function Test-IsAiDevOperationalPath {
-    param(
-        [string]$RelativePath
-    )
-
-    $normalizedRelativePath = ConvertTo-NormalizedChangedPath $RelativePath
-    return $normalizedRelativePath.StartsWith($aiDevOperationalRoot, [Syste
-m.StringComparison]::OrdinalIgnoreCase)
-}
-
-function Get-ProtectedBaselineDirtyPaths {
-    if ($null -eq $ProtectedBaselineDirtyPaths -or $ProtectedBaselineDirtyP
-aths.Count -eq 0) {
-        return @()
-    }
-
-    return @(
-        $ProtectedBaselineDirtyPaths |
-            ForEach-Object { $_ -split "," } |
-            Where-Object { Test-HasValue $_ } |
-            ForEach-Object { ConvertTo-NormalizedChangedPath $_ } |
-            Select-Object -Unique
-    )
-}
-
-function Test-IsProtectedBaselineDirtyPath {
-    param(
-        [string]$RelativePath
-    )
-
-    $normalizedRelativePath = ConvertTo-NormalizedChangedPath $RelativePath
-    return @($script:protectedBaselineDirtyPaths) -contains $normalizedRela
-tivePath
-}
-
-function Get-ChangedNonAiDevFiles {
-    $status = Invoke-GitCapture @("status", "--porcelain") "git status --po
-rcelain"
-    $changeLines = @($status -split "`r?`n" | Where-Object { -not [string]:
-:IsNullOrWhiteSpace($_) })
-
-    return @(
-        $changeLines |
-            ForEach-Object { Convert-ToChangedPath $_ } |
-            ForEach-Object { ConvertTo-NormalizedChangedPath $_ } |
-            Where-Object { (Test-HasValue $_) -and -not (Test-IsAiDevOperat
-ionalPath $_) -and -not (Test-IsProtectedBaselineDirtyPath $_) } |
-            Select-Object -Unique
-    )
-}
-
-function Get-RequiredReviewChangeFiles {
-    param(
-        [object]$ReviewResponse
-    )
-
-    if ($null -eq $ReviewResponse -or -not ($ReviewResponse.PSObject.Proper
-ties.Name -contains "required_changes")) {
-        return @()
-    }
-
-    return @(
-        @($ReviewResponse.required_changes) |
-            Where-Object { $null -ne $_ -and ($_.PSObject.Properties.Name -
-contains "file") -and (Test-HasValue $_.file) } |
-            ForEach-Object { ConvertTo-NormalizedChangedPath ([string]$_.fi
-le) } |
-            Where-Object { (Test-HasValue $_) -and $_ -ne "unknown" -and -n
-ot (Test-IsAiDevOperationalPath $_) -and -not (Test-IsProtectedBaselineDirt
-yPath $_) } |
-            Select-Object -Unique
-    )
-}
-
-function Test-ReviewRequiredFileIsChanged {
-    param(
-        [string]$RequiredFile,
-        [string[]]$ChangedFiles
-    )
-
-    foreach ($changedFile in @($ChangedFiles)) {
-        if ($changedFile.Equals($RequiredFile, [System.StringComparison]::O
-rdinalIgnoreCase)) {
-            return $true
-        }
-    }
-
-    return $false
-}
-
-function Get-ReviewImplementationGate {
-    param(
-        [object]$CurrentTask,
-        [object]$ReviewGate
-    )
-
-    $taskType = if ($null -ne $CurrentTask -and (Test-HasValue $CurrentTask
-.type)) { [string]$CurrentTask.type } else { "" }
-    $requiredFiles = @($ReviewGate.requiredChangeFiles)
-    $changedFiles = @(Get-ChangedNonAiDevFiles)
-    $isVerificationReviseWithCodex = $taskType -eq "verification" -and $Rev
-iewGate.decision -eq "revise" -and $ReviewGate.normalizedNextStep -eq "revi
-se_with_codex"
-    $missingRequiredFiles = @(
-        $requiredFiles |
-            Where-Object { -not (Test-ReviewRequiredFileIsChanged $_ $chang
-edFiles) }
-    )
-
-    if ($ReviewGate.decision -eq "revise" -and $taskType -ne "implementatio
-n" -and -not $isVerificationReviseWithCodex) {
-        return [PSCustomObject][ordered]@{
-            passed = $false
-            reason = "non_implementation_revise"
-            message = "현재 task type이 implementation이 아닌데 review decision=re
-vise입니다. 구현 없는 revise 반복을 성공 처리하지 않도록 중단합니다. taskType='$taskType', required
-Files=$($requiredFiles -join ', '), changedFiles=$($changedFiles -join ', '
-)"
-        }
-    }
-
-    if ($isVerificationReviseWithCodex) {
-        return [PSCustomObject][ordered]@{
-            passed = $true
-            reason = "verification_revise_with_codex"
-            message = "verification task의 revise + revise_with_codex는 구현 파일
- 변경이 없는 검증 산출물 보강 흐름일 수 있으므로 implementation 전용 required files 검사를 건너뜁니다. re
-quiredFiles=$($requiredFiles -join ', '), changedFiles=$($changedFiles -joi
-n ', ')"
-        }
-    }
-
-    if ($requiredFiles.Count -gt 0 -and $changedFiles.Count -eq 0) {
-        return [PSCustomObject][ordered]@{
-            passed = $false
-            reason = "missing_implementation"
-            message = "review-response.json이 구현 파일 변경을 요구했지만 현재 diff에 구현 변경
- 파일이 없습니다. requiredFiles=$($requiredFiles -join ', ')"
-        }
-    }
-
-    if ($missingRequiredFiles.Count -gt 0) {
-        return [PSCustomObject][ordered]@{
-            passed = $false
-            reason = "stale_review_required_file_missing"
-            message = "review-response.json이 요구한 구현 파일 변경이 현재 diff에 없습니다. s
-tale review 또는 missing implementation으로 보고 완료 흐름을 차단합니다. missingRequiredFil
-es=$($missingRequiredFiles -join ', '), changedFiles=$($changedFiles -join 
-', ')"
-        }
-    }
-
-    return [PSCustomObject][ordered]@{
-        passed = $true
-        reason = "ok"
-        message = "review-response.json required_changes와 현재 diff 파일 목록이 일치
-합니다."
-    }
-}
-
-function Get-ChangedAiDevOperationalFiles {
-    $status = Invoke-GitCapture @("status", "--porcelain") "git status --po
-rcelain"
-    $changeLines = @($status -split "`r?`n" | Where-Object { -not [string]:
-:IsNullOrWhiteSpace($_) })
-
-    return @(
-        $changeLines |
-            ForEach-Object { Convert-ToChangedPath $_ } |
-            ForEach-Object { ConvertTo-NormalizedChangedPath $_ } |
-            Where-Object { (Test-HasValue $_) -and (Test-IsAiDevOperational
-Path $_) -and -not (Test-IsProtectedBaselineDirtyPath $_) } |
-            Select-Object -Unique
-    )
-}
-
-function Get-ReviewGate {
-    $state = Read-JsonFile $statePath $stateRelativePath
-    $reviewResponse = $null
-    $decision = $null
-    $severity = $null
-    $nextStep = $null
-    $normalizedNextStep = $null
-    $summary = $null
-    $requiredChanges = @()
-    $hasNextStep = $false
-
-    if (Test-Path -LiteralPath $reviewResponsePath -PathType Leaf) {
-        $reviewResponse = Read-JsonFile $reviewResponsePath $reviewResponse
-RelativePath
-
-        if (Test-HasValue $reviewResponse.decision) {
-            $decision = [string]$reviewResponse.decision
-        }
-
-        if (Test-HasValue $reviewResponse.severity) {
-            $severity = [string]$reviewResponse.severity
-        }
-
-        if (Test-HasValue $reviewResponse.summary) {
-            $summary = [string]$reviewResponse.summary
-        }
-
-        if ($reviewResponse.PSObject.Properties.Name -contains "next_step")
+  .ai-dev\diff.md:103: ## Summary
+  .ai-dev\diff.md:104: 
+> .ai-dev\diff.md:110:@@ -184,6 +196,55 @@ $($stepLines -join "`r`n")
+  .ai-dev\diff.md:111:     [System.IO.File]::WriteAllText($resolvedResultPa
+th, $content, $utf8WithBom)
+  .ai-dev\diff.md:112: }
+> .ai-dev\diff.md:114:+function Invoke-AutoGoalExpectedNonWorkMetaCommit {
+  .ai-dev\diff.md:115:+    param([int]$StepNumber)
+  .ai-dev\diff.md:116:+
+> .ai-dev\diff.md:127:+    if (@($script:autoGoalBaselineDirtyPaths) -conta
+ins $resultRelativePath) {
+  .ai-dev\diff.md:128:+        return New-StepResult $StepNumber "expected-
+non-work-meta-commit" "git add/commit expect
+ed non-work result" $false $true 0 "Expected non-work result meta commit sk
+ipped because ResultPath was baseline dirty 
+and protected: $resultRelativePath"
+  .ai-dev\diff.md:129:+    }
+> .ai-dev\diff.md:147:+        $restoredPaths = @(Restore-AutoGoalCurrentRu
+nOperationalChanges @($resultRelativePath))
+  .ai-dev\diff.md:148:+        return New-StepResult $StepNumber "expected-
+non-work-meta-commit" "git add -- <result fi
+le>" $true $false 1 "Expected non-work result git add failed. exit code: $a
+ddExitCode`n$addOutput`nRestored run-owned f
+iles: $($restoredPaths -join ', ')"
+  .ai-dev\diff.md:149:+    }
+> .ai-dev\diff.md:156:+        $restoredPaths = @(Restore-AutoGoalCurrentRu
+nOperationalChanges @($resultRelativePath))
+  .ai-dev\diff.md:157:+        return New-StepResult $StepNumber "expected-
+non-work-meta-commit" "git commit -- <result
+ file>" $true $false 1 "Expected non-work result commit failed. exit code: 
+$commitExitCode`n$commitOutput`nRestored run
+-owned files: $($restoredPaths -join ', ')"
+  .ai-dev\diff.md:158:+    }
+> .ai-dev\diff.md:166:@@ -192,6 +253,12 @@ function Clear-AutoGoalTempArtif
+acts {
+  .ai-dev\diff.md:167:     $currentResultPath = [System.IO.Path]::GetFullPa
+th((Resolve-RepoPath $ResultPath))
+  .ai-dev\diff.md:168: 
+> .ai-dev\diff.md:172:+        if (@($script:autoGoalBaselineDirtyPaths) -c
+ontains $normalizedRelativePath) {
+  .ai-dev\diff.md:173:+            continue
+  .ai-dev\diff.md:174:+        }
+> .ai-dev\diff.md:179:@@ -212,6 +279,98 @@ function Clear-AutoGoalTempArtif
+acts {
+  .ai-dev\diff.md:180:     }
+  .ai-dev\diff.md:181: }
+> .ai-dev\diff.md:183:+function Test-IsExpectedPreImplementationStop {
+  .ai-dev\diff.md:184:+    param([string]$StoppedReason)
+  .ai-dev\diff.md:185:+
+> .ai-dev\diff.md:189:+        "max_steps_too_small_for_full_cycle"
+  .ai-dev\diff.md:190:+    ) -contains $StoppedReason
+  .ai-dev\diff.md:191:+}
+> .ai-dev\diff.md:193:+function Initialize-AutoGoalOperationalFileSnapshots
  {
-            $hasNextStep = $true
-            $nextStep = [string]$reviewResponse.next_step
-            $normalizedNextStep = $nextStep.Trim().ToLowerInvariant().Repla
-ce("-", "_")
-        }
-
-        if ($reviewResponse.PSObject.Properties.Name -contains "required_ch
-anges") {
-            $requiredChanges = @($reviewResponse.required_changes)
-        }
-    }
-
-    return [PSCustomObject][ordered]@{
-        lastCommand = [string]$state.lastCommand
-        lastCommandStatus = [string]$state.lastCommandStatus
-        stateDecision = [string]$state.lastReviewDecision
-        decision = $decision
-        severity = $severity
-        summary = $summary
-        hasNextStep = $hasNextStep
-        nextStep = $nextStep
-        normalizedNextStep = $normalizedNextStep
-        requiredChanges = @($requiredChanges)
-        requiredChangeFiles = @(Get-RequiredReviewChangeFiles $reviewRespon
-se)
-    }
-}
-
-function Test-IsAcceptableReviewNextStep {
-    param(
-        [object]$ReviewGate
-    )
-
-    return (-not $ReviewGate.hasNextStep) -or $ReviewGate.normalizedNextSte
-p -eq "complete_task"
-}
-
-function Test-IsReviewReviseWithCodex {
-    param(
-        [object]$ReviewGate
-    )
-
-    return $ReviewGate.decision -eq "revise" -and $ReviewGate.normalizedNex
-tStep -eq "revise_with_codex"
-}
-
-function New-ReviewReviseFailureMessage {
-    param(
-        [object]$ReviewGate,
-        [string]$Prefix
-    )
-
-    $requiredChangesJson = @($ReviewGate.requiredChanges) | ConvertTo-Json 
--Depth 20
-    return "$Prefix summary=$($ReviewGate.summary), severity=$($ReviewGate.
-severity), next_step=$($ReviewGate.nextStep), required_changes=$requiredCha
-ngesJson"
-}
-
-function Test-IsSavedReviewPassReady {
-    param(
-        [object]$ReviewGate
-    )
-
-    return $ReviewGate.lastCommand -eq "save-review" `
-        -and $ReviewGate.lastCommandStatus -eq "passed" `
-        -and $ReviewGate.decision -eq "pass" `
-        -and $ReviewGate.stateDecision -eq "pass" `
-        -and (Test-IsAcceptableReviewNextStep $ReviewGate)
-}
-
-function Get-CommitArguments {
-    $arguments = @()
-
-    if ($null -ne $CommitFiles -and $CommitFiles.Count -gt 0) {
-        $normalizedFiles = @(
-            $CommitFiles |
-                ForEach-Object { $_ -split "," } |
-                Where-Object { Test-HasValue $_ } |
-                ForEach-Object { ConvertTo-NormalizedChangedPath $_ } |
-                Where-Object { -not (Test-IsProtectedBaselineDirtyPath $_) 
-}
-        )
-
-        if ($normalizedFiles.Count -gt 0) {
-            $arguments += "-Files"
-            $arguments += ($normalizedFiles -join ",")
-        }
-
-        return $arguments
-    }
-
-    $implementationFiles = Get-ChangedNonAiDevFiles
-
-    if ($implementationFiles.Count -gt 0) {
-        $arguments += "-Files"
-        $arguments += ($implementationFiles -join ",")
-    }
-
-    return $arguments
-}
-
-function Invoke-DirectMetaCommit {
-    param(
-        [int]$StepNumber
-    )
-
-    $command = "direct meta commit: git add scoped .ai-dev files, git commi
-t -m 'chore(ai-dev): record task completion', git status --short"
-
-    try {
-        $changedAiDevFiles = Get-ChangedAiDevOperationalFiles
-
-        if ($changedAiDevFiles.Count -eq 0) {
-            $remainingStatus = Invoke-GitCapture -Arguments @("status", "--
-short") -DisplayName "git status --short"
-
-            if (-not [string]::IsNullOrWhiteSpace($remainingStatus)) {
-                throw ".ai-dev 메타 변경사항은 없지만 worktree에 변경 파일이 남아 있습니다.`n$rem
-ainingStatus"
-            }
-
-            $script:steps += New-StepResult $StepNumber "meta-commit" $comm
-and $false $true 0 ".ai-dev 메타 상태 변경사항이 없어 meta commit을 건너뜁니다. worktree cle
-an."
-            return
-        }
-
-        $addOutput = & git add -- $changedAiDevFiles 2>&1 | Out-String
-        $addExitCode = $LASTEXITCODE
-
-        if ($addExitCode -ne 0) {
-            throw "git add 실행에 실패했습니다. exit code: $addExitCode`n$addOutput"
-        }
-
-        $commitOutput = & git commit -m "chore(ai-dev): record task complet
-ion" -- $changedAiDevFiles 2>&1 | Out-String
-        $commitExitCode = $LASTEXITCODE
-
-        if ($commitExitCode -ne 0) {
-            throw "git commit 실행에 실패했습니다. exit code: $commitExitCode`n$comm
-itOutput"
-        }
-
-        $remainingStatus = Invoke-GitCapture -Arguments @("status", "--shor
-t") -DisplayName "git status --short"
-
-        if (-not [string]::IsNullOrWhiteSpace($remainingStatus)) {
-            throw "meta commit 이후 worktree에 변경 파일이 남아 있습니다.`n$remainingStat
-us"
-        }
-
-        $message = ($commitOutput.Trim(), "worktree clean") -join "`n"
-        $script:steps += New-StepResult $StepNumber "meta-commit" $command 
-$true $false 0 $message
-    } catch {
-        $script:steps += New-StepResult $StepNumber "meta-commit" $command 
-$true $false 1 $_.Exception.Message
-        Stop-Cycle $script:steps "meta_commit_failed" $false 1
-    }
-}
-
-function Get-CommitGate {
-    param(
-        [string]$PreviousHeadCommitHash
-    )
-
-    $state = Read-JsonFile $statePath $stateRelativePath
-    $lastCommitHash = if (Test-HasValue $state.lastCommitHash) { [string]$s
-tate.lastCommitHash } else { $null }
-    $headCommitHash = Invoke-GitCapture -Arguments @("rev-parse", "HEAD") -
-DisplayName "git rev-parse HEAD"
-    $commitHashChanged = (Test-HasValue $headCommitHash) -and $headCommitHa
-sh -ne $PreviousHeadCommitHash
-    $commitHashMatchesHead = (Test-HasValue $lastCommitHash) -and $lastComm
-itHash -eq $headCommitHash
-
-    if ($state.lastCommand -eq "commit" -and $state.lastCommandStatus -eq "
-passed" -and $commitHashChanged -and -not $commitHashMatchesHead) {
-        Set-ObjectProperty $state "lastCommitHash" $headCommitHash
-        Set-ObjectProperty $state "updatedAt" ([DateTimeOffset]::UtcNow.ToS
-tring("o"))
-        Write-JsonFile $statePath $state
-
-        $lastCommitHash = $headCommitHash
-        $commitHashMatchesHead = $true
-    }
-
-    return [PSCustomObject][ordered]@{
-        lastCommand = [string]$state.lastCommand
-        lastCommandStatus = [string]$state.lastCommandStatus
-        lastCommitHash = [string]$lastCommitHash
-        commitHashChanged = $commitHashChanged
-        commitHashMatchesHead = $commitHashMatchesHead
-    }
-}
-
-Set-Location $repoRoot
-
-$script:steps = @()
-$script:currentTask = $null
-$script:completedTask = $null
-$script:nextTask = $null
-$script:completedTaskCount = 0
-$script:protectedBaselineDirtyPaths = @(Get-ProtectedBaselineDirtyPaths)
-
-if ($script:protectedBaselineDirtyPaths.Count -gt 0) {
-    $script:steps += New-StepResult 0 "baseline-dirty-protection" "Protecte
-dBaselineDirtyPaths" $false $false 0 "Auto-goal baseline dirty paths are pr
-otected from implementation and .ai-dev meta commit eligibility: $($script:
-protectedBaselineDirtyPaths -join ', ')"
-}
-
-if ($MaxTasks -lt 1) {
-    Stop-Cycle $script:steps "max_tasks_must_be_at_least_1" $false 1
-}
-
-if ($MaxSteps -lt 1) {
-    Stop-Cycle $script:steps "max_steps_must_be_at_least_1" $false 1
-}
-
-try {
-    foreach ($requiredPath in @($queuePath, $statePath)) {
-        if (-not (Test-Path -LiteralPath $requiredPath -PathType Leaf)) {
-            throw "필수 상태 파일이 없습니다: $requiredPath"
-        }
-    }
-
-    $queue = Read-JsonFile $queuePath $queueRelativePath
-    $state = Read-JsonFile $statePath $stateRelativePath
-
-    if ($state.goalStatus -eq "completed") {
-        Complete-Cycle $script:steps "goal_completed" 0
-    }
-
-    if (-not ($queue.PSObject.Properties.Name -contains "tasks") -or $null 
--eq $queue.tasks) {
-        Stop-Cycle $script:steps "no_task" $false 0
-    }
-
-    $script:currentTask = Get-CurrentTask $queue $state
-
-    if ($null -eq $script:currentTask) {
-        Stop-Cycle $script:steps "no_task" $false 0
-    }
-
-    if ($script:currentTask.status -eq "done") {
-        Complete-Cycle $script:steps "current_task_done" 0
-    }
-
-    $scriptPaths = @{
-        makePrompt = Get-ScriptPath "ai-dev-make-prompt.ps1"
-        makeRevisePrompt = Get-ScriptPath "ai-dev-make-revise-prompt.ps1"
-        runCodex = Get-ScriptPath "ai-dev-run-codex.ps1"
-        check = Get-ScriptPath "ai-dev-check.ps1"
-        saveDiff = Get-ScriptPath "ai-dev-save-diff.ps1"
-        makeReviewPrompt = Get-ScriptPath "ai-dev-make-review-prompt.ps1"
-        runReviewCodex = Get-ScriptPath "ai-dev-run-review-codex.ps1"
-        commit = Get-ScriptPath "ai-dev-commit.ps1"
-        completeTask = Get-ScriptPath "ai-dev-complete-task.ps1"
-        status = Get-ScriptPath "ai-dev-status.ps1"
-    }
-} catch {
-    $script:steps += New-StepResult 0 "prepare" "state/queue 확인" $false $fa
-lse 1 $_.Exception.Message
-    Stop-Cycle $script:steps "prepare_failed" $false 1
-}
-
-$plannedSteps = @(
-    "task-start",
-    "make-prompt",
-    "run-codex",
-    "check",
-    "save-diff",
-    "make-review-prompt",
-    "run-review-codex",
-    "review-gate",
-    "make-revise-prompt",
-    "run-codex-revise",
-    "check-revise",
-    "save-diff-revise",
-    "make-review-prompt-revise",
-    "run-review-codex-revise",
-    "review-gate",
-    "package-change-gate",
-    "commit",
-    "commit-result-gate",
-    "complete-task",
-    "meta-commit",
-    "final-status",
-    "completed-clean-gate"
-)
-
-if ($plannedSteps.Count -gt $MaxSteps) {
-    Stop-Cycle $script:steps "max_steps_too_small_for_full_cycle" $false 1
-}
-
-$stepNumber = 1
-
-while ($script:completedTaskCount -lt $MaxTasks) {
-    try {
-        $queue = Read-JsonFile $queuePath $queueRelativePath
-        $state = Read-JsonFile $statePath $stateRelativePath
-        $script:currentTask = Get-CurrentTask $queue $state
-    } catch {
-        $script:steps += New-StepResult $stepNumber "load-task" "state/queu
-e 확인" $false $false 1 $_.Exception.Message
-        Stop-Cycle $script:steps "load_task_failed" $false 1
-    }
-
-    if ($state.goalStatus -eq "completed") {
-        Complete-Cycle $script:steps "goal_completed" $stepNumber
-    }
-
-    if ($null -eq $script:currentTask) {
-        Stop-Cycle $script:steps "no_task" $false 0
-    }
-
-    if ($script:currentTask.status -eq "done") {
-        Complete-Cycle $script:steps "current_task_done" $stepNumber
-    }
-
-    $taskLabel = "$($script:currentTask.id) $($script:currentTask.title)"
-    $script:steps += New-StepResult $stepNumber "task-start" "MaxTasks=$Max
-Tasks" $false $false 0 "현재 task 실행 시작: $taskLabel"
-    $stepNumber++
-
-    $resumeFromSavedReview = $false
-
-    if (-not $DryRun) {
-        try {
-            $resumeReviewGate = Get-ReviewGate
-        } catch {
-            $script:steps += New-StepResult $stepNumber "resume-review-gate
-" "state/review-response 확인" $false $false 1 $_.Exception.Message
-            Stop-Cycle $script:steps "resume_review_gate_failed" $false 1
-        }
-
-        if (Test-IsSavedReviewPassReady $resumeReviewGate) {
-            $resumeImplementationGate = Get-ReviewImplementationGate $scrip
-t:currentTask $resumeReviewGate
-
-            if (-not $resumeImplementationGate.passed) {
-                Save-CycleFailureState "resume-review-gate" $resumeImplemen
-tationGate.message $resumeReviewGate
-                $script:steps += New-StepResult $stepNumber "resume-review-
-gate" "state/review-response required_changes 및 현재 diff 확인" $false $true 1 
-$resumeImplementationGate.message
-                Stop-Cycle $script:steps $resumeImplementationGate.reason $
+> .ai-dev\diff.md:194:+    $script:autoGoalOperationalFileSnapshots = @{}
+  .ai-dev\diff.md:195:+
+  .ai-dev\diff.md:196:+    foreach ($relativePath in @(Get-PlannedAutoGoalO
+utputPaths)) {
+> .ai-dev\diff.md:210:+        $script:autoGoalOperationalFileSnapshots[$re
+lativePath] = [PSCustomObject][ordered]@{
+  .ai-dev\diff.md:211:+            path = $fullPath
+  .ai-dev\diff.md:212:+            existed = $exists
+> .ai-dev\diff.md:218:+function Restore-AutoGoalCurrentRunOperationalChange
+s {
+  .ai-dev\diff.md:219:+    param([string[]]$RelativePaths = @())
+  .ai-dev\diff.md:220:+
+> .ai-dev\diff.md:223:+    if ($null -eq $script:autoGoalOperationalFileSna
+pshots) {
+  .ai-dev\diff.md:224:+        return @($restoredPaths)
+  .ai-dev\diff.md:225:+    }
+> .ai-dev\diff.md:228:+    $baselineDirtyPaths = @($script:autoGoalBaseline
+DirtyPaths)
+  .ai-dev\diff.md:229:+
+> .ai-dev\diff.md:230:+    foreach ($entry in @($script:autoGoalOperational
+FileSnapshots.GetEnumerator())) {
+  .ai-dev\diff.md:231:+        $relativePath = ConvertTo-NormalizedChangedP
+ath ([string]$entry.Key)
+  .ai-dev\diff.md:232:+        $snapshot = $entry.Value
+> .ai-dev\diff.md:238:+        if ($baselineDirtyPaths -contains $relativeP
+ath) {
+  .ai-dev\diff.md:239:+            continue
+  .ai-dev\diff.md:240:+        }
+> .ai-dev\diff.md:265:+    $snapshot = $script:autoGoalOperationalFileSnaps
+hots[$resultRelativePath]
+> .ai-dev\diff.md:266:+    $baselineDirtyPaths = @($script:autoGoalBaseline
+DirtyPaths)
+  .ai-dev\diff.md:267:+
+> .ai-dev\diff.md:268:+    if ($null -ne $snapshot -and $snapshot.existed -
+and $baselineDirtyPaths -contains $resultRel
+ativePath) {
+  .ai-dev\diff.md:269:+        return $false
+  .ai-dev\diff.md:270:+    }
+> .ai-dev\diff.md:275: function Stop-AutoGoal {
+  .ai-dev\diff.md:276:     param(
+  .ai-dev\diff.md:277:         [object[]]$Steps,
+> .ai-dev\diff.md:278:@@ -220,19 +379,72 @@ function Stop-AutoGoal {
+  .ai-dev\diff.md:279:         [int]$ExitCode
+  .ai-dev\diff.md:280:     )
+> .ai-dev\diff.md:282:+    $isExpectedPreImplementationStop = Test-IsExpect
+edPreImplementationStop $StoppedReason
+  .ai-dev\diff.md:283:+
+  .ai-dev\diff.md:284:     if (-not $DryRun) {
+> .ai-dev\diff.md:288:+            $cleanedRunOwnedPaths = @(Restore-AutoGo
+alCurrentRunOperationalChanges)
+  .ai-dev\diff.md:289:+            $Steps += New-StepResult ($Steps.Count +
+ 1) "expected-non-work-cleanup" "restore cur
+rent-run .ai-dev operational file snapshots" $true $false 0 "Expected pre-i
+mplementation stop. Restored only auto-goal 
+operational files captured at run start; baseline user changes were preserv
+ed. Cleaned run-owned files: $($cleanedRunOw
+nedPaths -join ', ')"
+  .ai-dev\diff.md:290:+        }
+> .ai-dev\diff.md:304:+                        $metaCommitStep = Invoke-Aut
+oGoalExpectedNonWorkMetaCommit ($Steps.Count
+ + 1)
+> .ai-dev\diff.md:305:+                        $Steps += $metaCommitStep
+  .ai-dev\diff.md:306:+                        $script:steps = @($Steps)
+  .ai-dev\diff.md:307:+
+> .ai-dev\diff.md:308:+                        if ($metaCommitStep.exitCode
+ -ne 0) {
+  .ai-dev\diff.md:309:+                            $originalStoppedReason =
+ $StoppedReason
+  .ai-dev\diff.md:310:+                            $StoppedReason = "expect
+ed_non_work_meta_commit_failed"
+> .ai-dev\diff.md:352:@@ -437,8 +649,10 @@ function Invoke-FinalAutoGoalCha
+ngeGate {
+  .ai-dev\diff.md:353:     $addExitCode = $LASTEXITCODE
+  .ai-dev\diff.md:354: 
+> .ai-dev\diff.md:357:+        $restoredPaths = @(Restore-AutoGoalCurrentRu
+nOperationalChanges $newAiDevPaths)
+  .ai-dev\diff.md:358:         $message = "auto-goal 최종 .ai-dev 메타 변경 git a
+dd 실패. exit code: $addExitCode`n$addOutput"
+  .ai-dev\diff.md:359:-        $script:steps += New-StepResult $StepNumber 
+"final-change-gate" "git add -- <final .ai-d
+ev files>" $true $false 1 $message
+> .ai-dev\diff.md:361:         Stop-AutoGoal $script:steps "final_meta_add_
+failed" $false 1
+  .ai-dev\diff.md:362:     }
+  .ai-dev\diff.md:363: 
+> .ai-dev\diff.md:364:@@ -448,8 +662,10 @@ function Invoke-FinalAutoGoalCha
+ngeGate {
+  .ai-dev\diff.md:365:     $commitExitCode = $LASTEXITCODE
+  .ai-dev\diff.md:366: 
+> .ai-dev\diff.md:369:+        $restoredPaths = @(Restore-AutoGoalCurrentRu
+nOperationalChanges $newAiDevPaths)
+  .ai-dev\diff.md:370:         $message = "auto-goal 최종 .ai-dev 메타 커밋 실패. e
+xit code: $commitExitCode`n$commitOutput"
+> .ai-dev\diff.md:371:-        $script:steps += New-StepResult $StepNumber 
+"final-change-gate" "git commit -m '$metaCom
+mitMessage' -- <final .ai-dev files>" $true $false 1 $message
+> .ai-dev\diff.md:372:+        $script:steps += New-StepResult $StepNumber 
+"final-change-gate" "git commit -m '$metaCom
+mitMessage' -- <final .ai-dev files>" $true $false 1 "$message`nRestored ru
+n-owned files: $($restoredPaths -join ', ')"
+> .ai-dev\diff.md:373:         Stop-AutoGoal $script:steps "final_meta_comm
+it_failed" $false 1
+  .ai-dev\diff.md:374:     }
+  .ai-dev\diff.md:375: 
+> .ai-dev\diff.md:376:@@ -588,8 +804,10 @@ function Invoke-FinalPreparedRes
+ultGate {
+  .ai-dev\diff.md:377:     $addExitCode = $LASTEXITCODE
+  .ai-dev\diff.md:378: 
+> .ai-dev\diff.md:381:+        $restoredPaths = @(Restore-AutoGoalCurrentRu
+nOperationalChanges $newAiDevPaths)
+  .ai-dev\diff.md:382:         $message = "auto-goal 최종 .ai-dev 메타 변경 git a
+dd 실패. exit code: $addExitCode`n$addOutput"
+  .ai-dev\diff.md:383:-        $script:steps += New-StepResult $StepNumber 
+"final-change-gate" "git add -- <final .ai-d
+ev files>" $true $false 1 $message
+> .ai-dev\diff.md:385:         Stop-AutoGoal $script:steps "final_meta_add_
+failed" $false 1
+  .ai-dev\diff.md:386:     }
+  .ai-dev\diff.md:387: 
+> .ai-dev\diff.md:388:@@ -599,8 +817,10 @@ function Invoke-FinalPreparedRes
+ultGate {
+  .ai-dev\diff.md:389:     $commitExitCode = $LASTEXITCODE
+  .ai-dev\diff.md:390: 
+> .ai-dev\diff.md:393:+        $restoredPaths = @(Restore-AutoGoalCurrentRu
+nOperationalChanges $newAiDevPaths)
+  .ai-dev\diff.md:394:         $message = "auto-goal 최종 .ai-dev 메타 커밋 실패. e
+xit code: $commitExitCode`n$commitOutput"
+> .ai-dev\diff.md:395:-        $script:steps += New-StepResult $StepNumber 
+"final-change-gate" "git commit -m '$metaCom
+mitMessage' -- <final .ai-dev files>" $true $false 1 $message
+> .ai-dev\diff.md:396:+        $script:steps += New-StepResult $StepNumber 
+"final-change-gate" "git commit -m '$metaCom
+mitMessage' -- <final .ai-dev files>" $true $false 1 "$message`nRestored ru
+n-owned files: $($restoredPaths -join ', ')"
+> .ai-dev\diff.md:397:         Stop-AutoGoal $script:steps "final_meta_comm
+it_failed" $false 1
+  .ai-dev\diff.md:398:     }
+  .ai-dev\diff.md:399: 
+> .ai-dev\diff.md:400:@@ -1107,7 +1327,9 @@ function Invoke-CycleCommand {
+  .ai-dev\diff.md:401:     $script:steps += New-StepResult $StepNumber $Nam
+e $Command $true $false $exitCode $message
+  .ai-dev\diff.md:402: 
+> .ai-dev\diff.md:404:-        Stop-AutoGoal $script:steps "$Name`_failed" 
+$false 1
+  .ai-dev\diff.md:405:+        $childStoppedReason = Get-StoppedReasonFromO
+utput $message
+> .ai-dev\diff.md:406:+        $stoppedReason = if (Test-IsExpectedPreImple
+mentationStop $childStoppedReason) { $childS
+toppedReason } else { "$Name`_failed" }
+> .ai-dev\diff.md:407:+        Stop-AutoGoal $script:steps $stoppedReason $
 false 1
-            }
-
-            $resumeFromSavedReview = $true
-            $script:steps += New-StepResult $stepNumber "resume-review-gate
-" "state/review-response 재확인" $false $false 0 "이미 저장된 리뷰 pass와 허용 가능한 next_
-step 상태를 확인했습니다. 구현/리뷰 재실행 없이 commit/complete/meta-commit으로 계속 진행합니다."
-            $stepNumber++
-        } elseif ($resumeReviewGate.lastCommand -eq "save-review" -and $res
-umeReviewGate.lastCommandStatus -eq "passed") {
-            if (Test-IsReviewReviseWithCodex $resumeReviewGate) {
-                $resumeFromSavedReview = $true
-                $script:steps += New-StepResult $stepNumber "resume-review-
-gate" "state/review-response 재확인" $false $false 0 "저장된 리뷰가 revise + revise_
-with_codex이므로 구현/초기 리뷰 재실행 없이 revise 자동 재시도 단계로 계속 진행합니다."
-                $stepNumber++
-            } else {
-                $message = "save-review 이후 계속 진행할 수 없습니다. review.decision=$
-($resumeReviewGate.decision), state.lastReviewDecision=$($resumeReviewGate.
-stateDecision), next_step=$($resumeReviewGate.nextStep)"
-                Save-CycleFailureState "resume-review-gate" $message $resum
-eReviewGate
-                $script:steps += New-StepResult $stepNumber "resume-review-
-gate" "state/review-response 재확인" $false $true 1 $message
-                Stop-Cycle $script:steps "saved_review_not_ready_to_complet
-e" $false 1
-            }
-        }
-    }
-
-    if (-not $resumeFromSavedReview) {
-        Invoke-CycleCommand $stepNumber "make-prompt" "powershell -Executio
-nPolicy Bypass -File scripts/ai-dev-make-prompt.ps1" $scriptPaths.makePromp
-t @()
-        $stepNumber++
-
-        if (-not $AllowCodex -and -not $DryRun) {
-            $command = "powershell -ExecutionPolicy Bypass -File scripts/ai
--dev-auto-cycle-full.ps1 -AllowCodex -AllowReviewCodex -MaxTasks $MaxTasks"
-            if ($AllowDirty) {
-                $command = "$command -AllowDirty"
-            }
-
-            if ($AllowCommit) {
-                $command = "$command -AllowCommit"
-            }
-
-            if ($null -ne $CommitFiles -and $CommitFiles.Count -gt 0) {
-                $command = "$command -CommitFiles $($CommitFiles -join ',')
-"
-            }
-
-            $script:steps += New-StepResult $stepNumber "run-codex" "powers
-hell -ExecutionPolicy Bypass -File scripts/ai-dev-run-codex.ps1 -AllowDirty
-" $false $true 1 "Codex 구현 실행에는 -AllowCodex가 필요합니다. 추천 명령: $command"
-            Stop-Cycle $script:steps "allow_codex_required" $false 1
-        }
-
-        $runCodexArguments = @("-AllowDirty")
-
-        Invoke-CycleCommand $stepNumber "run-codex" "powershell -ExecutionP
-olicy Bypass -File scripts/ai-dev-run-codex.ps1 -AllowDirty" $scriptPaths.r
-unCodex $runCodexArguments
-        $stepNumber++
-
-        Invoke-CycleCommand $stepNumber "check" "powershell -ExecutionPolic
-y Bypass -File scripts/ai-dev-check.ps1 -BuildOnly" $scriptPaths.check @("-
-BuildOnly")
-        $stepNumber++
-
-        Invoke-CycleCommand $stepNumber "save-diff" "powershell -ExecutionP
-olicy Bypass -File scripts/ai-dev-save-diff.ps1" $scriptPaths.saveDiff @()
-        $stepNumber++
-
-        Invoke-CycleCommand $stepNumber "make-review-prompt" "powershell -E
-xecutionPolicy Bypass -File scripts/ai-dev-make-review-prompt.ps1 -Strict" 
-$scriptPaths.makeReviewPrompt @("-Strict")
-        $stepNumber++
-
-        if (-not $AllowReviewCodex -and -not $DryRun) {
-            $command = "powershell -ExecutionPolicy Bypass -File scripts/ai
--dev-auto-cycle-full.ps1 -AllowCodex -AllowReviewCodex -MaxTasks $MaxTasks"
-            if ($AllowDirty) {
-                $command = "$command -AllowDirty"
-            }
-
-            if ($AllowCommit) {
-                $command = "$command -AllowCommit"
-            }
-
-            if ($null -ne $CommitFiles -and $CommitFiles.Count -gt 0) {
-                $command = "$command -CommitFiles $($CommitFiles -join ',')
-"
-            }
-
-            $script:steps += New-StepResult $stepNumber "run-review-codex" 
-"powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-review-codex.p
-s1 -AllowDirty -SaveReview" $false $true 1 "Codex 리뷰 실행에는 -AllowReviewCodex
-가 필요합니다. 추천 명령: $command"
-            Stop-Cycle $script:steps "allow_review_codex_required" $false 1
-        }
-
-        Invoke-CycleCommand $stepNumber "run-review-codex" "powershell -Exe
-cutionPolicy Bypass -File scripts/ai-dev-run-review-codex.ps1 -AllowDirty -
-SaveReview" $scriptPaths.runReviewCodex @("-AllowDirty", "-SaveReview")
-        $stepNumber++
-    }
-
-    if ($DryRun) {
-        $script:steps += New-StepResult $stepNumber "review-gate" "state.la
-stReviewDecision 확인" $false $true 0 "DryRun: 리뷰 pass 여부를 실제 상태에서 읽지 않았습니다."
-        $stepNumber++
-        $script:steps += New-StepResult $stepNumber "make-revise-prompt" "p
-owershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-revise-prompt.p
-s1" $false $true 0 "DryRun: review-gate가 revise + revise_with_codex인 경우 생성할
- revise 프롬프트를 실제로 만들지 않았습니다."
-        $stepNumber++
-        $script:steps += New-StepResult $stepNumber "run-codex-revise" "pow
-ershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-codex.ps1 -AllowDi
-rty -PromptPath .ai-dev/revise-prompt.md" $false $true 0 "DryRun: Codex 재수정
- 실행을 실행하지 않았습니다."
-        $stepNumber++
-        $script:steps += New-StepResult $stepNumber "check-revise" "powersh
-ell -ExecutionPolicy Bypass -File scripts/ai-dev-check.ps1 -BuildOnly" $fal
-se $true 0 "DryRun: 재수정 검증을 실행하지 않았습니다."
-        $stepNumber++
-        $script:steps += New-StepResult $stepNumber "save-diff-revise" "pow
-ershell -ExecutionPolicy Bypass -File scripts/ai-dev-save-diff.ps1" $false 
-$true 0 "DryRun: 재수정 diff 저장을 실행하지 않았습니다."
-        $stepNumber++
-        $script:steps += New-StepResult $stepNumber "make-review-prompt-rev
-ise" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-review-p
-rompt.ps1 -Strict" $false $true 0 "DryRun: 재리뷰 프롬프트 생성을 실행하지 않았습니다."
-        $stepNumber++
-        $script:steps += New-StepResult $stepNumber "run-review-codex-revis
-e" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-review-code
-x.ps1 -AllowDirty -SaveReview" $false $true 0 "DryRun: Codex 재리뷰와 save-revi
-ew를 실행하지 않았습니다."
-        $stepNumber++
-        $script:steps += New-StepResult $stepNumber "package-change-gate" "
-git status --porcelain -- package.json package-lock.json" $false $true 0 "D
-ryRun: package 파일 변경 여부를 확인하지 않았습니다."
-        $stepNumber++
-        $script:steps += New-StepResult $stepNumber "commit" "powershell -E
-xecutionPolicy Bypass -File scripts/ai-dev-commit.ps1" $false $true 0 "DryR
-un: git add/commit을 실행하지 않았습니다."
-        $stepNumber++
-        $script:steps += New-StepResult $stepNumber "commit-result-gate" "s
-tate.lastCommand/lastCommitHash 확인" $false $true 0 "DryRun: 실제 커밋 생성 여부를 확인
-하지 않았습니다."
-        $stepNumber++
-        $script:steps += New-StepResult $stepNumber "complete-task" "powers
-hell -ExecutionPolicy Bypass -File scripts/ai-dev-complete-task.ps1 -Result
-Summary `"자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료`" -CommitHa
-sh <commit-hash>" $false $true 0 "DryRun: task 완료 처리를 실행하지 않았습니다."
-        $stepNumber++
-        $script:steps += New-StepResult $stepNumber "meta-commit" "direct m
-eta commit: git add scoped .ai-dev files, git commit -m 'chore(ai-dev): rec
-ord task completion', git status --short" $false $true 0 "DryRun: .ai-dev 메
-타 상태 직접 커밋을 실행하지 않았습니다."
-        $stepNumber++
-        $script:steps += New-StepResult $stepNumber "final-status" "powersh
-ell -ExecutionPolicy Bypass -File scripts/ai-dev-status.ps1" $false $true 0
- "DryRun: 최종 작업 상태 확인을 실행하지 않았습니다."
-        Stop-Cycle $script:steps "dry_run" $false 0
-    }
-
-    try {
-        $reviewGate = Get-ReviewGate
-    } catch {
-        $script:steps += New-StepResult $stepNumber "review-gate" "state/re
-view-response 확인" $false $false 1 $_.Exception.Message
-        Stop-Cycle $script:steps "review_gate_failed" $false 1
-    }
-
-    if ($reviewGate.lastCommand -ne "save-review" -or $reviewGate.lastComma
-ndStatus -ne "passed") {
-        $message = "최신 state가 save-review passed가 아니므로 자동 커밋하지 않습니다: lastCo
-mmand=$($reviewGate.lastCommand), lastCommandStatus=$($reviewGate.lastComma
-ndStatus)"
-        $script:steps += New-StepResult $stepNumber "review-gate" "state.la
-stCommand/state.lastCommandStatus 확인" $false $true 1 $message
-        Stop-Cycle $script:steps "review_save_not_passed" $false 1
-    }
-
-    if (Test-IsReviewReviseWithCodex $reviewGate) {
-        $implementationGate = Get-ReviewImplementationGate $script:currentT
-ask $reviewGate
-
-        if (-not $implementationGate.passed) {
-            Save-CycleFailureState "review-gate" $implementationGate.messag
-e $reviewGate
-            $script:steps += New-StepResult $stepNumber "review-gate" "task
- type, $reviewResponseRelativePath required_changes, 현재 diff 확인" $false $tr
-ue 1 $implementationGate.message
-            Stop-Cycle $script:steps $implementationGate.reason $false 1
-        }
-
-        $script:steps += New-StepResult $stepNumber "review-gate" "$reviewR
-esponseRelativePath decision/next_step 확인" $false $false 0 "리뷰 결과가 revise +
- revise_with_codex입니다. 자동 revise 재시도를 시작합니다. severity=$($reviewGate.severit
-y), summary=$($reviewGate.summary)"
-        $stepNumber++
-
-        Invoke-CycleCommand $stepNumber "make-revise-prompt" "powershell -E
-xecutionPolicy Bypass -File scripts/ai-dev-make-revise-prompt.ps1" $scriptP
-aths.makeRevisePrompt @()
-        $stepNumber++
-
-        if (-not $AllowCodex) {
-            $command = "powershell -ExecutionPolicy Bypass -File scripts/ai
--dev-auto-cycle-full.ps1 -AllowCodex -AllowReviewCodex -MaxTasks $MaxTasks"
-            if ($AllowDirty) {
-                $command = "$command -AllowDirty"
-            }
-
-            if ($AllowCommit) {
-                $command = "$command -AllowCommit"
-            }
-
-            if ($null -ne $CommitFiles -and $CommitFiles.Count -gt 0) {
-                $command = "$command -CommitFiles $($CommitFiles -join ',')
-"
-            }
-
-            $script:steps += New-StepResult $stepNumber "run-codex-revise" 
-"powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-codex.ps1 -All
-owDirty -PromptPath .ai-dev/revise-prompt.md" $false $true 1 "Codex 재수정 실행에
-는 -AllowCodex가 필요합니다. 추천 명령: $command"
-            Stop-Cycle $script:steps "allow_codex_required" $false 1
-        }
-
-        Invoke-CycleCommand $stepNumber "run-codex-revise" "powershell -Exe
-cutionPolicy Bypass -File scripts/ai-dev-run-codex.ps1 -AllowDirty -PromptP
-ath .ai-dev/revise-prompt.md" $scriptPaths.runCodex @("-AllowDirty", "-Prom
-ptPath", ".ai-dev/revise-prompt.md")
-        $stepNumber++
-
-        Invoke-CycleCommand $stepNumber "check-revise" "powershell -Executi
-onPolicy Bypass -File scripts/ai-dev-check.ps1 -BuildOnly" $scriptPaths.che
-ck @("-BuildOnly")
-        $stepNumber++
-
-        Invoke-CycleCommand $stepNumber "save-diff-revise" "powershell -Exe
-cutionPolicy Bypass -File scripts/ai-dev-save-diff.ps1" $scriptPaths.saveDi
-ff @()
-        $stepNumber++
-
-        Invoke-CycleCommand $stepNumber "make-review-prompt-revise" "powers
-hell -ExecutionPolicy Bypass -File scripts/ai-dev-make-review-prompt.ps1 -S
-trict" $scriptPaths.makeReviewPrompt @("-Strict")
-        $stepNumber++
-
-        if (-not $AllowReviewCodex) {
-            $command = "powershell -ExecutionPolicy Bypass -File scripts/ai
--dev-auto-cycle-full.ps1 -AllowCodex -AllowReviewCodex -MaxTasks $MaxTasks"
-            if ($AllowDirty) {
-                $command = "$command -AllowDirty"
-            }
-
-            if ($AllowCommit) {
-                $command = "$command -AllowCommit"
-            }
-
-            if ($null -ne $CommitFiles -and $CommitFiles.Count -gt 0) {
-                $command = "$command -CommitFiles $($CommitFiles -join ',')
-"
-            }
-
-            $script:steps += New-StepResult $stepNumber "run-review-codex-r
-evise" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-review-
-codex.ps1 -AllowDirty -SaveReview" $false $true 1 "Codex 재리뷰 실행에는 -AllowRev
-iewCodex가 필요합니다. 추천 명령: $command"
-            Stop-Cycle $script:steps "allow_review_codex_required" $false 1
-        }
-
-        Invoke-CycleCommand $stepNumber "run-review-codex-revise" "powershe
-ll -ExecutionPolicy Bypass -File scripts/ai-dev-run-review-codex.ps1 -Allow
-Dirty -SaveReview" $scriptPaths.runReviewCodex @("-AllowDirty", "-SaveRevie
-w")
-        $stepNumber++
-
-        try {
-            $reviewGate = Get-ReviewGate
-        } catch {
-            $script:steps += New-StepResult $stepNumber "review-gate" "재리뷰 
-state/review-response 확인" $false $false 1 $_.Exception.Message
-            Stop-Cycle $script:steps "review_gate_failed" $false 1
-        }
-
-        if ($reviewGate.lastCommand -ne "save-review" -or $reviewGate.lastC
-ommandStatus -ne "passed") {
-            $message = "재리뷰 이후 최신 state가 save-review passed가 아니므로 자동 커밋하지 않
-습니다: lastCommand=$($reviewGate.lastCommand), lastCommandStatus=$($reviewGat
-e.lastCommandStatus)"
-            $script:steps += New-StepResult $stepNumber "review-gate" "재리뷰 
-state.lastCommand/state.lastCommandStatus 확인" $false $true 1 $message
-            Stop-Cycle $script:steps "review_save_not_passed" $false 1
-        }
-
-        if ($reviewGate.decision -eq "revise") {
-            if (Test-IsReviewReviseWithCodex $reviewGate) {
-                $message = New-ReviewReviseFailureMessage $reviewGate "재리뷰도
- revise + revise_with_codex를 반환해 자동 revise 재시도를 중단합니다."
-                Save-CycleFailureState "review-gate" $message $reviewGate
-                $script:steps += New-StepResult $stepNumber "review-gate" "
-재리뷰 decision/next_step/required_changes 확인" $false $true 1 $message
-                Stop-Cycle $script:steps "review_revise_repeated" $false 1
-            }
-
-            $message = New-ReviewReviseFailureMessage $reviewGate "재리뷰가 rev
-ise를 반환해 자동 커밋과 complete-task를 실행하지 않습니다."
-            Save-CycleFailureState "review-gate" $message $reviewGate
-            $script:steps += New-StepResult $stepNumber "review-gate" "재리뷰 
-decision/next_step/required_changes 확인" $false $true 1 $message
-            Stop-Cycle $script:steps "revise_review_not_pass" $false 1
-        }
-    }
-
-    if ($reviewGate.decision -ne "pass") {
-        $message = "리뷰 response decision이 pass가 아니므로 자동 커밋과 complete-task를 
-실행하지 않습니다: $($reviewGate.decision)"
-        Save-CycleFailureState "review-gate" $message $reviewGate
-        $script:steps += New-StepResult $stepNumber "review-gate" "$reviewR
-esponseRelativePath decision 확인" $false $true 1 $message
-        Stop-Cycle $script:steps "review_not_pass" $false 1
-    }
-
-    if ($reviewGate.stateDecision -ne "pass") {
-        $script:steps += New-StepResult $stepNumber "review-gate" "state.la
-stReviewDecision 확인" $false $true 1 "state.lastReviewDecision이 pass가 아니므로 자
-동 커밋과 complete-task를 실행하지 않습니다: $($reviewGate.stateDecision)"
-        Stop-Cycle $script:steps "state_review_not_pass" $false 1
-    }
-
-    if (-not (Test-IsAcceptableReviewNextStep $reviewGate)) {
-        $script:steps += New-StepResult $stepNumber "review-gate" "$reviewR
-esponseRelativePath next_step 확인" $false $true 1 "리뷰 next_step이 존재하지만 compl
-ete_task가 아니므로 자동 커밋과 complete-task를 실행하지 않습니다: 원본='$($reviewGate.nextStep)
-', 정규화='$($reviewGate.normalizedNextStep)'"
-        Stop-Cycle $script:steps "review_next_step_not_complete_task" $fals
-e 1
-    }
-
-    $implementationGate = Get-ReviewImplementationGate $script:currentTask 
-$reviewGate
-
-    if (-not $implementationGate.passed) {
-        Save-CycleFailureState "review-gate" $implementationGate.message $r
-eviewGate
-        $script:steps += New-StepResult $stepNumber "review-gate" "task typ
-e, $reviewResponseRelativePath required_changes, 현재 diff 확인" $false $true 1
- $implementationGate.message
-        Stop-Cycle $script:steps $implementationGate.reason $false 1
-    }
-
-    $script:steps += New-StepResult $stepNumber "review-gate" "최신 state 및 $
-reviewResponseRelativePath 재확인" $false $false 0 "리뷰 pass 및 허용 가능한 next_step
- 상태 수락: 존재=$($reviewGate.hasNextStep), 원본='$($reviewGate.nextStep)', 정규화='$
-($reviewGate.normalizedNextStep)'. commit/commit-result-gate/complete-task/
-meta-commit으로 계속 진행합니다."
-    $stepNumber++
-
-    try {
-        if (Test-PackageFileChanged) {
-            $script:steps += New-StepResult $stepNumber "package-change-gat
-e" "git status --porcelain -- package.json package-lock.json" $false $true 
-1 "package.json 또는 package-lock.json 변경이 감지되어 자동 커밋을 중단합니다. 의도한 패키지 변경인지, l
-ock file 변경이 필요한지 확인한 뒤 별도 작업으로 처리하세요."
-            Stop-Cycle $script:steps "package_files_changed" $false 1
-        }
-    } catch {
-        $script:steps += New-StepResult $stepNumber "package-change-gate" "
-git status --porcelain -- package.json package-lock.json" $false $false 1 $
-_.Exception.Message
-        Stop-Cycle $script:steps "package_change_gate_failed" $false 1
-    }
-
-    $script:steps += New-StepResult $stepNumber "package-change-gate" "git 
-status --porcelain -- package.json package-lock.json" $false $false 0 "pack
-age 파일 변경 없음. 커밋 허용 여부를 확인합니다."
-    $stepNumber++
-
-    if (-not $AllowCommit) {
-        $commitCommand = "powershell -ExecutionPolicy Bypass -File scripts/
-ai-dev-auto-cycle-full.ps1 -AllowCodex -AllowReviewCodex -AllowCommit -MaxT
-asks $MaxTasks"
-        if ($AllowDirty) {
-            $commitCommand = "$commitCommand -AllowDirty"
-        }
-
-        if ($null -ne $CommitFiles -and $CommitFiles.Count -gt 0) {
-            $commitCommand = "$commitCommand -CommitFiles $($CommitFiles -j
-oin ',')"
-        }
-
-        $script:steps += New-StepResult $stepNumber "commit" "powershell -E
-xecutionPolicy Bypass -File scripts/ai-dev-commit.ps1" $false $true 1 "자동 커
-밋에는 -AllowCommit이 필요합니다. 추천 명령: $commitCommand"
-        Stop-Cycle $script:steps "allow_commit_required" $false 1
-    }
-
-    $commitArguments = Get-CommitArguments
-    $commitHashForComplete = $null
-    $resultSummary = "자동 완료: Codex 구현, build/check, Codex 리뷰 pass"
-
-    if ($commitArguments.Count -eq 0) {
-        $script:steps += New-StepResult $stepNumber "commit" "git status --
-porcelain" $false $true 0 "커밋할 구현 변경사항이 없습니다. 저장된 리뷰 pass 상태를 유지하고 complete
--task/meta-commit으로 계속 진행합니다."
-        $stepNumber++
-
-        $stateBeforeComplete = Read-JsonFile $statePath $stateRelativePath
-
-        try {
-            $currentHeadCommitHash = Invoke-GitCapture -Arguments @("rev-pa
-rse", "HEAD") -DisplayName "git rev-parse HEAD"
-        } catch {
-            $script:steps += New-StepResult $stepNumber "commit-result-gate
-" "git rev-parse HEAD" $false $false 1 $_.Exception.Message
-            Stop-Cycle $script:steps "no_change_head_failed" $false 1
-        }
-
-        if (Test-HasValue $stateBeforeComplete.lastCommitHash) {
-            $savedLastCommitHash = [string]$stateBeforeComplete.lastCommitH
-ash
-
-            if ($savedLastCommitHash -eq $currentHeadCommitHash) {
-                $commitHashForComplete = $savedLastCommitHash
-                $script:steps += New-StepResult $stepNumber "commit-result-
-gate" "state.lastCommitHash 및 git rev-parse HEAD 확인" $false $true 0 "새 구현 커
-밋이 없습니다. state.lastCommitHash가 현재 HEAD와 일치하여 complete-task에 CommitHash를 전달합
-니다: $commitHashForComplete"
-            } else {
-                $script:steps += New-StepResult $stepNumber "commit-result-
-gate" "state.lastCommitHash 및 git rev-parse HEAD 확인" $false $true 0 "새 구현 커
-밋이 없습니다. stale state.lastCommitHash를 무시하고 CommitHash 없이 complete-task를 실행합니
-다. state.lastCommitHash=$savedLastCommitHash, currentHead=$currentHeadCommi
-tHash"
-            }
-        } else {
-            $script:steps += New-StepResult $stepNumber "commit-result-gate
-" "state.lastCommitHash 및 git rev-parse HEAD 확인" $false $true 0 "새 구현 커밋이 없
-습니다. state.lastCommitHash가 없어 CommitHash 없이 complete-task를 실행합니다. currentHe
-ad=$currentHeadCommitHash"
-        }
-        $stepNumber++
-
-        $resultSummary = "$resultSummary, 구현 커밋 없음, 저장된 리뷰 pass에서 자동 완료"
-    } else {
-        $commitCommandText = "powershell -ExecutionPolicy Bypass -File scri
-pts/ai-dev-commit.ps1"
-        if ($commitArguments.Count -gt 0) {
-            $commitCommandText = "$commitCommandText $($commitArguments -jo
-in ' ')"
-        }
-
-        try {
-            $preCommitHeadCommitHash = Invoke-GitCapture -Arguments @("rev-
-parse", "HEAD") -DisplayName "git rev-parse HEAD"
-        } catch {
-            $script:steps += New-StepResult $stepNumber "commit" "git rev-p
-arse HEAD" $false $false 1 $_.Exception.Message
-            Stop-Cycle $script:steps "pre_commit_head_failed" $false 1
-        }
-
-        Invoke-CycleCommand $stepNumber "commit" $commitCommandText $script
-Paths.commit $commitArguments
-        $stepNumber++
-
-        try {
-            $commitGate = Get-CommitGate $preCommitHeadCommitHash
-        } catch {
-            $script:steps += New-StepResult $stepNumber "commit-result-gate
-" "state.lastCommand/lastCommitHash 확인" $false $false 1 $_.Exception.Messag
-e
-            Stop-Cycle $script:steps "commit_result_gate_failed" $false 1
-        }
-
-        if ($commitGate.lastCommand -ne "commit" -or $commitGate.lastComman
-dStatus -ne "passed" -or -not $commitGate.commitHashChanged -or -not $commi
-tGate.commitHashMatchesHead) {
-            $message = "커밋 완료 상태를 확인하지 못해 complete-task를 실행하지 않습니다. lastCom
-mand=$($commitGate.lastCommand), lastCommandStatus=$($commitGate.lastComman
-dStatus), lastCommitHash=$($commitGate.lastCommitHash)"
-            $script:steps += New-StepResult $stepNumber "commit-result-gate
-" "state.lastCommand/lastCommitHash 확인" $false $true 1 $message
-            Stop-Cycle $script:steps "commit_not_confirmed" $false 1
-        }
-
-        $script:steps += New-StepResult $stepNumber "commit-result-gate" "s
-tate.lastCommand/lastCommitHash 확인" $false $false 0 "커밋 생성 확인: $($commitGat
-e.lastCommitHash)"
-        $stepNumber++
-
-        $commitHashForComplete = $commitGate.lastCommitHash
-        $resultSummary = "$resultSummary, 자동 커밋 완료"
-    }
-
-    $completeTaskArguments = @("-ResultSummary", $resultSummary)
-    $completeTaskCommand = "powershell -ExecutionPolicy Bypass -File script
-s/ai-dev-complete-task.ps1 -ResultSummary `"$resultSummary`""
-
-    if (Test-HasValue $commitHashForComplete) {
-        $completeTaskArguments += @("-CommitHash", $commitHashForComplete)
-        $completeTaskCommand = "$completeTaskCommand -CommitHash $commitHas
-hForComplete"
-    }
-
-    $completedTaskForContext = $script:currentTask
-
-    Invoke-CycleCommand $stepNumber "complete-task" $completeTaskCommand $s
-criptPaths.completeTask $completeTaskArguments
-    $stepNumber++
-
-    Update-PostCompleteTaskContext $completedTaskForContext
-
-    Invoke-DirectMetaCommit $stepNumber
-    $stepNumber++
-
-    Invoke-CycleCommand $stepNumber "final-status" "powershell -ExecutionPo
-licy Bypass -File scripts/ai-dev-status.ps1" $scriptPaths.status @()
-    $stepNumber++
-
-    $queueAfterComplete = Read-JsonFile $queuePath $queueRelativePath
-    $stateAfterComplete = Read-JsonFile $statePath $stateRelativePath
-
-    if ($stateAfterComplete.goalStatus -eq "completed") {
-        Complete-Cycle $script:steps "goal_completed" $stepNumber
-    }
-}
-
-Complete-Cycle $script:steps "max_tasks_reached" $stepNumber
-
-codex
-핵심 파일은 확인했고, 출력이 길어 일부가 생략되었습니다. 이제 최소 단계 검증 로직과 full-cycle 인자 생성 함수만 좁혀서 다
-시 확인합니다.
-exec
-"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "
-Select-String -LiteralPath \"D:\\ai-apps\\planpilot-local\\scripts\\ai-dev-
-auto-goal.ps1\" -Pattern \"MaxSteps|Get-FullCycleArguments|AllowCodex|Allow
-ReviewCodex|AllowCommit|AllowDirty\" -Context 2,3" in D:\ai-apps\planpilot-
-local
-exec
-"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "
-Select-String -LiteralPath \"D:\\ai-apps\\planpilot-local\\scripts\\ai-dev-
-auto-cycle-full.ps1\" -Pattern \"MaxSteps|min|too_small|max_steps|StepNumbe
-r|MaxSteps\" -Context 2,2" in D:\ai-apps\planpilot-local
- succeeded in 2667ms:
-
-  scripts\ai-dev-auto-goal.ps1:5:    [string]$GoalDescription,
-  scripts\ai-dev-auto-goal.ps1:6:    [int]$MaxTasks = 1,
-> scripts\ai-dev-auto-goal.ps1:7:    [int]$MaxSteps = 40,
-  scripts\ai-dev-auto-goal.ps1:8:    [switch]$DryRun,
-  scripts\ai-dev-auto-goal.ps1:9:    [switch]$Json,
-  scripts\ai-dev-auto-goal.ps1:10:    [switch]$AllowRun,
-> scripts\ai-dev-auto-goal.ps1:11:    [switch]$AllowCodex,
-> scripts\ai-dev-auto-goal.ps1:12:    [switch]$AllowReviewCodex,
-> scripts\ai-dev-auto-goal.ps1:13:    [switch]$AllowCommit,
-> scripts\ai-dev-auto-goal.ps1:14:    [switch]$AllowDirty,
-  scripts\ai-dev-auto-goal.ps1:15:    [string[]]$CommitFiles,
-  scripts\ai-dev-auto-goal.ps1:16:    [string]$ResultPath = ".ai-dev/codex-
-result.md"
-  scripts\ai-dev-auto-goal.ps1:17:)
-  scripts\ai-dev-auto-goal.ps1:427:    }
-  scripts\ai-dev-auto-goal.ps1:428:
-> scripts\ai-dev-auto-goal.ps1:429:    if (-not $AllowCommit) {
-> scripts\ai-dev-auto-goal.ps1:430:        $message = "Final clean verifica
-tion failed: only new .ai-dev operational ch
-anges remain, but -AllowCommit is required to create the final meta commit.
-`nBaseline dirty count: $baselineDirtyCount`
-nFinal dirty count: $finalDirtyCount`nFinal .ai-dev meta commit created: sk
-ipped (-AllowCommit missing).`n$($statusLine
-s -join "`n")"
-  scripts\ai-dev-auto-goal.ps1:431:        $script:steps += New-StepResult 
-$StepNumber "final-change-gate" $command $tr
-ue $false 1 $message
-  scripts\ai-dev-auto-goal.ps1:432:        Stop-AutoGoal $script:steps "fin
-al_ai_dev_changes_require_commit" $false 1
-  scripts\ai-dev-auto-goal.ps1:433:    }
-  scripts\ai-dev-auto-goal.ps1:555:    }
-  scripts\ai-dev-auto-goal.ps1:556:
-> scripts\ai-dev-auto-goal.ps1:557:    if (-not $AllowCommit) {
-> scripts\ai-dev-auto-goal.ps1:558:        $message = "Final clean verifica
-tion failed: only new .ai-dev operational ch
-anges remain, but -AllowCommit is required to create the final meta commit.
-`nBaseline dirty count: $baselineDirtyCount`
-nFinal dirty count: $finalDirtyCount`nFinal .ai-dev meta commit created: sk
-ipped (-AllowCommit missing).`n$($statusLine
-s -join "`n")"
-  scripts\ai-dev-auto-goal.ps1:559:        $script:steps += New-StepResult 
-$StepNumber "final-change-gate" $command $tr
-ue $false 1 $message
-  scripts\ai-dev-auto-goal.ps1:560:        Stop-AutoGoal $script:steps "fin
-al_ai_dev_changes_require_commit" $false 1
-  scripts\ai-dev-auto-goal.ps1:561:    }
-  scripts\ai-dev-auto-goal.ps1:1112:}
-  scripts\ai-dev-auto-goal.ps1:1113:
-> scripts\ai-dev-auto-goal.ps1:1114:function Get-FullCycleArguments {
-> scripts\ai-dev-auto-goal.ps1:1115:    $arguments = @("-MaxTasks", ([strin
-g]$MaxTasks), "-MaxSteps", ([string]$MaxStep
-s))
-  scripts\ai-dev-auto-goal.ps1:1116:
-> scripts\ai-dev-auto-goal.ps1:1117:    if ($AllowCodex) {
-> scripts\ai-dev-auto-goal.ps1:1118:        $arguments += "-AllowCodex"
-  scripts\ai-dev-auto-goal.ps1:1119:    }
-  scripts\ai-dev-auto-goal.ps1:1120:
-> scripts\ai-dev-auto-goal.ps1:1121:    if ($AllowReviewCodex) {
-> scripts\ai-dev-auto-goal.ps1:1122:        $arguments += "-AllowReviewCode
-x"
-  scripts\ai-dev-auto-goal.ps1:1123:    }
-  scripts\ai-dev-auto-goal.ps1:1124:
-> scripts\ai-dev-auto-goal.ps1:1125:    if ($AllowCommit) {
-> scripts\ai-dev-auto-goal.ps1:1126:        $arguments += "-AllowCommit"
-  scripts\ai-dev-auto-goal.ps1:1127:    }
-  scripts\ai-dev-auto-goal.ps1:1128:
-  scripts\ai-dev-auto-goal.ps1:1129:    # auto-goal writes goal/queue/state
-/current prompt/result files after the initi
-al dirty gate.
-  scripts\ai-dev-auto-goal.ps1:1130:    # The downstream full cycle must to
-lerate those intended artifacts.
-> scripts\ai-dev-auto-goal.ps1:1131:    $arguments += "-AllowDirty"
-  scripts\ai-dev-auto-goal.ps1:1132:
-  scripts\ai-dev-auto-goal.ps1:1133:    if ($script:autoGoalBaselineDirtyPa
-ths.Count -gt 0) {
-  scripts\ai-dev-auto-goal.ps1:1134:        $arguments += "-ProtectedBaseli
-neDirtyPaths"
-  scripts\ai-dev-auto-goal.ps1:1191:}
-  scripts\ai-dev-auto-goal.ps1:1192:
-> scripts\ai-dev-auto-goal.ps1:1193:if ($MaxSteps -lt 1) {
-> scripts\ai-dev-auto-goal.ps1:1194:    $script:steps += New-StepResult 0 "
-validate-input" "check MaxSteps" $false $fal
-se 1 "MaxSteps must be at least 1."
-  scripts\ai-dev-auto-goal.ps1:1195:    Stop-AutoGoal $script:steps "max_st
-eps_must_be_at_least_1" $false 1
-  scripts\ai-dev-auto-goal.ps1:1196:}
-  scripts\ai-dev-auto-goal.ps1:1197:
-  scripts\ai-dev-auto-goal.ps1:1206:}
-  scripts\ai-dev-auto-goal.ps1:1207:
-> scripts\ai-dev-auto-goal.ps1:1208:$shouldRunFullCycle = [bool]($AllowRun 
--or $AllowCodex -or $AllowReviewCodex -or $A
-llowCommit)
-> scripts\ai-dev-auto-goal.ps1:1209:$fullCycleArguments = @(Get-FullCycleAr
-guments)
-  scripts\ai-dev-auto-goal.ps1:1210:$fullCycleCommandText = "powershell -Ex
-ecutionPolicy Bypass -File scripts/ai-dev-au
-to-cycle-full.ps1 $($fullCycleArguments -join ' ')".Trim()
-  scripts\ai-dev-auto-goal.ps1:1211:
-  scripts\ai-dev-auto-goal.ps1:1212:$script:steps += New-StepResult 1 "vali
-date-input" "check GoalTitle/GoalDescription
-" $false $false 0 "Input validation completed: $GoalTitle"
-  scripts\ai-dev-auto-goal.ps1:1229:
-  scripts\ai-dev-auto-goal.ps1:1230:    if ($shouldRunFullCycle) {
-> scripts\ai-dev-auto-goal.ps1:1231:        $script:steps += New-StepResult
- 7 "auto-cycle-full" $fullCycleCommandText $
-false $true 0 "DryRun: explicit run option is present, but full cycle was n
-ot executed. -AllowRun only invokes the full
--cycle wrapper; implementation and review still require -AllowCodex and -Al
-lowReviewCodex."
-  scripts\ai-dev-auto-goal.ps1:1232:    } else {
-> scripts\ai-dev-auto-goal.ps1:1233:        $script:steps += New-StepResult
- 7 "auto-cycle-full" $fullCycleCommandText $
-false $true 0 "DryRun: full cycle requires -AllowRun or explicit execution 
-options. -AllowRun only invokes the full-cyc
-le wrapper; implementation and review still require -AllowCodex and -AllowR
-eviewCodex."
-  scripts\ai-dev-auto-goal.ps1:1234:    }
-  scripts\ai-dev-auto-goal.ps1:1235:
-  scripts\ai-dev-auto-goal.ps1:1236:    Stop-AutoGoal $script:steps "dry_ru
-n" $false 0
-  scripts\ai-dev-auto-goal.ps1:1251:$baselineDirtyCount = $script:autoGoalB
-aselineDirtyPaths.Count
-  scripts\ai-dev-auto-goal.ps1:1252:
-> scripts\ai-dev-auto-goal.ps1:1253:if ($statusLines.Count -gt 0 -and -not 
-$AllowDirty) {
-  scripts\ai-dev-auto-goal.ps1:1254:    $dirtyText = ($statusLines -join "`
-n")
-> scripts\ai-dev-auto-goal.ps1:1255:    $script:steps += New-StepResult 2 "
-dirty-worktree-gate" "git status --porcelain
-" $false $true 1 "Baseline dirty count: $baselineDirtyCount`nWorktree is di
-rty. Use -AllowDirty only when this is inten
-tional.`n$dirtyText"
-  scripts\ai-dev-auto-goal.ps1:1256:    Stop-AutoGoal $script:steps "dirty_
-worktree" $false 1
-  scripts\ai-dev-auto-goal.ps1:1257:}
-  scripts\ai-dev-auto-goal.ps1:1258:
-  scripts\ai-dev-auto-goal.ps1:1259:if ($statusLines.Count -gt 0) {
-> scripts\ai-dev-auto-goal.ps1:1260:    $script:steps += New-StepResult 2 "
-dirty-worktree-gate" "git status --porcelain
-" $true $false 0 "AllowDirty is set. Baseline dirty count: $baselineDirtyCo
-unt"
-  scripts\ai-dev-auto-goal.ps1:1261:} else {
-  scripts\ai-dev-auto-goal.ps1:1262:    $script:steps += New-StepResult 2 "
-dirty-worktree-gate" "git status --porcelain
-" $true $false 0 "Baseline dirty count: 0. Worktree is clean."
-  scripts\ai-dev-auto-goal.ps1:1263:}
-  scripts\ai-dev-auto-goal.ps1:1264:
-> scripts\ai-dev-auto-goal.ps1:1265:$fullCycleArguments = @(Get-FullCycleAr
-guments)
-  scripts\ai-dev-auto-goal.ps1:1266:$fullCycleCommandText = "powershell -Ex
-ecutionPolicy Bypass -File scripts/ai-dev-au
-to-cycle-full.ps1 $($fullCycleArguments -join ' ')".Trim()
-  scripts\ai-dev-auto-goal.ps1:1267:
-  scripts\ai-dev-auto-goal.ps1:1268:$codexCommand = Get-Command codex -Erro
-rAction SilentlyContinue
-  scripts\ai-dev-auto-goal.ps1:1334:
-  scripts\ai-dev-auto-goal.ps1:1335:if (-not $shouldRunFullCycle) {
-> scripts\ai-dev-auto-goal.ps1:1336:    $script:steps += New-StepResult 7 "
-auto-cycle-full" $fullCycleCommandText $fals
-e $true 0 "Full cycle requires -AllowRun or explicit execution options. -Al
-lowRun only invokes the full-cycle wrapper; 
-implementation and review still require -AllowCodex and -AllowReviewCodex."
-  scripts\ai-dev-auto-goal.ps1:1337:    Complete-AutoGoal 8 9 10 11 "prepar
-ed_without_full_cycle"
-  scripts\ai-dev-auto-goal.ps1:1338:}
-  scripts\ai-dev-auto-goal.ps1:1339:
-
-
-
- succeeded in 2931ms:
-
-  scripts\ai-dev-auto-cycle-full.ps1:1:param(
-  scripts\ai-dev-auto-cycle-full.ps1:2:    [int]$MaxTasks = 1,
-> scripts\ai-dev-auto-cycle-full.ps1:3:    [int]$MaxSteps = 22,
-  scripts\ai-dev-auto-cycle-full.ps1:4:    [switch]$DryRun,
-  scripts\ai-dev-auto-cycle-full.ps1:5:    [switch]$Json,
-  scripts\ai-dev-auto-cycle-full.ps1:302:            completedTaskCount = $
-script:completedTaskCount
-  scripts\ai-dev-auto-cycle-full.ps1:303:            maxTasks = $MaxTasks
-> scripts\ai-dev-auto-cycle-full.ps1:304:            maxSteps = $MaxSteps
-  scripts\ai-dev-auto-cycle-full.ps1:305:            stepCount = @($Steps).
-Count
-  scripts\ai-dev-auto-cycle-full.ps1:306:            lastStep = $lastStepCo
-ntext
-  scripts\ai-dev-auto-cycle-full.ps1:354:    }
-  scripts\ai-dev-auto-cycle-full.ps1:355:    Write-Host "  Completed tasks:
- $($Result.context.completedTaskCount) / $($
-Result.context.maxTasks)"
-> scripts\ai-dev-auto-cycle-full.ps1:356:    Write-Host "  Steps recorded: 
-$($Result.context.stepCount) / $($Result.con
-text.maxSteps)"
-  scripts\ai-dev-auto-cycle-full.ps1:357:    if ($null -ne $Result.context.
-lastStep) {
-  scripts\ai-dev-auto-cycle-full.ps1:358:        Write-Host "  Last step: $
-($Result.context.lastStep.step) $($Result.co
-ntext.lastStep.name) exit=$($Result.context.lastStep.exitCode)"
-  scripts\ai-dev-auto-cycle-full.ps1:380:        [object[]]$Steps,
-  scripts\ai-dev-auto-cycle-full.ps1:381:        [string]$StoppedReason,
-> scripts\ai-dev-auto-cycle-full.ps1:382:        [int]$StepNumber
-  scripts\ai-dev-auto-cycle-full.ps1:383:    )
-  scripts\ai-dev-auto-cycle-full.ps1:384:
-  scripts\ai-dev-auto-cycle-full.ps1:400:
-  scripts\ai-dev-auto-cycle-full.ps1:401:            if ($nonAiDevPaths.Cou
-nt -gt 0) {
-> scripts\ai-dev-auto-cycle-full.ps1:402:                $Steps += New-Step
-Result $StepNumber "completed-clean-gate" "g
-it status --short" $true $false 1 "Completed clean verification failed: non
--.ai-dev changes remain after all full-cycle
- result/state files were written.`n$remainingStatus"
-  scripts\ai-dev-auto-cycle-full.ps1:403:                Stop-Cycle $Steps 
-"completed_non_ai_dev_changes" $false 1
-  scripts\ai-dev-auto-cycle-full.ps1:404:            }
-  scripts\ai-dev-auto-cycle-full.ps1:405:
-  scripts\ai-dev-auto-cycle-full.ps1:406:            if ($protectedPaths.Co
-unt -gt 0) {
-> scripts\ai-dev-auto-cycle-full.ps1:407:                $Steps += New-Step
-Result $StepNumber "completed-clean-gate" "g
-it status --short" $true $false 1 "Completed clean verification failed: pro
-tected baseline dirty .ai-dev paths remain a
-nd must not be absorbed into the final meta commit.`n$($protectedPaths -joi
-n "`n")`n$remainingStatus"
-  scripts\ai-dev-auto-cycle-full.ps1:408:                Stop-Cycle $Steps 
-"completed_protected_baseline_dirty" $false 
-1
-  scripts\ai-dev-auto-cycle-full.ps1:409:            }
-  scripts\ai-dev-auto-cycle-full.ps1:410:
-  scripts\ai-dev-auto-cycle-full.ps1:411:            if ($eligibleAiDevPath
-s.Count -eq 0) {
-> scripts\ai-dev-auto-cycle-full.ps1:412:                $Steps += New-Step
-Result $StepNumber "completed-clean-gate" "g
-it status --short" $true $false 1 "Completed clean verification failed: wor
-ktree still has changes, but none are eligib
-le new .ai-dev operational changes.`n$remainingStatus"
-  scripts\ai-dev-auto-cycle-full.ps1:413:                Stop-Cycle $Steps 
-"completed_no_eligible_meta_changes" $false 
-1
-  scripts\ai-dev-auto-cycle-full.ps1:414:            }
-  scripts\ai-dev-auto-cycle-full.ps1:415:
-  scripts\ai-dev-auto-cycle-full.ps1:416:            if (-not $AllowCommit)
- {
-> scripts\ai-dev-auto-cycle-full.ps1:417:                $Steps += New-Step
-Result $StepNumber "completed-clean-gate" "g
-it status --short" $true $false 1 "Completed clean verification failed: onl
-y new .ai-dev operational changes remain, bu
-t -AllowCommit is required for the final auto-cycle meta commit.`n$remainin
-gStatus"
-  scripts\ai-dev-auto-cycle-full.ps1:418:                Stop-Cycle $Steps 
-"completed_ai_dev_changes_require_commit" $f
-alse 1
-  scripts\ai-dev-auto-cycle-full.ps1:419:            }
-  scripts\ai-dev-auto-cycle-full.ps1:420:
-  scripts\ai-dev-auto-cycle-full.ps1:421:            if ($DryRun) {
-> scripts\ai-dev-auto-cycle-full.ps1:422:                $Steps += New-Step
-Result $StepNumber "completed-clean-gate" "g
-it status --short; git add/commit final .ai-dev operational changes; git st
-atus --short" $false $true 0 "DryRun: only n
-ew .ai-dev operational changes remain, but the final auto-cycle meta commit
- was not created.`n$remainingStatus"
-  scripts\ai-dev-auto-cycle-full.ps1:423:                Stop-Cycle $Steps 
-"dry_run" $false 0
-  scripts\ai-dev-auto-cycle-full.ps1:424:            }
-  scripts\ai-dev-auto-cycle-full.ps1:428:
-  scripts\ai-dev-auto-cycle-full.ps1:429:            if ($addExitCode -ne 0
-) {
-> scripts\ai-dev-auto-cycle-full.ps1:430:                $Steps += New-Step
-Result $StepNumber "completed-clean-gate" "g
-it add -- <final .ai-dev files>" $true $false 1 "Final auto-cycle .ai-dev m
-eta add failed. exit code: $addExitCode`n$ad
-dOutput"
-  scripts\ai-dev-auto-cycle-full.ps1:431:                Stop-Cycle $Steps 
-"completed_meta_add_failed" $false 1
-  scripts\ai-dev-auto-cycle-full.ps1:432:            }
-  scripts\ai-dev-auto-cycle-full.ps1:437:
-  scripts\ai-dev-auto-cycle-full.ps1:438:            if ($commitExitCode -n
-e 0) {
-> scripts\ai-dev-auto-cycle-full.ps1:439:                $Steps += New-Step
-Result $StepNumber "completed-clean-gate" "g
-it commit -m '$metaCommitMessage' -- <final .ai-dev files>" $true $false 1 
-"Final auto-cycle .ai-dev meta commit failed
-. exit code: $commitExitCode`n$commitOutput"
-  scripts\ai-dev-auto-cycle-full.ps1:440:                Stop-Cycle $Steps 
-"completed_meta_commit_failed" $false 1
-  scripts\ai-dev-auto-cycle-full.ps1:441:            }
-  scripts\ai-dev-auto-cycle-full.ps1:444:
-  scripts\ai-dev-auto-cycle-full.ps1:445:            if (-not [string]::IsN
-ullOrWhiteSpace($remainingStatus)) {
-> scripts\ai-dev-auto-cycle-full.ps1:446:                $Steps += New-Step
-Result $StepNumber "completed-clean-gate" "g
-it status --short" $true $false 1 "Completed clean verification failed: cha
-nges remain after the final auto-cycle .ai-d
-ev meta commit.`n$remainingStatus"
-  scripts\ai-dev-auto-cycle-full.ps1:447:                Stop-Cycle $Steps 
-"completed_worktree_dirty" $false 1
-  scripts\ai-dev-auto-cycle-full.ps1:448:            }
-  scripts\ai-dev-auto-cycle-full.ps1:449:
-  scripts\ai-dev-auto-cycle-full.ps1:450:            $message = ($commitOut
-put.Trim(), "Final auto-cycle .ai-dev meta c
-ommit created: yes", "Completed clean verification passed: git status --sho
-rt returned no changes.") -join "`n"
-> scripts\ai-dev-auto-cycle-full.ps1:451:            $Steps += New-StepResu
-lt $StepNumber "completed-clean-gate" "git s
-tatus --short; git add/commit final .ai-dev operational changes; git status
- --short" $true $false 0 $message
-  scripts\ai-dev-auto-cycle-full.ps1:452:            Stop-Cycle $Steps $Sto
-ppedReason $true 0
-  scripts\ai-dev-auto-cycle-full.ps1:453:        }
-  scripts\ai-dev-auto-cycle-full.ps1:454:
-> scripts\ai-dev-auto-cycle-full.ps1:455:        $Steps += New-StepResult $
-StepNumber "completed-clean-gate" "git statu
-s --short" $true $false 0 "Completed clean verification passed: git status 
---short returned no changes."
-  scripts\ai-dev-auto-cycle-full.ps1:456:        Stop-Cycle $Steps $Stopped
-Reason $true 0
-  scripts\ai-dev-auto-cycle-full.ps1:457:    } catch {
-> scripts\ai-dev-auto-cycle-full.ps1:458:        $Steps += New-StepResult $
-StepNumber "completed-clean-gate" "git statu
-s --short" $false $false 1 $_.Exception.Message
-  scripts\ai-dev-auto-cycle-full.ps1:459:        Stop-Cycle $Steps "complet
-ed_clean_gate_failed" $false 1
-  scripts\ai-dev-auto-cycle-full.ps1:460:    }
-  scripts\ai-dev-auto-cycle-full.ps1:463:function Invoke-CycleCommand {
-  scripts\ai-dev-auto-cycle-full.ps1:464:    param(
-> scripts\ai-dev-auto-cycle-full.ps1:465:        [int]$StepNumber,
-  scripts\ai-dev-auto-cycle-full.ps1:466:        [string]$Name,
-  scripts\ai-dev-auto-cycle-full.ps1:467:        [string]$Command,
-  scripts\ai-dev-auto-cycle-full.ps1:471:
-  scripts\ai-dev-auto-cycle-full.ps1:472:    if ($DryRun) {
-> scripts\ai-dev-auto-cycle-full.ps1:473:        $script:steps += New-StepR
-esult $StepNumber $Name $Command $false $tru
-e 0 "DryRun: 하위 스크립트를 실행하지 않았습니다."
-  scripts\ai-dev-auto-cycle-full.ps1:474:        return
-  scripts\ai-dev-auto-cycle-full.ps1:475:    }
-  scripts\ai-dev-auto-cycle-full.ps1:483:    }
-  scripts\ai-dev-auto-cycle-full.ps1:484:
-> scripts\ai-dev-auto-cycle-full.ps1:485:    $script:steps += New-StepResul
-t $StepNumber $Name $Command $true $false $e
-xitCode $message
-  scripts\ai-dev-auto-cycle-full.ps1:486:
-  scripts\ai-dev-auto-cycle-full.ps1:487:    if ($exitCode -ne 0) {
-  scripts\ai-dev-auto-cycle-full.ps1:826:function Invoke-DirectMetaCommit {
-  scripts\ai-dev-auto-cycle-full.ps1:827:    param(
-> scripts\ai-dev-auto-cycle-full.ps1:828:        [int]$StepNumber
-  scripts\ai-dev-auto-cycle-full.ps1:829:    )
-  scripts\ai-dev-auto-cycle-full.ps1:830:
-  scripts\ai-dev-auto-cycle-full.ps1:841:            }
-  scripts\ai-dev-auto-cycle-full.ps1:842:
-> scripts\ai-dev-auto-cycle-full.ps1:843:            $script:steps += New-S
-tepResult $StepNumber "meta-commit" $command
- $false $true 0 ".ai-dev 메타 상태 변경사항이 없어 meta commit을 건너뜁니다. worktree clean.
-"
-  scripts\ai-dev-auto-cycle-full.ps1:844:            return
-  scripts\ai-dev-auto-cycle-full.ps1:845:        }
-  scripts\ai-dev-auto-cycle-full.ps1:866:
-  scripts\ai-dev-auto-cycle-full.ps1:867:        $message = ($commitOutput.
-Trim(), "worktree clean") -join "`n"
-> scripts\ai-dev-auto-cycle-full.ps1:868:        $script:steps += New-StepR
-esult $StepNumber "meta-commit" $command $tr
-ue $false 0 $message
-  scripts\ai-dev-auto-cycle-full.ps1:869:    } catch {
-> scripts\ai-dev-auto-cycle-full.ps1:870:        $script:steps += New-StepR
-esult $StepNumber "meta-commit" $command $tr
-ue $false 1 $_.Exception.Message
-  scripts\ai-dev-auto-cycle-full.ps1:871:        Stop-Cycle $script:steps "
-meta_commit_failed" $false 1
-  scripts\ai-dev-auto-cycle-full.ps1:872:    }
-  scripts\ai-dev-auto-cycle-full.ps1:919:}
-  scripts\ai-dev-auto-cycle-full.ps1:920:
-> scripts\ai-dev-auto-cycle-full.ps1:921:if ($MaxSteps -lt 1) {
-> scripts\ai-dev-auto-cycle-full.ps1:922:    Stop-Cycle $script:steps "max_
-steps_must_be_at_least_1" $false 1
-  scripts\ai-dev-auto-cycle-full.ps1:923:}
-  scripts\ai-dev-auto-cycle-full.ps1:924:
-  scripts\ai-dev-auto-cycle-full.ps1:993:)
-  scripts\ai-dev-auto-cycle-full.ps1:994:
-> scripts\ai-dev-auto-cycle-full.ps1:995:if ($plannedSteps.Count -gt $MaxSt
-eps) {
-> scripts\ai-dev-auto-cycle-full.ps1:996:    Stop-Cycle $script:steps "max_
-steps_too_small_for_full_cycle" $false 1
-  scripts\ai-dev-auto-cycle-full.ps1:997:}
-  scripts\ai-dev-auto-cycle-full.ps1:998:
-> scripts\ai-dev-auto-cycle-full.ps1:999:$stepNumber = 1
-  scripts\ai-dev-auto-cycle-full.ps1:1000:
-  scripts\ai-dev-auto-cycle-full.ps1:1001:while ($script:completedTaskCount
- -lt $MaxTasks) {
-  scripts\ai-dev-auto-cycle-full.ps1:1005:        $script:currentTask = Get
--CurrentTask $queue $state
-  scripts\ai-dev-auto-cycle-full.ps1:1006:    } catch {
-> scripts\ai-dev-auto-cycle-full.ps1:1007:        $script:steps += New-Step
-Result $stepNumber "load-task" "state/queue 
-확인" $false $false 1 $_.Exception.Message
-  scripts\ai-dev-auto-cycle-full.ps1:1008:        Stop-Cycle $script:steps 
-"load_task_failed" $false 1
-  scripts\ai-dev-auto-cycle-full.ps1:1009:    }
-  scripts\ai-dev-auto-cycle-full.ps1:1010:
-  scripts\ai-dev-auto-cycle-full.ps1:1011:    if ($state.goalStatus -eq "co
-mpleted") {
-> scripts\ai-dev-auto-cycle-full.ps1:1012:        Complete-Cycle $script:st
-eps "goal_completed" $stepNumber
-  scripts\ai-dev-auto-cycle-full.ps1:1013:    }
-  scripts\ai-dev-auto-cycle-full.ps1:1014:
-  scripts\ai-dev-auto-cycle-full.ps1:1018:
-  scripts\ai-dev-auto-cycle-full.ps1:1019:    if ($script:currentTask.statu
-s -eq "done") {
-> scripts\ai-dev-auto-cycle-full.ps1:1020:        Complete-Cycle $script:st
-eps "current_task_done" $stepNumber
-  scripts\ai-dev-auto-cycle-full.ps1:1021:    }
-  scripts\ai-dev-auto-cycle-full.ps1:1022:
-  scripts\ai-dev-auto-cycle-full.ps1:1023:    $taskLabel = "$($script:curre
-ntTask.id) $($script:currentTask.title)"
-> scripts\ai-dev-auto-cycle-full.ps1:1024:    $script:steps += New-StepResu
-lt $stepNumber "task-start" "MaxTasks=$MaxTa
-sks" $false $false 0 "현재 task 실행 시작: $taskLabel"
-> scripts\ai-dev-auto-cycle-full.ps1:1025:    $stepNumber++
-  scripts\ai-dev-auto-cycle-full.ps1:1026:
-  scripts\ai-dev-auto-cycle-full.ps1:1027:    $resumeFromSavedReview = $fal
-se
-  scripts\ai-dev-auto-cycle-full.ps1:1031:            $resumeReviewGate = G
-et-ReviewGate
-  scripts\ai-dev-auto-cycle-full.ps1:1032:        } catch {
-> scripts\ai-dev-auto-cycle-full.ps1:1033:            $script:steps += New-
-StepResult $stepNumber "resume-review-gate" 
-"state/review-response 확인" $false $false 1 $_.Exception.Message
-  scripts\ai-dev-auto-cycle-full.ps1:1034:            Stop-Cycle $script:st
-eps "resume_review_gate_failed" $false 1
-  scripts\ai-dev-auto-cycle-full.ps1:1035:        }
-  scripts\ai-dev-auto-cycle-full.ps1:1040:            if (-not $resumeImple
-mentationGate.passed) {
-  scripts\ai-dev-auto-cycle-full.ps1:1041:                Save-CycleFailure
-State "resume-review-gate" $resumeImplementa
-tionGate.message $resumeReviewGate
-> scripts\ai-dev-auto-cycle-full.ps1:1042:                $script:steps += 
-New-StepResult $stepNumber "resume-review-ga
-te" "state/review-response required_changes 및 현재 diff 확인" $false $true 1 $r
-esumeImplementationGate.message
-  scripts\ai-dev-auto-cycle-full.ps1:1043:                Stop-Cycle $scrip
-t:steps $resumeImplementationGate.reason $fa
-lse 1
-  scripts\ai-dev-auto-cycle-full.ps1:1044:            }
-  scripts\ai-dev-auto-cycle-full.ps1:1045:
-  scripts\ai-dev-auto-cycle-full.ps1:1046:            $resumeFromSavedRevie
-w = $true
-> scripts\ai-dev-auto-cycle-full.ps1:1047:            $script:steps += New-
-StepResult $stepNumber "resume-review-gate" 
-"state/review-response 재확인" $false $false 0 "이미 저장된 리뷰 pass와 허용 가능한 next_st
-ep 상태를 확인했습니다. 구현/리뷰 재실행 없이 commit/complete/
-meta-commit으로 계속 진행합니다."
-> scripts\ai-dev-auto-cycle-full.ps1:1048:            $stepNumber++
-  scripts\ai-dev-auto-cycle-full.ps1:1049:        } elseif ($resumeReviewGa
-te.lastCommand -eq "save-review" -and $resum
-eReviewGate.lastCommandStatus -eq "passed") {
-  scripts\ai-dev-auto-cycle-full.ps1:1050:            if (Test-IsReviewRevi
-seWithCodex $resumeReviewGate) {
-  scripts\ai-dev-auto-cycle-full.ps1:1051:                $resumeFromSavedR
-eview = $true
-> scripts\ai-dev-auto-cycle-full.ps1:1052:                $script:steps += 
-New-StepResult $stepNumber "resume-review-ga
-te" "state/review-response 재확인" $false $false 0 "저장된 리뷰가 revise + revise_wi
-th_codex이므로 구현/초기 리뷰 재실행 없이 revise 자동 재시도 단계
-로 계속 진행합니다."
-> scripts\ai-dev-auto-cycle-full.ps1:1053:                $stepNumber++
-  scripts\ai-dev-auto-cycle-full.ps1:1054:            } else {
-  scripts\ai-dev-auto-cycle-full.ps1:1055:                $message = "save-
-review 이후 계속 진행할 수 없습니다. review.decision=$($
-resumeReviewGate.decision), state.lastReviewDecision=$($resumeReviewGate.st
-ateDecision), next_step=$($resumeReviewGate.
-nextStep)"
-  scripts\ai-dev-auto-cycle-full.ps1:1056:                Save-CycleFailure
-State "resume-review-gate" $message $resumeR
-eviewGate
-> scripts\ai-dev-auto-cycle-full.ps1:1057:                $script:steps += 
-New-StepResult $stepNumber "resume-review-ga
-te" "state/review-response 재확인" $false $true 1 $message
-  scripts\ai-dev-auto-cycle-full.ps1:1058:                Stop-Cycle $scrip
-t:steps "saved_review_not_ready_to_complete"
- $false 1
-  scripts\ai-dev-auto-cycle-full.ps1:1059:            }
-  scripts\ai-dev-auto-cycle-full.ps1:1062:
-  scripts\ai-dev-auto-cycle-full.ps1:1063:    if (-not $resumeFromSavedRevi
-ew) {
-> scripts\ai-dev-auto-cycle-full.ps1:1064:        Invoke-CycleCommand $step
-Number "make-prompt" "powershell -ExecutionP
-olicy Bypass -File scripts/ai-dev-make-prompt.ps1" $scriptPaths.makePrompt 
-@()
-> scripts\ai-dev-auto-cycle-full.ps1:1065:        $stepNumber++
-  scripts\ai-dev-auto-cycle-full.ps1:1066:
-  scripts\ai-dev-auto-cycle-full.ps1:1067:        if (-not $AllowCodex -and
- -not $DryRun) {
-  scripts\ai-dev-auto-cycle-full.ps1:1079:            }
-  scripts\ai-dev-auto-cycle-full.ps1:1080:
-> scripts\ai-dev-auto-cycle-full.ps1:1081:            $script:steps += New-
-StepResult $stepNumber "run-codex" "powershe
-ll -ExecutionPolicy Bypass -File scripts/ai-dev-run-codex.ps1 -AllowDirty" 
-$false $true 1 "Codex 구현 실행에는 -AllowCodex가 필
-요합니다. 추천 명령: $command"
-  scripts\ai-dev-auto-cycle-full.ps1:1082:            Stop-Cycle $script:st
-eps "allow_codex_required" $false 1
-  scripts\ai-dev-auto-cycle-full.ps1:1083:        }
-  scripts\ai-dev-auto-cycle-full.ps1:1085:        $runCodexArguments = @("-
-AllowDirty")
-  scripts\ai-dev-auto-cycle-full.ps1:1086:
-> scripts\ai-dev-auto-cycle-full.ps1:1087:        Invoke-CycleCommand $step
-Number "run-codex" "powershell -ExecutionPol
-icy Bypass -File scripts/ai-dev-run-codex.ps1 -AllowDirty" $scriptPaths.run
-Codex $runCodexArguments
-> scripts\ai-dev-auto-cycle-full.ps1:1088:        $stepNumber++
-  scripts\ai-dev-auto-cycle-full.ps1:1089:
-> scripts\ai-dev-auto-cycle-full.ps1:1090:        Invoke-CycleCommand $step
-Number "check" "powershell -ExecutionPolicy 
-Bypass -File scripts/ai-dev-check.ps1 -BuildOnly" $scriptPaths.check @("-Bu
-ildOnly")
-> scripts\ai-dev-auto-cycle-full.ps1:1091:        $stepNumber++
-  scripts\ai-dev-auto-cycle-full.ps1:1092:
-> scripts\ai-dev-auto-cycle-full.ps1:1093:        Invoke-CycleCommand $step
-Number "save-diff" "powershell -ExecutionPol
-icy Bypass -File scripts/ai-dev-save-diff.ps1" $scriptPaths.saveDiff @()
-> scripts\ai-dev-auto-cycle-full.ps1:1094:        $stepNumber++
-  scripts\ai-dev-auto-cycle-full.ps1:1095:
-> scripts\ai-dev-auto-cycle-full.ps1:1096:        Invoke-CycleCommand $step
-Number "make-review-prompt" "powershell -Exe
-cutionPolicy Bypass -File scripts/ai-dev-make-review-prompt.ps1 -Strict" $s
-criptPaths.makeReviewPrompt @("-Strict")
-> scripts\ai-dev-auto-cycle-full.ps1:1097:        $stepNumber++
-  scripts\ai-dev-auto-cycle-full.ps1:1098:
-  scripts\ai-dev-auto-cycle-full.ps1:1099:        if (-not $AllowReviewCode
-x -and -not $DryRun) {
-  scripts\ai-dev-auto-cycle-full.ps1:1111:            }
-  scripts\ai-dev-auto-cycle-full.ps1:1112:
-> scripts\ai-dev-auto-cycle-full.ps1:1113:            $script:steps += New-
-StepResult $stepNumber "run-review-codex" "p
-owershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-review-codex.ps1
- -AllowDirty -SaveReview" $false $true 1 "Co
-dex 리뷰 실행에는 -AllowReviewCodex가 필요합니다. 추천 명령: $command"
-  scripts\ai-dev-auto-cycle-full.ps1:1114:            Stop-Cycle $script:st
-eps "allow_review_codex_required" $false 1
-  scripts\ai-dev-auto-cycle-full.ps1:1115:        }
-  scripts\ai-dev-auto-cycle-full.ps1:1116:
-> scripts\ai-dev-auto-cycle-full.ps1:1117:        Invoke-CycleCommand $step
-Number "run-review-codex" "powershell -Execu
-tionPolicy Bypass -File scripts/ai-dev-run-review-codex.ps1 -AllowDirty -Sa
-veReview" $scriptPaths.runReviewCodex @("-Al
-lowDirty", "-SaveReview")
-> scripts\ai-dev-auto-cycle-full.ps1:1118:        $stepNumber++
-  scripts\ai-dev-auto-cycle-full.ps1:1119:    }
-  scripts\ai-dev-auto-cycle-full.ps1:1120:
-  scripts\ai-dev-auto-cycle-full.ps1:1121:    if ($DryRun) {
-> scripts\ai-dev-auto-cycle-full.ps1:1122:        $script:steps += New-Step
-Result $stepNumber "review-gate" "state.last
-ReviewDecision 확인" $false $true 0 "DryRun: 리뷰 pass 여부를 실제 상태에서 읽지 않았습니다."
-> scripts\ai-dev-auto-cycle-full.ps1:1123:        $stepNumber++
-> scripts\ai-dev-auto-cycle-full.ps1:1124:        $script:steps += New-Step
-Result $stepNumber "make-revise-prompt" "pow
-ershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-revise-prompt.ps1
-" $false $true 0 "DryRun: review-gate가 revis
-e + revise_with_codex인 경우 생성할 revise 프롬프트를 실제로 만들지 않았습니다."
-> scripts\ai-dev-auto-cycle-full.ps1:1125:        $stepNumber++
-> scripts\ai-dev-auto-cycle-full.ps1:1126:        $script:steps += New-Step
-Result $stepNumber "run-codex-revise" "power
-shell -ExecutionPolicy Bypass -File scripts/ai-dev-run-codex.ps1 -AllowDirt
-y -PromptPath .ai-dev/revise-prompt.md" $fal
-se $true 0 "DryRun: Codex 재수정 실행을 실행하지 않았습니다."
-> scripts\ai-dev-auto-cycle-full.ps1:1127:        $stepNumber++
-> scripts\ai-dev-auto-cycle-full.ps1:1128:        $script:steps += New-Step
-Result $stepNumber "check-revise" "powershel
-l -ExecutionPolicy Bypass -File scripts/ai-dev-check.ps1 -BuildOnly" $false
- $true 0 "DryRun: 재수정 검증을 실행하지 않았습니다."
-> scripts\ai-dev-auto-cycle-full.ps1:1129:        $stepNumber++
-> scripts\ai-dev-auto-cycle-full.ps1:1130:        $script:steps += New-Step
-Result $stepNumber "save-diff-revise" "power
-shell -ExecutionPolicy Bypass -File scripts/ai-dev-save-diff.ps1" $false $t
-rue 0 "DryRun: 재수정 diff 저장을 실행하지 않았습니다."
-> scripts\ai-dev-auto-cycle-full.ps1:1131:        $stepNumber++
-> scripts\ai-dev-auto-cycle-full.ps1:1132:        $script:steps += New-Step
-Result $stepNumber "make-review-prompt-revis
-e" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-review-pro
-mpt.ps1 -Strict" $false $true 0 "DryRun: 재리뷰
- 프롬프트 생성을 실행하지 않았습니다."
-> scripts\ai-dev-auto-cycle-full.ps1:1133:        $stepNumber++
-> scripts\ai-dev-auto-cycle-full.ps1:1134:        $script:steps += New-Step
-Result $stepNumber "run-review-codex-revise"
- "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-review-codex.
-ps1 -AllowDirty -SaveReview" $false $true 0 
-"DryRun: Codex 재리뷰와 save-review를 실행하지 않았습니다."
-> scripts\ai-dev-auto-cycle-full.ps1:1135:        $stepNumber++
-> scripts\ai-dev-auto-cycle-full.ps1:1136:        $script:steps += New-Step
-Result $stepNumber "package-change-gate" "gi
-t status --porcelain -- package.json package-lock.json" $false $true 0 "Dry
-Run: package 파일 변경 여부를 확인하지 않았습니다."
-> scripts\ai-dev-auto-cycle-full.ps1:1137:        $stepNumber++
-> scripts\ai-dev-auto-cycle-full.ps1:1138:        $script:steps += New-Step
-Result $stepNumber "commit" "powershell -Exe
-cutionPolicy Bypass -File scripts/ai-dev-commit.ps1" $false $true 0 "DryRun
-: git add/commit을 실행하지 않았습니다."
-> scripts\ai-dev-auto-cycle-full.ps1:1139:        $stepNumber++
-> scripts\ai-dev-auto-cycle-full.ps1:1140:        $script:steps += New-Step
-Result $stepNumber "commit-result-gate" "sta
-te.lastCommand/lastCommitHash 확인" $false $true 0 "DryRun: 실제 커밋 생성 여부를 확인하지
- 않았습니다."
-> scripts\ai-dev-auto-cycle-full.ps1:1141:        $stepNumber++
-> scripts\ai-dev-auto-cycle-full.ps1:1142:        $script:steps += New-Step
-Result $stepNumber "complete-task" "powershe
-ll -ExecutionPolicy Bypass -File scripts/ai-dev-complete-task.ps1 -ResultSu
-mmary `"자동 완료: Codex 구현, build/check, Codex 
-리뷰 pass, 자동 커밋 완료`" -CommitHash <commit-hash>" $false $true 0 "DryRun: task
- 완료 처리를 실행하지 않았습니다."
-> scripts\ai-dev-auto-cycle-full.ps1:1143:        $stepNumber++
-> scripts\ai-dev-auto-cycle-full.ps1:1144:        $script:steps += New-Step
-Result $stepNumber "meta-commit" "direct met
-a commit: git add scoped .ai-dev files, git commit -m 'chore(ai-dev): recor
-d task completion', git status --short" $fal
-se $true 0 "DryRun: .ai-dev 메타 상태 직접 커밋을 실행하지 않았습니다."
-> scripts\ai-dev-auto-cycle-full.ps1:1145:        $stepNumber++
-> scripts\ai-dev-auto-cycle-full.ps1:1146:        $script:steps += New-Step
-Result $stepNumber "final-status" "powershel
-l -ExecutionPolicy Bypass -File scripts/ai-dev-status.ps1" $false $true 0 "
-DryRun: 최종 작업 상태 확인을 실행하지 않았습니다."
-  scripts\ai-dev-auto-cycle-full.ps1:1147:        Stop-Cycle $script:steps 
-"dry_run" $false 0
-  scripts\ai-dev-auto-cycle-full.ps1:1148:    }
-  scripts\ai-dev-auto-cycle-full.ps1:1151:        $reviewGate = Get-ReviewG
-ate
-  scripts\ai-dev-auto-cycle-full.ps1:1152:    } catch {
-> scripts\ai-dev-auto-cycle-full.ps1:1153:        $script:steps += New-Step
-Result $stepNumber "review-gate" "state/revi
-ew-response 확인" $false $false 1 $_.Exception.Message
-  scripts\ai-dev-auto-cycle-full.ps1:1154:        Stop-Cycle $script:steps 
-"review_gate_failed" $false 1
-  scripts\ai-dev-auto-cycle-full.ps1:1155:    }
-  scripts\ai-dev-auto-cycle-full.ps1:1157:    if ($reviewGate.lastCommand -
-ne "save-review" -or $reviewGate.lastCommand
-Status -ne "passed") {
-  scripts\ai-dev-auto-cycle-full.ps1:1158:        $message = "최신 state가 sav
-e-review passed가 아니므로 자동 커밋하지 않습니다: lastComm
-and=$($reviewGate.lastCommand), lastCommandStatus=$($reviewGate.lastCommand
-Status)"
-> scripts\ai-dev-auto-cycle-full.ps1:1159:        $script:steps += New-Step
-Result $stepNumber "review-gate" "state.last
-Command/state.lastCommandStatus 확인" $false $true 1 $message
-  scripts\ai-dev-auto-cycle-full.ps1:1160:        Stop-Cycle $script:steps 
-"review_save_not_passed" $false 1
-  scripts\ai-dev-auto-cycle-full.ps1:1161:    }
-  scripts\ai-dev-auto-cycle-full.ps1:1166:        if (-not $implementationG
-ate.passed) {
-  scripts\ai-dev-auto-cycle-full.ps1:1167:            Save-CycleFailureStat
-e "review-gate" $implementationGate.message 
-$reviewGate
-> scripts\ai-dev-auto-cycle-full.ps1:1168:            $script:steps += New-
-StepResult $stepNumber "review-gate" "task t
-ype, $reviewResponseRelativePath required_changes, 현재 diff 확인" $false $true
- 1 $implementationGate.message
-  scripts\ai-dev-auto-cycle-full.ps1:1169:            Stop-Cycle $script:st
-eps $implementationGate.reason $false 1
-  scripts\ai-dev-auto-cycle-full.ps1:1170:        }
-  scripts\ai-dev-auto-cycle-full.ps1:1171:
-> scripts\ai-dev-auto-cycle-full.ps1:1172:        $script:steps += New-Step
-Result $stepNumber "review-gate" "$reviewRes
-ponseRelativePath decision/next_step 확인" $false $false 0 "리뷰 결과가 revise + r
-evise_with_codex입니다. 자동 revise 재시도를 시작합니다. s
-everity=$($reviewGate.severity), summary=$($reviewGate.summary)"
-> scripts\ai-dev-auto-cycle-full.ps1:1173:        $stepNumber++
-  scripts\ai-dev-auto-cycle-full.ps1:1174:
-> scripts\ai-dev-auto-cycle-full.ps1:1175:        Invoke-CycleCommand $step
-Number "make-revise-prompt" "powershell -Exe
-cutionPolicy Bypass -File scripts/ai-dev-make-revise-prompt.ps1" $scriptPat
-hs.makeRevisePrompt @()
-> scripts\ai-dev-auto-cycle-full.ps1:1176:        $stepNumber++
-  scripts\ai-dev-auto-cycle-full.ps1:1177:
-  scripts\ai-dev-auto-cycle-full.ps1:1178:        if (-not $AllowCodex) {
-  scripts\ai-dev-auto-cycle-full.ps1:1190:            }
-  scripts\ai-dev-auto-cycle-full.ps1:1191:
-> scripts\ai-dev-auto-cycle-full.ps1:1192:            $script:steps += New-
-StepResult $stepNumber "run-codex-revise" "p
-owershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-codex.ps1 -Allow
-Dirty -PromptPath .ai-dev/revise-prompt.md" 
-$false $true 1 "Codex 재수정 실행에는 -AllowCodex가 필요합니다. 추천 명령: $command"
-  scripts\ai-dev-auto-cycle-full.ps1:1193:            Stop-Cycle $script:st
-eps "allow_codex_required" $false 1
-  scripts\ai-dev-auto-cycle-full.ps1:1194:        }
-  scripts\ai-dev-auto-cycle-full.ps1:1195:
-> scripts\ai-dev-auto-cycle-full.ps1:1196:        Invoke-CycleCommand $step
-Number "run-codex-revise" "powershell -Execu
-tionPolicy Bypass -File scripts/ai-dev-run-codex.ps1 -AllowDirty -PromptPat
-h .ai-dev/revise-prompt.md" $scriptPaths.run
-Codex @("-AllowDirty", "-PromptPath", ".ai-dev/revise-prompt.md")
-> scripts\ai-dev-auto-cycle-full.ps1:1197:        $stepNumber++
-  scripts\ai-dev-auto-cycle-full.ps1:1198:
-> scripts\ai-dev-auto-cycle-full.ps1:1199:        Invoke-CycleCommand $step
-Number "check-revise" "powershell -Execution
-Policy Bypass -File scripts/ai-dev-check.ps1 -BuildOnly" $scriptPaths.check
- @("-BuildOnly")
-> scripts\ai-dev-auto-cycle-full.ps1:1200:        $stepNumber++
-  scripts\ai-dev-auto-cycle-full.ps1:1201:
-> scripts\ai-dev-auto-cycle-full.ps1:1202:        Invoke-CycleCommand $step
-Number "save-diff-revise" "powershell -Execu
-tionPolicy Bypass -File scripts/ai-dev-save-diff.ps1" $scriptPaths.saveDiff
- @()
-> scripts\ai-dev-auto-cycle-full.ps1:1203:        $stepNumber++
-  scripts\ai-dev-auto-cycle-full.ps1:1204:
-> scripts\ai-dev-auto-cycle-full.ps1:1205:        Invoke-CycleCommand $step
-Number "make-review-prompt-revise" "powershe
-ll -ExecutionPolicy Bypass -File scripts/ai-dev-make-review-prompt.ps1 -Str
-ict" $scriptPaths.makeReviewPrompt @("-Stric
-t")
-> scripts\ai-dev-auto-cycle-full.ps1:1206:        $stepNumber++
-  scripts\ai-dev-auto-cycle-full.ps1:1207:
-  scripts\ai-dev-auto-cycle-full.ps1:1208:        if (-not $AllowReviewCode
-x) {
-  scripts\ai-dev-auto-cycle-full.ps1:1220:            }
-  scripts\ai-dev-auto-cycle-full.ps1:1221:
-> scripts\ai-dev-auto-cycle-full.ps1:1222:            $script:steps += New-
-StepResult $stepNumber "run-review-codex-rev
-ise" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-review-co
-dex.ps1 -AllowDirty -SaveReview" $false $tru
-e 1 "Codex 재리뷰 실행에는 -AllowReviewCodex가 필요합니다. 추천 명령: $command"
-  scripts\ai-dev-auto-cycle-full.ps1:1223:            Stop-Cycle $script:st
-eps "allow_review_codex_required" $false 1
-  scripts\ai-dev-auto-cycle-full.ps1:1224:        }
-  scripts\ai-dev-auto-cycle-full.ps1:1225:
-> scripts\ai-dev-auto-cycle-full.ps1:1226:        Invoke-CycleCommand $step
-Number "run-review-codex-revise" "powershell
- -ExecutionPolicy Bypass -File scripts/ai-dev-run-review-codex.ps1 -AllowDi
-rty -SaveReview" $scriptPaths.runReviewCodex
- @("-AllowDirty", "-SaveReview")
-> scripts\ai-dev-auto-cycle-full.ps1:1227:        $stepNumber++
-  scripts\ai-dev-auto-cycle-full.ps1:1228:
-  scripts\ai-dev-auto-cycle-full.ps1:1229:        try {
-  scripts\ai-dev-auto-cycle-full.ps1:1230:            $reviewGate = Get-Rev
-iewGate
-  scripts\ai-dev-auto-cycle-full.ps1:1231:        } catch {
-> scripts\ai-dev-auto-cycle-full.ps1:1232:            $script:steps += New-
-StepResult $stepNumber "review-gate" "재리뷰 st
-ate/review-response 확인" $false $false 1 $_.Exception.Message
-  scripts\ai-dev-auto-cycle-full.ps1:1233:            Stop-Cycle $script:st
-eps "review_gate_failed" $false 1
-  scripts\ai-dev-auto-cycle-full.ps1:1234:        }
-  scripts\ai-dev-auto-cycle-full.ps1:1236:        if ($reviewGate.lastComma
-nd -ne "save-review" -or $reviewGate.lastCom
-mandStatus -ne "passed") {
-  scripts\ai-dev-auto-cycle-full.ps1:1237:            $message = "재리뷰 이후 최신
- state가 save-review passed가 아니므로 자동 커밋하지 않습니
-다: lastCommand=$($reviewGate.lastCommand), lastCommandStatus=$($reviewGate.
-lastCommandStatus)"
-> scripts\ai-dev-auto-cycle-full.ps1:1238:            $script:steps += New-
-StepResult $stepNumber "review-gate" "재리뷰 st
-ate.lastCommand/state.lastCommandStatus 확인" $false $true 1 $message
-  scripts\ai-dev-auto-cycle-full.ps1:1239:            Stop-Cycle $script:st
-eps "review_save_not_passed" $false 1
-  scripts\ai-dev-auto-cycle-full.ps1:1240:        }
-  scripts\ai-dev-auto-cycle-full.ps1:1244:                $message = New-Re
-viewReviseFailureMessage $reviewGate "재리뷰도 r
-evise + revise_with_codex를 반환해 자동 revise 재시도를 중단합니다."
-  scripts\ai-dev-auto-cycle-full.ps1:1245:                Save-CycleFailure
-State "review-gate" $message $reviewGate
-> scripts\ai-dev-auto-cycle-full.ps1:1246:                $script:steps += 
-New-StepResult $stepNumber "review-gate" "재리
-뷰 decision/next_step/required_changes 확인" $false $true 1 $message
-  scripts\ai-dev-auto-cycle-full.ps1:1247:                Stop-Cycle $scrip
-t:steps "review_revise_repeated" $false 1
-  scripts\ai-dev-auto-cycle-full.ps1:1248:            }
-  scripts\ai-dev-auto-cycle-full.ps1:1250:            $message = New-Review
-ReviseFailureMessage $reviewGate "재리뷰가 revis
-e를 반환해 자동 커밋과 complete-task를 실행하지 않습니다."
-  scripts\ai-dev-auto-cycle-full.ps1:1251:            Save-CycleFailureStat
-e "review-gate" $message $reviewGate
-> scripts\ai-dev-auto-cycle-full.ps1:1252:            $script:steps += New-
-StepResult $stepNumber "review-gate" "재리뷰 de
-cision/next_step/required_changes 확인" $false $true 1 $message
-  scripts\ai-dev-auto-cycle-full.ps1:1253:            Stop-Cycle $script:st
-eps "revise_review_not_pass" $false 1
-  scripts\ai-dev-auto-cycle-full.ps1:1254:        }
-  scripts\ai-dev-auto-cycle-full.ps1:1258:        $message = "리뷰 response d
-ecision이 pass가 아니므로 자동 커밋과 complete-task를 실행
-하지 않습니다: $($reviewGate.decision)"
-  scripts\ai-dev-auto-cycle-full.ps1:1259:        Save-CycleFailureState "r
-eview-gate" $message $reviewGate
-> scripts\ai-dev-auto-cycle-full.ps1:1260:        $script:steps += New-Step
-Result $stepNumber "review-gate" "$reviewRes
-ponseRelativePath decision 확인" $false $true 1 $message
-  scripts\ai-dev-auto-cycle-full.ps1:1261:        Stop-Cycle $script:steps 
-"review_not_pass" $false 1
-  scripts\ai-dev-auto-cycle-full.ps1:1262:    }
-  scripts\ai-dev-auto-cycle-full.ps1:1263:
-  scripts\ai-dev-auto-cycle-full.ps1:1264:    if ($reviewGate.stateDecision
- -ne "pass") {
-> scripts\ai-dev-auto-cycle-full.ps1:1265:        $script:steps += New-Step
-Result $stepNumber "review-gate" "state.last
-ReviewDecision 확인" $false $true 1 "state.lastReviewDecision이 pass가 아니므로 자동 
-커밋과 complete-task를 실행하지 않습니다: $($reviewGate.
-stateDecision)"
-  scripts\ai-dev-auto-cycle-full.ps1:1266:        Stop-Cycle $script:steps 
-"state_review_not_pass" $false 1
-  scripts\ai-dev-auto-cycle-full.ps1:1267:    }
-  scripts\ai-dev-auto-cycle-full.ps1:1268:
-  scripts\ai-dev-auto-cycle-full.ps1:1269:    if (-not (Test-IsAcceptableRe
-viewNextStep $reviewGate)) {
-> scripts\ai-dev-auto-cycle-full.ps1:1270:        $script:steps += New-Step
-Result $stepNumber "review-gate" "$reviewRes
-ponseRelativePath next_step 확인" $false $true 1 "리뷰 next_step이 존재하지만 complet
-e_task가 아니므로 자동 커밋과 complete-task를 실행하지 않습니다
-: 원본='$($reviewGate.nextStep)', 정규화='$($reviewGate.normalizedNextStep)'"
-  scripts\ai-dev-auto-cycle-full.ps1:1271:        Stop-Cycle $script:steps 
-"review_next_step_not_complete_task" $false 
-1
-  scripts\ai-dev-auto-cycle-full.ps1:1272:    }
-  scripts\ai-dev-auto-cycle-full.ps1:1276:    if (-not $implementationGate.
-passed) {
-  scripts\ai-dev-auto-cycle-full.ps1:1277:        Save-CycleFailureState "r
-eview-gate" $implementationGate.message $rev
-iewGate
-> scripts\ai-dev-auto-cycle-full.ps1:1278:        $script:steps += New-Step
-Result $stepNumber "review-gate" "task type,
- $reviewResponseRelativePath required_changes, 현재 diff 확인" $false $true 1 $
-implementationGate.message
-  scripts\ai-dev-auto-cycle-full.ps1:1279:        Stop-Cycle $script:steps 
-$implementationGate.reason $false 1
-  scripts\ai-dev-auto-cycle-full.ps1:1280:    }
-  scripts\ai-dev-auto-cycle-full.ps1:1281:
-> scripts\ai-dev-auto-cycle-full.ps1:1282:    $script:steps += New-StepResu
-lt $stepNumber "review-gate" "최신 state 및 $re
-viewResponseRelativePath 재확인" $false $false 0 "리뷰 pass 및 허용 가능한 next_step 상
-태 수락: 존재=$($reviewGate.hasNextStep), 원본='$($
-reviewGate.nextStep)', 정규화='$($reviewGate.normalizedNextStep)'. commit/comm
-it-result-gate/complete-task/meta-commit으로 계
-속 진행합니다."
-> scripts\ai-dev-auto-cycle-full.ps1:1283:    $stepNumber++
-  scripts\ai-dev-auto-cycle-full.ps1:1284:
-  scripts\ai-dev-auto-cycle-full.ps1:1285:    try {
-  scripts\ai-dev-auto-cycle-full.ps1:1286:        if (Test-PackageFileChang
-ed) {
-> scripts\ai-dev-auto-cycle-full.ps1:1287:            $script:steps += New-
-StepResult $stepNumber "package-change-gate"
- "git status --porcelain -- package.json package-lock.json" $false $true 1 
-"package.json 또는 package-lock.json 변경이 감지되어 
-자동 커밋을 중단합니다. 의도한 패키지 변경인지, lock file 변경이 필요한지 확인한 뒤 별도 작업으로 처리하세요."
-  scripts\ai-dev-auto-cycle-full.ps1:1288:            Stop-Cycle $script:st
-eps "package_files_changed" $false 1
-  scripts\ai-dev-auto-cycle-full.ps1:1289:        }
-  scripts\ai-dev-auto-cycle-full.ps1:1290:    } catch {
-> scripts\ai-dev-auto-cycle-full.ps1:1291:        $script:steps += New-Step
-Result $stepNumber "package-change-gate" "gi
-t status --porcelain -- package.json package-lock.json" $false $false 1 $_.
-Exception.Message
-  scripts\ai-dev-auto-cycle-full.ps1:1292:        Stop-Cycle $script:steps 
-"package_change_gate_failed" $false 1
-  scripts\ai-dev-auto-cycle-full.ps1:1293:    }
-  scripts\ai-dev-auto-cycle-full.ps1:1294:
-> scripts\ai-dev-auto-cycle-full.ps1:1295:    $script:steps += New-StepResu
-lt $stepNumber "package-change-gate" "git st
-atus --porcelain -- package.json package-lock.json" $false $false 0 "packag
-e 파일 변경 없음. 커밋 허용 여부를 확인합니다."
-> scripts\ai-dev-auto-cycle-full.ps1:1296:    $stepNumber++
-  scripts\ai-dev-auto-cycle-full.ps1:1297:
-  scripts\ai-dev-auto-cycle-full.ps1:1298:    if (-not $AllowCommit) {
-  scripts\ai-dev-auto-cycle-full.ps1:1306:        }
-  scripts\ai-dev-auto-cycle-full.ps1:1307:
-> scripts\ai-dev-auto-cycle-full.ps1:1308:        $script:steps += New-Step
-Result $stepNumber "commit" "powershell -Exe
-cutionPolicy Bypass -File scripts/ai-dev-commit.ps1" $false $true 1 "자동 커밋에
-는 -AllowCommit이 필요합니다. 추천 명령: $commitCommand
-"
-  scripts\ai-dev-auto-cycle-full.ps1:1309:        Stop-Cycle $script:steps 
-"allow_commit_required" $false 1
-  scripts\ai-dev-auto-cycle-full.ps1:1310:    }
-  scripts\ai-dev-auto-cycle-full.ps1:1315:
-  scripts\ai-dev-auto-cycle-full.ps1:1316:    if ($commitArguments.Count -e
-q 0) {
-> scripts\ai-dev-auto-cycle-full.ps1:1317:        $script:steps += New-Step
-Result $stepNumber "commit" "git status --po
-rcelain" $false $true 0 "커밋할 구현 변경사항이 없습니다. 저장된 리뷰 pass 상태를 유지하고 complete-t
-ask/meta-commit으로 계속 진행합니다."
-> scripts\ai-dev-auto-cycle-full.ps1:1318:        $stepNumber++
-  scripts\ai-dev-auto-cycle-full.ps1:1319:
-  scripts\ai-dev-auto-cycle-full.ps1:1320:        $stateBeforeComplete = Re
-ad-JsonFile $statePath $stateRelativePath
-  scripts\ai-dev-auto-cycle-full.ps1:1323:            $currentHeadCommitHas
-h = Invoke-GitCapture -Arguments @("rev-pars
-e", "HEAD") -DisplayName "git rev-parse HEAD"
-  scripts\ai-dev-auto-cycle-full.ps1:1324:        } catch {
-> scripts\ai-dev-auto-cycle-full.ps1:1325:            $script:steps += New-
-StepResult $stepNumber "commit-result-gate" 
-"git rev-parse HEAD" $false $false 1 $_.Exception.Message
-  scripts\ai-dev-auto-cycle-full.ps1:1326:            Stop-Cycle $script:st
-eps "no_change_head_failed" $false 1
-  scripts\ai-dev-auto-cycle-full.ps1:1327:        }
-  scripts\ai-dev-auto-cycle-full.ps1:1332:            if ($savedLastCommitH
-ash -eq $currentHeadCommitHash) {
-  scripts\ai-dev-auto-cycle-full.ps1:1333:                $commitHashForCom
-plete = $savedLastCommitHash
-> scripts\ai-dev-auto-cycle-full.ps1:1334:                $script:steps += 
-New-StepResult $stepNumber "commit-result-ga
-te" "state.lastCommitHash 및 git rev-parse HEAD 확인" $false $true 0 "새 구현 커밋이
- 없습니다. state.lastCommitHash가 현재 HEAD와 일치하여 c
-omplete-task에 CommitHash를 전달합니다: $commitHashForComplete"
-  scripts\ai-dev-auto-cycle-full.ps1:1335:            } else {
-> scripts\ai-dev-auto-cycle-full.ps1:1336:                $script:steps += 
-New-StepResult $stepNumber "commit-result-ga
-te" "state.lastCommitHash 및 git rev-parse HEAD 확인" $false $true 0 "새 구현 커밋이
- 없습니다. stale state.lastCommitHash를 무시하고 Comm
-itHash 없이 complete-task를 실행합니다. state.lastCommitHash=$savedLastCommitHash, 
-currentHead=$currentHeadCommitHash"
-  scripts\ai-dev-auto-cycle-full.ps1:1337:            }
-  scripts\ai-dev-auto-cycle-full.ps1:1338:        } else {
-> scripts\ai-dev-auto-cycle-full.ps1:1339:            $script:steps += New-
-StepResult $stepNumber "commit-result-gate" 
-"state.lastCommitHash 및 git rev-parse HEAD 확인" $false $true 0 "새 구현 커밋이 없습니
-다. state.lastCommitHash가 없어 CommitHash 없이 co
-mplete-task를 실행합니다. currentHead=$currentHeadCommitHash"
-  scripts\ai-dev-auto-cycle-full.ps1:1340:        }
-> scripts\ai-dev-auto-cycle-full.ps1:1341:        $stepNumber++
-  scripts\ai-dev-auto-cycle-full.ps1:1342:
-  scripts\ai-dev-auto-cycle-full.ps1:1343:        $resultSummary = "$result
-Summary, 구현 커밋 없음, 저장된 리뷰 pass에서 자동 완료"
-  scripts\ai-dev-auto-cycle-full.ps1:1351:            $preCommitHeadCommitH
-ash = Invoke-GitCapture -Arguments @("rev-pa
-rse", "HEAD") -DisplayName "git rev-parse HEAD"
-  scripts\ai-dev-auto-cycle-full.ps1:1352:        } catch {
-> scripts\ai-dev-auto-cycle-full.ps1:1353:            $script:steps += New-
-StepResult $stepNumber "commit" "git rev-par
-se HEAD" $false $false 1 $_.Exception.Message
-  scripts\ai-dev-auto-cycle-full.ps1:1354:            Stop-Cycle $script:st
-eps "pre_commit_head_failed" $false 1
-  scripts\ai-dev-auto-cycle-full.ps1:1355:        }
-  scripts\ai-dev-auto-cycle-full.ps1:1356:
-> scripts\ai-dev-auto-cycle-full.ps1:1357:        Invoke-CycleCommand $step
-Number "commit" $commitCommandText $scriptPa
-ths.commit $commitArguments
-> scripts\ai-dev-auto-cycle-full.ps1:1358:        $stepNumber++
-  scripts\ai-dev-auto-cycle-full.ps1:1359:
-  scripts\ai-dev-auto-cycle-full.ps1:1360:        try {
-  scripts\ai-dev-auto-cycle-full.ps1:1361:            $commitGate = Get-Com
-mitGate $preCommitHeadCommitHash
-  scripts\ai-dev-auto-cycle-full.ps1:1362:        } catch {
-> scripts\ai-dev-auto-cycle-full.ps1:1363:            $script:steps += New-
-StepResult $stepNumber "commit-result-gate" 
-"state.lastCommand/lastCommitHash 확인" $false $false 1 $_.Exception.Message
-  scripts\ai-dev-auto-cycle-full.ps1:1364:            Stop-Cycle $script:st
-eps "commit_result_gate_failed" $false 1
-  scripts\ai-dev-auto-cycle-full.ps1:1365:        }
-  scripts\ai-dev-auto-cycle-full.ps1:1367:        if ($commitGate.lastComma
-nd -ne "commit" -or $commitGate.lastCommandS
-tatus -ne "passed" -or -not $commitGate.commitHashChanged -or -not $commitG
-ate.commitHashMatchesHead) {
-  scripts\ai-dev-auto-cycle-full.ps1:1368:            $message = "커밋 완료 상태를
- 확인하지 못해 complete-task를 실행하지 않습니다. lastComma
-nd=$($commitGate.lastCommand), lastCommandStatus=$($commitGate.lastCommandS
-tatus), lastCommitHash=$($commitGate.lastCom
-mitHash)"
-> scripts\ai-dev-auto-cycle-full.ps1:1369:            $script:steps += New-
-StepResult $stepNumber "commit-result-gate" 
-"state.lastCommand/lastCommitHash 확인" $false $true 1 $message
-  scripts\ai-dev-auto-cycle-full.ps1:1370:            Stop-Cycle $script:st
-eps "commit_not_confirmed" $false 1
-  scripts\ai-dev-auto-cycle-full.ps1:1371:        }
-  scripts\ai-dev-auto-cycle-full.ps1:1372:
-> scripts\ai-dev-auto-cycle-full.ps1:1373:        $script:steps += New-Step
-Result $stepNumber "commit-result-gate" "sta
-te.lastCommand/lastCommitHash 확인" $false $false 0 "커밋 생성 확인: $($commitGate.
-lastCommitHash)"
-> scripts\ai-dev-auto-cycle-full.ps1:1374:        $stepNumber++
-  scripts\ai-dev-auto-cycle-full.ps1:1375:
-  scripts\ai-dev-auto-cycle-full.ps1:1376:        $commitHashForComplete = 
-$commitGate.lastCommitHash
-  scripts\ai-dev-auto-cycle-full.ps1:1388:    $completedTaskForContext = $s
-cript:currentTask
-  scripts\ai-dev-auto-cycle-full.ps1:1389:
-> scripts\ai-dev-auto-cycle-full.ps1:1390:    Invoke-CycleCommand $stepNumb
-er "complete-task" $completeTaskCommand $scr
-iptPaths.completeTask $completeTaskArguments
-> scripts\ai-dev-auto-cycle-full.ps1:1391:    $stepNumber++
-  scripts\ai-dev-auto-cycle-full.ps1:1392:
-  scripts\ai-dev-auto-cycle-full.ps1:1393:    Update-PostCompleteTaskContex
-t $completedTaskForContext
-  scripts\ai-dev-auto-cycle-full.ps1:1394:
-> scripts\ai-dev-auto-cycle-full.ps1:1395:    Invoke-DirectMetaCommit $step
-Number
-> scripts\ai-dev-auto-cycle-full.ps1:1396:    $stepNumber++
-  scripts\ai-dev-auto-cycle-full.ps1:1397:
-> scripts\ai-dev-auto-cycle-full.ps1:1398:    Invoke-CycleCommand $stepNumb
-er "final-status" "powershell -ExecutionPoli
-cy Bypass -File scripts/ai-dev-status.ps1" $scriptPaths.status @()
-> scripts\ai-dev-auto-cycle-full.ps1:1399:    $stepNumber++
-  scripts\ai-dev-auto-cycle-full.ps1:1400:
-  scripts\ai-dev-auto-cycle-full.ps1:1401:    $queueAfterComplete = Read-Js
-onFile $queuePath $queueRelativePath
-  scripts\ai-dev-auto-cycle-full.ps1:1403:
-  scripts\ai-dev-auto-cycle-full.ps1:1404:    if ($stateAfterComplete.goalS
-tatus -eq "completed") {
-> scripts\ai-dev-auto-cycle-full.ps1:1405:        Complete-Cycle $script:st
-eps "goal_completed" $stepNumber
-  scripts\ai-dev-auto-cycle-full.ps1:1406:    }
-  scripts\ai-dev-auto-cycle-full.ps1:1407:}
-  scripts\ai-dev-auto-cycle-full.ps1:1408:
-> scripts\ai-dev-auto-cycle-full.ps1:1409:Complete-Cycle $script:steps "max
-_tasks_reached" $stepNumber
+  .ai-dev\diff.md:408:     }
+  .ai-dev\diff.md:409: }
+> .ai-dev\diff.md:411:@@ -1174,6 +1396,7 @@ $resolvedQueuePath = [System.IO
+.Path]::GetFullPath((Resolve-RepoPath $queue
+Relat
+  .ai-dev\diff.md:412: $resolvedStatePath = [System.IO.Path]::GetFullPath((
+Resolve-RepoPath $stateRelativePath))
+  .ai-dev\diff.md:413: $resolvedPlanningPromptPath = [System.IO.Path]::GetF
+ullPath((Resolve-RepoPath $planningPromptRel
+ativePath))
+> .ai-dev\diff.md:415:+Initialize-AutoGoalOperationalFileSnapshots
+  .ai-dev\diff.md:416: 
+  .ai-dev\diff.md:417: if (-not (Test-HasValue $GoalTitle)) {
+> .ai-dev\diff.md:419:diff --git a/scripts/ai-dev-autopilot.ps1 b/scripts/a
+i-dev-autopilot.ps1
+  .ai-dev\diff.md:420:index 52da0ce..4c8c3f2 100644
+  .ai-dev\diff.md:421:--- a/scripts/ai-dev-autopilot.ps1
+> .ai-dev\diff.md:423:@@ -38,6 +38,8 @@ $backlogPath = Join-Path $repoRoot 
+$backlogRelativePath
+  .ai-dev\diff.md:424: $loopLogPath = Join-Path $repoRoot $loopLogRelativeP
+ath
+  .ai-dev\diff.md:425: $goalHistoryPath = Join-Path $repoRoot $goalHistoryR
+elativePath
+> .ai-dev\diff.md:427:+$script:autopilotOperationalFileSnapshots = @{}
+> .ai-dev\diff.md:428:+$script:autopilotBaselineDirtyPaths = @()
+  .ai-dev\diff.md:429: 
+  .ai-dev\diff.md:430: function Test-HasValue {
+> .ai-dev\diff.md:432:@@ -153,6 +155,10 @@ function Add-AutopilotGoalHistor
+yTitle {
+  .ai-dev\diff.md:433:         return
+  .ai-dev\diff.md:434:     }
+> .ai-dev\diff.md:436:+    if (Test-IsAutopilotBaselineDirtyPath $goalHisto
+ryRelativePath) {
+  .ai-dev\diff.md:437:+        return
+  .ai-dev\diff.md:438:+    }
+> .ai-dev\diff.md:443:@@ -245,6 +251,10 @@ function Add-LoopLogEntry {
+  .ai-dev\diff.md:444:         return
+  .ai-dev\diff.md:445:     }
+> .ai-dev\diff.md:447:+    if (Test-IsAutopilotBaselineDirtyPath $loopLogRe
+lativePath) {
+  .ai-dev\diff.md:448:+        return
+  .ai-dev\diff.md:449:+    }
+> .ai-dev\diff.md:454:@@ -252,6 +262,178 @@ function Add-LoopLogEntry {
+  .ai-dev\diff.md:455:     [System.IO.File]::AppendAllText($loopLogPath, ($
+entryLines -join "`r`n"), $utf8WithBom)
+  .ai-dev\diff.md:456: }
+> .ai-dev\diff.md:458:+function Test-IsExpectedAutopilotNonWorkStop {
+  .ai-dev\diff.md:459:+    param([string]$StoppedReason)
+  .ai-dev\diff.md:460:+
+> .ai-dev\diff.md:467:+        "max_steps_too_small_for_full_cycle"
+  .ai-dev\diff.md:468:+    ) -contains $StoppedReason
+  .ai-dev\diff.md:469:+}
+> .ai-dev\diff.md:519:+function Get-AutopilotBaselineDirtyPaths {
+  .ai-dev\diff.md:520:+    $statusOutput = & git status --porcelain 2>&1
+  .ai-dev\diff.md:521:+
+> .ai-dev\diff.md:535:+function Test-IsAutopilotBaselineDirtyPath {
+  .ai-dev\diff.md:536:+    param([string]$RelativePath)
+  .ai-dev\diff.md:537:+
+> .ai-dev\diff.md:539:+    return @($script:autopilotBaselineDirtyPaths) -c
+ontains $normalizedRelativePath
+  .ai-dev\diff.md:540:+}
+  .ai-dev\diff.md:541:+
+> .ai-dev\diff.md:542:+function Initialize-AutopilotOperationalFileSnapshot
+s {
+> .ai-dev\diff.md:543:+    $script:autopilotOperationalFileSnapshots = @{}
+  .ai-dev\diff.md:544:+
+  .ai-dev\diff.md:545:+    foreach ($relativePath in @($stateRelativePath, 
+$loopLogRelativePath, $goalHistoryRelativePa
+th)) {
+> .ai-dev\diff.md:559:+        $script:autopilotOperationalFileSnapshots[$r
+elativePath] = [PSCustomObject][ordered]@{
+  .ai-dev\diff.md:560:+            path = $fullPath
+  .ai-dev\diff.md:561:+            existed = $exists
+> .ai-dev\diff.md:567:+function Restore-AutopilotCurrentRunOperationalChang
+es {
+  .ai-dev\diff.md:568:+    param([string[]]$RelativePaths = @())
+  .ai-dev\diff.md:569:+
+> .ai-dev\diff.md:572:+    if ($null -eq $script:autopilotOperationalFileSn
+apshots) {
+  .ai-dev\diff.md:573:+        return @($restoredPaths)
+  .ai-dev\diff.md:574:+    }
+> .ai-dev\diff.md:578:+    foreach ($entry in @($script:autopilotOperationa
+lFileSnapshots.GetEnumerator())) {
+  .ai-dev\diff.md:579:+        $relativePath = ConvertTo-NormalizedChangedP
+ath ([string]$entry.Key)
+  .ai-dev\diff.md:580:+        $snapshot = $entry.Value
+> .ai-dev\diff.md:586:+        if (Test-IsAutopilotBaselineDirtyPath $relat
+ivePath) {
+  .ai-dev\diff.md:587:+            continue
+  .ai-dev\diff.md:588:+        }
+> .ai-dev\diff.md:630: function Invoke-AutopilotLoopLogMetaCommit {
+  .ai-dev\diff.md:631:     param([int]$StepNumber)
+  .ai-dev\diff.md:632: 
+> .ai-dev\diff.md:633:@@ -263,7 +445,25 @@ function Invoke-AutopilotLoopLog
+MetaCommit {
+  .ai-dev\diff.md:634:         return New-StepResult $StepNumber "autopilot
+-meta-commit" $false $true 0 "AllowCommit is
+ not set, so autopilot loop-log/history meta commit was not executed."
+  .ai-dev\diff.md:635:     }
+> .ai-dev\diff.md:637:-    $statusOutput = & git status --short -- $autopil
+otMetaCommitRelativePaths 2>&1 | Out-String
+  .ai-dev\diff.md:638:+    $skippedBaselinePaths = @(
+  .ai-dev\diff.md:639:+        @($loopLogRelativePath, $goalHistoryRelative
+Path) |
+> .ai-dev\diff.md:641:+            Where-Object { Test-IsAutopilotBaselineD
+irtyPath $_ } |
+  .ai-dev\diff.md:642:+            Select-Object -Unique
+  .ai-dev\diff.md:643:+    )
+> .ai-dev\diff.md:649:+        Where-Object { -not (Test-IsAutopilotBaselin
+eDirtyPath $_) } |
+  .ai-dev\diff.md:650:+        Select-Object -Unique
+  .ai-dev\diff.md:651:+
+> .ai-dev\diff.md:660:@@ -271,25 +471,33 @@ function Invoke-AutopilotLoopLo
+gMetaCommit {
+  .ai-dev\diff.md:661:     }
+  .ai-dev\diff.md:662: 
+> .ai-dev\diff.md:672:-    $addOutput = & git add -- $autopilotMetaCommitRe
+lativePaths 2>&1 | Out-String
+  .ai-dev\diff.md:673:+    $addOutput = & git add -- $currentRunMetaPaths 2
+>&1 | Out-String
+  .ai-dev\diff.md:674:     $addExitCode = $LASTEXITCODE
+> .ai-dev\diff.md:679:+        $restoredPaths = @(Restore-AutopilotCurrentR
+unOperationalChanges $currentRunMetaPaths)
+  .ai-dev\diff.md:680:+        return New-StepResult $StepNumber "autopilot
+-meta-commit" $true $false 1 "Autopilot meta
+ files git add failed. exit code: $addExitCode`n$addOutput`nRestored run-ow
+ned files: $($restoredPaths -join ', ')"
+  .ai-dev\diff.md:681:     }
+> .ai-dev\diff.md:683:     $metaCommitMessage = "chore(ai-dev): record auto
+pilot progress"
+> .ai-dev\diff.md:684:-    $commitOutput = & git commit -m $metaCommitMessa
+ge -- $autopilotMetaCommitRelativePaths 2>&1
+ | Out-String
+> .ai-dev\diff.md:685:+    $commitOutput = & git commit -m $metaCommitMessa
+ge -- $currentRunMetaPaths 2>&1 | Out-String
+  .ai-dev\diff.md:686:     $commitExitCode = $LASTEXITCODE
+  .ai-dev\diff.md:687: 
+> .ai-dev\diff.md:691:+        $restoredPaths = @(Restore-AutopilotCurrentR
+unOperationalChanges $currentRunMetaPaths)
+  .ai-dev\diff.md:692:+        return New-StepResult $StepNumber "autopilot
+-meta-commit" $true $false 1 "Autopilot meta
+ commit failed. exit code: $commitExitCode`n$commitOutput`nRestored run-own
+ed files: $($restoredPaths -join ', ')"
+  .ai-dev\diff.md:693:     }
+> .ai-dev\diff.md:695:-    $remainingStatus = & git status --short -- $auto
+pilotMetaCommitRelativePaths 2>&1 | Out-Stri
+ng
+  .ai-dev\diff.md:696:+    $remainingStatus = & git status --short -- $curr
+entRunMetaPaths 2>&1 | Out-String
+  .ai-dev\diff.md:697:     $remainingStatusExitCode = $LASTEXITCODE
+> .ai-dev\diff.md:700:@@ -300,7 +508,7 @@ function Invoke-AutopilotLoopLogM
+etaCommit {
+  .ai-dev\diff.md:701:         return New-StepResult $StepNumber "autopilot
+-meta-commit" $true $false 1 "Autopilot meta
+ clean verification failed: git status --short still reports meta changes a
+fter the autopilot meta commit.`n$remainingS
+tatus"
+  .ai-dev\diff.md:702:     }
+> .ai-dev\diff.md:709:@@ -365,16 +573,31 @@ function New-AutopilotResult {
+  .ai-dev\diff.md:710:         [string]$StoppedReason,
+  .ai-dev\diff.md:711:         [bool]$Completed,
+> .ai-dev\diff.md:716:+        [bool]$MetaCommitCreated = $false,
+  .ai-dev\diff.md:717:+        [bool]$NextRunWithoutManualRestore = $false
+  .ai-dev\diff.md:718:     )
+> .ai-dev\diff.md:720:+    $outcomeCategory = if (Test-IsExpectedAutopilotN
+onWorkStop $StoppedReason) {
+  .ai-dev\diff.md:721:+        "expected_non_work"
+  .ai-dev\diff.md:722:+    } elseif ($ExitCode -eq 0) {
+> .ai-dev\diff.md:737:+        metaCommitCreated = $MetaCommitCreated
+  .ai-dev\diff.md:738:+        nextRunWithoutManualRestore = $NextRunWithou
+tManualRestore
+  .ai-dev\diff.md:739:     }
+> .ai-dev\diff.md:742:@@ -399,6 +622,10 @@ function Write-AutopilotResult {
+  .ai-dev\diff.md:743:     }
+  .ai-dev\diff.md:744: 
+> .ai-dev\diff.md:748:+    Write-Host "Meta commit created: $($Result.metaC
+ommitCreated)"
+  .ai-dev\diff.md:749:+    Write-Host "Next run without manual restore: $($
+Result.nextRunWithoutManualRestore)"
+  .ai-dev\diff.md:750:     Write-Host "Completed: $($Result.completed)"
+> .ai-dev\diff.md:753:@@ -414,7 +641,12 @@ function Stop-Autopilot {
+  .ai-dev\diff.md:754:         [string]$FailureMessage = ""
+  .ai-dev\diff.md:755:     )
+> .ai-dev\diff.md:758:+    $isExpectedNonWorkStop = Test-IsExpectedAutopilo
+tNonWorkStop $StoppedReason
+  .ai-dev\diff.md:759:+    $operationalCleanupPerformed = $false
+> .ai-dev\diff.md:760:+    $metaCommitCreated = $false
+  .ai-dev\diff.md:761:+    $nextRunWithoutManualRestore = ($ExitCode -eq 0)
+  .ai-dev\diff.md:762:+
+> .ai-dev\diff.md:767:@@ -423,7 +655,42 @@ function Stop-Autopilot {
+  .ai-dev\diff.md:768:         )
+  .ai-dev\diff.md:769:     }
+> .ai-dev\diff.md:773:+        $cleanedRunOwnedPaths = @(Restore-AutopilotC
+urrentRunOperationalChanges)
+  .ai-dev\diff.md:774:+        $operationalCleanupPerformed = $true
+> .ai-dev\diff.md:775:+        $metaCommitMessage = "skipped (-AllowCommit 
+not set)"
+  .ai-dev\diff.md:776:+        $nextRunWithoutManualRestore = $true
+  .ai-dev\diff.md:777:+        $skippedBaselineMetaPaths = @(
+> .ai-dev\diff.md:780:+                Where-Object { Test-IsAutopilotBasel
+ineDirtyPath $_ } |
+  .ai-dev\diff.md:781:+                Select-Object -Unique
+  .ai-dev\diff.md:782:+        )
+> .ai-dev\diff.md:786:+            $metaCommitStep = Invoke-AutopilotLoopLo
+gMetaCommit ($Steps.Count + 1)
+> .ai-dev\diff.md:787:+            $metaCommitCreated = ($metaCommitStep.ex
+itCode -eq 0 -and $metaCommitStep.executed -
+and -not $metaCommitStep.skipped -and $metaCommitStep.message -notmatch 'ha
+d no changes to commit')
+> .ai-dev\diff.md:788:+            $metaCommitMessage = if ($metaCommitCrea
+ted) { "created" } else { "not created: $($m
+etaCommitStep.message)" }
+  .ai-dev\diff.md:789:+
+> .ai-dev\diff.md:790:+            if ($metaCommitStep.exitCode -ne 0) {
+> .ai-dev\diff.md:791:+                $cleanedRunOwnedPaths = @(Restore-Au
+topilotCurrentRunOperationalChanges)
+  .ai-dev\diff.md:792:+                $operationalCleanupPerformed = $true
+  .ai-dev\diff.md:793:+                $nextRunWithoutManualRestore = $true
+> .ai-dev\diff.md:794:+                $Steps += $metaCommitStep
+  .ai-dev\diff.md:795:+                $Steps += New-StepResult ($Steps.Cou
+nt + 1) "expected-non-work-cleanup" $true $f
+alse 0 "Classification: expected_non_work. Original stopped reason: $Stoppe
+dReason. Baseline dirty files skipped: $($sk
+ippedBaselineMetaPaths -join ', '). Cleaned run-owned files: $($cleanedRunO
+wnedPaths -join ', '). Meta commit created: 
+false. Next run without manual git restore: $nextRunWithoutManualRestore."
+  .ai-dev\diff.md:796:+                $result = New-AutopilotResult $Steps
+ "autopilot_expected_non_work_meta_commit_fa
+iled" $false 1 $PreparedGoals $operationalCleanupPerformed $false $nextRunW
+ithoutManualRestore
+> .ai-dev\diff.md:801:+            $Steps += $metaCommitStep
+  .ai-dev\diff.md:802:+        }
+  .ai-dev\diff.md:803:+
+> .ai-dev\diff.md:804:+        $Steps += New-StepResult ($Steps.Count + 1) 
+"expected-non-work-cleanup" $true $false 0 "
+Classification: expected_non_work. Original stopped reason: $StoppedReason.
+ Baseline dirty files skipped: $($skippedBas
+elineMetaPaths -join ', '). Cleaned run-owned files: $($cleanedRunOwnedPath
+s -join ', '). Meta commit created: $metaCom
+mitCreated ($metaCommitMessage). Next run without manual git restore: $next
+RunWithoutManualRestore. Restored only autop
+ilot operational files captured at run start; baseline user changes were pr
+eserved."
+  .ai-dev\diff.md:805:+    }
+  .ai-dev\diff.md:806:+
+> .ai-dev\diff.md:807:+    $result = New-AutopilotResult $Steps $StoppedRea
+son $Completed $ExitCode $PreparedGoals $ope
+rationalCleanupPerformed $metaCommitCreated $nextRunWithoutManualRestore
+  .ai-dev\diff.md:808:     Write-AutopilotResult $result
+  .ai-dev\diff.md:809:     exit $ExitCode
+> .ai-dev\diff.md:811:@@ -842,6 +1109,8 @@ function Invoke-AutoGoal {
+  .ai-dev\diff.md:812: }
+  .ai-dev\diff.md:813: 
+> .ai-dev\diff.md:815:+$script:autopilotBaselineDirtyPaths = @(Get-Autopilo
+tBaselineDirtyPaths)
+> .ai-dev\diff.md:816:+Initialize-AutopilotOperationalFileSnapshots
+  .ai-dev\diff.md:817: 
+  .ai-dev\diff.md:818: $steps = @()
+> .ai-dev\diff.md:820:@@ -970,13 +1239,15 @@ for ($goalIndex = 1; $goalInde
+x -le $MaxGoals; $goalIndex++) {
+  .ai-dev\diff.md:821:     $steps += $autoGoalStep
+  .ai-dev\diff.md:822: 
+> .ai-dev\diff.md:825:+        $stoppedReason = if (Test-IsExpectedAutopilo
+tNonWorkStop $childStoppedReason) { $childSt
+oppedReason } else { "auto_goal_failed" }
+  .ai-dev\diff.md:826:         $failureMessage = "Auto-goal failed with exi
+t code $($autoGoalStep.exitCode): $($autoGoa
+lStep.message)"
+  .ai-dev\diff.md:827: 
+> .ai-dev\diff.md:832:-        Stop-Autopilot $steps "auto_goal_failed" $fa
+lse 1 $preparedGoals $failureMessage
+> .ai-dev\diff.md:833:+        Stop-Autopilot $steps $stoppedReason $false 
+1 $preparedGoals $failureMessage
+  .ai-dev\diff.md:834:     }
+  .ai-dev\diff.md:835: 
+
+
+
+ succeeded in 3717ms:
+
+scripts\ai-dev-auto-cycle-full.ps1:996:    Stop-Cycle $script:steps "max_st
+eps_too_small_for_full_cycle" $false 1
+scripts\ai-dev-auto-goal.ps1:286:        "baseline_output_conflict",
+scripts\ai-dev-auto-goal.ps1:287:        "dirty_worktree",
+scripts\ai-dev-auto-goal.ps1:288:        "max_steps_too_small_for_full_cycl
+e"
+scripts\ai-dev-auto-goal.ps1:577:    Stop-AutoGoal $script:steps "baseline_
+output_conflict" $false 1
+scripts\ai-dev-auto-goal.ps1:1479:    Stop-AutoGoal $script:steps "dirty_wo
+rktree" $false 1
+scripts\ai-dev-autopilot.ps1:269:        "all_goal_candidates_excluded",
+scripts\ai-dev-autopilot.ps1:270:        "baseline_output_conflict",
+scripts\ai-dev-autopilot.ps1:271:        "dirty_worktree",
+scripts\ai-dev-autopilot.ps1:272:        "goal_candidate_not_found",
+scripts\ai-dev-autopilot.ps1:273:        "current_goal_not_completed",
+scripts\ai-dev-autopilot.ps1:274:        "max_steps_too_small_for_full_cycl
+e"
+scripts\ai-dev-autopilot.ps1:1160:        Stop-Autopilot $steps "current_go
+al_not_completed" $false 1 $preparedGoals $m
+essage
+scripts\ai-dev-autopilot.ps1:1196:            Stop-Autopilot $steps "all_go
+al_candidates_excluded" $false 1 $preparedGo
+als $message
+scripts\ai-dev-autopilot.ps1:1201:        Stop-Autopilot $steps "goal_candi
+date_not_found" $false 1 $preparedGoals $mes
+sage
 
 
 
 codex
-확인된 변경은 기본값 20에서 40으로 올리는 한 줄입니다. 남은 쟁점은 full-cycle의 계획 단계 수가 실제로 40 이하인지와,
- 사용자 지정 MaxSteps가 그대로 전달되어 너무 작은 값일 때 의도적으로 full-cycle에서 막히는 구조인지입니다.
-exec
-"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "
-Get-Content -LiteralPath \"D:\\ai-apps\\planpilot-local\\scripts\\ai-dev-au
-to-cycle-full.ps1\" | Select-Object -Skip 955 -First 50" in D:\ai-apps\plan
-pilot-local
- succeeded in 2018ms:
-        runCodex = Get-ScriptPath "ai-dev-run-codex.ps1"
-        check = Get-ScriptPath "ai-dev-check.ps1"
-        saveDiff = Get-ScriptPath "ai-dev-save-diff.ps1"
-        makeReviewPrompt = Get-ScriptPath "ai-dev-make-review-prompt.ps1"
-        runReviewCodex = Get-ScriptPath "ai-dev-run-review-codex.ps1"
-        commit = Get-ScriptPath "ai-dev-commit.ps1"
-        completeTask = Get-ScriptPath "ai-dev-complete-task.ps1"
-        status = Get-ScriptPath "ai-dev-status.ps1"
+{
+  "decision": "pass",
+  "severity": "none",
+  "summary": "현재 task 요구사항에 맞게 expected_non_work 분류, 운영 파일 스냅샷 복원, baseline
+ dirty 보호가 구현되어 있으며 범위 이탈은 확인되지 않았다.",
+  "required_changes": [],
+  "optional_suggestions": [
+    {
+      "file": "scripts/ai-dev-auto-goal.ps1",
+      "suggestion": "수동 검증 로그에 max_steps_too_small_for_full_cycle 시나리오도 별도로
+ 추가하면 배경 요구사항과 검증 기록의 대응이 더 명확해진다."
     }
-} catch {
-    $script:steps += New-StepResult 0 "prepare" "state/queue 확인" $false $fa
-lse 1 $_.Exception.Message
-    Stop-Cycle $script:steps "prepare_failed" $false 1
+  ],
+  "scope_check": {
+    "within_current_task": true,
+    "scope_issues": []
+  },
+  "test_check": {
+    "build_passed": true,
+    "test_passed": false,
+    "lint_passed": true,
+    "issues": [
+      "package.json에 test script가 없어 npm run test는 skipped로 기록되었다."
+    ]
+  },
+  "next_step": "complete_task"
 }
-
-$plannedSteps = @(
-    "task-start",
-    "make-prompt",
-    "run-codex",
-    "check",
-    "save-diff",
-    "make-review-prompt",
-    "run-review-codex",
-    "review-gate",
-    "make-revise-prompt",
-    "run-codex-revise",
-    "check-revise",
-    "save-diff-revise",
-    "make-review-prompt-revise",
-    "run-review-codex-revise",
-    "review-gate",
-    "package-change-gate",
-    "commit",
-    "commit-result-gate",
-    "complete-task",
-    "meta-commit",
-    "final-status",
-    "completed-clean-gate"
-)
-
-if ($plannedSteps.Count -gt $MaxSteps) {
-    Stop-Cycle $script:steps "max_steps_too_small_for_full_cycle" $false 1
-}
-
-$stepNumber = 1
-
-while ($script:completedTaskCount -lt $MaxTasks) {
-    try {
-        $queue = Read-JsonFile $queuePath $queueRelativePath
-        $state = Read-JsonFile $statePath $stateRelativePath
-        $script:currentTask = Get-CurrentTask $queue $state
-
-codex
-{"decision":"pass","severity":"none","summary":"auto-goal의 MaxSteps 기본값이 fu
-ll-cycle 계획 단계 수 22보다 큰 40으로 조정되었고, full-cycle 호출 시 MaxSteps 및 기존 허용 플래그 전달
- 흐름이 유지됩니다.","required_changes":[],"optional_suggestions":[],"scope_check":
-{"within_current_task":true,"scope_issues":[]},"test_check":{"build_passed"
-:true,"test_passed":true,"lint_passed":true,"issues":["npm run test는 packag
-e.json에 test script가 없어 skipped로 기록되었지만, 현재 변경은 PowerShell 기본값 1줄 수정이며 수동 검
-증 기준은 충족했습니다."]},"next_step":"complete_task"}
-{"decision":"pass","severity":"none","summary":"auto-goal의 MaxSteps 기본값이 full-cycle 계획 단계 수 22보다 큰 40으로 조정되었고, full-cycle 호출 시 MaxSteps 및 기존 허용 플래그 전달 흐름이 유지됩니다.","required_changes":[],"optional_suggestions":[],"scope_check":{"within_current_task":true,"scope_issues":[]},"test_check":{"build_passed":true,"test_passed":true,"lint_passed":true,"issues":["npm run test는 package.json에 test script가 없어 skipped로 기록되었지만, 현재 변경은 PowerShell 기본값 1줄 수정이며 수동 검증 기준은 충족했습니다."]},"next_step":"complete_task"}
 tokens used
-42,420
+79,438
+{
+  "decision": "pass",
+  "severity": "none",
+  "summary": "현재 task 요구사항에 맞게 expected_non_work 분류, 운영 파일 스냅샷 복원, baseline dirty 보호가 구현되어 있으며 범위 이탈은 확인되지 않았다.",
+  "required_changes": [],
+  "optional_suggestions": [
+    {
+      "file": "scripts/ai-dev-auto-goal.ps1",
+      "suggestion": "수동 검증 로그에 max_steps_too_small_for_full_cycle 시나리오도 별도로 추가하면 배경 요구사항과 검증 기록의 대응이 더 명확해진다."
+    }
+  ],
+  "scope_check": {
+    "within_current_task": true,
+    "scope_issues": []
+  },
+  "test_check": {
+    "build_passed": true,
+    "test_passed": false,
+    "lint_passed": true,
+    "issues": [
+      "package.json에 test script가 없어 npm run test는 skipped로 기록되었다."
+    ]
+  },
+  "next_step": "complete_task"
+}
 
 ```

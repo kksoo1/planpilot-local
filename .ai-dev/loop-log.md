@@ -1746,3 +1746,22 @@ Exit code: 1
 - Task: T001 auto-goal MaxSteps 전달 안정화
 - Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
 - Next task: 없음
+
+## 2026-07-31 - Revise verification completed
+
+- Task: T001 운영 파일 정리 흐름 안정화
+- Required change 반영: `baseline_output_conflict`, `dirty_worktree`, `max_steps_too_small_for_full_cycle` 각각의 예상 비작업 종료 분류, 현재 실행 운영 파일 복원, baseline dirty 보존, 메타 기록 처리 경로를 `.ai-dev/test-result.md`에 추가 검증 기록으로 남겼다.
+- Scope: 리뷰 지적사항 보완을 위한 검증 산출물만 수정했으며, 스크립트 구현과 앱 파일은 변경하지 않았다.
+- Verification: `scripts/ai-dev-auto-goal.ps1`와 `scripts/ai-dev-autopilot.ps1`의 관련 함수 및 stop reason 전파 경로를 코드 경로 기준으로 확인했다. 이번 revise에서는 사용자 허용이 필요한 `git`, `npm run build`, `npm run lint`, `npm run test`를 실행하지 않았다.
+- Remaining risk: 이번 보강은 코드 경로 검증 기록이며, 세 사유를 실제 별도 worktree에서 재현 실행한 결과는 아니다.
+
+## 2026-07-31 15:50:58 - Commit created
+
+- Task: T001 운영 파일 정리 흐름 안정화
+- Commit: cd00be0e24cb30d0905dab0aadae7379b83bb769
+- Message: Stabilize auto-goal operational file cleanup
+## 2026-07-31 15:51:04 - Task completed
+
+- Task: T001 운영 파일 정리 흐름 안정화
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
+- Next task: 없음
