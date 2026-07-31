@@ -7,19 +7,19 @@
     "lastCommand":  "complete-task",
     "lastCommandStatus":  "passed",
     "lastErrorSummary":  "",
-    "lastReviewDecision":  "pass",
-    "lastReviewSeverity":  "none",
-    "lastCommitHash":  "cd00be0e24cb30d0905dab0aadae7379b83bb769",
-    "startedAt":  "2026-07-31T00:00:00+09:00",
-    "updatedAt":  "2026-07-31T06:51:01.8516887+00:00",
+    "lastReviewDecision":  "revise",
+    "lastReviewSeverity":  "medium",
+    "lastCommitHash":  "69b5f22f04b4530f19ed066db2afe93e8e3cf54a",
+    "startedAt":  "2026-07-31T09:00:00+09:00",
+    "updatedAt":  "2026-07-31T08:04:21.3368744+00:00",
     "stopReason":  "all_tasks_completed",
     "lastReviewNextStep":  "revise_with_codex",
-    "lastReviewSummary":  "빌드와 lint는 통과했지만 현재 task의 핵심 검증인 예상 비작업 종료별 운영 파일 정리/보존 경로가 실제\r\n로 확인되지 않았습니다.",
+    "lastReviewSummary":  "테스트 스크립트 보강 자체는 범위에 맞지만, 제출된 검증 결과에서 npm run test가 skipped라 현\r\n재 task 성공 기준을 충족했다고 판단할 수 없습니다.",
     "lastReviewRequiredChanges":  [
                                       {
-                                          "file":  "unknown",
-                                          "reason":  "Current Task Verification은 예상된 비작업 종료 사유에서 운영 파일 변경 처리, ba\r\nseline dirty 보존, 성공/예상 중단/실패 기록 구분 확인을 요구하지만 Test Result에는 build/lint만 있고 n\r\npm test는 스크립트 부재로 skipped입니다.",
-                                          "suggestion":  "dirty_worktree, baseline_output_conflict, all_goal_can\r\ndidates_excluded 또는 max_steps_too_small_for_full_cycle 중 최소 핵심 케이스를 수동/스크립트\r\n로 실행해 운영 파일 dirty 정리 여부와 baseline dirty 보존 여부를 검증하고 결과를 .ai-dev/test-result\r\n.md에 기록하세요."
+                                          "file":  ".ai-dev/test-result.md",
+                                          "reason":  "현재 리뷰 프롬프트의 Test Result에서 npm run test가 BuildOnly 옵션으로 ski\r\npped 처리되어 있습니다. Strict Criteria상 테스트가 skipped이면 revise 대상입니다.",
+                                          "suggestion":  "BuildOnly가 아닌 검증 흐름에서 npm run test를 실행해 성공 결과를 기록하고, a\r\ni-dev-check.ps1에서도 테스트 단계가 skipped되지 않는지 확인한 결과로 갱신하세요."
                                       }
                                   ]
 }

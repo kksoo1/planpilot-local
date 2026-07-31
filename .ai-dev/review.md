@@ -1,37 +1,43 @@
 ﻿# AI Dev Review
 
-## 2026-07-31 15:45:22
+## 2026-07-31 17:04:03
 
-- Decision: pass
-- Severity: none
-- Next step: complete_task
-- Summary: 현재 task 요구사항에 맞게 expected_non_work 분류, 운영 파일 스냅샷 복원, baseline
- dirty 보호가 구현되어 있으며 범위 이탈은 확인되지 않았다.
+- Decision: revise
+- Severity: medium
+- Next step: revise_with_codex
+- Summary: 추가된 MaxSteps 사용자 지정 검증이 실제 forwarding 경로를 검증하지 않아 현재 task의 핵심
+ 요구사항에 작은 불확실성이 남습니다.
 
 ### Required Changes
 
-- 없음
+- scripts/ai-dev-test.ps1: all-goal-candidates-excluded 시나리오는 후보가 모두 제외되어 ai-dev-auto
+pilot.ps1의 Invoke-AutoGoal 경로까지 도달하지 않습니다. 따라서 출력의 MaxSteps=7 확인은 autopilot
+ 입력 검증 값만 확인할 뿐, 사용자 지정 MaxSteps가 하위 auto-goal 또는 full cycle 인자로 전달되는지를 검증하
+지 못합니다. / 별도 isolated scenario에서 ai-dev-auto-goal.ps1을 -DryRun -
+AllowRun -MaxSteps 7로 직접 실행하고 출력에 생성된 full-cycle command가 -MaxSteps 7을 포함하는
+지 확인하거나, 실제 Invoke-AutoGoal 경로까지 도달하는 시나리오에서 하위 auto-goal 출력의 full-cycle 인자
+ 전달을 검증하세요.
 
 ### Optional Suggestions
 
-- scripts/ai-dev-auto-goal.ps1: 수동 검증 로그에 max_steps_too_small_for_full_cycle 시나리오도 별도로
- 추가하면 배경 요구사항과 검증 기록의 대응이 더 명확해진다.
+- 없음
 
 ### Raw JSON
 
 ```json
 {
-    "decision":  "pass",
-    "severity":  "none",
-    "summary":  "현재 task 요구사항에 맞게 expected_non_work 분류, 운영 파일 스냅샷 복원, baseline\r\n dirty 보호가 구현되어 있으며 범위 이탈은 확인되지 않았다.",
+    "decision":  "revise",
+    "severity":  "medium",
+    "summary":  "추가된 MaxSteps 사용자 지정 검증이 실제 forwarding 경로를 검증하지 않아 현재 task의 핵심\r\n 요구사항에 작은 불확실성이 남습니다.",
     "required_changes":  [
-
+                             {
+                                 "file":  "scripts/ai-dev-test.ps1",
+                                 "reason":  "all-goal-candidates-excluded 시나리오는 후보가 모두 제외되어 ai-dev-auto\r\npilot.ps1의 Invoke-AutoGoal 경로까지 도달하지 않습니다. 따라서 출력의 MaxSteps=7 확인은 autopilot\r\n 입력 검증 값만 확인할 뿐, 사용자 지정 MaxSteps가 하위 auto-goal 또는 full cycle 인자로 전달되는지를 검증하\r\n지 못합니다.",
+                                 "suggestion":  "별도 isolated scenario에서 ai-dev-auto-goal.ps1을 -DryRun -\r\nAllowRun -MaxSteps 7로 직접 실행하고 출력에 생성된 full-cycle command가 -MaxSteps 7을 포함하는\r\n지 확인하거나, 실제 Invoke-AutoGoal 경로까지 도달하는 시나리오에서 하위 auto-goal 출력의 full-cycle 인자\r\n 전달을 검증하세요."
+                             }
                          ],
     "optional_suggestions":  [
-                                 {
-                                     "file":  "scripts/ai-dev-auto-goal.ps1",
-                                     "suggestion":  "수동 검증 로그에 max_steps_too_small_for_full_cycle 시나리오도 별도로\r\n 추가하면 배경 요구사항과 검증 기록의 대응이 더 명확해진다."
-                                 }
+
                              ],
     "scope_check":  {
                         "within_current_task":  true,
@@ -41,12 +47,12 @@
                     },
     "test_check":  {
                        "build_passed":  true,
-                       "test_passed":  false,
+                       "test_passed":  true,
                        "lint_passed":  true,
                        "issues":  [
-                                      "package.json에 test script가 없어 npm run test는 skipped로 기록되었다."
+                                      "npm run test는 통과했지만 MaxSteps 사용자 지정 전달 검증이 실제 전달 경로를 충분히 커버하지 않습니다."
                                   ]
                    },
-    "next_step":  "complete_task"
+    "next_step":  "revise_with_codex"
 }
 ```

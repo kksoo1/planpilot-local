@@ -2,8 +2,8 @@
 
 ## Run
 
-- Started at: 2026-07-31 15:24:19
-- Ended at: 2026-07-31 15:26:11
+- Started at: 2026-07-31 16:47:02
+- Ended at: 2026-07-31 16:49:56
 - Exit code: 0
 - Prompt: .ai-dev/revise-prompt.md
 - Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-codex.ps1 -PromptPath .ai-dev/revise-prompt.md -AllowDirty
@@ -27,7 +27,7 @@ approval: never
 sandbox: workspace-write [workdir, /tmp, $TMPDIR]
 reasoning effort: medium
 reasoning summaries: none
-session id: 019fb6d8-5a50-7b21-a3a6-de45606705d3
+session id: 019fb724-12ff-7a50-baed-410abfe512be
 --------
 user
 Read and follow the full task prompt at this absolute file path: D:\ai-apps
@@ -43,12 +43,13 @@ t.
 - If the task requirements conflict with repository rules, stop and report 
 the conflict.
 codex
-작업 프롬프트와 저장소 규칙을 먼저 확인하겠습니다. 우선 지정된 프롬프트 파일만 읽어서 범위와 충돌 여부를 판단하겠습니다.
+작업 지시 파일을 먼저 읽고, 저장소 규칙과 충돌하는 요구가 있는지 확인하겠습니다. 범위는 `.ai-dev\revise-prompt.m
+d`의 내용으로만 제한하겠습니다.
 exec
 "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "
 Get-Content -LiteralPath 'D:\\ai-apps\\planpilot-local\\.ai-dev\\revise-pro
 mpt.md'" in D:\ai-apps\planpilot-local
- succeeded in 2204ms:
+ succeeded in 2183ms:
 # AI Dev Revise Prompt
 
 ## Role
@@ -59,84 +60,85 @@ mpt.md'" in D:\ai-apps\planpilot-local
 ## Goal
 
 # 목표
-자동화가 구현 시작 전 예상 가능한 사유로 중단될 때, 이번 실행에서 생성하거나 수정한 운영 파일만 안전하게 정리해 다음 auto-go
-al 실행이 수동 정리 없이 시작될 수 있게 한다.
+
+AI Dev 자동화 테스트 체계를 추가한다.
 
 ## 배경
-`ai-dev-autopilot.ps1` 또는 `ai-dev-auto-goal.ps1`이 `all_goal_candidates_excl
-uded`, `baseline_output_conflict`, `dirty_worktree`, `max_steps_too_small_f
-or_full_cycle` 같은 사유로 구현 단계 전에 종료되면 `state.json`, `codex-result.md`, `loop-
-log.md`, `autopilot-goal-history.json` 등 운영 파일이 불필요하게 dirty 상태로 남을 수 있다. 실행
- 전부터 존재하던 사용자 변경은 보존해야 하며, 자동화가 이번 실행에서 만든 변경만 정리 대상이어야 한다.
+
+현재 `package.json`에 `test` 스크립트가 없어 `ai-dev-check.ps1` 실행 시 테스트 단계가 항상 skipp
+ed 처리된다. PowerShell 5.1에서 실행 가능한 자동화 검증을 추가해 AI Dev Loop의 핵심 동작을 반복 확인할 수 있
+게 한다.
 
 ## 성공 기준
-- 구현 시작 전 예상된 비작업 종료와 실제 실패를 구분해 기록한다.
-- 이번 실행에서 만든 운영 파일 변경만 정리하거나 메타 커밋 대상으로 분류한다.
-- 실행 전부터 존재하던 사용자 변경은 삭제하거나 복원하지 않는다.
-- 다음 auto-goal 실행이 수동 정리 없이 시작될 수 있다.
-- 정리 대상과 보존 대상의 판단 근거가 코드상 명확하다.
+
+- `npm test`로 실행되는 테스트 스크립트가 추가된다.
+- PowerShell 5.1에서 실행 가능한 단위 및 통합 smoke test가 포함된다.
+- 테스트는 임시 Git worktree 또는 임시 디렉터리를 사용해 실제 저장소를 오염시키지 않는다.
+- auto-goal MaxSteps 기본값과 사용자 지정 값 전달을 검증한다.
+- `all_goal_candidates_excluded`의 `expected_non_work` 분류를 검증한다.
+- `dirty_worktree`와 `baseline_output_conflict` 상황에서 baseline 사용자 변경이 보존되는지 
+검증한다.
+- 실행 후 새로운 staged 또는 dirty 운영 파일이 남지 않는지 검증한다.
+- 테스트 실패 시 0이 아닌 종료 코드를 반환한다.
+- 성공 및 실패 항목이 명확히 출력된다.
+- 기존 build와 lint 흐름은 유지된다.
 
 ## 제약사항
-- 기존 사용자 변경을 되돌리지 않는다.
-- 운영 파일 정리 범위는 자동화 실행 중 생성된 변경으로 제한한다.
-- 한 번에 작은 변경으로 구현한다.
-- 기존 스크립트 구조와 기록 방식을 우선 따른다.
+
+- PowerShell 5.1 호환성을 유지한다.
+- 저장소 운영 파일을 테스트 과정에서 오염시키지 않는다.
+- 기존 스크립트 구조와 파일 배치를 우선 따른다.
+- 한 번에 필요한 최소 파일만 변경한다.
+- 기존 build와 lint 동작을 변경하지 않는다.
 
 ## 범위 제외
-- 자동화 실행 흐름의 대규모 재작성은 제외한다.
-- 새로운 저장소 구조 도입은 제외한다.
-- UI 기능 추가는 제외한다.
-- 알림 기능 추가는 제외한다.
+
+- 앱 기능 변경은 포함하지 않는다.
+- UI 변경은 포함하지 않는다.
+- 데이터 저장 구조 변경은 포함하지 않는다.
+- 대규모 스크립트 재작성은 포함하지 않는다.
 
 ## 수동 검증
-- 구현 시작 전 중단 사유별로 운영 파일이 불필요하게 dirty 상태로 남지 않는지 확인한다.
-- 실행 전부터 수정되어 있던 운영 파일이 보존되는지 확인한다.
-- 성공, 예상된 비작업 종료, 실제 실패 기록이 구분되는지 확인한다.
+
+- `npm test` 실행 결과가 성공하는지 확인한다.
+- `ai-dev-check.ps1` 실행 시 테스트 단계가 skipped되지 않는지 확인한다.
+- 테스트 실행 후 작업 트리에 의도하지 않은 운영 파일 변경이 남지 않는지 확인한다.
 
 ## Current Task
 
 - Task ID: T001
-- Title: 운영 파일 정리 흐름 안정화
-- Description: 자동화가 구현 시작 전 예상된 사유로 중단될 때 이번 실행에서 만든 운영 파일 변경만 정리하거나 메타 기록 
-대상으로 분류하도록 기존 흐름을 점검하고 최소 수정한다.
+- Title: AI Dev 테스트 스크립트 추가
+- Description: 현재 AI Dev 관련 스크립트 구조를 확인한 뒤 PowerShell 5.1에서 실행 가능한 자동화 테스트를
+ 추가하고 `npm test`로 연결한다.
 - Type: implementation
 - Status: in_progress
 - Priority: P0
 - Verification:
-- 예상된 비작업 종료 사유에서 운영 파일 변경 처리 경로를 확인한다.
-- 실행 전부터 있던 사용자 변경을 보존하는 조건을 확인한다.
-- 성공, 예상된 비작업 종료, 실제 실패 기록이 구분되는지 확인한다.
+- `npm test`가 테스트 스크립트를 실행한다.
+- MaxSteps 기본값과 사용자 지정 값 전달이 검증된다.
+- `expected_non_work`, baseline 사용자 변경 보존, 실행 후 작업 트리 청결성이 검증된다.
+- 실패 시 0이 아닌 종료 코드와 명확한 실패 출력이 제공된다.
 
 ## Review Result
 
 - Decision: revise
-- Severity: low
+- Severity: medium
 - Next step: revise_with_codex
-- Summary: 핵심 구현 방향은 task 범위에 맞지만, 예상된 비작업 종료 사유 중 일부만 수동 검증되어 엄격 기준상 보완
-이 필요합니다.
+- Summary: 앱 변경 자체에서 명확한 결함은 보이지 않지만, 제공된 검증 결과에서 npm test가 skipped라 현재 
+task의 핵심 성공 기준이 검증되지 않았다.
 
 ## Required Changes
 
 - File: unknown
-  - Reason: npm test는 스크립트 부재로 skipped이고, 제공된 수동 검증은 all_goal_candidat
-es_excluded 시나리오에 집중되어 있습니다. Current Task의 검증 항목은 baseline_output_conflict,
- dirty_worktree, max_steps_too_small_for_full_cycle 같은 사유별 운영 파일 처리 경로 확인을 
-요구합니다.
-  - Suggestion: 최소한 baseline_output_conflict, dirty_worktree, max_step
-s_too_small_for_full_cycle 각각에 대해 실행 전 baseline dirty 운영 파일이 보존되고 이번 실행에서 만
-든 운영 파일만 정리되는지 수동 검증 결과를 추가하거나, 같은 조건을 재현하는 PowerShell 검증 스크립트를 추가해 결과를 남기세
-요.
+  - Reason: Test Result에 npm run test가 BuildOnly 옵션으로 skipped 처리되어 `np
+m test` 실행 성공, 실패 시 non-zero exit, 새 dirty/staged 파일 미발생 조건이 실제 검증되지 않았다.
+  - Suggestion: `npm test` 또는 테스트 단계를 포함한 ai-dev-check를 실행하고, 성공 결과와 작
+업 트리 오염 여부를 갱신된 검증 결과에 반영한다.
 
 ## Optional Suggestions
 
 - optional_suggestions는 참고만 하며 구현하지 않는다.
-- File: scripts/ai-dev-autopilot.ps1
-  - Suggestion: Restore-AutopilotCurrentRunOperationalChanges가 경고만 남기고
- 실패해도 nextRunWithoutManualRestore를 true로 기록할 수 있으므로, 복원 실패 path를 반환하거나 clea
-nup step 메시지에 실패 여부를 명확히 기록하면 진단성이 좋아집니다.
-- File: scripts/ai-dev-auto-goal.ps1
-  - Suggestion: Restore-AutoGoalCurrentRunOperationalChanges도 동일하게 복원 
-실패 path를 결과에 반영하면 실제 clean 보장 여부를 더 명확히 판단할 수 있습니다.
+- 없음
 
 ## Diff Context
 
@@ -144,7 +146,7 @@ nup step 메시지에 실패 여부를 명확히 기록하면 진단성이 좋�
 
 ## Generated At
 
-2026-07-31 15:21:15
+2026-07-31 16:45:38
 
 ## Git Status
 
@@ -154,21 +156,19 @@ nup step 메시지에 실패 여부를 명확히 기록하면 진단성이 좋�
  M .ai-dev/current-task-prompt.md
  M .ai-dev/diff.md
  M .ai-dev/goal.md
+ M .ai-dev/loop-log.md
  M .ai-dev/queue.json
  M .ai-dev/review-prompt.md
  M .ai-dev/review-response.json
  M .ai-dev/review.md
- M .ai-dev/revise-prompt.md
  M .ai-dev/state.json
  M .ai-dev/test-result.md
- M scripts/ai-dev-auto-goal.ps1
- M scripts/ai-dev-autopilot.ps1
+ M scripts/ai-dev-test.ps1
 ```
 
 ## App Change Files
 
-- scripts/ai-dev-auto-goal.ps1
-- scripts/ai-dev-autopilot.ps1
+- scripts/ai-dev-test.ps1
 
 ## AI Dev Operational Artifact Files
 
@@ -177,11 +177,11 @@ nup step 메시지에 실패 여부를 명확히 기록하면 진단성이 좋�
 - .ai-dev/current-task-prompt.md
 - .ai-dev/diff.md
 - .ai-dev/goal.md
+- .ai-dev/loop-log.md
 - .ai-dev/queue.json
 - .ai-dev/review-prompt.md
 - .ai-dev/review-response.json
 - .ai-dev/review.md
-- .ai-dev/revise-prompt.md
 - .ai-dev/state.json
 - .ai-dev/test-result.md
 
@@ -193,986 +193,53 @@ nup step 메시지에 실패 여부를 명확히 기록하면 진단성이 좋�
 ## Unstaged Diff Stat
 
 ```text
- scripts/ai-dev-auto-goal.ps1 | 235 +++++++++++++++++++++++++++++++++-
- scripts/ai-dev-autopilot.ps1 | 295 +++++++++++++++++++++++++++++++++++++++
-++--
- 2 files changed, 512 insertions(+), 18 deletions(-)
+ scripts/ai-dev-test.ps1 | 15 ++++++++++++++-
+ 1 file changed, 14 insertions(+), 1 deletion(-)
 ```
 
 ## Unstaged Diff
 
 ```text
-diff --git a/scripts/ai-dev-auto-goal.ps1 b/scripts/ai-dev-auto-goal.ps1
-index 5869e33..070042f 100644
---- a/scripts/ai-dev-auto-goal.ps1
-+++ b/scripts/ai-dev-auto-goal.ps1
-@@ -30,6 +30,7 @@ $legacyAutoGoalResultRelativePath = ".ai-dev/auto-goal-co
-dex-result.md"
- $aiDevOperationalRoot = ".ai-dev/"
- $script:autoGoalCanWriteResultFile = $true
- $script:autoGoalCanCleanTempArtifacts = $true
-+$script:autoGoalOperationalFileSnapshots = @{}
- 
- function Resolve-RepoPath {
-     param([string]$Path)
-@@ -98,9 +99,18 @@ function New-AutoGoalResult {
-         [int]$ExitCode
-     )
- 
-+    $outcomeCategory = if (Test-IsExpectedPreImplementationStop $StoppedRe
-ason) {
-+        "expected_non_work"
-+    } elseif ($ExitCode -eq 0) {
-+        "success"
-+    } else {
-+        "actual_failure"
-+    }
-+
-     return [PSCustomObject][ordered]@{
-         steps = @($Steps)
-         stoppedReason = $StoppedReason
-+        outcomeCategory = $outcomeCategory
-         completed = $Completed
-         exitCode = $ExitCode
-         plan = $script:autoGoalPlanPreview
-@@ -145,6 +155,7 @@ function Write-AutoGoalResult {
-     }
- 
-     Write-Host "Stopped reason: $($Result.stoppedReason)"
-+    Write-Host "Outcome category: $($Result.outcomeCategory)"
-     Write-Host "Completed: $($Result.completed)"
-     Write-Host "Exit code: $($Result.exitCode)"
- }
-@@ -172,6 +183,7 @@ function Save-AutoGoalResultFile {
- ## Summary
- 
- - Stopped reason: $($result.stoppedReason)
-+- Outcome category: $($result.outcomeCategory)
- - Completed: $($result.completed)
- - Exit code: $($result.exitCode)
- - Result path: $($result.resultPath)
-@@ -184,6 +196,55 @@ $($stepLines -join "`r`n")
-     [System.IO.File]::WriteAllText($resolvedResultPath, $content, $utf8Wit
-hBom)
- }
- 
-+function Invoke-AutoGoalExpectedNonWorkMetaCommit {
-+    param([int]$StepNumber)
-+
-+    if ($DryRun) {
-+        return New-StepResult $StepNumber "expected-non-work-meta-commit" 
-"git add/commit expected non-work result" $false $true 0 "DryRun: expected 
-non-work result meta commit was not executed."
-+    }
-+
-+    if (-not $AllowCommit) {
-+        return New-StepResult $StepNumber "expected-non-work-meta-commit" 
-"git add/commit expected non-work result" $false $true 0 "AllowCommit is no
-t set, so expected non-work result remains an uncommitted meta record."
-+    }
-+
-+    $resultRelativePath = ConvertTo-NormalizedChangedPath (ConvertTo-RepoR
-elativePath $ResultPath)
-+
-+    if (@($script:autoGoalBaselineDirtyPaths) -contains $resultRelativePat
-h) {
-+        return New-StepResult $StepNumber "expected-non-work-meta-commit" 
-"git add/commit expected non-work result" $false $true 0 "Expected non-work
- result meta commit skipped because ResultPath was baseline dirty and prote
-cted: $resultRelativePath"
-+    }
-+
-+    $statusOutput = & git status --short -- $resultRelativePath 2>&1 | Out
--String
-+    $statusExitCode = $LASTEXITCODE
-+
-+    if ($statusExitCode -ne 0) {
-+        return New-StepResult $StepNumber "expected-non-work-meta-commit" 
-"git status --short -- <result file>" $true $false 1 "git status for expect
-ed non-work result failed. exit code: $statusExitCode`n$statusOutput"
-+    }
-+
-+    if (-not (Test-HasValue $statusOutput)) {
-+        return New-StepResult $StepNumber "expected-non-work-meta-commit" 
-"git status --short -- <result file>" $true $false 0 "Expected non-work res
-ult file had no changes to commit."
-+    }
-+
-+    $addOutput = & git add -- $resultRelativePath 2>&1 | Out-String
-+    $addExitCode = $LASTEXITCODE
-+
-+    if ($addExitCode -ne 0) {
-+        & git restore --staged -- $resultRelativePath 2>&1 | Out-String | 
-Out-Null
-+        $restoredPaths = @(Restore-AutoGoalCurrentRunOperationalChanges @(
-$resultRelativePath))
-+        return New-StepResult $StepNumber "expected-non-work-meta-commit" 
-"git add -- <result file>" $true $false 1 "Expected non-work result git add
- failed. exit code: $addExitCode`n$addOutput`nRestored run-owned files: $($
-restoredPaths -join ', ')"
-+    }
-+
-+    $commitOutput = & git commit -m "chore(ai-dev): record expected non-wo
-rk stop" -- $resultRelativePath 2>&1 | Out-String
-+    $commitExitCode = $LASTEXITCODE
-+
-+    if ($commitExitCode -ne 0) {
-+        & git restore --staged -- $resultRelativePath 2>&1 | Out-String | 
-Out-Null
-+        $restoredPaths = @(Restore-AutoGoalCurrentRunOperationalChanges @(
-$resultRelativePath))
-+        return New-StepResult $StepNumber "expected-non-work-meta-commit" 
-"git commit -- <result file>" $true $false 1 "Expected non-work result comm
-it failed. exit code: $commitExitCode`n$commitOutput`nRestored run-owned fi
-les: $($restoredPaths -join ', ')"
-+    }
-+
-+    return New-StepResult $StepNumber "expected-non-work-meta-commit" "git
- add/commit expected non-work result" $true $false 0 $commitOutput.Trim()
-+}
-+
- function Clear-AutoGoalTempArtifacts {
-     if (-not $script:autoGoalCanCleanTempArtifacts) {
-         return
-@@ -192,6 +253,12 @@ function Clear-AutoGoalTempArtifacts {
-     $currentResultPath = [System.IO.Path]::GetFullPath((Resolve-RepoPath $
-ResultPath))
- 
-     foreach ($relativePath in @($planningPromptRelativePath, $legacyAutoGo
-alResultRelativePath)) {
-+        $normalizedRelativePath = ConvertTo-NormalizedChangedPath (Convert
-To-RepoRelativePath $relativePath)
-+
-+        if (@($script:autoGoalBaselineDirtyPaths) -contains $normalizedRel
-ativePath) {
-+            continue
-+        }
-+
-         $fullPath = [System.IO.Path]::GetFullPath((Resolve-RepoPath $relat
-ivePath))
- 
-         if (-not $fullPath.StartsWith($repoRoot.TrimEnd("\") + "\", [Syste
-m.StringComparison]::OrdinalIgnoreCase)) {
-@@ -212,6 +279,98 @@ function Clear-AutoGoalTempArtifacts {
-     }
- }
- 
-+function Test-IsExpectedPreImplementationStop {
-+    param([string]$StoppedReason)
-+
-+    return @(
-+        "baseline_output_conflict",
-+        "dirty_worktree",
-+        "max_steps_too_small_for_full_cycle"
-+    ) -contains $StoppedReason
-+}
-+
-+function Initialize-AutoGoalOperationalFileSnapshots {
-+    $script:autoGoalOperationalFileSnapshots = @{}
-+
-+    foreach ($relativePath in @(Get-PlannedAutoGoalOutputPaths)) {
-+        $fullPath = [System.IO.Path]::GetFullPath((Resolve-RepoPath $relat
-ivePath))
-+
-+        if (-not $fullPath.StartsWith($repoRoot.TrimEnd("\") + "\", [Syste
-m.StringComparison]::OrdinalIgnoreCase)) {
-+            continue
-+        }
-+
-+        $exists = [System.IO.File]::Exists($fullPath)
-+        $bytes = $null
-+
-+        if ($exists) {
-+            $bytes = [System.IO.File]::ReadAllBytes($fullPath)
-+        }
-+
-+        $script:autoGoalOperationalFileSnapshots[$relativePath] = [PSCusto
-mObject][ordered]@{
-+            path = $fullPath
-+            existed = $exists
-+            bytes = $bytes
-+        }
-+    }
-+}
-+
-+function Restore-AutoGoalCurrentRunOperationalChanges {
-+    param([string[]]$RelativePaths = @())
-+
-+    $restoredPaths = @()
-+
-+    if ($null -eq $script:autoGoalOperationalFileSnapshots) {
-+        return @($restoredPaths)
-+    }
-+
-+    $targetPaths = @($RelativePaths | ForEach-Object { ConvertTo-Normalize
-dChangedPath $_ } | Where-Object { Test-HasValue $_ } | Select-Object -Uniq
-ue)
-+    $baselineDirtyPaths = @($script:autoGoalBaselineDirtyPaths)
-+
-+    foreach ($entry in @($script:autoGoalOperationalFileSnapshots.GetEnume
-rator())) {
-+        $relativePath = ConvertTo-NormalizedChangedPath ([string]$entry.Ke
-y)
-+        $snapshot = $entry.Value
-+
-+        if ($targetPaths.Count -gt 0 -and $targetPaths -notcontains $relat
-ivePath) {
-+            continue
-+        }
-+
-+        if ($baselineDirtyPaths -contains $relativePath) {
-+            continue
-+        }
-+
-+        $fullPath = [string]$snapshot.path
-+
-+        if (-not $fullPath.StartsWith($repoRoot.TrimEnd("\") + "\", [Syste
-m.StringComparison]::OrdinalIgnoreCase)) {
-+            continue
-+        }
-+
-+        try {
-+            if ($snapshot.existed) {
-+                [System.IO.File]::WriteAllBytes($fullPath, [byte[]]$snapsh
-ot.bytes)
-+            } elseif ([System.IO.File]::Exists($fullPath)) {
-+                [System.IO.File]::Delete($fullPath)
-+            }
-+            $restoredPaths += $relativePath
-+        } catch {
-+            Write-Warning "Failed to restore auto-goal operational file sn
-apshot: $fullPath"
-+        }
-+    }
-+
-+    return @($restoredPaths | Select-Object -Unique)
-+}
-+
-+function Test-CanWriteExpectedNonWorkResultFile {
-+    $resultRelativePath = ConvertTo-NormalizedChangedPath (ConvertTo-RepoR
-elativePath $ResultPath)
-+    $snapshot = $script:autoGoalOperationalFileSnapshots[$resultRelativePa
-th]
-+    $baselineDirtyPaths = @($script:autoGoalBaselineDirtyPaths)
-+
-+    if ($null -ne $snapshot -and $snapshot.existed -and $baselineDirtyPath
-s -contains $resultRelativePath) {
-+        return $false
-+    }
-+
-+    return $true
-+}
-+
- function Stop-AutoGoal {
-     param(
-         [object[]]$Steps,
-@@ -220,19 +379,72 @@ function Stop-AutoGoal {
-         [int]$ExitCode
-     )
- 
-+    $isExpectedPreImplementationStop = Test-IsExpectedPreImplementationSto
-p $StoppedReason
-+
-     if (-not $DryRun) {
-         Clear-AutoGoalTempArtifacts
-+
-+        if ($isExpectedPreImplementationStop) {
-+            $cleanedRunOwnedPaths = @(Restore-AutoGoalCurrentRunOperationa
-lChanges)
-+            $Steps += New-StepResult ($Steps.Count + 1) "expected-non-work
--cleanup" "restore current-run .ai-dev operational file snapshots" $true $f
-alse 0 "Expected pre-implementation stop. Restored only auto-goal operation
-al files captured at run start; baseline user changes were preserved. Clean
-ed run-owned files: $($cleanedRunOwnedPaths -join ', ')"
-+        }
-     }
- 
-+    $script:steps = @($Steps)
-+
-     if (-not $DryRun -and (-not $Completed -or $ExitCode -ne 0)) {
-         if ($script:autoGoalCanWriteResultFile) {
--            Save-AutoGoalResultFile $StoppedReason $false $ExitCode
-+            if ($isExpectedPreImplementationStop) {
-+                if ($AllowCommit) {
-+                    if (Test-CanWriteExpectedNonWorkResultFile) {
-+                        $Steps += New-StepResult ($Steps.Count + 1) "expec
-ted-non-work-meta-record" "write expected non-work final result" $true $fal
-se 0 "Expected pre-implementation stop is recorded as outcomeCategory=expec
-ted_non_work in the final result file because -AllowCommit is set."
-+                        $script:steps = @($Steps)
-+                        Save-AutoGoalResultFile $StoppedReason $false $Exi
-tCode
-+                        $metaCommitStep = Invoke-AutoGoalExpectedNonWorkMe
-taCommit ($Steps.Count + 1)
-+                        $Steps += $metaCommitStep
-+                        $script:steps = @($Steps)
-+
-+                        if ($metaCommitStep.exitCode -ne 0) {
-+                            $originalStoppedReason = $StoppedReason
-+                            $StoppedReason = "expected_non_work_meta_commi
-t_failed"
-+                            $isExpectedPreImplementationStop = $false
-+                            $Completed = $false
-+                            $ExitCode = 1
-+                            $Steps += New-StepResult ($Steps.Count + 1) "e
-xpected-non-work-meta-failure" "classify expected non-work meta commit fail
-ure" $true $false 1 "Expected pre-implementation stop meta commit failed an
-d is reclassified as actual_failure. Original stopped reason: $originalStop
-pedReason"
-+                            $script:steps = @($Steps)
-+                        }
-+                    } else {
-+                        $resultRelativePath = ConvertTo-NormalizedChangedP
-ath (ConvertTo-RepoRelativePath $ResultPath)
-+                        $Steps += New-StepResult ($Steps.Count + 1) "expec
-ted-non-work-meta-record" "write expected non-work final result" $false $tr
-ue 0 "Expected pre-implementation stop is reported in console output only. 
-ResultPath existed at run start and was baseline dirty, so auto-goal did no
-t overwrite preserved user changes: $resultRelativePath"
-+                        $script:steps = @($Steps)
-+                    }
-+                } else {
-+                    $Steps += New-StepResult ($Steps.Count + 1) "expected-
-non-work-meta-record" "write expected non-work final result" $false $true 0
- "Expected pre-implementation stop is reported in console output only. -All
-owCommit is not set, so no result file or other .ai-dev operational change 
-is left behind."
-+                    $script:steps = @($Steps)
-+                }
-+            } else {
-+                Save-AutoGoalResultFile $StoppedReason $false $ExitCode
-+            }
-         }
-     }
-     Write-AutoGoalResult (New-AutoGoalResult $Steps $StoppedReason $Comple
-ted $ExitCode)
-     exit $ExitCode
- }
- 
-+function Get-StoppedReasonFromOutput {
-+    param([string]$Output)
-+
-+    if (-not (Test-HasValue $Output)) {
-+        return ""
-+    }
-+
-+    if ($Output -match '(?m)^\s*Stopped reason:\s*(\S+)\s*$') {
-+        return $Matches[1]
-+    }
-+
-+    return ""
-+}
-+
- function Get-InputPreview {
-     param([string]$RawInput)
- 
-@@ -437,8 +649,10 @@ function Invoke-FinalAutoGoalChangeGate {
-     $addExitCode = $LASTEXITCODE
- 
-     if ($addExitCode -ne 0) {
-+        & git restore --staged -- $newAiDevPaths 2>&1 | Out-String | Out-N
-ull
-+        $restoredPaths = @(Restore-AutoGoalCurrentRunOperationalChanges $n
-ewAiDevPaths)
-         $message = "auto-goal 최종 .ai-dev 메타 변경 git add 실패. exit code: $add
-ExitCode`n$addOutput"
--        $script:steps += New-StepResult $StepNumber "final-change-gate" "g
-it add -- <final .ai-dev files>" $true $false 1 $message
-+        $script:steps += New-StepResult $StepNumber "final-change-gate" "g
-it add -- <final .ai-dev files>" $true $false 1 "$message`nRestored run-own
-ed files: $($restoredPaths -join ', ')"
-         Stop-AutoGoal $script:steps "final_meta_add_failed" $false 1
-     }
- 
-@@ -448,8 +662,10 @@ function Invoke-FinalAutoGoalChangeGate {
-     $commitExitCode = $LASTEXITCODE
- 
-     if ($commitExitCode -ne 0) {
-+        & git restore --staged -- $newAiDevPaths 2>&1 | Out-String | Out-N
-ull
-+        $restoredPaths = @(Restore-AutoGoalCurrentRunOperationalChanges $n
-ewAiDevPaths)
-         $message = "auto-goal 최종 .ai-dev 메타 커밋 실패. exit code: $commitExitC
-ode`n$commitOutput"
--        $script:steps += New-StepResult $StepNumber "final-change-gate" "g
-it commit -m '$metaCommitMessage' -- <final .ai-dev files>" $true $false 1 
-$message
-+        $script:steps += New-StepResult $StepNumber "final-change-gate" "g
-it commit -m '$metaCommitMessage' -- <final .ai-dev files>" $true $false 1 
-"$message`nRestored run-owned files: $($restoredPaths -join ', ')"
-         Stop-AutoGoal $script:steps "final_meta_commit_failed" $false 1
-     }
- 
-@@ -588,8 +804,10 @@ function Invoke-FinalPreparedResultGate {
-     $addExitCode = $LASTEXITCODE
- 
-     if ($addExitCode -ne 0) {
-+        & git restore --staged -- $newAiDevPaths 2>&1 | Out-String | Out-N
-ull
-+        $restoredPaths = @(Restore-AutoGoalCurrentRunOperationalChanges $n
-ewAiDevPaths)
-         $message = "auto-goal 최종 .ai-dev 메타 변경 git add 실패. exit code: $add
-ExitCode`n$addOutput"
--        $script:steps += New-StepResult $StepNumber "final-change-gate" "g
-it add -- <final .ai-dev files>" $true $false 1 $message
-+        $script:steps += New-StepResult $StepNumber "final-change-gate" "g
-it add -- <final .ai-dev files>" $true $false 1 "$message`nRestored run-own
-ed files: $($restoredPaths -join ', ')"
-         Stop-AutoGoal $script:steps "final_meta_add_failed" $false 1
-     }
- 
-@@ -599,8 +817,10 @@ function Invoke-FinalPreparedResultGate {
-     $commitExitCode = $LASTEXITCODE
- 
-     if ($commitExitCode -ne 0) {
-+        & git restore --staged -- $newAiDevPaths 2>&1 | Out-String | Out-N
-ull
-+        $restoredPaths = @(Restore-AutoGoalCurrentRunOperationalChanges $n
-ewAiDevPaths)
-         $message = "auto-goal 최종 .ai-dev 메타 커밋 실패. exit code: $commitExitC
-ode`n$commitOutput"
--        $script:steps += New-StepResult $StepNumber "final-change-gate" "g
-it commit -m '$metaCommitMessage' -- <final .ai-dev files>" $true $false 1 
-$message
-+        $script:steps += New-StepResult $StepNumber "final-change-gate" "g
-it commit -m '$metaCommitMessage' -- <final .ai-dev files>" $true $false 1 
-"$message`nRestored run-owned files: $($restoredPaths -join ', ')"
-         Stop-AutoGoal $script:steps "final_meta_commit_failed" $false 1
-     }
- 
-@@ -1107,7 +1327,9 @@ function Invoke-CycleCommand {
-     $script:steps += New-StepResult $StepNumber $Name $Command $true $fals
-e $exitCode $message
- 
-     if ($exitCode -ne 0) {
--        Stop-AutoGoal $script:steps "$Name`_failed" $false 1
-+        $childStoppedReason = Get-StoppedReasonFromOutput $message
-+        $stoppedReason = if (Test-IsExpectedPreImplementationStop $childSt
-oppedReason) { $childStoppedReason } else { "$Name`_failed" }
-+        Stop-AutoGoal $script:steps $stoppedReason $false 1
-     }
- }
- 
-@@ -1174,6 +1396,7 @@ $resolvedQueuePath = [System.IO.Path]::GetFullPath((R
-esolve-RepoPath $queueRelat
- $resolvedStatePath = [System.IO.Path]::GetFullPath((Resolve-RepoPath $stat
-eRelativePath))
- $resolvedPlanningPromptPath = [System.IO.Path]::GetFullPath((Resolve-RepoP
-ath $planningPromptRelativePath))
- $resolvedResultPath = [System.IO.Path]::GetFullPath((Resolve-RepoPath $Res
-ultPath))
-+Initialize-AutoGoalOperationalFileSnapshots
- 
- if (-not (Test-HasValue $GoalTitle)) {
-     $script:steps += New-StepResult 0 "validate-input" "check GoalTitle" $
-false $false 1 "GoalTitle must not be empty."
-diff --git a/scripts/ai-dev-autopilot.ps1 b/scripts/ai-dev-autopilot.ps1
-index 52da0ce..4c8c3f2 100644
---- a/scripts/ai-dev-autopilot.ps1
-+++ b/scripts/ai-dev-autopilot.ps1
-@@ -38,6 +38,8 @@ $backlogPath = Join-Path $repoRoot $backlogRelativePath
- $loopLogPath = Join-Path $repoRoot $loopLogRelativePath
- $goalHistoryPath = Join-Path $repoRoot $goalHistoryRelativePath
- $utf8WithBom = New-Object System.Text.UTF8Encoding($true)
-+$script:autopilotOperationalFileSnapshots = @{}
-+$script:autopilotBaselineDirtyPaths = @()
- 
- function Test-HasValue {
-     param([object]$Value)
-@@ -153,6 +155,10 @@ function Add-AutopilotGoalHistoryTitle {
-         return
-     }
- 
-+    if (Test-IsAutopilotBaselineDirtyPath $goalHistoryRelativePath) {
-+        return
-+    }
-+
-     $now = [DateTimeOffset]::UtcNow.ToString("o")
-     $trimmedTitle = $Title.Trim()
-     $history = Read-AutopilotGoalHistory
-@@ -245,6 +251,10 @@ function Add-LoopLogEntry {
-         return
-     }
- 
-+    if (Test-IsAutopilotBaselineDirtyPath $loopLogRelativePath) {
-+        return
-+    }
-+
-     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-     $entryLines = @("", "## $timestamp - $Title", "")
-     $entryLines += @($Lines)
-@@ -252,6 +262,178 @@ function Add-LoopLogEntry {
-     [System.IO.File]::AppendAllText($loopLogPath, ($entryLines -join "`r`n
-"), $utf8WithBom)
- }
- 
-+function Test-IsExpectedAutopilotNonWorkStop {
-+    param([string]$StoppedReason)
-+
-+    return @(
-+        "all_goal_candidates_excluded",
-+        "baseline_output_conflict",
-+        "dirty_worktree",
-+        "goal_candidate_not_found",
-+        "current_goal_not_completed",
-+        "max_steps_too_small_for_full_cycle"
-+    ) -contains $StoppedReason
-+}
-+
-+function Get-StoppedReasonFromOutput {
-+    param([string]$Output)
-+
-+    if (-not (Test-HasValue $Output)) {
-+        return ""
-+    }
-+
-+    if ($Output -match '(?m)^\s*Stopped reason:\s*(\S+)\s*$') {
-+        return $Matches[1]
-+    }
-+
-+    if ($Output -match '(?m)"stoppedReason"\s*:\s*"([^"]+)"') {
-+        return $Matches[1]
-+    }
-+
-+    return ""
-+}
-+
-+function ConvertTo-NormalizedChangedPath {
-+    param([string]$RelativePath)
-+
-+    if (-not (Test-HasValue $RelativePath)) {
-+        return $null
-+    }
-+
-+    return $RelativePath.Trim().Trim('"').Replace('\', '/')
-+}
-+
-+function Convert-ToChangedPath {
-+    param([string]$ChangeLine)
-+
-+    if ([string]::IsNullOrWhiteSpace($ChangeLine)) {
-+        return @()
-+    }
-+
-+    $pathText = $ChangeLine
-+
-+    if ($ChangeLine.Length -ge 4 -and $ChangeLine.Substring(2, 1) -eq " ")
- {
-+        $pathText = $ChangeLine.Substring(3)
-+    }
-+
-+    if ($pathText.Contains(" -> ")) {
-+        return @($pathText -split " -> " | Where-Object { Test-HasValue $_
- })
-+    }
-+
-+    return @($pathText)
-+}
-+
-+function Get-AutopilotBaselineDirtyPaths {
-+    $statusOutput = & git status --porcelain 2>&1
-+
-+    if ($LASTEXITCODE -ne 0) {
-+        throw "git status --porcelain failed while capturing autopilot bas
-eline dirty paths: $($statusOutput -join "`n")"
-+    }
-+
-+    return @(
-+        $statusOutput |
-+            ForEach-Object { Convert-ToChangedPath $_ } |
-+            Where-Object { Test-HasValue $_ } |
-+            ForEach-Object { ConvertTo-NormalizedChangedPath $_ } |
-+            Select-Object -Unique
-+    )
-+}
-+
-+function Test-IsAutopilotBaselineDirtyPath {
-+    param([string]$RelativePath)
-+
-+    $normalizedRelativePath = ConvertTo-NormalizedChangedPath $RelativePat
-h
-+    return @($script:autopilotBaselineDirtyPaths) -contains $normalizedRel
-ativePath
-+}
-+
-+function Initialize-AutopilotOperationalFileSnapshots {
-+    $script:autopilotOperationalFileSnapshots = @{}
-+
-+    foreach ($relativePath in @($stateRelativePath, $loopLogRelativePath, 
-$goalHistoryRelativePath)) {
-+        $fullPath = [System.IO.Path]::GetFullPath((Join-Path $repoRoot $re
-lativePath))
-+
-+        if (-not $fullPath.StartsWith($repoRoot.TrimEnd("\") + "\", [Syste
-m.StringComparison]::OrdinalIgnoreCase)) {
-+            continue
-+        }
-+
-+        $exists = [System.IO.File]::Exists($fullPath)
-+        $bytes = $null
-+
-+        if ($exists) {
-+            $bytes = [System.IO.File]::ReadAllBytes($fullPath)
-+        }
-+
-+        $script:autopilotOperationalFileSnapshots[$relativePath] = [PSCust
-omObject][ordered]@{
-+            path = $fullPath
-+            existed = $exists
-+            bytes = $bytes
-+        }
-+    }
-+}
-+
-+function Restore-AutopilotCurrentRunOperationalChanges {
-+    param([string[]]$RelativePaths = @())
-+
-+    $restoredPaths = @()
-+
-+    if ($null -eq $script:autopilotOperationalFileSnapshots) {
-+        return @($restoredPaths)
-+    }
-+
-+    $targetPaths = @($RelativePaths | ForEach-Object { ConvertTo-Normalize
-dChangedPath $_ } | Where-Object { Test-HasValue $_ } | Select-Object -Uniq
-ue)
-+
-+    foreach ($entry in @($script:autopilotOperationalFileSnapshots.GetEnum
-erator())) {
-+        $relativePath = ConvertTo-NormalizedChangedPath ([string]$entry.Ke
-y)
-+        $snapshot = $entry.Value
-+
-+        if ($targetPaths.Count -gt 0 -and $targetPaths -notcontains $relat
-ivePath) {
-+            continue
-+        }
-+
-+        if (Test-IsAutopilotBaselineDirtyPath $relativePath) {
-+            continue
-+        }
-+
-+        $fullPath = [string]$snapshot.path
-+
-+        if (-not $fullPath.StartsWith($repoRoot.TrimEnd("\") + "\", [Syste
-m.StringComparison]::OrdinalIgnoreCase)) {
-+            continue
-+        }
-+
-+        try {
-+            if ($snapshot.existed) {
-+                [System.IO.File]::WriteAllBytes($fullPath, [byte[]]$snapsh
-ot.bytes)
-+            } elseif ([System.IO.File]::Exists($fullPath)) {
-+                [System.IO.File]::Delete($fullPath)
-+            }
-+            $restoredPaths += $relativePath
-+        } catch {
-+            Write-Warning "Failed to restore autopilot operational file sn
-apshot: $fullPath"
-+        }
-+    }
-+
-+    return @($restoredPaths | Select-Object -Unique)
-+}
-+
-+function Add-AutopilotExpectedNonWorkLogEntry {
-+    param(
-+        [string]$StoppedReason,
-+        [string]$Message,
-+        [int]$PreparedGoals
-+    )
-+
-+    $resultMessage = if (Test-HasValue $Message) { $Message } else { "Auto
-pilot stopped before implementation work." }
-+
-+    Add-LoopLogEntry "Autopilot expected non-work stop" @(
-+        "- Reason: $StoppedReason",
-+        "- Outcome category: expected_non_work",
-+        "- Result: $resultMessage",
-+        "- Prepared goals: $PreparedGoals/$MaxGoals",
-+        "- Failure counter: not incremented",
-+        "- Cleanup: restored current-run autopilot operational file snapsh
-ots before writing this meta log entry"
-+    )
-+}
-+
- function Invoke-AutopilotLoopLogMetaCommit {
-     param([int]$StepNumber)
- 
-@@ -263,7 +445,25 @@ function Invoke-AutopilotLoopLogMetaCommit {
-         return New-StepResult $StepNumber "autopilot-meta-commit" $false $
-true 0 "AllowCommit is not set, so autopilot loop-log/history meta commit w
-as not executed."
-     }
- 
--    $statusOutput = & git status --short -- $autopilotMetaCommitRelativePa
-ths 2>&1 | Out-String
-+    $skippedBaselinePaths = @(
-+        @($loopLogRelativePath, $goalHistoryRelativePath) |
-+            ForEach-Object { ConvertTo-NormalizedChangedPath $_ } |
-+            Where-Object { Test-IsAutopilotBaselineDirtyPath $_ } |
-+            Select-Object -Unique
-+    )
-+    $currentRunMetaPaths = @(
-+        $loopLogRelativePath,
-+        $goalHistoryRelativePath
-+    ) |
-+        ForEach-Object { ConvertTo-NormalizedChangedPath $_ } |
-+        Where-Object { -not (Test-IsAutopilotBaselineDirtyPath $_) } |
-+        Select-Object -Unique
-+
-+    if ($currentRunMetaPaths.Count -eq 0) {
-+        return New-StepResult $StepNumber "autopilot-meta-commit" $false $
-true 0 "Autopilot meta commit skipped because all meta files were baseline 
-dirty and protected: $($skippedBaselinePaths -join ', ')"
-+    }
-+
-+    $statusOutput = & git status --short -- $currentRunMetaPaths 2>&1 | Ou
-t-String
-     $statusExitCode = $LASTEXITCODE
- 
-     if ($statusExitCode -ne 0) {
-@@ -271,25 +471,33 @@ function Invoke-AutopilotLoopLogMetaCommit {
-     }
- 
-     if (-not (Test-HasValue $statusOutput)) {
--        return New-StepResult $StepNumber "autopilot-meta-commit" $true $f
-alse 0 "Autopilot meta files had no changes to commit."
-+        $message = "Autopilot meta files had no changes to commit."
-+        if ($skippedBaselinePaths.Count -gt 0) {
-+            $message = "$message Baseline dirty files skipped: $($skippedB
-aselinePaths -join ', ')"
-+        }
-+        return New-StepResult $StepNumber "autopilot-meta-commit" $true $f
-alse 0 $message
-     }
- 
--    $addOutput = & git add -- $autopilotMetaCommitRelativePaths 2>&1 | Out
--String
-+    $addOutput = & git add -- $currentRunMetaPaths 2>&1 | Out-String
-     $addExitCode = $LASTEXITCODE
- 
-     if ($addExitCode -ne 0) {
--        return New-StepResult $StepNumber "autopilot-meta-commit" $true $f
-alse 1 "Autopilot meta files git add failed. exit code: $addExitCode`n$addO
-utput"
-+        & git restore --staged -- $currentRunMetaPaths 2>&1 | Out-String |
- Out-Null
-+        $restoredPaths = @(Restore-AutopilotCurrentRunOperationalChanges $
-currentRunMetaPaths)
-+        return New-StepResult $StepNumber "autopilot-meta-commit" $true $f
-alse 1 "Autopilot meta files git add failed. exit code: $addExitCode`n$addO
-utput`nRestored run-owned files: $($restoredPaths -join ', ')"
-     }
- 
-     $metaCommitMessage = "chore(ai-dev): record autopilot progress"
--    $commitOutput = & git commit -m $metaCommitMessage -- $autopilotMetaCo
-mmitRelativePaths 2>&1 | Out-String
-+    $commitOutput = & git commit -m $metaCommitMessage -- $currentRunMetaP
-aths 2>&1 | Out-String
-     $commitExitCode = $LASTEXITCODE
- 
-     if ($commitExitCode -ne 0) {
--        return New-StepResult $StepNumber "autopilot-meta-commit" $true $f
-alse 1 "Autopilot meta commit failed. exit code: $commitExitCode`n$commitOu
-tput"
-+        & git restore --staged -- $currentRunMetaPaths 2>&1 | Out-String |
- Out-Null
-+        $restoredPaths = @(Restore-AutopilotCurrentRunOperationalChanges $
-currentRunMetaPaths)
-+        return New-StepResult $StepNumber "autopilot-meta-commit" $true $f
-alse 1 "Autopilot meta commit failed. exit code: $commitExitCode`n$commitOu
-tput`nRestored run-owned files: $($restoredPaths -join ', ')"
-     }
- 
--    $remainingStatus = & git status --short -- $autopilotMetaCommitRelativ
-ePaths 2>&1 | Out-String
-+    $remainingStatus = & git status --short -- $currentRunMetaPaths 2>&1 |
- Out-String
-     $remainingStatusExitCode = $LASTEXITCODE
- 
-     if ($remainingStatusExitCode -ne 0) {
-@@ -300,7 +508,7 @@ function Invoke-AutopilotLoopLogMetaCommit {
-         return New-StepResult $StepNumber "autopilot-meta-commit" $true $f
-alse 1 "Autopilot meta clean verification failed: git status --short still 
-reports meta changes after the autopilot meta commit.`n$remainingStatus"
-     }
- 
--    $message = ($commitOutput.Trim(), "Autopilot meta clean verification: 
-git status --short returned no autopilot meta changes.") -join "`n"
-+    $message = ($commitOutput.Trim(), "Baseline dirty files skipped: $($sk
-ippedBaselinePaths -join ', ')", "Autopilot meta clean verification: git st
-atus --short returned no autopilot meta changes.") -join "`n"
-     return New-StepResult $StepNumber "autopilot-meta-commit" $true $false
- 0 $message
- }
- 
-@@ -365,16 +573,31 @@ function New-AutopilotResult {
-         [string]$StoppedReason,
-         [bool]$Completed,
-         [int]$ExitCode,
--        [int]$PreparedGoals
-+        [int]$PreparedGoals,
-+        [bool]$OperationalCleanupPerformed = $false,
-+        [bool]$MetaCommitCreated = $false,
-+        [bool]$NextRunWithoutManualRestore = $false
-     )
- 
-+    $outcomeCategory = if (Test-IsExpectedAutopilotNonWorkStop $StoppedRea
-son) {
-+        "expected_non_work"
-+    } elseif ($ExitCode -eq 0) {
-+        "success"
-+    } else {
-+        "actual_failure"
-+    }
-+
-     return [PSCustomObject][ordered]@{
-         steps = @($Steps)
-         stoppedReason = $StoppedReason
-+        outcomeCategory = $outcomeCategory
-         completed = $Completed
-         exitCode = $ExitCode
-         maxGoals = $MaxGoals
-         preparedGoals = $PreparedGoals
-+        operationalCleanupPerformed = $OperationalCleanupPerformed
-+        metaCommitCreated = $MetaCommitCreated
-+        nextRunWithoutManualRestore = $NextRunWithoutManualRestore
-     }
- }
- 
-@@ -399,6 +622,10 @@ function Write-AutopilotResult {
-     }
- 
-     Write-Host "Stopped reason: $($Result.stoppedReason)"
-+    Write-Host "Outcome category: $($Result.outcomeCategory)"
-+    Write-Host "Operational cleanup performed: $($Result.operationalCleanu
-pPerformed)"
-+    Write-Host "Meta commit created: $($Result.metaCommitCreated)"
-+    Write-Host "Next run without manual restore: $($Result.nextRunWithoutM
-anualRestore)"
-     Write-Host "Completed: $($Result.completed)"
-     Write-Host "Prepared goals: $($Result.preparedGoals)/$($Result.maxGoal
-s)"
-     Write-Host "Exit code: $($Result.exitCode)"
-@@ -414,7 +641,12 @@ function Stop-Autopilot {
-         [string]$FailureMessage = ""
-     )
- 
--    if ($ExitCode -ne 0 -and (Test-HasValue $FailureMessage)) {
-+    $isExpectedNonWorkStop = Test-IsExpectedAutopilotNonWorkStop $StoppedR
-eason
-+    $operationalCleanupPerformed = $false
-+    $metaCommitCreated = $false
-+    $nextRunWithoutManualRestore = ($ExitCode -eq 0)
-+
-+    if ($ExitCode -ne 0 -and (Test-HasValue $FailureMessage) -and -not $is
-ExpectedNonWorkStop) {
-         Save-AutopilotFailureState $StoppedReason $FailureMessage
-         Add-LoopLogEntry "Autopilot stopped" @(
-             "- Reason: $StoppedReason",
-@@ -423,7 +655,42 @@ function Stop-Autopilot {
+diff --git a/scripts/ai-dev-test.ps1 b/scripts/ai-dev-test.ps1
+index 018cddc..bf077de 100644
+--- a/scripts/ai-dev-test.ps1
++++ b/scripts/ai-dev-test.ps1
+@@ -275,6 +275,12 @@ function Invoke-IsolatedScenario {
+             "expected_non_work"
          )
-     }
  
--    $result = New-AutopilotResult $Steps $StoppedReason $Completed $ExitCo
-de $PreparedGoals
-+    if ($ExitCode -ne 0 -and $isExpectedNonWorkStop -and -not $DryRun) {
-+        $cleanedRunOwnedPaths = @(Restore-AutopilotCurrentRunOperationalCh
-anges)
-+        $operationalCleanupPerformed = $true
-+        $metaCommitMessage = "skipped (-AllowCommit not set)"
-+        $nextRunWithoutManualRestore = $true
-+        $skippedBaselineMetaPaths = @(
-+            @($loopLogRelativePath, $goalHistoryRelativePath) |
-+                ForEach-Object { ConvertTo-NormalizedChangedPath $_ } |
-+                Where-Object { Test-IsAutopilotBaselineDirtyPath $_ } |
-+                Select-Object -Unique
-+        )
++        $customMaxStepsMatched = $true
 +
-+        if ($AllowCommit) {
-+            Add-AutopilotExpectedNonWorkLogEntry $StoppedReason $FailureMe
-ssage $PreparedGoals
-+            $metaCommitStep = Invoke-AutopilotLoopLogMetaCommit ($Steps.Co
-unt + 1)
-+            $metaCommitCreated = ($metaCommitStep.exitCode -eq 0 -and $met
-aCommitStep.executed -and -not $metaCommitStep.skipped -and $metaCommitStep
-.message -notmatch 'had no changes to commit')
-+            $metaCommitMessage = if ($metaCommitCreated) { "created" } els
-e { "not created: $($metaCommitStep.message)" }
-+
-+            if ($metaCommitStep.exitCode -ne 0) {
-+                $cleanedRunOwnedPaths = @(Restore-AutopilotCurrentRunOpera
-tionalChanges)
-+                $operationalCleanupPerformed = $true
-+                $nextRunWithoutManualRestore = $true
-+                $Steps += $metaCommitStep
-+                $Steps += New-StepResult ($Steps.Count + 1) "expected-non-
-work-cleanup" $true $false 0 "Classification: expected_non_work. Original s
-topped reason: $StoppedReason. Baseline dirty files skipped: $($skippedBase
-lineMetaPaths -join ', '). Cleaned run-owned files: $($cleanedRunOwnedPaths
- -join ', '). Meta commit created: false. Next run without manual git resto
-re: $nextRunWithoutManualRestore."
-+                $result = New-AutopilotResult $Steps "autopilot_expected_n
-on_work_meta_commit_failed" $false 1 $PreparedGoals $operationalCleanupPerf
-ormed $false $nextRunWithoutManualRestore
-+                Write-AutopilotResult $result
-+                exit 1
-+            }
-+
-+            $Steps += $metaCommitStep
++        if ($Name -eq "all-goal-candidates-excluded") {
++            $customMaxStepsMatched = $outputText.Contains("MaxSteps=7")
 +        }
 +
-+        $Steps += New-StepResult ($Steps.Count + 1) "expected-non-work-cle
-anup" $true $false 0 "Classification: expected_non_work. Original stopped r
-eason: $StoppedReason. Baseline dirty files skipped: $($skippedBaselineMeta
-Paths -join ', '). Cleaned run-owned files: $($cleanedRunOwnedPaths -join '
-, '). Meta commit created: $metaCommitCreated ($metaCommitMessage). Next ru
-n without manual git restore: $nextRunWithoutManualRestore. Restored only a
-utopilot operational files captured at run start; baseline user changes wer
-e preserved."
-+    }
+         $markerPreserved = $true
+ 
+         if ($null -ne $markerPath) {
+@@ -294,6 +300,13 @@ function Invoke-IsolatedScenario {
+             -Name "$Name expected_non_work classification" `
+             -Passed $classificationMatched
+ 
++        if ($Name -eq "all-goal-candidates-excluded") {
++            Write-TestResult `
++                -Name "$Name custom MaxSteps value forwarding" `
++                -Passed $customMaxStepsMatched `
++                -Detail "Expected output fragment: MaxSteps=7"
++        }
 +
-+    $result = New-AutopilotResult $Steps $StoppedReason $Completed $ExitCo
-de $PreparedGoals $operationalCleanupPerformed $metaCommitCreated $nextRunW
-ithoutManualRestore
-     Write-AutopilotResult $result
-     exit $ExitCode
- }
-@@ -842,6 +1109,8 @@ function Invoke-AutoGoal {
- }
+         Write-TestResult `
+             -Name "$Name baseline marker preservation" `
+             -Passed $markerPreserved
+@@ -368,7 +381,7 @@ Invoke-IsolatedScenario `
+         "-AllowDirty",
+         "-MaxGoals", "1",
+         "-MaxTasks", "1",
+-        "-MaxSteps", "40"
++        "-MaxSteps", "7"
+     )
  
- Set-Location $repoRoot
-+$script:autopilotBaselineDirtyPaths = @(Get-AutopilotBaselineDirtyPaths)
-+Initialize-AutopilotOperationalFileSnapshots
- 
- $steps = @()
- $preparedGoals = 0
-@@ -970,13 +1239,15 @@ for ($goalIndex = 1; $goalIndex -le $MaxGoals; $goal
-Index++) {
-     $steps += $autoGoalStep
- 
-     if ($autoGoalStep.exitCode -ne 0) {
-+        $childStoppedReason = Get-StoppedReasonFromOutput $autoGoalStep.me
-ssage
-+        $stoppedReason = if (Test-IsExpectedAutopilotNonWorkStop $childSto
-ppedReason) { $childStoppedReason } else { "auto_goal_failed" }
-         $failureMessage = "Auto-goal failed with exit code $($autoGoalStep
-.exitCode): $($autoGoalStep.message)"
- 
-         if (Test-HasValue $candidate.fallbackReason) {
-             $failureMessage = "$failureMessage Fallback context: $($candid
-ate.fallbackReason)"
-         }
- 
--        Stop-Autopilot $steps "auto_goal_failed" $false 1 $preparedGoals $
-failureMessage
-+        Stop-Autopilot $steps $stoppedReason $false 1 $preparedGoals $fail
-ureMessage
-     }
- 
-     $preparedGoals++
+ Invoke-IsolatedScenario `
 ```
 
 ## Staged Diff Stat
@@ -1191,7 +258,7 @@ ureMessage
 
 # AI Dev Test Result
 
-## 2026-07-31 14:36:08
+## 2026-07-31 16:45:27
 
 - Overall result: passed
 - Current task: T001
@@ -1221,7 +288,7 @@ dist/index.html                   0.46 kB │ gzip:   0.29 kB
 dist/assets/index-DvjxWt30.css    5.69 kB │ gzip:   1.93 kB
 dist/assets/index-DtLVvPCG.js   317.50 kB │ gzip: 100.16 kB
 
-[32m✓ built in 239ms[39m
+[32m✓ built in 213ms[39m
 ```
 ### npm run test
 
@@ -1229,7 +296,7 @@ dist/assets/index-DtLVvPCG.js   317.50 kB │ gzip: 100.16 kB
 - Exit code: 없음
 
 ```text
-package.json에 test script가 없습니다.
+-BuildOnly 옵션으로 건너뛰었습니다.
 ```
 ### npm run lint
 
@@ -1241,104 +308,6 @@ package.json에 test script가 없습니다.
 > planpilot-local@0.0.0 lint
 > eslint .
 ```
-## Expected non-work cleanup manual verification
-
-- Verification environment: isolated real Git worktree
-- Scenario: all backlog candidates excluded while loop-log.md already conta
-ins a baseline user change
-- Autopilot exit code: 1
-- Original stopped reason preserved: True
-- expected_non_work classification preserved: True
-- Baseline loop-log user marker preserved: True
-- New dirty paths created by execution: 0
-- No new dirty paths: True
-- Staged paths after execution: 0
-- No staged paths left behind: True
-- Manual git restore required for run-owned files: False
-
-### Baseline dirty paths
-```text
- M .ai-dev/loop-log.md
- M scripts/ai-dev-auto-goal.ps1
- M scripts/ai-dev-autopilot.ps1
-
-```
-
-### New dirty paths after execution
-```text
-
-```
-
-### Captured autopilot output
-```text
-Step 1: validate-input
-  Executed: False
-  Skipped: False
-  Exit code: 0
-  Message: Autopilot input validation completed. MaxGoals=1, MaxTasks=1, Ma
-xSteps=40
-Step 2: current-goal-gate
-  Executed: False
-  Skipped: False
-  Exit code: 0
-  Message: Current goal is completed. Previous goal: auto-goal MaxSteps 湲곕낯
-媛??덉젙??Step 3: generate-goal-candidate
-  Executed: False
-  Skipped: True
-  Exit code: 1
-  Message: Autopilot ?꾨낫媛 紐⑤몢 ?뚯쭊?섏뿀?듬땲?? ?꾩옱 ?곹깭: goalStatus=completed, c
-urrentTaskId=, openTaskCount=0, currentGoal=auto-goal MaxSteps 湲곕낯媛??덉젙?? ?
-쒖쇅??backlog ?꾨낫 ?? 14/14. 紐⑤뱺 ?꾨낫媛 ?꾩옱 goal, 以鍮??대젰, ?꾨즺 ?대젰 ?먮뒗 durable 
-history? 以묐났?섏뼱 ?좉퇋 goal???먮룞 ?앹꽦?섏? ?딆뒿?덈떎. ?ㅼ쓬 ?됰룞: 1. .ai-dev/backlog.m
-d???덈줈??backlog ??ぉ??異붽??⑸땲?? 2. ?대? ?꾨즺???꾨낫瑜??ㅼ떆 吏꾪뻾?댁빞 ?쒕떎硫?durable hist
-ory? ?꾨즺 ?대젰???щ엺??癒쇱? 寃?좏빀?덈떎. 3. 吏湲덉? ?먮룞 吏꾪뻾??硫덉텛怨??꾩옱 ?곹깭瑜??좎??⑸땲?? 
-怨꾩냽 吏꾪뻾?섎젮硫???backlog ??ぉ???꾩슂?⑸땲?? ?쒖쇅???꾨낫: Codex CLI ?꾩쟾 ?먮룞???뺤콉 臾몄꽌?? 
-Codex 援ы쁽 ?ㅽ뻾 ?ㅽ겕由쏀듃 異붽?; Codex 由щ럭 ?ㅽ뻾 ?ㅽ겕由쏀듃 異붽?; full auto-cycle 珥덉븞 異붽?
-; ?먮룞 而ㅻ컠怨?task ?꾨즺 ?곌껐; MaxTasks 1 end-to-end 寃利? full auto-cycle 濡쒓렇 援ъ“
- 媛쒖꽑; package 蹂寃?媛먯? 硫붿떆吏 媛쒖꽑; build/check ?ㅽ뙣 ??revise ?먮쫫 ?먮룞 ?덈궡; Code
-x 由щ럭 JSON 異붿텧 ?ㅽ뙣 泥섎━ 蹂닿컯; GitHub PR ?곕룞 寃?? Copilot CLI ?먮뒗 gh ?곕룞 ?ш???
- ?κ린 ?ㅽ뻾 ?먮룞??紐⑤땲?곕쭅 ?뺤콉; 蹂묐젹 task ?ㅽ뻾 媛?μ꽦 寃?? ?쒖쇅 湲곗? title: auto-goal 
-MaxSteps 湲곕낯媛??덉젙?? Codex 援ы쁽 ?ㅽ뻾 ?ㅽ겕由쏀듃 異붽?; Codex CLI ?꾩쟾 ?먮룞???뺤콉 臾몄꽌?? 
-full auto-cycle 珥덉븞 異붽?; Codex 由щ럭 ?ㅽ뻾 ?ㅽ겕由쏀듃 異붽?; package 蹂寃?媛먯? 硫붿떆吏 媛쒖
-꽑; GitHub PR ?곕룞 寃?? ?κ린 ?ㅽ뻾 ?먮룞??紐⑤땲?곕쭅 ?뺤콉; 蹂묐젹 task ?ㅽ뻾 媛?μ꽦 寃?? Auto
-pilot DryRun codex-result dirty 諛⑹?; ?먮룞 而ㅻ컠怨?task ?꾨즺 ?곌껐; Autopilot histo
-ry dirty gate 異⑸룎 ?섏젙; MaxTasks 1 end-to-end 寃利? Verification task revise 
-?먮룞 泥섎━; full auto-cycle 濡쒓렇 援ъ“ 媛쒖꽑; build/check ?ㅽ뙣 ??revise ?먮쫫 ?먮룞 ?덈궡;
- Codex 由щ럭 JSON 異붿텧 ?ㅽ뙣 泥섎━ 蹂닿컯; Copilot CLI ?먮뒗 gh ?곕룞 ?ш??? Durable histo
-ry title: Autopilot DryRun codex-result dirty 諛⑹?; ?먮룞 而ㅻ컠怨?task ?꾨즺 ?곌껐; A
-utopilot history dirty gate 異⑸룎 ?섏젙; MaxTasks 1 end-to-end 寃利? Verificatio
-n task revise ?먮룞 泥섎━; full auto-cycle 濡쒓렇 援ъ“ 媛쒖꽑; package 蹂寃?媛먯? 硫붿떆吏 媛
-쒖꽑; build/check ?ㅽ뙣 ??revise ?먮쫫 ?먮룞 ?덈궡; Codex 由щ럭 JSON 異붿텧 ?ㅽ뙣 泥섎━ 蹂닿컯; G
-itHub PR ?곕룞 寃?? Copilot CLI ?먮뒗 gh ?곕룞 ?ш??? ?κ린 ?ㅽ뻾 ?먮룞??紐⑤땲?곕쭅 ?뺤콉; 蹂묐젹
- task ?ㅽ뻾 媛?μ꽦 寃?? auto-goal MaxSteps 湲곕낯媛??덉젙??
-Step 4: autopilot-meta-commit
-  Executed: True
-  Skipped: False
-  Exit code: 0
-  Message: Autopilot meta files had no changes to commit. Baseline dirty fi
-les skipped: .ai-dev/loop-log.md
-Step 5: expected-non-work-cleanup
-  Executed: True
-  Skipped: False
-  Exit code: 0
-  Message: Classification: expected_non_work. Original stopped reason: all_
-goal_candidates_excluded. Baseline dirty files skipped: .ai-dev/loop-log.md
-. Cleaned run-owned files: .ai-dev/autopilot-goal-history.json, .ai-dev/sta
-te.json. Meta commit created: False (not created: Autopilot meta files had 
-no changes to commit. Baseline dirty files skipped: .ai-dev/loop-log.md). N
-ext run without manual git restore: True. Restored only autopilot operation
-al files captured at run start; baseline user changes were preserved.
-Stopped reason: all_goal_candidates_excluded
-Outcome category: expected_non_work
-Operational cleanup performed: True
-Meta commit created: False
-Next run without manual restore: True
-Completed: False
-Prepared goals: 0/1
-Exit code: 1
-
-```
-
 
 ## Allowed Scope
 
@@ -1368,34 +337,570 @@ Exit code: 1
 - `.ai-dev/loop-log.md`에 기록할 재수정 요약
 
 codex
-리뷰 지적은 구현 자체보다 검증 증거 부족에 맞춰져 있습니다. 스크립트 변경을 넓히기 전에 기존 검증 기록과 관련 함수 위치를 확인해서
-, 필요한 경우 운영 산출물에 검증 결과만 보강하는 쪽으로 좁게 처리하겠습니다.
+프롬프트상 이번 재수정은 새 기능 구현보다는 “실제 테스트를 실행하고 검증 결과를 갱신”하는 쪽입니다. `package.json` 수정
+은 금지되어 있으므로, 먼저 현재 테스트 스크립트 연결 상태와 AI Dev 테스트 스크립트만 확인하겠습니다.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "
+Get-Content -LiteralPath 'D:\\ai-apps\\planpilot-local\\package.json'" in D
+:\ai-apps\planpilot-local
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "
+Get-Content -LiteralPath 'D:\\ai-apps\\planpilot-local\\scripts\\ai-dev-tes
+t.ps1'" in D:\ai-apps\planpilot-local
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "
+Get-ChildItem -LiteralPath 'D:\\ai-apps\\planpilot-local\\scripts'" in D:\a
+i-apps\planpilot-local
+ succeeded in 3127ms:
+{
+  "name": "planpilot-local",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview",
+    "ai-dev:review": "powershell -ExecutionPolicy Bypass -File ./scripts/ai
+-dev-run-review-codex.ps1 -AllowDirty -SaveReview",
+    "test": "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-test.p
+s1"
+  },
+  "dependencies": {
+    "dexie": "^4.4.2",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "zustand": "^5.0.13"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^24.12.2",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "eslint": "^10.2.1",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.2",
+    "globals": "^17.5.0",
+    "typescript": "~6.0.2",
+    "typescript-eslint": "^8.58.2",
+    "vite": "^8.0.10"
+  }
+}
+
+ succeeded in 3221ms:
+$ErrorActionPreference = "Stop"
+
+[Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)
+$OutputEncoding = [Console]::OutputEncoding
+
+$repoRoot = Split-Path -Parent $PSScriptRoot
+
+$script:PassedCount = 0
+$script:FailedCount = 0
+
+function Write-TestResult {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Name,
+
+        [Parameter(Mandatory = $true)]
+        [bool]$Passed,
+
+        [string]$Detail = ""
+    )
+
+    if ($Passed) {
+        $script:PassedCount++
+        Write-Host "[PASS] $Name"
+
+        if (-not [string]::IsNullOrWhiteSpace($Detail)) {
+            Write-Host "       $Detail"
+        }
+
+        return
+    }
+
+    $script:FailedCount++
+    Write-Host "[FAIL] $Name"
+
+    if (-not [string]::IsNullOrWhiteSpace($Detail)) {
+        Write-Host "       $Detail"
+    }
+}
+
+function Get-ChangedPaths {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Root
+    )
+
+    $statusLines = @(& git -C $Root status --porcelain)
+
+    return @(
+        $statusLines |
+            Where-Object { $_.Length -ge 4 } |
+            ForEach-Object { $_.Substring(3).Trim() }
+    )
+}
+
+function New-IsolatedScenarioRoot {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Name,
+
+        [Parameter(Mandatory = $true)]
+        [string]$Root
+    )
+
+    $previousErrorActionPreference = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+
+    try {
+        $worktreeOutput = & git -C $repoRoot worktree add --detach $Root HE
+AD 2>&1 | Out-String
+        $worktreeExitCode = $LASTEXITCODE
+    }
+    finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+
+    if ($worktreeExitCode -eq 0) {
+        return [PSCustomObject][ordered]@{
+            Path = $Root
+            Cleanup = "worktree"
+            Error = ""
+        }
+    }
+
+    if ([System.IO.Directory]::Exists($Root)) {
+        [System.IO.Directory]::Delete($Root, $true)
+    }
+
+    $previousErrorActionPreference = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+
+    try {
+        $cloneOutput = & git clone --no-local --quiet $repoRoot $Root 2>&1 
+| Out-String
+        $cloneExitCode = $LASTEXITCODE
+    }
+    finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+
+    if ($cloneExitCode -eq 0) {
+        return [PSCustomObject][ordered]@{
+            Path = $Root
+            Cleanup = "directory"
+            Error = ""
+        }
+    }
+
+    return [PSCustomObject][ordered]@{
+        Path = $Root
+        Cleanup = "none"
+        Error = (
+            "git worktree add failed: " +
+            $worktreeOutput.Trim() +
+            "`n" +
+            "git clone fallback failed: " +
+            $cloneOutput.Trim()
+        )
+    }
+}
+
+function Remove-IsolatedScenarioRoot {
+    param(
+        [Parameter(Mandatory = $true)]
+        [object]$ScenarioRoot
+    )
+
+    if ($ScenarioRoot.Cleanup -eq "worktree") {
+        & git -C $repoRoot worktree remove $ScenarioRoot.Path --force |
+            Out-Null
+        return
+    }
+
+    if ($ScenarioRoot.Cleanup -eq "directory" -and [System.IO.Directory]::E
+xists($ScenarioRoot.Path)) {
+        Get-ChildItem -LiteralPath $ScenarioRoot.Path -Recurse -Force |
+            ForEach-Object {
+                $_.Attributes = [System.IO.FileAttributes]::Normal
+            }
+
+        [System.IO.Directory]::Delete($ScenarioRoot.Path, $true)
+    }
+}
+
+function Test-MaxStepsForwarding {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Content
+    )
+
+    $forwardingPatterns = @(
+        '-MaxSteps\s+(?:\(\s*)?(?:\[string\]\s*)?\$MaxSteps',
+        '["'']-MaxSteps["'']\s*,\s*(?:\(\s*)?(?:\[string\]\s*)?\$MaxSteps'
+    )
+
+    foreach ($pattern in $forwardingPatterns) {
+        if ([regex]::IsMatch($Content, $pattern, [System.Text.RegularExpres
+sions.RegexOptions]::Singleline)) {
+            return $true
+        }
+    }
+
+    return $false
+}
+
+function Invoke-IsolatedScenario {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Name,
+
+        [Parameter(Mandatory = $true)]
+        [string]$ExpectedReason,
+
+        [Parameter(Mandatory = $true)]
+        [ValidateSet(
+            "none",
+            "dirty_worktree",
+            "baseline_output_conflict"
+        )]
+        [string]$SetupType,
+
+        [Parameter(Mandatory = $true)]
+        [string[]]$CommandArguments
+    )
+
+    $tmpRoot = Join-Path $env:TEMP (
+        "planpilot-test-" +
+        $Name +
+        "-" +
+        (Get-Date -Format "yyyyMMddHHmmssfff")
+    )
+
+    $scenarioRoot = New-IsolatedScenarioRoot -Name $Name -Root $tmpRoot
+
+    if ($scenarioRoot.Cleanup -eq "none") {
+        Write-TestResult `
+            -Name "$Name isolated repository creation" `
+            -Passed $false `
+            -Detail $scenarioRoot.Error
+
+        return
+    }
+
+    try {
+        Copy-Item `
+            -LiteralPath (
+                Join-Path $repoRoot "scripts\ai-dev-auto-goal.ps1"
+            ) `
+            -Destination (
+                Join-Path $tmpRoot "scripts\ai-dev-auto-goal.ps1"
+            ) `
+            -Force
+
+        Copy-Item `
+            -LiteralPath (
+                Join-Path $repoRoot "scripts\ai-dev-autopilot.ps1"
+            ) `
+            -Destination (
+                Join-Path $tmpRoot "scripts\ai-dev-autopilot.ps1"
+            ) `
+            -Force
+
+        $marker = (
+            "BASELINE_USER_CHANGE_" +
+            $Name +
+            "_" +
+            (Get-Date -Format "yyyyMMddHHmmssfff")
+        )
+
+        $markerPath = $null
+
+        if ($SetupType -eq "dirty_worktree") {
+            $markerPath = Join-Path $tmpRoot ".ai-dev\loop-log.md"
+
+            Add-Content `
+                -LiteralPath $markerPath `
+                -Encoding UTF8 `
+                -Value $marker
+        }
+
+        if ($SetupType -eq "baseline_output_conflict") {
+            $markerPath = Join-Path $tmpRoot ".ai-dev\codex-result.md"
+
+            Add-Content `
+                -LiteralPath $markerPath `
+                -Encoding UTF8 `
+                -Value $marker
+        }
+
+        $baselinePaths = @(Get-ChangedPaths -Root $tmpRoot)
+
+        Push-Location $tmpRoot
+
+        try {
+            $output = & powershell @CommandArguments 2>&1
+            $scenarioExitCode = $LASTEXITCODE
+            $outputText = $output | Out-String
+        }
+        finally {
+            Pop-Location
+        }
+
+        $afterPaths = @(Get-ChangedPaths -Root $tmpRoot)
+
+        $newDirtyPaths = @(
+            $afterPaths |
+                Where-Object { $_ -notin $baselinePaths }
+        )
+
+        $stagedPaths = @(
+            & git -C $tmpRoot diff --cached --name-only
+        )
+
+        $reasonMatched = $outputText.Contains(
+            "Stopped reason: $ExpectedReason"
+        )
+
+        $classificationMatched = $outputText.Contains(
+            "expected_non_work"
+        )
+
+        $customMaxStepsMatched = $true
+
+        if ($Name -eq "all-goal-candidates-excluded") {
+            $customMaxStepsMatched = $outputText.Contains("MaxSteps=7")
+        }
+
+        $markerPreserved = $true
+
+        if ($null -ne $markerPath) {
+            $markerContent = Get-Content `
+                -LiteralPath $markerPath `
+                -Raw
+
+            $markerPreserved = $markerContent.Contains($marker)
+        }
+
+        Write-TestResult `
+            -Name "$Name stopped reason" `
+            -Passed $reasonMatched `
+            -Detail "Expected=$ExpectedReason ExitCode=$scenarioExitCode"
+
+        Write-TestResult `
+            -Name "$Name expected_non_work classification" `
+            -Passed $classificationMatched
+
+        if ($Name -eq "all-goal-candidates-excluded") {
+            Write-TestResult `
+                -Name "$Name custom MaxSteps value forwarding" `
+                -Passed $customMaxStepsMatched `
+                -Detail "Expected output fragment: MaxSteps=7"
+        }
+
+        Write-TestResult `
+            -Name "$Name baseline marker preservation" `
+            -Passed $markerPreserved
+
+        Write-TestResult `
+            -Name "$Name no new dirty paths" `
+            -Passed ($newDirtyPaths.Count -eq 0) `
+            -Detail (
+                "NewDirtyPaths=" +
+                ($newDirtyPaths -join ", ")
+            )
+
+        Write-TestResult `
+            -Name "$Name no staged paths" `
+            -Passed ($stagedPaths.Count -eq 0) `
+            -Detail (
+                "StagedPaths=" +
+                ($stagedPaths -join ", ")
+            )
+    }
+    catch {
+        Write-TestResult `
+            -Name "$Name execution" `
+            -Passed $false `
+            -Detail $_.Exception.Message
+    }
+    finally {
+        Remove-IsolatedScenarioRoot -ScenarioRoot $scenarioRoot
+    }
+}
+
+Write-Host "AI Dev automation tests"
+Write-Host "Repository: $repoRoot"
+Write-Host ""
+
+$autoGoalPath = Join-Path $repoRoot "scripts\ai-dev-auto-goal.ps1"
+$autoGoalContent = Get-Content -LiteralPath $autoGoalPath -Raw
+
+$maxStepsMatch = [regex]::Match(
+    $autoGoalContent,
+    '\$MaxSteps\s*=\s*(\d+)'
+)
+
+$defaultMaxStepsValid = $false
+$defaultMaxStepsValue = 0
+
+if ($maxStepsMatch.Success) {
+    $defaultMaxStepsValue = [int]$maxStepsMatch.Groups[1].Value
+    $defaultMaxStepsValid = ($defaultMaxStepsValue -ge 40)
+}
+
+Write-TestResult `
+    -Name "auto-goal MaxSteps default is at least 40" `
+    -Passed $defaultMaxStepsValid `
+    -Detail "Detected=$defaultMaxStepsValue"
+
+$maxStepsForwarded = Test-MaxStepsForwarding -Content $autoGoalContent
+
+Write-TestResult `
+    -Name "auto-goal forwards user MaxSteps" `
+    -Passed $maxStepsForwarded `
+    -Detail "Accepted forms: direct argument, array argument, or splatted h
+elper arguments"
+
+Invoke-IsolatedScenario `
+    -Name "all-goal-candidates-excluded" `
+    -ExpectedReason "all_goal_candidates_excluded" `
+    -SetupType "none" `
+    -CommandArguments @(
+        "-ExecutionPolicy", "Bypass",
+        "-File", ".\scripts\ai-dev-autopilot.ps1",
+        "-AllowRun",
+        "-AllowDirty",
+        "-MaxGoals", "1",
+        "-MaxTasks", "1",
+        "-MaxSteps", "7"
+    )
+
+Invoke-IsolatedScenario `
+    -Name "dirty-worktree" `
+    -ExpectedReason "dirty_worktree" `
+    -SetupType "dirty_worktree" `
+    -CommandArguments @(
+        "-ExecutionPolicy", "Bypass",
+        "-File", ".\scripts\ai-dev-auto-goal.ps1",
+        "-GoalTitle", "Dirty worktree test",
+        "-GoalDescription", "Verify expected non-work cleanup.",
+        "-MaxTasks", "1",
+        "-MaxSteps", "40"
+    )
+
+Invoke-IsolatedScenario `
+    -Name "baseline-output-conflict" `
+    -ExpectedReason "baseline_output_conflict" `
+    -SetupType "baseline_output_conflict" `
+    -CommandArguments @(
+        "-ExecutionPolicy", "Bypass",
+        "-File", ".\scripts\ai-dev-auto-goal.ps1",
+        "-GoalTitle", "Baseline conflict test",
+        "-GoalDescription", "Verify protected output preservation.",
+        "-MaxTasks", "1",
+        "-MaxSteps", "40"
+    )
+
+Write-Host ""
+Write-Host (
+    "Test summary: Passed={0}, Failed={1}" -f `
+        $script:PassedCount,
+        $script:FailedCount
+)
+
+if ($script:FailedCount -gt 0) {
+    exit 1
+}
+
+exit 0
+
+ succeeded in 3260ms:
+
+
+    디렉터리: D:\ai-apps\planpilot-local\scripts
+
+
+Mode                 LastWriteTime         Length Name                     
+                                            
+----                 -------------         ------ ----                     
+                                            
+-a----        2026-07-21  오전 12:18          63657 ai-dev-auto-cycle-full.ps
+1                                           
+-a----        2026-06-23   오후 3:20          19373 ai-dev-auto-cycle.ps1    
+                                            
+-a----        2026-07-31   오후 2:35          68009 ai-dev-auto-goal.ps1     
+                                            
+-a----        2026-06-07   오후 3:03           8471 ai-dev-auto-step.ps1     
+                                            
+-a----        2026-07-31   오후 2:30          44781 ai-dev-autopilot.ps1     
+                                            
+-a----        2026-06-14  오후 10:04           7776 ai-dev-check.ps1         
+                                            
+-a----        2026-06-14   오후 9:21          13495 ai-dev-commit.ps1        
+                                            
+-a----        2026-06-10  오후 11:27           7152 ai-dev-complete-task.ps1 
+                                            
+-a----        2026-06-04   오후 4:24           3805 ai-dev-copy-review-prompt
+.ps1                                        
+-a----        2026-06-03  오후 10:14           5446 ai-dev-current-task.ps1  
+                                            
+-a----        2026-06-03  오후 10:14            309 ai-dev-env.ps1           
+                                            
+-a----        2026-06-03  오후 10:14           3085 ai-dev-init.ps1          
+                                            
+-a----        2026-06-04  오전 12:01           7243 ai-dev-make-prompt.ps1   
+                                            
+-a----        2026-06-09  오후 11:54           8493 ai-dev-make-review-prompt
+.ps1                                        
+-a----        2026-06-03  오후 10:14          11227 ai-dev-make-revise-prompt
+.ps1                                        
+-a----        2026-06-03  오후 10:14           2692 ai-dev-manual-cycle.ps1  
+                                            
+-a----        2026-07-17  오후 11:00          19531 ai-dev-next.ps1          
+                                            
+-a----        2026-07-09  오후 11:00           7233 ai-dev-run-codex.ps1     
+                                            
+-a----        2026-07-18   오후 5:33          13597 ai-dev-run-review-codex.p
+s1                                          
+-a----        2026-06-10  오후 10:15          10727 ai-dev-save-diff.ps1     
+                                            
+-a----        2026-06-07   오후 3:57          13077 ai-dev-save-review.ps1   
+                                            
+-a----        2026-06-28   오후 7:52          14218 ai-dev-status.ps1        
+                                            
+-a----        2026-07-31   오후 4:44          11073 ai-dev-test.ps1          
+                                            
+-a----        2026-05-24   오후 1:50           9682 monitor-and-dev-loop.ps1 
+                                            
+
+
+
+codex
+`package.json`에는 이미 `npm test`가 `scripts/ai-dev-test.ps1`로 연결되어 있습니다. 리뷰 지적
+의 핵심은 연결 누락이 아니라 이전 검증이 `BuildOnly`라 테스트가 실제 실행되지 않았다는 점으로 보입니다.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "
+Select-String -LiteralPath 'D:\\ai-apps\\planpilot-local\\scripts\\ai-dev-c
+heck.ps1' -Pattern 'BuildOnly|test|npm run test|npm test' -Context 3,5" in 
+D:\ai-apps\planpilot-local
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "
+Get-Content -LiteralPath 'D:\\ai-apps\\planpilot-local\\.ai-dev\\loop-log.m
+d'" in D:\ai-apps\planpilot-local
 exec
 "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "
 Get-Content -LiteralPath 'D:\\ai-apps\\planpilot-local\\.ai-dev\\test-resul
 t.md'" in D:\ai-apps\planpilot-local
-exec
-"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "
-Select-String -LiteralPath 'D:\\ai-apps\\planpilot-local\\scripts\\ai-dev-a
-utopilot.ps1' -Pattern 'baseline_output_conflict|dirty_worktree|max_steps_t
-oo_small_for_full_cycle|Test-IsExpectedAutopilotNonWorkStop|Restore-Autopil
-otCurrentRunOperationalChanges|Stop-Autopilot' -Context 2,3" in D:\ai-apps\
-planpilot-local
-exec
-"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "
-Select-String -LiteralPath 'D:\\ai-apps\\planpilot-local\\scripts\\ai-dev-a
-uto-goal.ps1' -Pattern 'baseline_output_conflict|dirty_worktree|max_steps_t
-oo_small_for_full_cycle|Test-IsExpectedPreImplementationStop|Restore-AutoGo
-alCurrentRunOperationalChanges|Stop-AutoGoal' -Context 2,3" in D:\ai-apps\p
-lanpilot-local
-exec
-"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "
-Get-Content -LiteralPath 'D:\\ai-apps\\planpilot-local\\.ai-dev\\loop-log.m
-d' -Tail 80" in D:\ai-apps\planpilot-local
- succeeded in 4049ms:
+ succeeded in 3212ms:
 # AI Dev Test Result
 
-## 2026-07-31 14:36:08
+## 2026-07-31 16:45:27
 
 - Overall result: passed
 - Current task: T001
@@ -1425,7 +930,7 @@ dist/index.html                   0.46 kB │ gzip:   0.29 kB
 dist/assets/index-DvjxWt30.css    5.69 kB │ gzip:   1.93 kB
 dist/assets/index-DtLVvPCG.js   317.50 kB │ gzip: 100.16 kB
 
-[32m✓ built in 239ms[39m
+[32m✓ built in 213ms[39m
 ```
 ### npm run test
 
@@ -1433,7 +938,7 @@ dist/assets/index-DtLVvPCG.js   317.50 kB │ gzip: 100.16 kB
 - Exit code: 없음
 
 ```text
-package.json에 test script가 없습니다.
+-BuildOnly 옵션으로 건너뛰었습니다.
 ```
 ### npm run lint
 
@@ -1445,105 +950,2125 @@ package.json에 test script가 없습니다.
 > planpilot-local@0.0.0 lint
 > eslint .
 ```
-## Expected non-work cleanup manual verification
 
-- Verification environment: isolated real Git worktree
-- Scenario: all backlog candidates excluded while loop-log.md already conta
-ins a baseline user change
-- Autopilot exit code: 1
-- Original stopped reason preserved: True
-- expected_non_work classification preserved: True
-- Baseline loop-log user marker preserved: True
-- New dirty paths created by execution: 0
-- No new dirty paths: True
-- Staged paths after execution: 0
-- No staged paths left behind: True
-- Manual git restore required for run-owned files: False
+ succeeded in 3241ms:
 
-### Baseline dirty paths
-```text
- M .ai-dev/loop-log.md
- M scripts/ai-dev-auto-goal.ps1
- M scripts/ai-dev-autopilot.ps1
+  scripts\ai-dev-check.ps1:1:param(
+> scripts\ai-dev-check.ps1:2:    [switch]$BuildOnly,
+  scripts\ai-dev-check.ps1:3:    [switch]$SkipBuild,
+> scripts\ai-dev-check.ps1:4:    [switch]$SkipTest,
+  scripts\ai-dev-check.ps1:5:    [switch]$SkipLint,
+  scripts\ai-dev-check.ps1:6:    [switch]$ManualSummaryOnly,
+  scripts\ai-dev-check.ps1:7:    [string]$ManualSummary
+  scripts\ai-dev-check.ps1:8:)
+  scripts\ai-dev-check.ps1:9:
+  scripts\ai-dev-check.ps1:12:$projectRoot = (Get-Location).Path
+  scripts\ai-dev-check.ps1:13:$packageRelativePath = "package.json"
+  scripts\ai-dev-check.ps1:14:$stateRelativePath = ".ai-dev/state.json"
+> scripts\ai-dev-check.ps1:15:$testResultRelativePath = ".ai-dev/test-resul
+t.md"
+  scripts\ai-dev-check.ps1:16:
+  scripts\ai-dev-check.ps1:17:$packagePath = Join-Path $projectRoot $packag
+eRelativePath
+  scripts\ai-dev-check.ps1:18:$statePath = Join-Path $projectRoot $stateRel
+ativePath
+> scripts\ai-dev-check.ps1:19:$testResultPath = Join-Path $projectRoot $tes
+tResultRelativePath
+  scripts\ai-dev-check.ps1:20:$utf8WithBom = New-Object System.Text.UTF8Enc
+oding($true)
+  scripts\ai-dev-check.ps1:21:
+  scripts\ai-dev-check.ps1:22:function Stop-WithError {
+  scripts\ai-dev-check.ps1:23:    param(
+  scripts\ai-dev-check.ps1:24:        [string]$Message
+  scripts\ai-dev-check.ps1:41:    }
+  scripts\ai-dev-check.ps1:42:}
+  scripts\ai-dev-check.ps1:43:
+> scripts\ai-dev-check.ps1:44:function Test-HasScript {
+  scripts\ai-dev-check.ps1:45:    param(
+  scripts\ai-dev-check.ps1:46:        [object]$Package,
+  scripts\ai-dev-check.ps1:47:        [string]$Name
+  scripts\ai-dev-check.ps1:48:    )
+  scripts\ai-dev-check.ps1:49:
+  scripts\ai-dev-check.ps1:98:}
+  scripts\ai-dev-check.ps1:99:
+  scripts\ai-dev-check.ps1:100:$requiredPaths = if ($ManualSummaryOnly) {
+> scripts\ai-dev-check.ps1:101:    @($stateRelativePath, $testResultRelativ
+ePath)
+  scripts\ai-dev-check.ps1:102:} else {
+> scripts\ai-dev-check.ps1:103:    @($packageRelativePath, $stateRelativePa
+th, $testResultRelativePath)
+  scripts\ai-dev-check.ps1:104:}
+  scripts\ai-dev-check.ps1:105:
+  scripts\ai-dev-check.ps1:106:foreach ($requiredPath in $requiredPaths) {
+  scripts\ai-dev-check.ps1:107:    $fullPath = Join-Path $projectRoot $requ
+iredPath
+  scripts\ai-dev-check.ps1:108:
+> scripts\ai-dev-check.ps1:109:    if (-not (Test-Path -LiteralPath $fullPa
+th -PathType Leaf)) {
+  scripts\ai-dev-check.ps1:110:        Stop-WithError "필수 파일이 없습니다: $requir
+edPath"
+  scripts\ai-dev-check.ps1:111:    }
+  scripts\ai-dev-check.ps1:112:}
+  scripts\ai-dev-check.ps1:113:
+  scripts\ai-dev-check.ps1:114:$state = Read-JsonFile $statePath $stateRela
+tivePath
+  scripts\ai-dev-check.ps1:126:
+  scripts\ai-dev-check.ps1:127:    $timestamp = Get-Date -Format "yyyy-MM-d
+d HH:mm:ss"
+  scripts\ai-dev-check.ps1:128:    $codeFence = '```'
+> scripts\ai-dev-check.ps1:129:    $testResultContent = @"
+> scripts\ai-dev-check.ps1:130:# AI Dev Test Result
+  scripts\ai-dev-check.ps1:131:
+  scripts\ai-dev-check.ps1:132:## $timestamp
+  scripts\ai-dev-check.ps1:133:
+  scripts\ai-dev-check.ps1:134:- Overall result: recorded
+  scripts\ai-dev-check.ps1:135:- Current task: $currentTaskId
+  scripts\ai-dev-check.ps1:136:- Mode: manual-summary
+  scripts\ai-dev-check.ps1:137:- Commands:
+  scripts\ai-dev-check.ps1:138:  - npm run build: skipped
+> scripts\ai-dev-check.ps1:139:  - npm run test: skipped
+  scripts\ai-dev-check.ps1:140:  - npm run lint: skipped
+  scripts\ai-dev-check.ps1:141:
+  scripts\ai-dev-check.ps1:142:### Manual Verification Summary
+  scripts\ai-dev-check.ps1:143:
+  scripts\ai-dev-check.ps1:144:${codeFence}text
+  scripts\ai-dev-check.ps1:146:$codeFence
+  scripts\ai-dev-check.ps1:147:"@
+  scripts\ai-dev-check.ps1:148:
+> scripts\ai-dev-check.ps1:149:    [System.IO.File]::WriteAllText($testResu
+ltPath, $testResultContent, $utf8WithBom)
+  scripts\ai-dev-check.ps1:150:
+  scripts\ai-dev-check.ps1:151:    $now = [DateTimeOffset]::UtcNow.ToString
+("o")
+  scripts\ai-dev-check.ps1:152:    Set-ObjectProperty $state "lastCommand" 
+"manual-summary"
+  scripts\ai-dev-check.ps1:153:    Set-ObjectProperty $state "lastCommandSt
+atus" "passed"
+  scripts\ai-dev-check.ps1:154:    Set-ObjectProperty $state "lastErrorSumm
+ary" ""
+  scripts\ai-dev-check.ps1:157:    $stateJson = $state | ConvertTo-Json -De
+pth 20
+  scripts\ai-dev-check.ps1:158:    [System.IO.File]::WriteAllText($statePat
+h, $stateJson, $utf8WithBom)
+  scripts\ai-dev-check.ps1:159:
+> scripts\ai-dev-check.ps1:160:    Write-Host "수동 검증 요약 기록 완료: $testResultR
+elativePath"
+  scripts\ai-dev-check.ps1:161:    Write-Host "상태 저장 완료: $stateRelativePath
+"
+  scripts\ai-dev-check.ps1:162:    exit 0
+  scripts\ai-dev-check.ps1:163:}
+  scripts\ai-dev-check.ps1:164:
+  scripts\ai-dev-check.ps1:165:$package = Read-JsonFile $packagePath $packa
+geRelativePath
+  scripts\ai-dev-check.ps1:166:
+> scripts\ai-dev-check.ps1:167:$hasBuild = Test-HasScript $package "build"
+> scripts\ai-dev-check.ps1:168:$hasTest = Test-HasScript $package "test"
+> scripts\ai-dev-check.ps1:169:$hasLint = Test-HasScript $package "lint"
+  scripts\ai-dev-check.ps1:170:
+  scripts\ai-dev-check.ps1:171:$runBuild = $hasBuild -and -not $SkipBuild
+> scripts\ai-dev-check.ps1:172:$runTest = $hasTest -and -not $SkipTest -and
+ -not $BuildOnly
+  scripts\ai-dev-check.ps1:173:$runLint = $hasLint -and -not $SkipLint
+  scripts\ai-dev-check.ps1:174:
+  scripts\ai-dev-check.ps1:175:$buildSkipReason = if (-not $hasBuild) {
+  scripts\ai-dev-check.ps1:176:    "package.json에 build script가 없습니다."
+  scripts\ai-dev-check.ps1:177:} elseif ($SkipBuild) {
+  scripts\ai-dev-check.ps1:180:    ""
+  scripts\ai-dev-check.ps1:181:}
+  scripts\ai-dev-check.ps1:182:
+> scripts\ai-dev-check.ps1:183:$testSkipReason = if (-not $hasTest) {
+> scripts\ai-dev-check.ps1:184:    "package.json에 test script가 없습니다."
+> scripts\ai-dev-check.ps1:185:} elseif ($SkipTest) {
+> scripts\ai-dev-check.ps1:186:    "-SkipTest 옵션으로 건너뛰었습니다."
+> scripts\ai-dev-check.ps1:187:} elseif ($BuildOnly) {
+> scripts\ai-dev-check.ps1:188:    "-BuildOnly 옵션으로 건너뛰었습니다."
+  scripts\ai-dev-check.ps1:189:} else {
+  scripts\ai-dev-check.ps1:190:    ""
+  scripts\ai-dev-check.ps1:191:}
+  scripts\ai-dev-check.ps1:192:
+  scripts\ai-dev-check.ps1:193:$lintSkipReason = if (-not $hasLint) {
+  scripts\ai-dev-check.ps1:200:
+  scripts\ai-dev-check.ps1:201:$results = @(
+  scripts\ai-dev-check.ps1:202:    Invoke-NpmCheck "build" $runBuild $build
+SkipReason
+> scripts\ai-dev-check.ps1:203:    Invoke-NpmCheck "test" $runTest $testSki
+pReason
+  scripts\ai-dev-check.ps1:204:    Invoke-NpmCheck "lint" $runLint $lintSki
+pReason
+  scripts\ai-dev-check.ps1:205:)
+  scripts\ai-dev-check.ps1:206:
+  scripts\ai-dev-check.ps1:207:$failedResults = @($results | Where-Object {
+ $_.Status -eq "failed" })
+  scripts\ai-dev-check.ps1:208:$executedResults = @($results | Where-Object
+ { $_.Status -ne "skipped" })
+  scripts\ai-dev-check.ps1:214:}
+  scripts\ai-dev-check.ps1:215:
+  scripts\ai-dev-check.ps1:216:$timestamp = Get-Date -Format "yyyy-MM-dd HH
+:mm:ss"
+> scripts\ai-dev-check.ps1:217:$modeText = if ($BuildOnly) { "BuildOnly (bu
+ild + lint when available)" } else { "standa
+rd" }
+  scripts\ai-dev-check.ps1:218:$commandSummary = ($results | ForEach-Object
+ { "  - $($_.Command): $($_.Status)" }) -joi
+n "`r`n"
+  scripts\ai-dev-check.ps1:219:$detailSections = @()
+  scripts\ai-dev-check.ps1:220:$codeFence = '```'
+  scripts\ai-dev-check.ps1:221:
+  scripts\ai-dev-check.ps1:222:foreach ($result in $results) {
+  scripts\ai-dev-check.ps1:235:"@
+  scripts\ai-dev-check.ps1:236:}
+  scripts\ai-dev-check.ps1:237:
+> scripts\ai-dev-check.ps1:238:$testResultContent = @"
+> scripts\ai-dev-check.ps1:239:# AI Dev Test Result
+  scripts\ai-dev-check.ps1:240:
+  scripts\ai-dev-check.ps1:241:## $timestamp
+  scripts\ai-dev-check.ps1:242:
+  scripts\ai-dev-check.ps1:243:- Overall result: $overallResult
+  scripts\ai-dev-check.ps1:244:- Current task: $currentTaskId
+  scripts\ai-dev-check.ps1:249:$($detailSections -join "`r`n")
+  scripts\ai-dev-check.ps1:250:"@
+  scripts\ai-dev-check.ps1:251:
+> scripts\ai-dev-check.ps1:252:[System.IO.File]::WriteAllText($testResultPa
+th, $testResultContent, $utf8WithBom)
+  scripts\ai-dev-check.ps1:253:
+  scripts\ai-dev-check.ps1:254:$now = [DateTimeOffset]::UtcNow.ToString("o"
+)
+  scripts\ai-dev-check.ps1:255:$lastCommand = if ($executedResults.Count -g
+t 0) {
+  scripts\ai-dev-check.ps1:256:    $executedResults[-1].Command
+  scripts\ai-dev-check.ps1:257:} else {
+  scripts\ai-dev-check.ps1:280:foreach ($result in $results) {
+  scripts\ai-dev-check.ps1:281:    Write-Host "  - $($result.Command): $($r
+esult.Status)"
+  scripts\ai-dev-check.ps1:282:}
+> scripts\ai-dev-check.ps1:283:Write-Host "기록 완료: $testResultRelativePath"
+  scripts\ai-dev-check.ps1:284:Write-Host "상태 저장 완료: $stateRelativePath"
+  scripts\ai-dev-check.ps1:285:
+  scripts\ai-dev-check.ps1:286:if ($overallResult -eq "failed") {
+  scripts\ai-dev-check.ps1:287:    exit 1
+  scripts\ai-dev-check.ps1:288:}
 
-```
 
-### New dirty paths after execution
-```text
 
-```
+ succeeded in 3394ms:
+# AI Dev Loop Log
 
-### Captured autopilot output
-```text
-Step 1: validate-input
+## 2026-06-07 19:59:48 - New goal initialized
+
+- Previous goal: PlanPilot Local 업무 검색/필터 UX 개선
+- Previous status: 업무 검색/필터 UX 개선 목표는 진행 중이었으나 Codex CLI 기반 완전 자동화 도입을 위해 잠
+시 중단함
+- New goal: AI Dev Loop Codex CLI 완전 자동화 도입
+- Current task: T001 Codex CLI 완전 자동화 정책 문서화
+- Scope: Codex CLI를 구현자와 리뷰어로 사용해 AI Dev Loop의 구현, 검증, 리뷰, 커밋, task 완료 처리 자
+동화 초안을 만든다.
+- Known environment: `codex --version`은 `codex-cli 0.133.0`으로 확인되었고, `codex
+ exec`는 현재 저장소에서 파일 수정 없이 응답하는 테스트를 통과했다.
+- Excluded: scripts/src/package 파일 수정은 이번 목표 전환 단계에서 하지 않음, build/test 실행 안
+ 함, git add/commit 안 함, Codex CLI 호출 안 함, Cline/Copilot/gh/GPT API 사용 안 함
+- Result: `goal.md`, `backlog.md`, `queue.json`, `state.json`, `plan.md`, `
+test-result.md`, `review.md`, `loop-log.md`를 새 목표 기준으로 초기화함
+
+## 2026-06-07 21:46:14 - Task completed
+
+- Task: T001 Codex CLI 완전 자동화 정책 문서화
+- Result: T001 완료: Codex CLI를 구현자/리뷰어로 사용하는 완전 자동화 정책, 허용/금지 명령, 안전 중단 조건 문
+서화
+- Next task: T002 Codex 구현 실행 스크립트 추가
+## 2026-06-07 21:48:36 - Task completed
+
+- Task: T002 Codex 구현 실행 스크립트 추가
+- Result: T001 완료: Codex CLI를 구현자/리뷰어로 사용하는 완전 자동화 정책, 허용/금지 명령, 안전 중단 조건 문
+서화
+- Next task: T003 Codex 리뷰 실행 스크립트 추가
+## 2026-06-07 21:58:28 - Task completed
+
+- Task: T003 Codex 리뷰 실행 스크립트 추가
+- Result: T002 완료: current-task-prompt.md를 codex exec에 전달하는 ai-dev-run-code
+x.ps1 추가, 문법 검증과 DryRun/Json/dirty 상태 중단 확인
+- Next task: T004 full auto-cycle 초안 추가
+
+## 2026-06-07 22:10:00 - Goal expanded
+
+- Goal: AI Dev Loop Codex CLI 완전 자동화 도입
+- Change: T001~T006 진행 상태는 유지하고 T007 목표 입력 기반 자동 goal 실행 스크립트 추가 task를 queu
+e에 추가함
+- Final target command: `powershell -ExecutionPolicy Bypass -File .\scripts
+\ai-dev-auto-goal.ps1 -GoalTitle "업무 검색 결과 하이라이트 추가" -GoalDescription "검색어와
+ 일치하는 업무 제목/메모/프로젝트명을 화면에서 강조 표시한다." -AllowCodex -AllowReviewCodex -AllowCo
+mmit -MaxTasks 1`
+- Scope: scripts/src/package 파일은 수정하지 않고 queue, plan, README, 정책 문서에 auto-g
+oal 목표와 안전 기준만 반영함
+
+## 2026-06-07 22:20:00 - State repaired
+
+- Reason: T003 `Codex 리뷰 실행 스크립트 추가`가 `done`으로 표시되어 있었지만 실제 `scripts/ai-dev
+-run-review-codex.ps1` 산출물이 누락됨
+- Change: T003 상태를 `in_progress`로 되돌리고 T004 `full auto-cycle 초안 추가` 상태를 `pe
+nding`으로 되돌림
+- Current task: T003 Codex 리뷰 실행 스크립트 추가
+- Preserved: T001/T002는 `done` 유지, T005/T006/T007은 `pending` 유지, T007 추가 내용
+ 유지
+- Excluded: scripts/src/package 파일 수정 없음, git add/commit 없음, Codex CLI 호출 없
+음
+
+## 2026-06-07 22:35:00 - Task progress
+
+- Task: T003 Codex 리뷰 실행 스크립트 추가
+- Result: `scripts/ai-dev-run-review-codex.ps1` 추가, `review-prompt.md`를 Cod
+ex CLI에 전달하고 JSON 리뷰를 `review-response.json`에 저장하며 `-SaveReview`로 `ai-dev-s
+ave-review.ps1 -ReviewFile` 흐름에 연결하도록 구현
+- Docs: `.ai-dev/README.md`에 DryRun, 기본 실행, `-GenerateReviewPromptIfMissing
+`, `-SaveReview`, `-AllowDirty` 주의사항을 추가
+- Verification: PowerShell 문법 검증 예정. 실제 Codex 실행, build/test/lint, git add/
+commit은 수행하지 않음
+
+## 2026-06-07 22:23:42 - Task completed
+
+- Task: T003 Codex 리뷰 실행 스크립트 추가
+- Result: T003 완료: review-prompt.md를 codex exec에 전달해 JSON 리뷰를 생성하는 ai-dev-r
+un-review-codex.ps1 추가, 문법 검증과 DryRun/Json 확인
+- Next task: T004 full auto-cycle 초안 추가
+## 2026-06-07 22:57:13 - Task completed
+
+- Task: T004 full auto-cycle 초안 추가
+- Result: T004 완료: make-prompt/run-codex/check/save-diff/make-review-prompt
+/run-review-codex를 연결하는 ai-dev-auto-cycle-full.ps1 초안 추가, DryRun/Json/Allow
+Codex 중단 확인
+- Next task: T005 자동 커밋과 task 완료 연결
+## 2026-06-08 23:11:23 - Task completed
+
+- Task: T005 자동 커밋과 task 완료 연결
+- Result: T004 완료: make-prompt/run-codex/check/save-diff/make-review-prompt
+/run-review-codex를 연결하는 ai-dev-auto-cycle-full.ps1 초안 추가, DryRun/Json/Allow
+Codex 중단 확인
+- Next task: T006 작은 앱 task로 end-to-end 검증
+
+## 2026-06-08 23:30:00 - Task progress
+
+- Task: T005 자동 커밋과 task 완료 연결
+- Result: `ai-dev-auto-cycle-full.ps1`에서 review pass 이후 package 변경 게이트, `-A
+llowCommit` 기반 자동 커밋, 커밋 확인 후 complete-task 실행, `MaxTasks` 반복 구조를 정리함
+- Docs: `.ai-dev/README.md`에 DryRun, MaxTasks 1/3, `AllowCodex + AllowRevie
+wCodex + AllowCommit`, 선택 파일 커밋 예시를 추가함
+- Verification: PowerShell AST 문법 검증 통과, full auto-cycle DryRun/Json 출력에서 c
+ommit 및 complete-task 단계 포함 확인
+- Excluded: 실제 Codex 실행, build/test/lint, git add/commit은 수행하지 않음
+
+## 2026-06-09 00:17:52 - Task completed
+
+- Task: T006 작은 앱 task로 end-to-end 검증
+- Result: T006 완료: full auto-cycle DryRun/Json 구조 검증 및 Codex runner 인자 길이 버
+그 수정 확인, 실제 end-to-end 검증은 T007 auto-goal 이후 작은 앱 목표로 수행
+- Next task: T007 목표 입력 기반 자동 goal 실행 스크립트 추가
+## 2026-06-09 23:05:15 - Task completed
+
+- Task: T007 목표 입력 기반 자동 goal 실행 스크립트 추가
+- Result: T007 완료: 목표 제목/설명 입력 기반 auto-goal 실행 스크립트 추가, DryRun/Json 출력, 입력 
+검증, dirty 처리, full auto-cycle 연결 및 Codex 리뷰 pass 확인
+- Next task: 없음
+## 2026-06-09 23:50:32 - Task completed
+
+- Task: T001 업무 검색창 placeholder 문구 수정
+- Result: T001 완료: 업무 검색창 placeholder를 업무명과 프로젝트명 검색 대상에 맞는 명확한 한국어 문구로 개선하
+고 build 및 Codex 리뷰 결과를 확인함
+- Next task: 없음
+## 2026-06-10 22:22:07 - Task completed
+
+- Task: T001 리뷰 diff 범위 분리 로직 정리
+- Result: T001 완료: 리뷰 diff 생성과 리뷰 프롬프트에서 실제 변경 파일과 .ai-dev 운영 산출물을 분리하고, 앱 
+변경 중심 리뷰가 가능하도록 개선함
+- Next task: 없음
+
+## 2026-06-10 23:09:10 - Task progress
+
+- Task: T001 커밋 해시 상태 기록 흐름 개선
+- Result: `ai-dev-auto-cycle-full.ps1`의 commit-result-gate가 커밋 전 HEAD와 커밋 후
+ HEAD를 비교하고, commit/passed 상태에서 최신 HEAD를 `lastCommitHash`에 보강하도록 수정함. `ai-d
+ev-complete-task.ps1`은 완료 처리 전 commit/passed 상태에서 기록된 해시가 있거나 HEAD 커밋 시각이 상
+태 갱신 이후인 경우에만 `lastCommitHash`를 동기화하도록 수정함
+- Verification: 관련 PowerShell 스크립트 2개 AST 문법 검증 통과
+- Excluded: build/test/lint, 실제 커밋 생성, git 명령 직접 실행은 수행하지 않음
+
+## 2026-06-10 23:34:13 - Task completed
+
+- Task: T001 커밋 해시 상태 기록 흐름 개선
+- Result: T001 완료: 커밋 성공 후 명시적으로 전달된 커밋 해시를 검증하여 state.lastCommitHash에 기록하도
+록 commit-result-gate와 complete-task 흐름을 개선함
+- Next task: 없음
+## 2026-06-13 00:33:57 - Task completed
+
+- Task: T001 업무 카드 완료 버튼 문구 수정
+- Result: T001 완료: 업무 카드의 미완료 상태 완료 버튼 문구를 더 명확한 한국어 표현으로 개선했으며, 동작 로직이나 구조
+ 변경 없이 UI 문구만 최소 범위로 수정함
+- Next task: 없음
+## 2026-06-14 20:18:29 - Task completed
+
+- Task: T001 마감 임박 배지 표시 구현
+- Result: T001 완료: 미완료 업무 중 마감일이 오늘부터 7일 이내인 경우 업무 카드에 마감 임박 배지를 표시하도록 구현함
+- Next task: 없음
+## 2026-06-14 21:50:57 - Commit created
+
+- Task: T001 pass 이후 자동 완료 흐름 구현
+- Commit: be79d21ea8edc7f08d3634575ad8ccd76c38079d
+- Message: Auto-complete passed dev loop tasks
+## 2026-06-14 21:51:07 - Task completed
+
+- Task: T001 pass 이후 자동 완료 흐름 구현
+- Result: T001 완료: pass 이후 구현 커밋, CommitHash 전달 complete-task, .ai-dev 메타 커
+밋 및 clean 검증 흐름 구현 완료
+- Next task: 없음
+## 2026-06-14 22:01:20 - Commit created
+
+- Task: T001 업무 목록 빈 상태 문구 수정
+- Commit: 3f53ac6c1b9fd7f43ab7dcb161eb112c78c7cbb4
+- Message: Improve empty task list copy
+## 2026-06-14 22:01:28 - Task completed
+
+- Task: T001 업무 목록 빈 상태 문구 수정
+- Result: T001 완료: 업무 목록 빈 상태 안내 문구를 자연스러운 한국어로 개선하고 lint 검증을 통과함
+- Next task: 없음
+## 2026-06-14 22:06:40 - Commit created
+
+- Task: T001 검증 기록 흐름 분석 및 lint 기록 개선
+- Commit: db479f4caa4afbac65caefb6105394df18d9211c
+- Message: Record lint validation results
+## 2026-06-14 22:06:51 - Task completed
+
+- Task: T001 검증 기록 흐름 분석 및 lint 기록 개선
+- Result: T001 완료: BuildOnly에서도 lint 실행 결과를 자동 기록하고 test script 부재 사유를 명확히 
+남기도록 개선함
+- Next task: 없음
+## 2026-06-14 22:13:29 - Commit created
+
+- Task: T001 업무 카드 문구 최소 개선
+- Commit: 151cfa8a95b068d55a652a29c306cbdf5c19e4f5
+- Message: Improve task card accessibility labels
+## 2026-06-14 22:13:38 - Task completed
+
+- Task: T001 업무 카드 문구 최소 개선
+- Result: T001 완료: 업무 카드 버튼 및 상태 표시의 접근성/안내 문구를 최소 범위로 개선하고 build/lint 검증을 
+통과함
+- Next task: 없음
+## 2026-06-14 22:29:29 - Commit created
+
+- Task: T001 auto-goal pass 이후 완료 흐름 연결
+- Commit: a41df7ba976d41328ac39cd92a3eefed1e04ba19
+- Message: Wire auto-goal pass completion flow
+## 2026-06-14 22:29:48 - Task completed
+
+- Task: T001 auto-goal pass 이후 완료 흐름 연결
+- Result: T001 완료: auto-goal 실행 경로에서 리뷰 pass 이후 커밋, complete-task -CommitHa
+sh 전달, .ai-dev 메타 커밋, 최종 상태 확인까지 이어지도록 개선함
+- Next task: 없음
+## 2026-06-14 23:00:14 - Commit created
+
+- Task: T001 업무 카드 완료 문구 개선
+- Commit: 14b1d6137c5a0fd09b671793c2925f7cd6981bae
+- Message: Refine completed task card copy
+## 2026-06-14 23:00:21 - Task completed
+
+- Task: T001 업무 카드 완료 문구 개선
+- Result: T001 완료: 업무 카드 완료 버튼과 aria-label 문구를 자연스러운 한국어로 최소 개선하고 build/lin
+t 검증을 통과함
+- Next task: 없음
+## 2026-06-14 23:23:51 - Commit created
+
+- Task: T001 auto-goal 완료 판정 흐름 수정
+- Commit: 541b9d02569576d0c56cbe60ede92fe924dbd64c
+- Message: Fix auto-goal completion handling
+## 2026-06-14 23:24:03 - Task completed
+
+- Task: T001 auto-goal 완료 판정 흐름 수정
+- Result: T001 완료: complete_task/complete-task 정규화, 저장된 리뷰 pass 이후 완료 재개, a
+uto-goal 미완료 판정 실패 처리를 반영함
+- Next task: 없음
+## 2026-06-14 23:28:13 - Commit created
+
+- Task: T001 업무 카드 문구 확인 및 최소 수정
+- Commit: 3dd089ad71e0b17ac45dbc9af09db4e48db57d01
+- Message: Refine task card helper copy
+## 2026-06-14 23:28:16 - Task completed
+
+- Task: T001 업무 카드 문구 확인 및 최소 수정
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
+- Next task: 없음
+## 2026-06-19 21:36:52 - Commit created
+
+- Task: T001 auto-goal 종료 전 최종 변경 상태 검증 보강
+- Commit: 058a75bb425c1f488c7b466945f7c2baf66504e1
+- Message: Ensure auto goal final clean state
+## 2026-06-19 21:37:24 - Task completed
+
+- Task: T001 auto-goal 종료 전 최종 변경 상태 검증 보강
+- Result: T001 완료: auto-goal 종료 전 최종 변경 상태 검증을 보강하고, 완료 직전 .ai-dev 운영 변경의 최
+종 메타 커밋, baseline dirty 보호, non-.ai-dev dirty 실패, completed 상태의 git clean 보
+장을 반영함
+- Next task: 없음
+## 2026-06-19 21:49:07 - Commit created
+
+- Task: T001 업무 카드 접근성 문구 점검 및 미세 수정
+- Commit: 3591ee2bb9a7be7a72d8c360fc294a643d06ab85
+- Message: Polish task card accessibility labels
+## 2026-06-19 21:49:21 - Task completed
+
+- Task: T001 업무 카드 접근성 문구 점검 및 미세 수정
+- Result: T001 완료: 업무 카드의 aria-label 문구를 자연스러운 한국어로 최소 수정하고 build/lint 검증 및
+ 리뷰 pass를 확인함
+- Next task: 없음
+## 2026-06-19 21:57:00 - Task completed
+
+- Task: T001 완료 기준 안내 문구 보강
+- Result: T001 완료: AI Dev Loop 완료 기준을 .ai-dev/README.md 운영 원칙에 짧게 보강하고 buil
+d/lint 검증 및 리뷰 pass를 확인함
+- Next task: 없음
+## 2026-06-19 22:00:35 - Commit created
+
+- Task: T001 AI Dev Loop 운영 순서 문서 보강
+- Commit: 1f8952d265ae7d889e5a4033cba46876f9272972
+- Message: Document AI dev loop operation flow
+## 2026-06-19 22:00:37 - Task completed
+
+- Task: T001 AI Dev Loop 운영 순서 문서 보강
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
+- Next task: 없음
+## 2026-06-19 22:08:47 - Task completed
+
+- Task: T001 업무 상태 안내 개선 범위 확인
+- Result: T001 완료: 업무 상태 안내 개선 범위를 확인하고, 앱 변경 없이 TaskList 중심으로 개선 위치를 정리했으며
+ build/lint 검증 및 리뷰 pass를 확인함
+- Next task: T002 업무 흐름 상태 표시 개선
+
+## 2026-06-19 22:10:34 - Task progress
+
+- Task: T002 업무 흐름 상태 표시 개선
+- Result: 업무 목록 상단 요약에 진행 중, 완료, 남은 업무 개수를 표시하고 업무 카드 상태 라벨을 todo/in_progre
+ss/done 상태별 한국어 문구로 구분함
+- Verification: build/test/lint는 현재 프롬프트에서 자동 실행 지시가 없어 실행하지 않음
+- Excluded: DB schema 변경, 저장 구조 변경, 새 화면 추가, 대규모 리팩터링, git commit 없음
+
+## 2026-06-19 22:19:24 - Commit created
+
+- Task: T002 업무 흐름 상태 표시 개선
+- Commit: 86280c0fad1af38608410ac6817d2931e0f24314
+- Message: Improve task status guidance
+## 2026-06-19 22:19:43 - Task completed
+
+- Task: T002 업무 흐름 상태 표시 개선
+- Result: T002 완료: 업무 목록 영역에서 진행 중, 완료, 남은 업무 상태 요약과 상태 라벨을 한국어로 명확히 표시하고 b
+uild/lint 검증 및 리뷰 pass를 확인함
+- Next task: T003 검증 및 작업 기록 완료
+
+## 2026-06-19 22:21:41 - Task completed
+
+- Task: T003 검증 및 작업 기록 완료
+- Result: T003 완료: 기존 검증 기록에서 npm run build 통과, npm run lint 통과, 리뷰 pass를 확
+인하고 AI Dev Loop 메타 상태를 완료로 기록함
+- Verification: .ai-dev/test-result.md의 build/lint passed, .ai-dev/review.m
+d의 Decision pass, state.json의 lastReviewDecision pass 확인
+- Remaining risk: 현재 세션에서는 규칙상 npm run build/lint와 git 상태 확인 명령을 새로 실행하지 않음
+- Next task: 없음
+
+## 2026-06-19 22:35:05 - Commit created
+
+- Task: T001 완료 종료 경로 최종 정리 보강
+- Commit: ba0d33f11f0f7d25186e2fec783c2bf46660c97e
+- Message: Finalize meta changes on completed auto cycle
+## 2026-06-19 22:35:22 - Task completed
+
+- Task: T001 완료 종료 경로 최종 정리 보강
+- Result: T001 완료: auto-cycle-full completed 종료 경로에서 .ai-dev 운영 변경만 남은 경우 f
+inal meta commit 후 git clean을 보장하고, DryRun/AllowCommit/non-.ai-dev dirty 실패
+ 경로 검증을 반영함
+- Next task: 없음
+## 2026-06-19 23:08:16 - Task completed
+
+- Task: T001 review revise 자동 재시도 흐름 보강
+- Result: T001 완료: auto-cycle-full이 saved review revise/revise_with_codex 상
+태에서 일반 실행 시 자동 재시도하고, DryRun에서는 Codex/검증/리뷰 단계를 실행하지 않고 변경 없이 preview/stop 
+처리하도록 보강했으며 build/lint 및 DryRun no-mutation 검증과 리뷰 pass를 확인함
+- Next task: 없음
+
+## 2026-06-19 23:24:20 - Task progress
+
+- Task: T001 revise 재시도 중단 사유 보존 보강
+- Result: auto-cycle-full의 review gate가 pass가 아닌 최신 리뷰에서 summary, severity,
+ next_step, lastReviewDecision을 중단 메시지와 state.lastErrorSummary/stopReason에 
+보존하도록 보강함
+- Verification: PowerShell parse OK, DryRun preview-only 실행, DryRun 전후 stat
+e/queue/review-response/loop-log 해시 동일 확인
+- Remaining risk: build/lint, 실제 revise 반복 실행, 리뷰 pass, git commit, complet
+e-task, 최종 clean 확인은 현재 프롬프트와 저장소 규칙상 실행하지 않음
+
+## 2026-06-19 23:34:08 - Task completed
+
+- Task: T001 revise 재시도 중단 사유 보존 보강
+- Result: T001 완료: revise 재시도 후 재리뷰가 계속 revise인 경우 최신 summary, severity, ne
+xt_step, lastReviewDecision을 보존해 명확히 중단하도록 보강하고, DryRun no-mutation 및 revis
+e 중단 사유 보존 검증과 리뷰 pass를 확인함
+- Next task: 없음
+## 2026-06-23 15:45:52 - Commit created
+
+- Task: T001 구현 없는 revise 반복 실패 처리 보강
+- Commit: 9a2c93cf08ba69bac0ae2e3f48f008595be250f3
+- Message: Guard stale revise loops
+## 2026-06-23 15:45:56 - Task completed
+
+- Task: T001 구현 없는 revise 반복 실패 처리 보강
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
+- Next task: 없음
+
+## 2026-06-24 - Task revise
+
+- Task: T001 review-gate revise 자동 재시도 흐름 연결
+- Result: 리뷰 지적에 따라 `.ai-dev/test-result.md`에 재리뷰 pass 경로와 반복 revise 실패 경로의
+ 검증 근거를 추가함
+- Verification: PowerShell AST parse OK, runtime branch order checks passed
+, failure state 기록 필드 checks passed
+- Not executed: Codex, build, lint, test, review, commit, complete-task는 공유
+ 작업공간 상태 변경 가능성이 있어 실행하지 않음
+- Remaining risk: 실제 Codex mock runner를 주입한 end-to-end 자동 재시도는 별도 격리 환경에서 추
+가 확인이 필요함
+
+## 2026-06-24 10:48:01 - Commit created
+
+- Task: T001 review-gate revise 자동 재시도 흐름 연결
+- Commit: 388d05a41c652ca0c198fcceb9ec8d785dafbd6c
+- Message: Connect review revise retry flow
+## 2026-06-24 10:48:04 - Task completed
+
+- Task: T001 review-gate revise 자동 재시도 흐름 연결
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
+- Next task: 없음
+## 2026-06-25 15:14:53 - Commit created
+
+- Task: T001 업무 흐름 안내 문구 개선
+- Commit: 7814005d29f5449d9c687f1b90e115806825280f
+- Message: Improve task flow guidance copy
+## 2026-06-25 15:14:56 - Task completed
+
+- Task: T001 업무 흐름 안내 문구 개선
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
+- Next task: 없음
+## 2026-06-25 15:52:16 - Commit created
+
+- Task: T001 빈 상태와 필터 결과 없음 안내 개선
+- Commit: 8d8cc3b5a90dbfface49ee1db932589c08e34ca8
+- Message: Improve empty state copy
+## 2026-06-25 15:52:22 - Task completed
+
+- Task: T001 빈 상태와 필터 결과 없음 안내 개선
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
+- Next task: T002 업무 카드 상태와 다음 행동 안내 정리
+
+## 2026-06-25 15:54:29 - Task completed
+
+- Task: T002 업무 카드 상태와 다음 행동 안내 정리
+- Result: 업무 카드에서 상태 라벨과 다음 행동 안내를 같은 문구 규칙으로 정리하고, 토글 버튼 문구와 aria-label이 같
+은 다음 행동 문구를 사용하도록 조정함
+- Verification: `src/components/TaskCard.tsx` 수동 검토로 완료/미완료 상태별 다음 행동 문구가 모
+순되지 않는지 확인함
+- Not executed: 프롬프트가 자동 build/test/lint 실행을 지시하지 않아 `npm run build`, `npm 
+run test`, `npm run lint`는 실행하지 않음
+- Remaining risk: 실제 브라우저 화면 확인과 빌드 검증은 사람이 별도로 수행해야 함
+- Next task: T003 로컬 저장 안내 문구 보강
+
+## 2026-06-25 15:59:09 - Commit created
+
+- Task: T003 로컬 저장 안내 문구 보강
+- Commit: 1bda5d3d991141379a6bf60e85c87a69f288f9c8
+- Message: Add local storage guidance
+## 2026-06-25 15:59:13 - Task completed
+
+- Task: T003 로컬 저장 안내 문구 보강
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
+- Next task: 없음
+## 2026-06-25 16:33:41 - Commit created
+
+- Task: T001 상태 출력의 오래된 요약 차단
+- Commit: ff5f085982b462cd01657b3bad5e8f1927dc5d06
+- Message: Hide stale AI dev status summaries
+## 2026-06-25 16:33:45 - Task completed
+
+- Task: T001 상태 출력의 오래된 요약 차단
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
+- Next task: 없음
+## 2026-06-28 20:03:25 - Commit created
+
+- Task: T001 stale Review summary 상세 숨김 구현
+- Commit: d8e7ba0a517d92af064979342df903b817613195
+- Message: Hide stale review summary details
+## 2026-06-28 20:03:30 - Task completed
+
+- Task: T001 stale Review summary 상세 숨김 구현
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
+- Next task: 없음
+## 2026-06-28 20:41:18 - Task completed
+
+- Task: T001 기존 AI Dev Loop 자동화 흐름 분석
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 구현 커밋 없음, 저장된 리뷰 pas
+s에서 자동 완료
+- Next task: T002 제한된 autopilot 실행 흐름 구현
+
+## 2026-06-28 21:10:00 - Task progress
+
+- Task: T002 제한된 autopilot 실행 흐름 구현
+- Result: `scripts/ai-dev-autopilot.ps1`를 추가해 완료된 현재 goal 확인, backlog 기반 다음
+ goal 후보 생성, 기존 `ai-dev-auto-goal.ps1` 호출, `MaxGoals` 제한, 실패 시 state/loop-l
+og 기록 흐름을 구현함
+- Docs: `.ai-dev/README.md`에 autopilot 실행 방법, 기본 제한값, full cycle 권한 옵션, 중단 
+조건, 실패 기록 방식을 추가함
+- Verification: PowerShell AST 문법 검증 예정. build/test/lint, git 명령, 실제 Codex 
+실행은 수행하지 않음
+
+## 2026-07-09 22:12:28 - Commit created
+
+- Task: T002 제한된 autopilot 실행 흐름 구현
+- Commit: 98977ec50aaea338f258131fb0738e090b5cbfda
+- Message: Add AI dev loop autopilot mode
+## 2026-07-09 22:12:32 - Task completed
+
+- Task: T002 제한된 autopilot 실행 흐름 구현
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
+- Next task: T003 사용법과 검증 기준 문서화
+
+## 2026-07-09 22:30:00 - Task progress
+
+- Task: T003 사용법과 검증 기준 문서화
+- Result: `.ai-dev/README.md`의 제한된 autopilot 실행 섹션에 수동 검증 기준을 추가함
+- Scope: 문서와 AI Dev Loop 기록만 수정함. 앱 `src` 기능 코드는 변경하지 않음
+- Verification: 문서에 제한값 확인, 중단 조건, 상태 파일 확인 지점, 기존 auto-goal 흐름 확인 절차가 포함되는
+지 수동 검토 예정
+
+## 2026-07-09 22:38:00 - Task progress
+
+- Task: T003 사용법과 검증 기준 문서화
+- Result: `.ai-dev/README.md`의 autopilot 문서에 제한값/실행 옵션 표와 실패 후 확인할 상태 파일 표를
+ 보강함
+- Verification: `.ai-dev/test-result.md`에 문서 수동 검증 기준과 미실행 항목을 기록함
+- Not executed: 문서화 작업이므로 `npm run build`, `npm run test`, `npm run lint`, 
+autopilot 실제 실행은 수행하지 않음
+
+## 2026-07-09 22:28:04 - Task completed
+
+- Task: T003 사용법과 검증 기준 문서화
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 구현 커밋 없음, 저장된 리뷰 pas
+s에서 자동 완료
+- Next task: 없음
+## 2026-07-09 22:40:14 - Task completed
+
+- Task: T001 Codex CLI 자동화 정책 문서 작성
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 구현 커밋 없음, 저장된 리뷰 pas
+s에서 자동 완료
+- Next task: 없음
+## 2026-07-09 23:02:43 - Commit created
+
+- Task: T001 Codex 구현 실행 스크립트 추가
+- Commit: 95538cb05fcc24867fdd87dca0fc60c7632d10ab
+- Message: Add Codex implementation script
+## 2026-07-09 23:02:48 - Task completed
+
+- Task: T001 Codex 구현 실행 스크립트 추가
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
+- Next task: 없음
+## 2026-07-09 23:03:08 - Autopilot goal prepared
+
+- Goal: Codex 구현 실행 스크립트 추가
+- Source: .ai-dev/backlog.md / P0
+- Prepared goals: 1/1
+
+## 2026-07-12 22:00:16 - Commit created
+
+- Task: T001 Codex CLI 자동화 정책 문서 초안 작성
+- Commit: abac2cbd9445bc7374e8f07d31356859b2cab330
+- Message: Document Codex CLI automation policy
+## 2026-07-12 22:00:20 - Task completed
+
+- Task: T001 Codex CLI 자동화 정책 문서 초안 작성
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
+- Next task: 없음
+## 2026-07-12 22:00:44 - Autopilot goal prepared
+
+- Goal: Codex CLI 완전 자동화 정책 문서화
+- Source: .ai-dev/backlog.md / P0
+- Prepared goals: 1/1
+
+## 2026-07-12 22:40:00 - Task progress
+
+- Task: T001 완료된 Autopilot goal 제외 처리 구현
+- Result: `scripts/ai-dev-autopilot.ps1`의 backlog 후보 선택이 현재 goal, 현재 실행 use
+d title, 과거 `Autopilot goal prepared` 로그의 `- Goal:` title, 완료된 queue/state 
+goal title을 제외 대상으로 사용함을 확인함
+- Duplicate handling: 모든 후보가 제외되면 `all_goal_candidates_excluded`로 중단하고 제외 t
+itle 목록과 후보 title 목록을 실패 메시지에 포함해 state/loop-log/output 경로로 남기도록 되어 있음
+- Verification: PowerShell AST 문법 검증 통과, DryRun 실행 전후 `.ai-dev/state.json`,
+ `.ai-dev/queue.json`, `.ai-dev/loop-log.md` SHA256 불변 확인
+- Not executed: `npm run build`, `npm run lint`, `npm run test`, git 명령은 이번
+ task 규칙에 따라 실행하지 않음
+
+## 2026-07-12 23:05:00 - Task revise
+
+- Task: T001 완료된 Autopilot goal 제외 처리 구현
+- Result: 완료 title 이력 수집 경로를 `Get-HistoricalGoalTitles`로 명확히 묶고, 완료된 현재 que
+ue/state의 `goalTitle`과 `Autopilot goal prepared` 로그의 `- Goal:`만 제외 대상으로 사용하
+도록 정리함
+- Review fix: `Task completed` 로그의 `- Task:` 값은 완료 goal title로 취급하지 않음을 함수 
+단위 검증으로 확인함
+- Verification: PowerShell AST 문법 검증 통과, DryRun 실행 전후 `.ai-dev/state.json`,
+ `.ai-dev/queue.json`, `.ai-dev/loop-log.md` SHA256 불변 확인, 한국어 goal title 수
+집 확인
+- Not executed: `npm run build`, `npm run lint`, `npm run test`, git 명령은 이번
+ revise 규칙에 따라 실행하지 않음
+
+## 2026-07-12 22:56:49 - Commit created
+
+- Task: T001 완료된 Autopilot goal 제외 처리 구현
+- Commit: 0faa4737a307e8b821d9fb9ac34f45fde58d0da8
+- Message: Avoid duplicate autopilot goals
+## 2026-07-12 22:56:54 - Task completed
+
+- Task: T001 완료된 Autopilot goal 제외 처리 구현
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
+- Next task: 없음
+## 2026-07-12 23:04:37 - Autopilot stopped
+
+- Reason: auto_goal_failed
+- Result: Auto-goal failed with exit code 1: Step 1: validate-input
+  Command: check GoalTitle/GoalDescription
   Executed: False
   Skipped: False
   Exit code: 0
-  Message: Autopilot input validation completed. MaxGoals=1, MaxTasks=1, Ma
-xSteps=40
-Step 2: current-goal-gate
+  Message: Input validation completed: Codex 리뷰 실행 스크립트 추가
+Step 2: dirty-worktree-gate
+  Command: git status --porcelain
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: Baseline dirty count: 0. Worktree is clean.
+Step 3: plan-goal
+  Command: codex exec <auto-goal planning prompt>
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: Codex goal planning completed. Result: .ai-dev/codex-result.md
+Step 4: validate-generated-json
+  Command: goal/queue/state JSON validation
   Executed: False
   Skipped: False
   Exit code: 0
-  Message: Current goal is completed. Previous goal: auto-goal MaxSteps 湲곕낯
-媛??덉젙??Step 3: generate-goal-candidate
+  Message: goalMarkdown, queue, and state JSON validation completed. curren
+tTaskId: T001
+Step 5: write-state-files
+  Command: .ai-dev/goal.md, .ai-dev/queue.json, .ai-dev/state.json
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: New goal, queue, and state files were written.
+Step 6: make-prompt
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-pro
+mpt.ps1
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: 생성된 프롬프트 파일: .ai-dev/current-task-prompt.md
+Current task id: T001
+Current task title: Codex 리뷰 실행 스크립트 추가
+Step 7: auto-cycle-full
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cyc
+le-full.ps1 -MaxTasks 3 -MaxSteps 22 -AllowCodex -AllowReviewCodex -AllowCo
+mmit -AllowDirty
+  Executed: True
+  Skipped: False
+  Exit code: 1
+  Message: Step 1: task-start
+  Command: MaxTasks=3
+  Executed: False
+  Skipped: False
+  Exit code: 0
+  Message: 현재 task 실행 시작: T001 Codex 리뷰 실행 스크립트 추가
+Step 2: make-prompt
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-pro
+mpt.ps1
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: 생성된 프롬프트 파일: .ai-dev/current-task-prompt.md
+Current task id: T001
+Current task title: Codex 리뷰 실행 스크립트 추가
+Step 3: run-codex
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-code
+x.ps1 -AllowDirty
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: Codex 실행이 완료되었습니다. 결과 파일: .ai-dev/codex-result.md
+Step 4: check
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-check.ps
+1 -BuildOnly
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: 실행 중: npm run build
+실행 중: npm run lint
+검증 결과: passed
+  - npm run build: passed
+  - npm run test: skipped
+  - npm run lint: passed
+기록 완료: .ai-dev/test-result.md
+상태 저장 완료: .ai-dev/state.json
+Step 5: save-diff
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-save-dif
+f.ps1
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: git diff 저장 완료: .ai-dev/diff.md
+상태 저장 완료: .ai-dev/state.json
+untracked 파일 내용이 필요하면 -IncludeUntrackedContent 옵션을 사용하세요.
+Step 6: make-review-prompt
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-rev
+iew-prompt.ps1 -Strict
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: 생성된 리뷰 프롬프트 파일: .ai-dev/review-prompt.md
+Current task id: T001
+Current task title: Codex 리뷰 실행 스크립트 추가
+Strict 사용 여부: True
+Step 7: run-review-codex
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-revi
+ew-codex.ps1 -AllowDirty -SaveReview
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: Codex 리뷰 실행이 완료되었습니다. 리뷰 JSON: .ai-dev/review-response.json 결과 파
+일: .ai-dev/codex-review-result.md save-review 흐름까지 실행했습니다.
+Step 8: review-gate
+  Command: task type, .ai-dev/review-response.json required_changes, 현재 dif
+f 확인
   Executed: False
   Skipped: True
   Exit code: 1
-  Message: Autopilot ?꾨낫媛 紐⑤몢 ?뚯쭊?섏뿀?듬땲?? ?꾩옱 ?곹깭: goalStatus=completed, c
-urrentTaskId=, openTaskCount=0, currentGoal=auto-goal MaxSteps 湲곕낯媛??덉젙?? ?
-쒖쇅??backlog ?꾨낫 ?? 14/14. 紐⑤뱺 ?꾨낫媛 ?꾩옱 goal, 以鍮??대젰, ?꾨즺 ?대젰 ?먮뒗 durable 
-history? 以묐났?섏뼱 ?좉퇋 goal???먮룞 ?앹꽦?섏? ?딆뒿?덈떎. ?ㅼ쓬 ?됰룞: 1. .ai-dev/backlog.m
-d???덈줈??backlog ??ぉ??異붽??⑸땲?? 2. ?대? ?꾨즺???꾨낫瑜??ㅼ떆 吏꾪뻾?댁빞 ?쒕떎硫?durable hist
-ory? ?꾨즺 ?대젰???щ엺??癒쇱? 寃?좏빀?덈떎. 3. 吏湲덉? ?먮룞 吏꾪뻾??硫덉텛怨??꾩옱 ?곹깭瑜??좎??⑸땲?? 
-怨꾩냽 吏꾪뻾?섎젮硫???backlog ??ぉ???꾩슂?⑸땲?? ?쒖쇅???꾨낫: Codex CLI ?꾩쟾 ?먮룞???뺤콉 臾몄꽌?? 
-Codex 援ы쁽 ?ㅽ뻾 ?ㅽ겕由쏀듃 異붽?; Codex 由щ럭 ?ㅽ뻾 ?ㅽ겕由쏀듃 異붽?; full auto-cycle 珥덉븞 異붽?
-; ?먮룞 而ㅻ컠怨?task ?꾨즺 ?곌껐; MaxTasks 1 end-to-end 寃利? full auto-cycle 濡쒓렇 援ъ“
- 媛쒖꽑; package 蹂寃?媛먯? 硫붿떆吏 媛쒖꽑; build/check ?ㅽ뙣 ??revise ?먮쫫 ?먮룞 ?덈궡; Code
-x 由щ럭 JSON 異붿텧 ?ㅽ뙣 泥섎━ 蹂닿컯; GitHub PR ?곕룞 寃?? Copilot CLI ?먮뒗 gh ?곕룞 ?ш???
- ?κ린 ?ㅽ뻾 ?먮룞??紐⑤땲?곕쭅 ?뺤콉; 蹂묐젹 task ?ㅽ뻾 媛?μ꽦 寃?? ?쒖쇅 湲곗? title: auto-goal 
-MaxSteps 湲곕낯媛??덉젙?? Codex 援ы쁽 ?ㅽ뻾 ?ㅽ겕由쏀듃 異붽?; Codex CLI ?꾩쟾 ?먮룞???뺤콉 臾몄꽌?? 
-full auto-cycle 珥덉븞 異붽?; Codex 由щ럭 ?ㅽ뻾 ?ㅽ겕由쏀듃 異붽?; package 蹂寃?媛먯? 硫붿떆吏 媛쒖
-꽑; GitHub PR ?곕룞 寃?? ?κ린 ?ㅽ뻾 ?먮룞??紐⑤땲?곕쭅 ?뺤콉; 蹂묐젹 task ?ㅽ뻾 媛?μ꽦 寃?? Auto
-pilot DryRun codex-result dirty 諛⑹?; ?먮룞 而ㅻ컠怨?task ?꾨즺 ?곌껐; Autopilot histo
-ry dirty gate 異⑸룎 ?섏젙; MaxTasks 1 end-to-end 寃利? Verification task revise 
-?먮룞 泥섎━; full auto-cycle 濡쒓렇 援ъ“ 媛쒖꽑; build/check ?ㅽ뙣 ??revise ?먮쫫 ?먮룞 ?덈궡;
- Codex 由щ럭 JSON 異붿텧 ?ㅽ뙣 泥섎━ 蹂닿컯; Copilot CLI ?먮뒗 gh ?곕룞 ?ш??? Durable histo
-ry title: Autopilot DryRun codex-result dirty 諛⑹?; ?먮룞 而ㅻ컠怨?task ?꾨즺 ?곌껐; A
-utopilot history dirty gate 異⑸룎 ?섏젙; MaxTasks 1 end-to-end 寃利? Verificatio
-n task revise ?먮룞 泥섎━; full auto-cycle 濡쒓렇 援ъ“ 媛쒖꽑; package 蹂寃?媛먯? 硫붿떆吏 媛
-쒖꽑; build/check ?ㅽ뙣 ??revise ?먮쫫 ?먮룞 ?덈궡; Codex 由щ럭 JSON 異붿텧 ?ㅽ뙣 泥섎━ 蹂닿컯; G
-itHub PR ?곕룞 寃?? Copilot CLI ?먮뒗 gh ?곕룞 ?ш??? ?κ린 ?ㅽ뻾 ?먮룞??紐⑤땲?곕쭅 ?뺤콉; 蹂묐젹
- task ?ㅽ뻾 媛?μ꽦 寃?? auto-goal MaxSteps 湲곕낯媛??덉젙??
-Step 4: autopilot-meta-commit
-  Executed: True
-  Skipped: False
-  Exit code: 0
-  Message: Autopilot meta files had no changes to commit. Baseline dirty fi
-les skipped: .ai-dev/loop-log.md
-Step 5: expected-non-work-cleanup
-  Executed: True
-  Skipped: False
-  Exit code: 0
-  Message: Classification: expected_non_work. Original stopped reason: all_
-goal_candidates_excluded. Baseline dirty files skipped: .ai-dev/loop-log.md
-. Cleaned run-owned files: .ai-dev/autopilot-goal-history.json, .ai-dev/sta
-te.json. Meta commit created: False (not created: Autopilot meta files had 
-no changes to commit. Baseline dirty files skipped: .ai-dev/loop-log.md). N
-ext run without manual git restore: True. Restored only autopilot operation
-al files captured at run start; baseline user changes were preserved.
-Stopped reason: all_goal_candidates_excluded
-Outcome category: expected_non_work
-Operational cleanup performed: True
-Meta commit created: False
-Next run without manual restore: True
+  Message: review-response.json이 구현 파일 변경을 요구했지만 현재 diff에 구현 변경 파일이 없습니다. r
+equiredFiles=package.json
+Stopped reason: missing_implementation
 Completed: False
-Prepared goals: 0/1
 Exit code: 1
+Plan preview:
+  Goal title: Codex 리뷰 실행 스크립트 추가
+  Current task id: T001
+  Task T001: Codex 리뷰 실행 스크립트 추가
+    Type: implementation
+    Status: in_progress
+    Priority: P0
+    Likely files: package.json
+    Verification: 스크립트 항목이 package.json에 추가되었는지 확인한다. / 명령 이름과 실행 대상이 리뷰 목적
+에 맞는지 확인한다. / 불필요한 파일 변경이 없는지 확인한다.
+Stopped reason: auto-cycle-full_failed
+Completed: False
+Exit code: 1
+- Prepared goals: 0/1
 
-```
+## 2026-07-12 23:22:24 - Task completed
 
- succeeded in 4124ms:
+- Task: T001 Codex 리뷰 실행 스크립트 추가
+- Result: 자동 완료: package.json에 ai-dev:review 스크립트 추가, build/lint 통과, Codex 
+리뷰 pass
+- Next task: 없음
+## 2026-07-12 23:28:29 - Task completed
+
+- Task: T001 full auto-cycle 초안 문서 추가
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 구현 커밋 없음, 저장된 리뷰 pas
+s에서 자동 완료
+- Next task: 없음
+## 2026-07-12 23:28:53 - Autopilot goal prepared
+
+- Goal: full auto-cycle 초안 추가
+- Source: .ai-dev/backlog.md / P0
+- Prepared goals: 1/1
+
+## 2026-07-12 23:47:02 - Task completed
+
+- Task: T001 Codex 리뷰 실행 스크립트 추가
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 구현 커밋 없음, 저장된 리뷰 pas
+s에서 자동 완료
+- Next task: 없음
+## 2026-07-12 23:47:27 - Autopilot goal prepared
+
+- Goal: Codex 리뷰 실행 스크립트 추가
+- Source: .ai-dev/backlog.md / P0
+- Prepared goals: 1/1
+
+## 2026-07-13 00:31:41 - Commit created
+
+- Task: T001 Autopilot durable history 구현
+- Commit: 740de4aabe92d75b21571706b453521d2734c8e7
+- Message: Add durable autopilot goal history
+## 2026-07-13 00:31:46 - Task completed
+
+- Task: T001 Autopilot durable history 구현
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
+- Next task: T002 전체 후보 제외 상태 처리 검증
+## 2026-07-13 15:13:25 - Task completed
+
+- Task: T002 전체 후보 제외 상태 처리 검증
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 구현 커밋 없음, 저장된 리뷰 pas
+s에서 자동 완료
+- Next task: 없음
+## 2026-07-17 17:10:36 - Commit created
+
+- Task: T001 DryRun 결과 저장 흐름 분석 및 수정
+- Commit: 2dbdd02b68757b586b9bf3d7322e675ae3bf593d
+- Message: Prevent dry run result file writes
+## 2026-07-17 17:10:39 - Task completed
+
+- Task: T001 DryRun 결과 저장 흐름 분석 및 수정
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
+- Next task: T002 DryRun 무변경 상태 검증
+## 2026-07-17 17:55:16 - Task completed
+
+- Task: T002 DryRun 무변경 상태 검증
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 구현 커밋 없음, 저장된 리뷰 pas
+s에서 자동 완료
+- Next task: 없음
+## 2026-07-17 17:57:20 - Autopilot stopped
+
+- Reason: auto_goal_failed
+- Result: Auto-goal failed with exit code 1: Step 1: validate-input
+  Command: check GoalTitle/GoalDescription
+  Executed: False
+  Skipped: False
+  Exit code: 0
+  Message: Input validation completed: 자동 커밋과 task 완료 연결
+Step 2: dirty-worktree-gate
+  Command: git status --porcelain
+  Executed: False
+  Skipped: True
+  Exit code: 1
+  Message: Baseline dirty count: 1
+Worktree is dirty. Use -AllowDirty only when this is intentional.
+?? .ai-dev/autopilot-goal-history.json
+Stopped reason: dirty_worktree
+Completed: False
+Exit code: 1
+- Prepared goals: 0/2
+## 2026-07-17 18:20:00 - Revise applied
+
+- Task: T001 Autopilot history dirty gate 흐름 수정
+- Result: nested auto-goal 직전 meta commit 정책을 loop-log/history 단독 처리에서 auto
+pilot 자동화 메타 파일 처리로 확장하고, 최종 검증 범위를 같은 meta 파일 목록으로 정렬했다.
+- Verification: build/lint 및 수동 실행 검증은 재수정 후 별도 확인 대상이다.
+
+## 2026-07-17 18:10:57 - Commit created
+
+- Task: T001 Autopilot history dirty gate 흐름 수정
+- Commit: b5ec82fe86ee008d51d64aa7345ef42f9157b899
+- Message: Fix autopilot history dirty gate
+## 2026-07-17 18:11:01 - Task completed
+
+- Task: T001 Autopilot history dirty gate 흐름 수정
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
+- Next task: 없음
+
+## 2026-07-17 - Task verification
+
+- Task: T001 MaxTasks 1 흐름 검증
+- Result: 현재 큐는 T001 단일 task로 생성되어 있고, `ai-dev-auto-cycle-full.ps1`는 `MaxTa
+sks` 입력값을 1 이상으로 검증한 뒤 완료 task 수가 `MaxTasks`에 도달하면 `max_tasks_reached`로 종료하
+는 구조임을 확인했다.
+- Finding: `ai-dev-auto-goal.ps1`의 계획 생성/검증 규칙은 `MaxTasks` 값을 반영하지 않고 queue
+ task를 1~3개까지 허용한다. 현재 상태는 1개라 문제가 드러나지 않지만, `MaxTasks 1` 조건에서 새 goal 생성 단계
+가 항상 1개 task만 만들도록 강제되지는 않는다.
+- Verification: 코드와 `.ai-dev/queue.json`, `.ai-dev/state.json` 정적 검토로 확인했다.
+ git, build, lint, test, npm install, 브라우저 실행은 수행하지 않았다.
+- Next task: MaxTasks 1 생성 제한을 강제하려면 별도 구현 task가 필요하다.
+
+## 2026-07-17 18:23:54 - Autopilot stopped
+
+- Reason: auto_goal_failed
+- Result: Auto-goal failed with exit code 1: Step 1: validate-input
+  Command: check GoalTitle/GoalDescription
+  Executed: False
+  Skipped: False
+  Exit code: 0
+  Message: Input validation completed: MaxTasks 1 end-to-end 검증
+Step 2: dirty-worktree-gate
+  Command: git status --porcelain
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: Baseline dirty count: 0. Worktree is clean.
+Step 3: plan-goal
+  Command: codex exec <auto-goal planning prompt>
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: Codex goal planning completed. Result: .ai-dev/codex-result.md
+Step 4: validate-generated-json
+  Command: goal/queue/state JSON validation
+  Executed: False
+  Skipped: False
+  Exit code: 0
+  Message: goalMarkdown, queue, and state JSON validation completed. curren
+tTaskId: T001
+Step 5: write-state-files
+  Command: .ai-dev/goal.md, .ai-dev/queue.json, .ai-dev/state.json
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: New goal, queue, and state files were written.
+Step 6: make-prompt
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-pro
+mpt.ps1
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: 생성된 프롬프트 파일: .ai-dev/current-task-prompt.md
+Current task id: T001
+Current task title: MaxTasks 1 흐름 검증
+Step 7: auto-cycle-full
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cyc
+le-full.ps1 -MaxTasks 3 -MaxSteps 22 -AllowCodex -AllowReviewCodex -AllowCo
+mmit -AllowDirty
+  Executed: True
+  Skipped: False
+  Exit code: 1
+  Message: Step 1: task-start
+  Command: MaxTasks=3
+  Executed: False
+  Skipped: False
+  Exit code: 0
+  Message: 현재 task 실행 시작: T001 MaxTasks 1 흐름 검증
+Step 2: make-prompt
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-pro
+mpt.ps1
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: 생성된 프롬프트 파일: .ai-dev/current-task-prompt.md
+Current task id: T001
+Current task title: MaxTasks 1 흐름 검증
+Step 3: run-codex
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-code
+x.ps1 -AllowDirty
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: Codex 실행이 완료되었습니다. 결과 파일: .ai-dev/codex-result.md
+Step 4: check
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-check.ps
+1 -BuildOnly
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: 실행 중: npm run build
+실행 중: npm run lint
+검증 결과: passed
+  - npm run build: passed
+  - npm run test: skipped
+  - npm run lint: passed
+기록 완료: .ai-dev/test-result.md
+상태 저장 완료: .ai-dev/state.json
+Step 5: save-diff
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-save-dif
+f.ps1
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: git diff 저장 완료: .ai-dev/diff.md
+상태 저장 완료: .ai-dev/state.json
+untracked 파일 내용이 필요하면 -IncludeUntrackedContent 옵션을 사용하세요.
+Step 6: make-review-prompt
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-rev
+iew-prompt.ps1 -Strict
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: 생성된 리뷰 프롬프트 파일: .ai-dev/review-prompt.md
+Current task id: T001
+Current task title: MaxTasks 1 흐름 검증
+Strict 사용 여부: True
+Step 7: run-review-codex
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-revi
+ew-codex.ps1 -AllowDirty -SaveReview
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: Codex 리뷰 실행이 완료되었습니다. 리뷰 JSON: .ai-dev/review-response.json 결과 파
+일: .ai-dev/codex-review-result.md save-review 흐름까지 실행했습니다.
+Step 8: review-gate
+  Command: task type, .ai-dev/review-response.json required_changes, 현재 dif
+f 확인
+  Executed: False
+  Skipped: True
+  Exit code: 1
+  Message: 현재 task type이 implementation이 아닌데 review decision=revise입니다. 구현 
+없는 revise 반복을 성공 처리하지 않도록 중단합니다. taskType='verification', requiredFiles=, c
+hangedFiles=
+Stopped reason: non_implementation_revise
+Completed: False
+Exit code: 1
+Plan preview:
+  Goal title: MaxTasks 1 end-to-end 검증
+  Current task id: T001
+  Task T001: MaxTasks 1 흐름 검증
+    Type: verification
+    Status: in_progress
+    Priority: P0
+    Likely files: 
+    Verification: MaxTasks 1 조건에서 업무 1개 생성 흐름을 확인한다. / 업무가 1개인 상태에서 추가 생성 시
+도를 확인한다. / 업무 완료 또는 미완료 전환 후 제한 동작을 확인한다. / 새로고침 후 제한 상태가 유지되는지 확인한다.
+Stopped reason: auto-cycle-full_failed
+Completed: False
+Exit code: 1
+- Prepared goals: 0/2
+
+## 2026-07-17 19:29:36 - Commit created
+
+- Task: T001 verification revise 분기 수정
+- Commit: 189d3e0b8ba8f67cb15bab54d8f26f5aca42ba3c
+- Message: Handle verification revise flow
+## 2026-07-17 19:29:40 - Task completed
+
+- Task: T001 verification revise 분기 수정
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
+- Next task: 없음
+## 2026-07-17 19:40:26 - Autopilot stopped
+
+- Reason: auto_goal_failed
+- Result: Auto-goal failed with exit code 1: Step 1: validate-input
+  Command: check GoalTitle/GoalDescription
+  Executed: False
+  Skipped: False
+  Exit code: 0
+  Message: Input validation completed: full auto-cycle 로그 구조 개선
+Step 2: dirty-worktree-gate
+  Command: git status --porcelain
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: Baseline dirty count: 0. Worktree is clean.
+Step 3: plan-goal
+  Command: codex exec <auto-goal planning prompt>
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: Codex goal planning completed. Result: .ai-dev/codex-result.md
+Step 4: validate-generated-json
+  Command: goal/queue/state JSON validation
+  Executed: False
+  Skipped: False
+  Exit code: 0
+  Message: goalMarkdown, queue, and state JSON validation completed. curren
+tTaskId: T001
+Step 5: write-state-files
+  Command: .ai-dev/goal.md, .ai-dev/queue.json, .ai-dev/state.json
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: New goal, queue, and state files were written.
+Step 6: make-prompt
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-pro
+mpt.ps1
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: 생성된 프롬프트 파일: .ai-dev/current-task-prompt.md
+Current task id: T001
+Current task title: full auto-cycle 로그 구조 확인 및 최소 개선
+Step 7: auto-cycle-full
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cyc
+le-full.ps1 -MaxTasks 3 -MaxSteps 22 -AllowCodex -AllowReviewCodex -AllowCo
+mmit -AllowDirty
+  Executed: True
+  Skipped: False
+  Exit code: 1
+  Message: Step 1: task-start
+  Command: MaxTasks=3
+  Executed: False
+  Skipped: False
+  Exit code: 0
+  Message: 현재 task 실행 시작: T001 full auto-cycle 로그 구조 확인 및 최소 개선
+Step 2: make-prompt
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-pro
+mpt.ps1
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: 생성된 프롬프트 파일: .ai-dev/current-task-prompt.md
+Current task id: T001
+Current task title: full auto-cycle 로그 구조 확인 및 최소 개선
+Step 3: run-codex
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-code
+x.ps1 -AllowDirty
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: Codex 실행이 완료되었습니다. 결과 파일: .ai-dev/codex-result.md
+Step 4: check
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-check.ps
+1 -BuildOnly
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: 실행 중: npm run build
+실행 중: npm run lint
+검증 결과: passed
+  - npm run build: passed
+  - npm run test: skipped
+  - npm run lint: passed
+기록 완료: .ai-dev/test-result.md
+상태 저장 완료: .ai-dev/state.json
+Step 5: save-diff
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-save-dif
+f.ps1
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: WARNING: git diff --stat 경고: warning: in the working copy of 'sc
+ripts/ai-dev-auto-cycle-full.ps1', LF
+ will be replaced by CRLF the next time Git touches it
+WARNING: git diff 경고: warning: in the working copy of 'scripts/ai-dev-auto-
+cycle-full.ps1', LF will 
+be replaced by CRLF the next time Git touches it
+git diff 저장 완료: .ai-dev/diff.md
+상태 저장 완료: .ai-dev/state.json
+untracked 파일 내용이 필요하면 -IncludeUntrackedContent 옵션을 사용하세요.
+Step 6: make-review-prompt
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-rev
+iew-prompt.ps1 -Strict
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: 생성된 리뷰 프롬프트 파일: .ai-dev/review-prompt.md
+Current task id: T001
+Current task title: full auto-cycle 로그 구조 확인 및 최소 개선
+Strict 사용 여부: True
+Step 7: run-review-codex
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-revi
+ew-codex.ps1 -AllowDirty -SaveReview
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: Codex 리뷰 실행이 완료되었습니다. 리뷰 JSON: .ai-dev/review-response.json 결과 파
+일: .ai-dev/codex-review-result.md save-review 흐름까지 실행했습니다.
+Step 8: review-gate
+  Command: .ai-dev/review-response.json decision/next_step 확인
+  Executed: False
+  Skipped: False
+  Exit code: 0
+  Message: 리뷰 결과가 revise + revise_with_codex입니다. 자동 revise 재시도를 시작합니다. seve
+rity=medium, summary=성공 종료 시 context.task가 complete-task 이후 상태로 갱신되지 않아 로그 
+구조 개선 목적과 달리 stale task 상태가 기록될 수
+ 있습니다.
+Step 9: make-revise-prompt
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-rev
+ise-prompt.ps1
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: 생성된 재수정 프롬프트 파일: .ai-dev/revise-prompt.md
+Current task id: T001
+Current task title: full auto-cycle 로그 구조 확인 및 최소 개선
+Review decision: revise
+Review severity: medium
+Optional suggestions 허용 여부: False
+Step 10: run-codex-revise
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-code
+x.ps1 -AllowDirty -PromptPath .ai-dev/revise-prompt.md
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: Codex 실행이 완료되었습니다. 결과 파일: .ai-dev/codex-result.md
+Step 11: check-revise
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-check.ps
+1 -BuildOnly
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: 실행 중: npm run build
+실행 중: npm run lint
+검증 결과: passed
+  - npm run build: passed
+  - npm run test: skipped
+  - npm run lint: passed
+기록 완료: .ai-dev/test-result.md
+상태 저장 완료: .ai-dev/state.json
+Step 12: save-diff-revise
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-save-dif
+f.ps1
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: WARNING: git diff --stat 경고: warning: in the working copy of 'sc
+ripts/ai-dev-auto-cycle-full.ps1', LF
+ will be replaced by CRLF the next time Git touches it
+WARNING: git diff 경고: warning: in the working copy of 'scripts/ai-dev-auto-
+cycle-full.ps1', LF will 
+be replaced by CRLF the next time Git touches it
+git diff 저장 완료: .ai-dev/diff.md
+상태 저장 완료: .ai-dev/state.json
+untracked 파일 내용이 필요하면 -IncludeUntrackedContent 옵션을 사용하세요.
+Step 13: make-review-prompt-revise
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-rev
+iew-prompt.ps1 -Strict
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: 생성된 리뷰 프롬프트 파일: .ai-dev/review-prompt.md
+Current task id: T001
+Current task title: full auto-cycle 로그 구조 확인 및 최소 개선
+Strict 사용 여부: True
+Step 14: run-review-codex-revise
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-revi
+ew-codex.ps1 -AllowDirty -SaveReview
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: Codex 리뷰 실행이 완료되었습니다. 리뷰 JSON: .ai-dev/review-response.json 결과 파
+일: .ai-dev/codex-review-result.md save-review 흐름까지 실행했습니다.
+Step 15: review-gate
+  Command: 재리뷰 decision/next_step/required_changes 확인
+  Executed: False
+  Skipped: True
+  Exit code: 1
+  Message: 재리뷰도 revise + revise_with_codex를 반환해 자동 revise 재시도를 중단합니다. summa
+ry=성공 종료 시 context.task가 방금 완료한 task가 아니라 다음 task 또는 null로 바뀔 수 있어 full aut
+o-cycle 로그의 후속 
+분석 목적과 충돌합니다., severity=medium, next_step=revise_with_codex, required_chang
+es={
+    "file":  "scripts/ai-dev-auto-cycle-full.ps1",
+    "reason":  "task 완료 후 $script:currentTask를 다음 상태로 갱신한 뒤 Complete-Cycle을
+ 호출하므로, goal_completed 같은\r\n 종료 로그의 context.task가 실제 완료된 task를 가리키지 않을 수 있
+습니다.",
+    "suggestion":  "완료 직전 task를 별도 변수로 보존해 cycle result context에 기록하거나, con
+text에 completedTask와 curr\r\nentTask/nextTask를 구분해 기록하도록 최소 수정하세요."
+}
+Stopped reason: review_revise_repeated
+Completed: False
+Exit code: 1
+Plan preview:
+  Goal title: full auto-cycle 로그 구조 개선
+  Current task id: T001
+  Task T001: full auto-cycle 로그 구조 확인 및 최소 개선
+    Type: implementation
+    Status: in_progress
+    Priority: P1
+    Likely files: .ai-dev 관련 로그 처리 파일, full auto-cycle 실행 관련 파일
+    Verification: 변경된 로그 구조가 기존 사용 지점과 충돌하지 않는지 확인한다. / 허용된 경우 빌드 또는 lint를 
+실행해 정적 오류를 확인한다.
+Stopped reason: auto-cycle-full_failed
+Completed: False
+Exit code: 1
+- Prepared goals: 0/2
+
+## 2026-07-18 17:35:00 - Task revise
+
+- Task: T001 리뷰 JSON 추출 실패 처리 보강
+- Required change reflected: `.ai-dev/test-result.md`의 기존 git status 실패 기반 
+검증 기록을 삭제하고, `scripts/ai-dev-run-review-codex.ps1 -AllowDirty`가 fake Codex 
+응답 이후 JSON 추출/파싱 경로까지 도달한 검증 결과로 갱신함
+- Verification: 정상 JSON 응답은 exit code 0 및 `review-response.json`의 `decision
+=pass`, `severity=none`, `next_step=complete_task` 저장을 확인함. JSON 없음/깨진 JSON
+ 응답은 exit code 1 및 `state.json`의 `lastCommandStatus=failed`, `lastErrorSumm
+ary`, `lastReviewDecision=blocked`, `lastReviewSeverity=critical`, `stopRea
+son=review_json_extraction_failed` 기록을 확인함
+- Safety: 검증 중 변경된 `.ai-dev/state.json`, `.ai-dev/review-response.json`, `.
+ai-dev/codex-review-result.md`는 실행 전 바이트로 복원함
+- Not executed: npm build/lint/test, git commit/reset/checkout/clean/rebase
+/merge/push, npm install은 실행하지 않음
+- Remaining risk: fake Codex 함수 기반 수동 검증이며 실제 Codex CLI 네트워크/모델 응답은 새로 호출하지
+ 않음
+
+## 2026-07-17 20:13:04 - Commit created
+
+- Task: T001 full auto-cycle 로그 구조 확인 및 최소 개선
+- Commit: f543591bb770aa4c6793ce4f2e7446f8a5a77b28
+- Message: Improve full auto-cycle log structure
+## 2026-07-17 20:13:07 - Task completed
+
+- Task: T001 full auto-cycle 로그 구조 확인 및 최소 개선
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
+- Next task: 없음
+## 2026-07-17 20:20:51 - Commit created
+
+- Task: T001 package 변경 감지 메시지 문구 개선
+- Commit: d19bd1932cd36ae8986e3191dd6ab309899df4a1
+- Message: Improve package change notice
+## 2026-07-17 20:20:55 - Task completed
+
+- Task: T001 package 변경 감지 메시지 문구 개선
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
+- Next task: 없음
+## 2026-07-17 20:21:13 - Autopilot goal prepared
+
+- Goal: package 변경 감지 메시지 개선
+- Source: .ai-dev/backlog.md / P1
+- Prepared goals: 1/2
+
+## 2026-07-17 20:29:24 - Autopilot stopped
+
+- Reason: auto_goal_failed
+- Result: Auto-goal failed with exit code 1: Step 1: validate-input
+  Command: check GoalTitle/GoalDescription
+  Executed: False
+  Skipped: False
+  Exit code: 0
+  Message: Input validation completed: build/check 실패 후 revise 흐름 자동 안내
+Step 2: dirty-worktree-gate
+  Command: git status --porcelain
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: Baseline dirty count: 0. Worktree is clean.
+Step 3: plan-goal
+  Command: codex exec <auto-goal planning prompt>
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: Codex goal planning completed. Result: .ai-dev/codex-result.md
+Step 4: validate-generated-json
+  Command: goal/queue/state JSON validation
+  Executed: False
+  Skipped: False
+  Exit code: 0
+  Message: goalMarkdown, queue, and state JSON validation completed. curren
+tTaskId: T001
+Step 5: write-state-files
+  Command: .ai-dev/goal.md, .ai-dev/queue.json, .ai-dev/state.json
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: New goal, queue, and state files were written.
+Step 6: make-prompt
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-pro
+mpt.ps1
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: 생성된 프롬프트 파일: .ai-dev/current-task-prompt.md
+Current task id: T001
+Current task title: build/check 실패 후 revise 안내 추가
+Step 7: auto-cycle-full
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cyc
+le-full.ps1 -MaxTasks 3 -MaxSteps 22 -AllowCodex -AllowReviewCodex -AllowCo
+mmit -AllowDirty
+  Executed: True
+  Skipped: False
+  Exit code: 1
+  Message: Step 1: task-start
+  Command: MaxTasks=3
+  Executed: False
+  Skipped: False
+  Exit code: 0
+  Message: 현재 task 실행 시작: T001 build/check 실패 후 revise 안내 추가
+Step 2: make-prompt
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-pro
+mpt.ps1
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: 생성된 프롬프트 파일: .ai-dev/current-task-prompt.md
+Current task id: T001
+Current task title: build/check 실패 후 revise 안내 추가
+Step 3: run-codex
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-code
+x.ps1 -AllowDirty
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: Codex 실행이 완료되었습니다. 결과 파일: .ai-dev/codex-result.md
+Step 4: check
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-check.ps
+1 -BuildOnly
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: 실행 중: npm run build
+실행 중: npm run lint
+검증 결과: passed
+  - npm run build: passed
+  - npm run test: skipped
+  - npm run lint: passed
+기록 완료: .ai-dev/test-result.md
+상태 저장 완료: .ai-dev/state.json
+Step 5: save-diff
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-save-dif
+f.ps1
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: WARNING: git diff --stat 경고: warning: in the working copy of 'sc
+ripts/ai-dev-next.ps1', LF will be 
+replaced by CRLF the next time Git touches it
+WARNING: git diff 경고: warning: in the working copy of 'scripts/ai-dev-next.
+ps1', LF will be replaced 
+by CRLF the next time Git touches it
+git diff 저장 완료: .ai-dev/diff.md
+상태 저장 완료: .ai-dev/state.json
+untracked 파일 내용이 필요하면 -IncludeUntrackedContent 옵션을 사용하세요.
+Step 6: make-review-prompt
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-rev
+iew-prompt.ps1 -Strict
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: 생성된 리뷰 프롬프트 파일: .ai-dev/review-prompt.md
+Current task id: T001
+Current task title: build/check 실패 후 revise 안내 추가
+Strict 사용 여부: True
+Step 7: run-review-codex
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-revi
+ew-codex.ps1 -AllowDirty -SaveReview
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: Codex 리뷰 실행이 완료되었습니다. 리뷰 JSON: .ai-dev/review-response.json 결과 파
+일: .ai-dev/codex-review-result.md save-review 흐름까지 실행했습니다.
+Step 8: review-gate
+  Command: .ai-dev/review-response.json decision/next_step 확인
+  Executed: False
+  Skipped: False
+  Exit code: 0
+  Message: 리뷰 결과가 revise + revise_with_codex입니다. 자동 revise 재시도를 시작합니다. seve
+rity=medium, summary=build/check 실패 안내 분기는 추가됐지만, 일반적인 실패 상태에서 추천 명령이 실행 불가
+능하거나 기존 리뷰 프롬프트 분기에 가려질 수 있습니다.
+Step 9: make-revise-prompt
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-rev
+ise-prompt.ps1
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: 생성된 재수정 프롬프트 파일: .ai-dev/revise-prompt.md
+Current task id: T001
+Current task title: build/check 실패 후 revise 안내 추가
+Review decision: revise
+Review severity: medium
+Optional suggestions 허용 여부: False
+Step 10: run-codex-revise
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-code
+x.ps1 -AllowDirty -PromptPath .ai-dev/revise-prompt.md
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: Codex 실행이 완료되었습니다. 결과 파일: .ai-dev/codex-result.md
+Step 11: check-revise
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-check.ps
+1 -BuildOnly
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: 실행 중: npm run build
+실행 중: npm run lint
+검증 결과: passed
+  - npm run build: passed
+  - npm run test: skipped
+  - npm run lint: passed
+기록 완료: .ai-dev/test-result.md
+상태 저장 완료: .ai-dev/state.json
+Step 12: save-diff-revise
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-save-dif
+f.ps1
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: WARNING: git diff --stat 경고: warning: in the working copy of 'sc
+ripts/ai-dev-next.ps1', LF will be 
+replaced by CRLF the next time Git touches it
+WARNING: git diff 경고: warning: in the working copy of 'scripts/ai-dev-next.
+ps1', LF will be replaced 
+by CRLF the next time Git touches it
+git diff 저장 완료: .ai-dev/diff.md
+상태 저장 완료: .ai-dev/state.json
+untracked 파일 내용이 필요하면 -IncludeUntrackedContent 옵션을 사용하세요.
+Step 13: make-review-prompt-revise
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-rev
+iew-prompt.ps1 -Strict
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: 생성된 리뷰 프롬프트 파일: .ai-dev/review-prompt.md
+Current task id: T001
+Current task title: build/check 실패 후 revise 안내 추가
+Strict 사용 여부: True
+Step 14: run-review-codex-revise
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-revi
+ew-codex.ps1 -AllowDirty -SaveReview
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: Codex 리뷰 실행이 완료되었습니다. 리뷰 JSON: .ai-dev/review-response.json 결과 파
+일: .ai-dev/codex-review-result.md save-review 흐름까지 실행했습니다.
+Step 15: review-gate
+  Command: 재리뷰 decision/next_step/required_changes 확인
+  Executed: False
+  Skipped: True
+  Exit code: 1
+  Message: 재리뷰도 revise + revise_with_codex를 반환해 자동 revise 재시도를 중단합니다. summa
+ry=build/check 실패 안내는 추가됐지만, 실패 직후 일반 상태에서 revise 흐름으로 이어지는 추천 명령이 비어 있어 성공
+ 기준을 안정적으로 충족하지
+ 못합니다., severity=medium, next_step=revise_with_codex, required_changes={
+    "file":  "scripts/ai-dev-next.ps1",
+    "reason":  "build/check 실패 직후에는 보통 .ai-dev/review.md와 .ai-dev/diff.md가 
+아직 없을 수 있는데, 현재 구현은 이 경우 \r\n.ai-dev/test-result.md 확인만 추천하고 revise 프롬프트 생성
+ 또는 재수정 실행으로 이어질 실질적인 다음 흐름을 추천하지 않습니다.",
+    "suggestion":  "check 실패 분기에서 test-result 확인은 항상 안내하되, review.md/diff.m
+d가 없을 때도 현재 실패 로그를 바탕으로 재\r\n수정으로 이어질 수 있는 안전한 다음 추천 명령이나 명확한 단계 안내를 제공하세요.
+ 기존 ai-dev-make-revise-prompt.ps1가 review.md를 필수로 요구한다면\r\n, 그 전제에 맞춰 필요한 선
+행 단계까지 안내해야 합니다."
+}
+Stopped reason: review_revise_repeated
+Completed: False
+Exit code: 1
+Context:
+  Task: T001 build/check 실패 후 revise 안내 추가
+  Task status: in_progress
+  Completed task: none
+  Current task: T001 build/check 실패 후 revise 안내 추가
+  Next task: none
+  Completed tasks: 0 / 3
+  Steps recorded: 15 / 22
+  Last step: 15 review-gate exit=1
+Plan preview:
+  Goal title: build/check 실패 후 revise 흐름 자동 안내
+  Current task id: T001
+  Task T001: build/check 실패 후 revise 안내 추가
+    Type: implementation
+    Status: in_progress
+    Priority: P1
+    Likely files: scripts/ai-dev-next.ps1
+    Verification: build/check 실패 상태에서 다음 행동 안내가 test-result 확인과 revise 흐름을 
+제안하는지 확인한다. / 기존 review revise 상태의 make_revise_prompt 안내가 유지되는지 확인한다. / 사용자
+가 허용하면 관련 스크립트 DryRun 또는 문법 검증을 실행한다.
+Stopped reason: auto-cycle-full_failed
+Completed: False
+Exit code: 1
+- Prepared goals: 1/2
+
+## 2026-07-17 23:03:40 - Commit created
+
+- Task: T001 build/check 실패 후 revise 안내 추가
+- Commit: 57ba4f4c382ba46990bfa1daf2b00ad7bc868775
+- Message: Guide revise flow after check failure
+## 2026-07-17 23:03:44 - Task completed
+
+- Task: T001 build/check 실패 후 revise 안내 추가
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
+- Next task: 없음
+## 2026-07-18 16:55:55 - Autopilot stopped
+
+- Reason: auto_goal_failed
+- Result: Auto-goal failed with exit code 1: Step 1: validate-input
+  Command: check GoalTitle/GoalDescription
+  Executed: False
+  Skipped: False
+  Exit code: 0
+  Message: Input validation completed: Codex 리뷰 JSON 추출 실패 처리 보강
+Step 2: dirty-worktree-gate
+  Command: git status --porcelain
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: Baseline dirty count: 0. Worktree is clean.
+Step 3: plan-goal
+  Command: codex exec <auto-goal planning prompt>
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: Codex goal planning completed. Result: .ai-dev/codex-result.md
+Step 4: validate-generated-json
+  Command: goal/queue/state JSON validation
+  Executed: False
+  Skipped: False
+  Exit code: 0
+  Message: goalMarkdown, queue, and state JSON validation completed. curren
+tTaskId: T001
+Step 5: write-state-files
+  Command: .ai-dev/goal.md, .ai-dev/queue.json, .ai-dev/state.json
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: New goal, queue, and state files were written.
+Step 6: make-prompt
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-pro
+mpt.ps1
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: 생성된 프롬프트 파일: .ai-dev/current-task-prompt.md
+Current task id: T001
+Current task title: 리뷰 JSON 추출 실패 처리 보강
+Step 7: auto-cycle-full
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cyc
+le-full.ps1 -MaxTasks 3 -MaxSteps 22 -AllowCodex -AllowReviewCodex -AllowCo
+mmit -AllowDirty
+  Executed: True
+  Skipped: False
+  Exit code: 1
+  Message: Step 1: task-start
+  Command: MaxTasks=3
+  Executed: False
+  Skipped: False
+  Exit code: 0
+  Message: 현재 task 실행 시작: T001 리뷰 JSON 추출 실패 처리 보강
+Step 2: make-prompt
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-pro
+mpt.ps1
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: 생성된 프롬프트 파일: .ai-dev/current-task-prompt.md
+Current task id: T001
+Current task title: 리뷰 JSON 추출 실패 처리 보강
+Step 3: run-codex
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-code
+x.ps1 -AllowDirty
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: Codex 실행이 완료되었습니다. 결과 파일: .ai-dev/codex-result.md
+Step 4: check
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-check.ps
+1 -BuildOnly
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: 실행 중: npm run build
+실행 중: npm run lint
+검증 결과: passed
+  - npm run build: passed
+  - npm run test: skipped
+  - npm run lint: passed
+기록 완료: .ai-dev/test-result.md
+상태 저장 완료: .ai-dev/state.json
+Step 5: save-diff
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-save-dif
+f.ps1
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: WARNING: git diff --stat 경고: warning: in the working copy of 'sc
+ripts/ai-dev-run-review-codex.ps1', 
+LF will be replaced by CRLF the next time Git touches it
+WARNING: git diff 경고: warning: in the working copy of 'scripts/ai-dev-run-r
+eview-codex.ps1', LF will 
+be replaced by CRLF the next time Git touches it
+git diff 저장 완료: .ai-dev/diff.md
+상태 저장 완료: .ai-dev/state.json
+untracked 파일 내용이 필요하면 -IncludeUntrackedContent 옵션을 사용하세요.
+Step 6: make-review-prompt
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-rev
+iew-prompt.ps1 -Strict
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: 생성된 리뷰 프롬프트 파일: .ai-dev/review-prompt.md
+Current task id: T001
+Current task title: 리뷰 JSON 추출 실패 처리 보강
+Strict 사용 여부: True
+Step 7: run-review-codex
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-revi
+ew-codex.ps1 -AllowDirty -SaveReview
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: Codex 리뷰 실행이 완료되었습니다. 리뷰 JSON: .ai-dev/review-response.json 결과 파
+일: .ai-dev/codex-review-result.md save-review 흐름까지 실행했습니다.
+Step 8: review-gate
+  Command: .ai-dev/review-response.json decision/next_step 확인
+  Executed: False
+  Skipped: False
+  Exit code: 0
+  Message: 리뷰 결과가 revise + revise_with_codex입니다. 자동 revise 재시도를 시작합니다. seve
+rity=low, summary=구현 범위와 방향은 T001에 맞지만, 성공 기준의 비정상 리뷰 응답 경로가 실제로 검증된 기록이 없어
+ 불확실성이 남습니다.
+Step 9: make-revise-prompt
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-rev
+ise-prompt.ps1
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: 생성된 재수정 프롬프트 파일: .ai-dev/revise-prompt.md
+Current task id: T001
+Current task title: 리뷰 JSON 추출 실패 처리 보강
+Review decision: revise
+Review severity: low
+Optional suggestions 허용 여부: False
+Step 10: run-codex-revise
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-code
+x.ps1 -AllowDirty -PromptPath .ai-dev/revise-prompt.md
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: Codex 실행이 완료되었습니다. 결과 파일: .ai-dev/codex-result.md
+Step 11: check-revise
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-check.ps
+1 -BuildOnly
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: 실행 중: npm run build
+실행 중: npm run lint
+검증 결과: passed
+  - npm run build: passed
+  - npm run test: skipped
+  - npm run lint: passed
+기록 완료: .ai-dev/test-result.md
+상태 저장 완료: .ai-dev/state.json
+Step 12: save-diff-revise
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-save-dif
+f.ps1
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: WARNING: git diff --stat 경고: warning: in the working copy of 'sc
+ripts/ai-dev-run-review-codex.ps1', 
+LF will be replaced by CRLF the next time Git touches it
+WARNING: git diff 경고: warning: in the working copy of 'scripts/ai-dev-run-r
+eview-codex.ps1', LF will 
+be replaced by CRLF the next time Git touches it
+git diff 저장 완료: .ai-dev/diff.md
+상태 저장 완료: .ai-dev/state.json
+untracked 파일 내용이 필요하면 -IncludeUntrackedContent 옵션을 사용하세요.
+Step 13: make-review-prompt-revise
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-rev
+iew-prompt.ps1 -Strict
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: 생성된 리뷰 프롬프트 파일: .ai-dev/review-prompt.md
+Current task id: T001
+Current task title: 리뷰 JSON 추출 실패 처리 보강
+Strict 사용 여부: True
+Step 14: run-review-codex-revise
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-revi
+ew-codex.ps1 -AllowDirty -SaveReview
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: Codex 리뷰 실행이 완료되었습니다. 리뷰 JSON: .ai-dev/review-response.json 결과 파
+일: .ai-dev/codex-review-result.md save-review 흐름까지 실행했습니다.
+Step 15: review-gate
+  Command: 재리뷰 decision/next_step/required_changes 확인
+  Executed: False
+  Skipped: True
+  Exit code: 1
+  Message: 재리뷰도 revise + revise_with_codex를 반환해 자동 revise 재시도를 중단합니다. summa
+ry=구현 범위는 적절하고 실패 상태 기록 로직도 추가됐지만, 성공 기준에 명시된 정상 JSON/깨진 JSON 경로의 수동 검증 결과가
+ 남아 있지 않아 작은 불확
+실성이 있다., severity=medium, next_step=revise_with_codex, required_changes={
+    "file":  ".ai-dev/test-result.md",
+    "reason":  "현재 검증 결과는 build와 lint만 포함하고, task 성공 기준의 핵심인 JSON 추출 성공/실패 
+경로 검증이 확인되지 않는다.",
+    "suggestion":  "정상 JSON 리뷰 응답과 JSON이 없거나 잘못된 리뷰 응답 각각에서 decision/severi
+ty 처리와 state.json 실패 요약 기\r\n록 여부를 수동 검증하고 결과를 기록한다."
+}
+Stopped reason: review_revise_repeated
+Completed: False
+Exit code: 1
+Context:
+  Task: T001 리뷰 JSON 추출 실패 처리 보강
+  Task status: in_progress
+  Completed task: none
+  Current task: T001 리뷰 JSON 추출 실패 처리 보강
+  Next task: none
+  Completed tasks: 0 / 3
+  Steps recorded: 15 / 22
+  Last step: 15 review-gate exit=1
+Plan preview:
+  Goal title: Codex 리뷰 JSON 추출 실패 처리 보강
+  Current task id: T001
+  Task T001: 리뷰 JSON 추출 실패 처리 보강
+    Type: implementation
+    Status: in_progress
+    Priority: P1
+    Likely files: .ai-dev 관련 루프 스크립트 또는 리뷰 처리 스크립트
+    Verification: 정상 JSON 리뷰 응답 처리 흐름이 유지되는지 확인 / JSON이 없거나 잘못된 리뷰 응답에서 실패 
+요약이 기록되는지 확인
+Stopped reason: auto-cycle-full_failed
+Completed: False
+Exit code: 1
+- Prepared goals: 0/2
+
+## 2026-07-18 18:25:10 - Commit created
+
+- Task: T001 리뷰 JSON 추출 실패 처리 보강
+- Commit: 81d38c2071cf7bddafd8d812d221380005226ea1
+- Message: Handle review JSON extraction failures
+## 2026-07-18 18:25:16 - Task completed
+
+- Task: T001 리뷰 JSON 추출 실패 처리 보강
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
+- Next task: 없음
+
+## 2026-07-18 18:35:00 - Task documentation completed
+
+- Task: T001 GitHub PR 연동 검토 문서 작성
+- Result: `.ai-dev/github-pr-integration-review.md`에 현재 구조 요약, MVP 최소 흐름, 제
+외 범위, 데이터 저장 후보, 후속 작은 작업 단위를 정리했다.
+- Verification: 코드와 DB schema를 변경하지 않았고, build/test/lint/git 명령을 실행하지 않았다.
+- Next task: 업무 메모의 PR URL 수동 기록/검색 흐름을 테스트 체크리스트로 분리하는 작업으로 진행 가능
+
+## 2026-07-18 18:32:59 - Task completed
+
+- Task: T001 GitHub PR 연동 검토 문서 작성
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 구현 커밋 없음, 저장된 리뷰 pas
+s에서 자동 완료
+- Next task: 없음
+## 2026-07-18 18:33:22 - Autopilot goal prepared
+
+- Goal: GitHub PR 연동 검토
+- Source: .ai-dev/backlog.md / P2
+- Prepared goals: 1/2
+
+## 2026-07-18 18:36:33 - Autopilot stopped
+
+- Reason: auto_goal_failed
+- Result: Auto-goal failed with exit code 1: Step 1: validate-input
+  Command: check GoalTitle/GoalDescription
+  Executed: False
+  Skipped: False
+  Exit code: 0
+  Message: Input validation completed: Copilot CLI 또는 gh 연동 재검토
+Step 2: dirty-worktree-gate
+  Command: git status --porcelain
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: Baseline dirty count: 0. Worktree is clean.
+Step 3: plan-goal
+  Command: codex exec <auto-goal planning prompt>
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: Codex goal planning completed. Result: .ai-dev/codex-result.md
+Step 4: validate-generated-json
+  Command: goal/queue/state JSON validation
+  Executed: False
+  Skipped: False
+  Exit code: 0
+  Message: goalMarkdown, queue, and state JSON validation completed. curren
+tTaskId: T001
+Step 5: write-state-files
+  Command: .ai-dev/goal.md, .ai-dev/queue.json, .ai-dev/state.json
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: New goal, queue, and state files were written.
+Step 6: make-prompt
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-pro
+mpt.ps1
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: 생성된 프롬프트 파일: .ai-dev/current-task-prompt.md
+Current task id: T001
+Current task title: 연동 필요성 검토 문서 작성
+Step 7: auto-cycle-full
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cyc
+le-full.ps1 -MaxTasks 3 -MaxSteps 22 -AllowCodex -AllowReviewCodex -AllowCo
+mmit -AllowDirty
+  Executed: True
+  Skipped: False
+  Exit code: 1
+  Message: Step 1: task-start
+  Command: MaxTasks=3
+  Executed: False
+  Skipped: False
+  Exit code: 0
+  Message: 현재 task 실행 시작: T001 연동 필요성 검토 문서 작성
+Step 2: make-prompt
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-pro
+mpt.ps1
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: 생성된 프롬프트 파일: .ai-dev/current-task-prompt.md
+Current task id: T001
+Current task title: 연동 필요성 검토 문서 작성
+Step 3: run-codex
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-code
+x.ps1 -AllowDirty
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: Codex 실행이 완료되었습니다. 결과 파일: .ai-dev/codex-result.md
+Step 4: check
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-check.ps
+1 -BuildOnly
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: 실행 중: npm run build
+실행 중: npm run lint
+검증 결과: passed
+  - npm run build: passed
+  - npm run test: skipped
+  - npm run lint: passed
+기록 완료: .ai-dev/test-result.md
+상태 저장 완료: .ai-dev/state.json
+Step 5: save-diff
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-save-dif
+f.ps1
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: git diff 저장 완료: .ai-dev/diff.md
+상태 저장 완료: .ai-dev/state.json
+untracked 파일 내용이 필요하면 -IncludeUntrackedContent 옵션을 사용하세요.
+Step 6: make-review-prompt
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-rev
+iew-prompt.ps1 -Strict
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: 생성된 리뷰 프롬프트 파일: .ai-dev/review-prompt.md
+Current task id: T001
+Current task title: 연동 필요성 검토 문서 작성
+Strict 사용 여부: True
+Step 7: run-review-codex
+  Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-revi
+ew-codex.ps1 -AllowDirty -SaveReview
+  Executed: True
+  Skipped: False
+  Exit code: 0
+  Message: Codex 리뷰 실행이 완료되었습니다. 리뷰 JSON: .ai-dev/review-response.json 결과 파
+일: .ai-dev/codex-review-result.md save-review 흐름까지 실행했습니다.
+Step 8: review-gate
+  Command: task type, .ai-dev/review-response.json required_changes, 현재 dif
+f 확인
+  Executed: False
+  Skipped: True
+  Exit code: 1
+  Message: 현재 task type이 implementation이 아닌데 review decision=revise입니다. 구현 
+없는 revise 반복을 성공 처리하지 않도록 중단합니다. taskType='documentation', requiredFiles=pa
+ckage.json, changedFiles=
+Stopped reason: non_implementation_revise
+Completed: False
+Exit code: 1
+Context:
+  Task: T001 연동 필요성 검토 문서 작성
+  Task status: in_progress
+  Completed task: none
+  Current task: T001 연동 필요성 검토 문서 작성
+  Next task: none
+  Completed tasks: 0 / 3
+  Steps recorded: 8 / 22
+  Last step: 8 review-gate exit=1
+Plan preview:
+  Goal title: Copilot CLI 또는 gh 연동 재검토
+  Current task id: T001
+  Task T001: 연동 필요성 검토 문서 작성
+    Type: documentation
+    Status: in_progress
+    Priority: P2
+    Likely files: .ai-dev/goal.md
+    Verification: 문서에 목표, 배경, 성공 기준, 제약사항, 범위 제외, 수동 검증 섹션이 포함되어 있는지 확인한다. 
+/ 연동 구현을 바로 시작하지 않고 검토 결론과 다음 후보 작업만 남겼는지 확인한다.
+Stopped reason: auto-cycle-full_failed
+Completed: False
+Exit code: 1
+- Prepared goals: 1/2
 
 ## 2026-07-18 - Revise documentation verification note
 
@@ -1675,1593 +3200,6 @@ ded`, 제외 후보 수 `14/14`, 다음 행동 안내, 새 backlog 항목 필요
 - Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
 - Next task: 없음
 
- succeeded in 4479ms:
-
-  scripts\ai-dev-autopilot.ps1:263:}
-  scripts\ai-dev-autopilot.ps1:264:
-> scripts\ai-dev-autopilot.ps1:265:function Test-IsExpectedAutopilotNonWork
-Stop {
-  scripts\ai-dev-autopilot.ps1:266:    param([string]$StoppedReason)
-  scripts\ai-dev-autopilot.ps1:267:
-  scripts\ai-dev-autopilot.ps1:268:    return @(
-  scripts\ai-dev-autopilot.ps1:269:        "all_goal_candidates_excluded",
-> scripts\ai-dev-autopilot.ps1:270:        "baseline_output_conflict",
-> scripts\ai-dev-autopilot.ps1:271:        "dirty_worktree",
-  scripts\ai-dev-autopilot.ps1:272:        "goal_candidate_not_found",
-  scripts\ai-dev-autopilot.ps1:273:        "current_goal_not_completed",
-> scripts\ai-dev-autopilot.ps1:274:        "max_steps_too_small_for_full_cy
-cle"
-  scripts\ai-dev-autopilot.ps1:275:    ) -contains $StoppedReason
-  scripts\ai-dev-autopilot.ps1:276:}
-  scripts\ai-dev-autopilot.ps1:277:
-  scripts\ai-dev-autopilot.ps1:372:}
-  scripts\ai-dev-autopilot.ps1:373:
-> scripts\ai-dev-autopilot.ps1:374:function Restore-AutopilotCurrentRunOper
-ationalChanges {
-  scripts\ai-dev-autopilot.ps1:375:    param([string[]]$RelativePaths = @()
-)
-  scripts\ai-dev-autopilot.ps1:376:
-  scripts\ai-dev-autopilot.ps1:377:    $restoredPaths = @()
-  scripts\ai-dev-autopilot.ps1:484:    if ($addExitCode -ne 0) {
-  scripts\ai-dev-autopilot.ps1:485:        & git restore --staged -- $curre
-ntRunMetaPaths 2>&1 | Out-String | Out-Null
-> scripts\ai-dev-autopilot.ps1:486:        $restoredPaths = @(Restore-Autop
-ilotCurrentRunOperationalChanges $currentRun
-MetaPaths)
-  scripts\ai-dev-autopilot.ps1:487:        return New-StepResult $StepNumbe
-r "autopilot-meta-commit" $true $false 1 "Au
-topilot meta files git add failed. exit code: $addExitCode`n$addOutput`nRes
-tored run-owned files: $($restoredPaths -joi
-n ', ')"
-  scripts\ai-dev-autopilot.ps1:488:    }
-  scripts\ai-dev-autopilot.ps1:489:
-  scripts\ai-dev-autopilot.ps1:494:    if ($commitExitCode -ne 0) {
-  scripts\ai-dev-autopilot.ps1:495:        & git restore --staged -- $curre
-ntRunMetaPaths 2>&1 | Out-String | Out-Null
-> scripts\ai-dev-autopilot.ps1:496:        $restoredPaths = @(Restore-Autop
-ilotCurrentRunOperationalChanges $currentRun
-MetaPaths)
-  scripts\ai-dev-autopilot.ps1:497:        return New-StepResult $StepNumbe
-r "autopilot-meta-commit" $true $false 1 "Au
-topilot meta commit failed. exit code: $commitExitCode`n$commitOutput`nRest
-ored run-owned files: $($restoredPaths -join
- ', ')"
-  scripts\ai-dev-autopilot.ps1:498:    }
-  scripts\ai-dev-autopilot.ps1:499:
-  scripts\ai-dev-autopilot.ps1:580:    )
-  scripts\ai-dev-autopilot.ps1:581:
-> scripts\ai-dev-autopilot.ps1:582:    $outcomeCategory = if (Test-IsExpect
-edAutopilotNonWorkStop $StoppedReason) {
-  scripts\ai-dev-autopilot.ps1:583:        "expected_non_work"
-  scripts\ai-dev-autopilot.ps1:584:    } elseif ($ExitCode -eq 0) {
-  scripts\ai-dev-autopilot.ps1:585:        "success"
-  scripts\ai-dev-autopilot.ps1:632:}
-  scripts\ai-dev-autopilot.ps1:633:
-> scripts\ai-dev-autopilot.ps1:634:function Stop-Autopilot {
-  scripts\ai-dev-autopilot.ps1:635:    param(
-  scripts\ai-dev-autopilot.ps1:636:        [object[]]$Steps,
-  scripts\ai-dev-autopilot.ps1:637:        [string]$StoppedReason,
-  scripts\ai-dev-autopilot.ps1:642:    )
-  scripts\ai-dev-autopilot.ps1:643:
-> scripts\ai-dev-autopilot.ps1:644:    $isExpectedNonWorkStop = Test-IsExpe
-ctedAutopilotNonWorkStop $StoppedReason
-  scripts\ai-dev-autopilot.ps1:645:    $operationalCleanupPerformed = $fals
-e
-  scripts\ai-dev-autopilot.ps1:646:    $metaCommitCreated = $false
-  scripts\ai-dev-autopilot.ps1:647:    $nextRunWithoutManualRestore = ($Exi
-tCode -eq 0)
-  scripts\ai-dev-autopilot.ps1:657:
-  scripts\ai-dev-autopilot.ps1:658:    if ($ExitCode -ne 0 -and $isExpected
-NonWorkStop -and -not $DryRun) {
-> scripts\ai-dev-autopilot.ps1:659:        $cleanedRunOwnedPaths = @(Restor
-e-AutopilotCurrentRunOperationalChanges)
-  scripts\ai-dev-autopilot.ps1:660:        $operationalCleanupPerformed = $
-true
-  scripts\ai-dev-autopilot.ps1:661:        $metaCommitMessage = "skipped (-
-AllowCommit not set)"
-  scripts\ai-dev-autopilot.ps1:662:        $nextRunWithoutManualRestore = $
-true
-  scripts\ai-dev-autopilot.ps1:675:
-  scripts\ai-dev-autopilot.ps1:676:            if ($metaCommitStep.exitCode
- -ne 0) {
-> scripts\ai-dev-autopilot.ps1:677:                $cleanedRunOwnedPaths = 
-@(Restore-AutopilotCurrentRunOperationalChan
-ges)
-  scripts\ai-dev-autopilot.ps1:678:                $operationalCleanupPerfo
-rmed = $true
-  scripts\ai-dev-autopilot.ps1:679:                $nextRunWithoutManualRes
-tore = $true
-  scripts\ai-dev-autopilot.ps1:680:                $Steps += $metaCommitSte
-p
-  scripts\ai-dev-autopilot.ps1:1121:    $message = "MaxGoals must be at lea
-st 1."
-  scripts\ai-dev-autopilot.ps1:1122:    $steps += New-StepResult 0 "validat
-e-input" $false $false 1 $message
-> scripts\ai-dev-autopilot.ps1:1123:    Stop-Autopilot $steps "max_goals_mu
-st_be_at_least_1" $false 1 $preparedGoals $m
-essage
-  scripts\ai-dev-autopilot.ps1:1124:}
-  scripts\ai-dev-autopilot.ps1:1125:
-  scripts\ai-dev-autopilot.ps1:1126:if ($MaxTasks -lt 1) {
-  scripts\ai-dev-autopilot.ps1:1127:    $message = "MaxTasks must be at lea
-st 1."
-  scripts\ai-dev-autopilot.ps1:1128:    $steps += New-StepResult 0 "validat
-e-input" $false $false 1 $message
-> scripts\ai-dev-autopilot.ps1:1129:    Stop-Autopilot $steps "max_tasks_mu
-st_be_at_least_1" $false 1 $preparedGoals $m
-essage
-  scripts\ai-dev-autopilot.ps1:1130:}
-  scripts\ai-dev-autopilot.ps1:1131:
-  scripts\ai-dev-autopilot.ps1:1132:if ($MaxSteps -lt 1) {
-  scripts\ai-dev-autopilot.ps1:1133:    $message = "MaxSteps must be at lea
-st 1."
-  scripts\ai-dev-autopilot.ps1:1134:    $steps += New-StepResult 0 "validat
-e-input" $false $false 1 $message
-> scripts\ai-dev-autopilot.ps1:1135:    Stop-Autopilot $steps "max_steps_mu
-st_be_at_least_1" $false 1 $preparedGoals $m
-essage
-  scripts\ai-dev-autopilot.ps1:1136:}
-  scripts\ai-dev-autopilot.ps1:1137:
-  scripts\ai-dev-autopilot.ps1:1138:foreach ($requiredPath in @($goalPath, 
-$queuePath, $statePath, $backlogPath)) {
-  scripts\ai-dev-autopilot.ps1:1140:        $message = "Required file is mi
-ssing: $requiredPath"
-  scripts\ai-dev-autopilot.ps1:1141:        $steps += New-StepResult 0 "pre
-pare" $false $false 1 $message
-> scripts\ai-dev-autopilot.ps1:1142:        Stop-Autopilot $steps "required
-_file_missing" $false 1 $preparedGoals $mess
-age
-  scripts\ai-dev-autopilot.ps1:1143:    }
-  scripts\ai-dev-autopilot.ps1:1144:}
-  scripts\ai-dev-autopilot.ps1:1145:
-  scripts\ai-dev-autopilot.ps1:1152:        $message = $_.Exception.Message
-  scripts\ai-dev-autopilot.ps1:1153:        $steps += New-StepResult ($step
-s.Count + 1) "current-goal-gate" $false $fal
-se 1 $message
-> scripts\ai-dev-autopilot.ps1:1154:        Stop-Autopilot $steps "current_
-goal_gate_failed" $false 1 $preparedGoals $m
-essage
-  scripts\ai-dev-autopilot.ps1:1155:    }
-  scripts\ai-dev-autopilot.ps1:1156:
-  scripts\ai-dev-autopilot.ps1:1157:    if (-not $gate.passed) {
-  scripts\ai-dev-autopilot.ps1:1158:        $message = "Current goal is not
- completed, so autopilot will not create the
- next goal. goalStatus=$($gate.goalStatus), currentTaskId=$($gate.currentTa
-skId), openTaskCount=$($gate.openTaskCount)"
-  scripts\ai-dev-autopilot.ps1:1159:        $steps += New-StepResult ($step
-s.Count + 1) "current-goal-gate" $false $tru
-e 1 $message
-> scripts\ai-dev-autopilot.ps1:1160:        Stop-Autopilot $steps "current_
-goal_not_completed" $false 1 $preparedGoals 
-$message
-  scripts\ai-dev-autopilot.ps1:1161:    }
-  scripts\ai-dev-autopilot.ps1:1162:
-  scripts\ai-dev-autopilot.ps1:1163:    $steps += New-StepResult ($steps.Co
-unt + 1) "current-goal-gate" $false $false 0
- "Current goal is completed. Previous goal: $($gate.goalTitle)"
-  scripts\ai-dev-autopilot.ps1:1168:        $message = $_.Exception.Message
-  scripts\ai-dev-autopilot.ps1:1169:        $steps += New-StepResult ($step
-s.Count + 1) "goal-history" $false $false 1 
-$message
-> scripts\ai-dev-autopilot.ps1:1170:        Stop-Autopilot $steps "goal_his
-tory_update_failed" $false 1 $preparedGoals 
-$message
-  scripts\ai-dev-autopilot.ps1:1171:    }
-  scripts\ai-dev-autopilot.ps1:1172:
-  scripts\ai-dev-autopilot.ps1:1173:    try {
-  scripts\ai-dev-autopilot.ps1:1179:        $message = $_.Exception.Message
-  scripts\ai-dev-autopilot.ps1:1180:        $steps += New-StepResult ($step
-s.Count + 1) "generate-goal-candidate" $fals
-e $false 1 $message
-> scripts\ai-dev-autopilot.ps1:1181:        Stop-Autopilot $steps "goal_can
-didate_generation_failed" $false 1 $prepared
-Goals $message
-  scripts\ai-dev-autopilot.ps1:1182:    }
-  scripts\ai-dev-autopilot.ps1:1183:
-  scripts\ai-dev-autopilot.ps1:1184:    if ($candidates.Count -eq 0) {
-  scripts\ai-dev-autopilot.ps1:1194:            $message = "Autopilot 후보가 모
-두 소진되었습니다. 현재 상태: goalStatus=$($gate.goalSta
-tus), currentTaskId=$($gate.currentTaskId), openTaskCount=$($gate.openTaskC
-ount), currentGoal=$currentGoalTitle. 제외된 ba
-cklog 후보 수: $excludedCandidateCount/$candidateCount. 모든 후보가 현재 goal, 준비 이력,
- 완료 이력 또는 durable history와 중복되어 신규 goal을 자동 
-생성하지 않습니다. 다음 행동: 1. .ai-dev/backlog.md에 새로운 backlog 항목을 추가합니다. 2. 이미 완료된 후
-보를 다시 진행해야 한다면 durable history와 완료 이력을 사람이 먼
-저 검토합니다. 3. 지금은 자동 진행을 멈추고 현재 상태를 유지합니다. 계속 진행하려면 새 backlog 항목이 필요합니다. 제외된 
-후보: $candidateTitleSummary. 제외 기준 title: $ex
-cludedTitleSummary. Durable history title: $historyTitleSummary."
-  scripts\ai-dev-autopilot.ps1:1195:            $steps += New-StepResult ($
-steps.Count + 1) "generate-goal-candidate" $
-false $true 1 $message
-> scripts\ai-dev-autopilot.ps1:1196:            Stop-Autopilot $steps "all_
-goal_candidates_excluded" $false 1 $prepared
-Goals $message
-  scripts\ai-dev-autopilot.ps1:1197:        }
-  scripts\ai-dev-autopilot.ps1:1198:
-  scripts\ai-dev-autopilot.ps1:1199:        $message = "No actionable next 
-goal candidate was found in the backlog afte
-r excluding current, prepared, completed, or durable history goal titles. E
-xcluded goal titles: $excludedTitleSummary. 
-Durable history goal titles: $historyTitleSummary. Check backlog encoding, 
-empty items, completed or deferred sections,
- and duplicate backlog titles."
-  scripts\ai-dev-autopilot.ps1:1200:        $steps += New-StepResult ($step
-s.Count + 1) "generate-goal-candidate" $fals
-e $true 1 $message
-> scripts\ai-dev-autopilot.ps1:1201:        Stop-Autopilot $steps "goal_can
-didate_not_found" $false 1 $preparedGoals $m
-essage
-  scripts\ai-dev-autopilot.ps1:1202:    }
-  scripts\ai-dev-autopilot.ps1:1203:
-  scripts\ai-dev-autopilot.ps1:1204:    $candidate = $candidates | Select-O
-bject -First 1
-  scripts\ai-dev-autopilot.ps1:1211:        $message = $_.Exception.Message
-  scripts\ai-dev-autopilot.ps1:1212:        $steps += New-StepResult ($step
-s.Count + 1) "goal-history" $false $false 1 
-$message $candidate
-> scripts\ai-dev-autopilot.ps1:1213:        Stop-Autopilot $steps "goal_his
-tory_update_failed" $false 1 $preparedGoals 
-$message
-  scripts\ai-dev-autopilot.ps1:1214:    }
-  scripts\ai-dev-autopilot.ps1:1215:
-  scripts\ai-dev-autopilot.ps1:1216:    if (Test-HasValue $candidate.fallba
-ckReason) {
-  scripts\ai-dev-autopilot.ps1:1225:
-  scripts\ai-dev-autopilot.ps1:1226:        if ($metaCommitStep.exitCode -n
-e 0) {
-> scripts\ai-dev-autopilot.ps1:1227:            Stop-Autopilot $steps "auto
-pilot_meta_commit_failed" $false 1 $prepared
-Goals $metaCommitStep.message
-  scripts\ai-dev-autopilot.ps1:1228:        }
-  scripts\ai-dev-autopilot.ps1:1229:    }
-  scripts\ai-dev-autopilot.ps1:1230:
-  scripts\ai-dev-autopilot.ps1:1234:        $message = "Auto-goal failed be
-fore completion: $($_.Exception.Message)"
-  scripts\ai-dev-autopilot.ps1:1235:        $steps += New-StepResult ($step
-s.Count + 1) "auto-goal" $false $false 1 $me
-ssage $candidate
-> scripts\ai-dev-autopilot.ps1:1236:        Stop-Autopilot $steps "auto_goa
-l_failed" $false 1 $preparedGoals $message
-  scripts\ai-dev-autopilot.ps1:1237:    }
-  scripts\ai-dev-autopilot.ps1:1238:
-  scripts\ai-dev-autopilot.ps1:1239:    $steps += $autoGoalStep
-  scripts\ai-dev-autopilot.ps1:1241:    if ($autoGoalStep.exitCode -ne 0) {
-  scripts\ai-dev-autopilot.ps1:1242:        $childStoppedReason = Get-Stopp
-edReasonFromOutput $autoGoalStep.message
-> scripts\ai-dev-autopilot.ps1:1243:        $stoppedReason = if (Test-IsExp
-ectedAutopilotNonWorkStop $childStoppedReaso
-n) { $childStoppedReason } else { "auto_goal_failed" }
-  scripts\ai-dev-autopilot.ps1:1244:        $failureMessage = "Auto-goal fa
-iled with exit code $($autoGoalStep.exitCode
-): $($autoGoalStep.message)"
-  scripts\ai-dev-autopilot.ps1:1245:
-  scripts\ai-dev-autopilot.ps1:1246:        if (Test-HasValue $candidate.fa
-llbackReason) {
-  scripts\ai-dev-autopilot.ps1:1248:        }
-  scripts\ai-dev-autopilot.ps1:1249:
-> scripts\ai-dev-autopilot.ps1:1250:        Stop-Autopilot $steps $stoppedR
-eason $false 1 $preparedGoals $failureMessag
-e
-  scripts\ai-dev-autopilot.ps1:1251:    }
-  scripts\ai-dev-autopilot.ps1:1252:
-  scripts\ai-dev-autopilot.ps1:1253:    $preparedGoals++
-  scripts\ai-dev-autopilot.ps1:1267:        $message = $_.Exception.Message
-  scripts\ai-dev-autopilot.ps1:1268:        $steps += New-StepResult ($step
-s.Count + 1) "goal-history" $false $false 1 
-$message $candidate
-> scripts\ai-dev-autopilot.ps1:1269:        Stop-Autopilot $steps "goal_his
-tory_update_failed" $false 1 $preparedGoals 
-$message
-  scripts\ai-dev-autopilot.ps1:1270:    }
-  scripts\ai-dev-autopilot.ps1:1271:
-  scripts\ai-dev-autopilot.ps1:1272:    Add-LoopLogEntry "Autopilot goal pr
-epared" $loopLogLines
-  scripts\ai-dev-autopilot.ps1:1277:
-  scripts\ai-dev-autopilot.ps1:1278:        if ($metaCommitStep.exitCode -n
-e 0) {
-> scripts\ai-dev-autopilot.ps1:1279:            Stop-Autopilot $steps "auto
-pilot_meta_commit_failed" $false 1 $prepared
-Goals $metaCommitStep.message
-  scripts\ai-dev-autopilot.ps1:1280:        }
-  scripts\ai-dev-autopilot.ps1:1281:    }
-  scripts\ai-dev-autopilot.ps1:1282:
-  scripts\ai-dev-autopilot.ps1:1283:    if (-not ($AllowRun -or $AllowCodex
- -or $AllowReviewCodex -or $AllowCommit)) {
-> scripts\ai-dev-autopilot.ps1:1284:        Stop-Autopilot $steps "prepared
-_without_full_cycle" $true 0 $preparedGoals
-  scripts\ai-dev-autopilot.ps1:1285:    }
-  scripts\ai-dev-autopilot.ps1:1286:}
-  scripts\ai-dev-autopilot.ps1:1287:
-> scripts\ai-dev-autopilot.ps1:1288:Stop-Autopilot $steps "max_goals_reache
-d" $true 0 $preparedGoals
-
-
-
- succeeded in 4667ms:
-
-  scripts\ai-dev-auto-goal.ps1:100:    )
-  scripts\ai-dev-auto-goal.ps1:101:
-> scripts\ai-dev-auto-goal.ps1:102:    $outcomeCategory = if (Test-IsExpect
-edPreImplementationStop $StoppedReason) {
-  scripts\ai-dev-auto-goal.ps1:103:        "expected_non_work"
-  scripts\ai-dev-auto-goal.ps1:104:    } elseif ($ExitCode -eq 0) {
-  scripts\ai-dev-auto-goal.ps1:105:        "success"
-  scripts\ai-dev-auto-goal.ps1:230:    if ($addExitCode -ne 0) {
-  scripts\ai-dev-auto-goal.ps1:231:        & git restore --staged -- $resul
-tRelativePath 2>&1 | Out-String | Out-Null
-> scripts\ai-dev-auto-goal.ps1:232:        $restoredPaths = @(Restore-AutoG
-oalCurrentRunOperationalChanges @($resultRel
-ativePath))
-  scripts\ai-dev-auto-goal.ps1:233:        return New-StepResult $StepNumbe
-r "expected-non-work-meta-commit" "git add -
-- <result file>" $true $false 1 "Expected non-work result git add failed. e
-xit code: $addExitCode`n$addOutput`nRestored
- run-owned files: $($restoredPaths -join ', ')"
-  scripts\ai-dev-auto-goal.ps1:234:    }
-  scripts\ai-dev-auto-goal.ps1:235:
-  scripts\ai-dev-auto-goal.ps1:239:    if ($commitExitCode -ne 0) {
-  scripts\ai-dev-auto-goal.ps1:240:        & git restore --staged -- $resul
-tRelativePath 2>&1 | Out-String | Out-Null
-> scripts\ai-dev-auto-goal.ps1:241:        $restoredPaths = @(Restore-AutoG
-oalCurrentRunOperationalChanges @($resultRel
-ativePath))
-  scripts\ai-dev-auto-goal.ps1:242:        return New-StepResult $StepNumbe
-r "expected-non-work-meta-commit" "git commi
-t -- <result file>" $true $false 1 "Expected non-work result commit failed.
- exit code: $commitExitCode`n$commitOutput`n
-Restored run-owned files: $($restoredPaths -join ', ')"
-  scripts\ai-dev-auto-goal.ps1:243:    }
-  scripts\ai-dev-auto-goal.ps1:244:
-  scripts\ai-dev-auto-goal.ps1:280:}
-  scripts\ai-dev-auto-goal.ps1:281:
-> scripts\ai-dev-auto-goal.ps1:282:function Test-IsExpectedPreImplementatio
-nStop {
-  scripts\ai-dev-auto-goal.ps1:283:    param([string]$StoppedReason)
-  scripts\ai-dev-auto-goal.ps1:284:
-  scripts\ai-dev-auto-goal.ps1:285:    return @(
-> scripts\ai-dev-auto-goal.ps1:286:        "baseline_output_conflict",
-> scripts\ai-dev-auto-goal.ps1:287:        "dirty_worktree",
-> scripts\ai-dev-auto-goal.ps1:288:        "max_steps_too_small_for_full_cy
-cle"
-  scripts\ai-dev-auto-goal.ps1:289:    ) -contains $StoppedReason
-  scripts\ai-dev-auto-goal.ps1:290:}
-  scripts\ai-dev-auto-goal.ps1:291:
-  scripts\ai-dev-auto-goal.ps1:315:}
-  scripts\ai-dev-auto-goal.ps1:316:
-> scripts\ai-dev-auto-goal.ps1:317:function Restore-AutoGoalCurrentRunOpera
-tionalChanges {
-  scripts\ai-dev-auto-goal.ps1:318:    param([string[]]$RelativePaths = @()
-)
-  scripts\ai-dev-auto-goal.ps1:319:
-  scripts\ai-dev-auto-goal.ps1:320:    $restoredPaths = @()
-  scripts\ai-dev-auto-goal.ps1:372:}
-  scripts\ai-dev-auto-goal.ps1:373:
-> scripts\ai-dev-auto-goal.ps1:374:function Stop-AutoGoal {
-  scripts\ai-dev-auto-goal.ps1:375:    param(
-  scripts\ai-dev-auto-goal.ps1:376:        [object[]]$Steps,
-  scripts\ai-dev-auto-goal.ps1:377:        [string]$StoppedReason,
-  scripts\ai-dev-auto-goal.ps1:380:    )
-  scripts\ai-dev-auto-goal.ps1:381:
-> scripts\ai-dev-auto-goal.ps1:382:    $isExpectedPreImplementationStop = T
-est-IsExpectedPreImplementationStop $Stopped
-Reason
-  scripts\ai-dev-auto-goal.ps1:383:
-  scripts\ai-dev-auto-goal.ps1:384:    if (-not $DryRun) {
-  scripts\ai-dev-auto-goal.ps1:385:        Clear-AutoGoalTempArtifacts
-  scripts\ai-dev-auto-goal.ps1:386:
-  scripts\ai-dev-auto-goal.ps1:387:        if ($isExpectedPreImplementation
-Stop) {
-> scripts\ai-dev-auto-goal.ps1:388:            $cleanedRunOwnedPaths = @(Re
-store-AutoGoalCurrentRunOperationalChanges)
-  scripts\ai-dev-auto-goal.ps1:389:            $Steps += New-StepResult ($S
-teps.Count + 1) "expected-non-work-cleanup" 
-"restore current-run .ai-dev operational file snapshots" $true $false 0 "Ex
-pected pre-implementation stop. Restored onl
-y auto-goal operational files captured at run start; baseline user changes 
-were preserved. Cleaned run-owned files: $($
-cleanedRunOwnedPaths -join ', ')"
-  scripts\ai-dev-auto-goal.ps1:390:        }
-  scripts\ai-dev-auto-goal.ps1:391:    }
-  scripts\ai-dev-auto-goal.ps1:478:    if ($LASTEXITCODE -ne 0) {
-  scripts\ai-dev-auto-goal.ps1:479:        $script:steps += New-StepResult 
-$FailureStep $FailureName $CommandText $fals
-e $false 1 "git status failed: $($statusOutput -join "`n")"
-> scripts\ai-dev-auto-goal.ps1:480:        Stop-AutoGoal $script:steps "git
-_status_failed" $false 1
-  scripts\ai-dev-auto-goal.ps1:481:    }
-  scripts\ai-dev-auto-goal.ps1:482:
-  scripts\ai-dev-auto-goal.ps1:483:    return @($statusOutput | Where-Objec
-t { -not [string]::IsNullOrWhiteSpace($_) })
-  scripts\ai-dev-auto-goal.ps1:575:    $message = "Baseline dirty paths con
-flict with planned auto-goal output paths. A
-uto-goal stopped before writing or deleting protected output files.`nConfli
-cting paths:`n$($conflictingPaths -join "`n"
-)"
-  scripts\ai-dev-auto-goal.ps1:576:    $script:steps += New-StepResult 2 "b
-aseline-output-conflict-gate" "compare basel
-ine dirty paths with planned auto-goal outputs" $true $false 1 $message
-> scripts\ai-dev-auto-goal.ps1:577:    Stop-AutoGoal $script:steps "baselin
-e_output_conflict" $false 1
-  scripts\ai-dev-auto-goal.ps1:578:}
-  scripts\ai-dev-auto-goal.ps1:579:
-  scripts\ai-dev-auto-goal.ps1:580:function Invoke-FinalAutoGoalChangeGate 
-{
-  scripts\ai-dev-auto-goal.ps1:594:        $message = "Final clean verifica
-tion failed: baseline dirty paths from auto-
-goal start are no longer visible in git status. They may have been committe
-d or otherwise swallowed, so auto-goal will 
-not report completed.`nBaseline dirty count: $baselineDirtyCount`nFinal dir
-ty count: $finalDirtyCount`nFinal .ai-dev me
-ta commit created: skipped (baseline dirty disappeared).`nBaseline dirty pa
-ths:`n$($baselineDirtyPaths -join "`n")"
-  scripts\ai-dev-auto-goal.ps1:595:        $script:steps += New-StepResult 
-$StepNumber "final-change-gate" $command $tr
-ue $false 1 $message
-> scripts\ai-dev-auto-goal.ps1:596:        Stop-AutoGoal $script:steps "fin
-al_baseline_dirty_disappeared" $false 1
-  scripts\ai-dev-auto-goal.ps1:597:    }
-  scripts\ai-dev-auto-goal.ps1:598:
-  scripts\ai-dev-auto-goal.ps1:599:    if ($statusLines.Count -eq 0) {
-  scripts\ai-dev-auto-goal.ps1:618:        $message = "Final clean verifica
-tion failed: baseline dirty paths from auto-
-goal start disappeared before completion. They may have been committed or o
-therwise swallowed, so auto-goal will not re
-port completed.`nBaseline dirty count: $baselineDirtyCount`nFinal dirty cou
-nt: $finalDirtyCount`nFinal .ai-dev meta com
-mit created: skipped (baseline dirty disappeared).`nMissing baseline dirty 
-paths:`n$($baselineMissingPaths -join "`n")`
-n$($statusLines -join "`n")"
-  scripts\ai-dev-auto-goal.ps1:619:        $script:steps += New-StepResult 
-$StepNumber "final-change-gate" $command $tr
-ue $false 1 $message
-> scripts\ai-dev-auto-goal.ps1:620:        Stop-AutoGoal $script:steps "fin
-al_baseline_dirty_disappeared" $false 1
-  scripts\ai-dev-auto-goal.ps1:621:    }
-  scripts\ai-dev-auto-goal.ps1:622:
-  scripts\ai-dev-auto-goal.ps1:623:    if ($baselineRemainingPaths.Count -g
-t 0) {
-  scripts\ai-dev-auto-goal.ps1:624:        $message = "Final clean verifica
-tion failed: baseline dirty files remain, so
- auto-goal will not report completed.`nBaseline dirty count: $baselineDirty
-Count`nFinal dirty count: $finalDirtyCount`n
-Final .ai-dev meta commit created: skipped (baseline dirty remains).`nRemai
-ning baseline dirty paths:`n$($baselineRemai
-ningPaths -join "`n")`n$($statusLines -join "`n")"
-  scripts\ai-dev-auto-goal.ps1:625:        $script:steps += New-StepResult 
-$StepNumber "final-change-gate" $command $tr
-ue $false 1 $message
-> scripts\ai-dev-auto-goal.ps1:626:        Stop-AutoGoal $script:steps "fin
-al_baseline_dirty_remains" $false 1
-  scripts\ai-dev-auto-goal.ps1:627:    }
-  scripts\ai-dev-auto-goal.ps1:628:
-  scripts\ai-dev-auto-goal.ps1:629:    if ($nonAiDevPaths.Count -gt 0) {
-  scripts\ai-dev-auto-goal.ps1:630:        $message = "Final clean verifica
-tion failed: non-.ai-dev changes remain, so 
-auto-goal will not report completed.`nBaseline dirty count: $baselineDirtyC
-ount`nFinal dirty count: $finalDirtyCount`nF
-inal .ai-dev meta commit created: skipped (non-.ai-dev dirty remains).`n$($
-statusLines -join "`n")"
-  scripts\ai-dev-auto-goal.ps1:631:        $script:steps += New-StepResult 
-$StepNumber "final-change-gate" $command $tr
-ue $false 1 $message
-> scripts\ai-dev-auto-goal.ps1:632:        Stop-AutoGoal $script:steps "fin
-al_non_ai_dev_changes" $false 1
-  scripts\ai-dev-auto-goal.ps1:633:    }
-  scripts\ai-dev-auto-goal.ps1:634:
-  scripts\ai-dev-auto-goal.ps1:635:    if ($newAiDevPaths.Count -eq 0) {
-  scripts\ai-dev-auto-goal.ps1:636:        $message = "Final clean verifica
-tion failed: dirty paths remain, but none ar
-e new .ai-dev operational changes that auto-goal may commit.`nBaseline dirt
-y count: $baselineDirtyCount`nFinal dirty co
-unt: $finalDirtyCount`nFinal .ai-dev meta commit created: skipped (no eligi
-ble .ai-dev changes).`n$($statusLines -join 
-"`n")"
-  scripts\ai-dev-auto-goal.ps1:637:        $script:steps += New-StepResult 
-$StepNumber "final-change-gate" $command $tr
-ue $false 1 $message
-> scripts\ai-dev-auto-goal.ps1:638:        Stop-AutoGoal $script:steps "fin
-al_no_eligible_meta_changes" $false 1
-  scripts\ai-dev-auto-goal.ps1:639:    }
-  scripts\ai-dev-auto-goal.ps1:640:
-  scripts\ai-dev-auto-goal.ps1:641:    if (-not $AllowCommit) {
-  scripts\ai-dev-auto-goal.ps1:642:        $message = "Final clean verifica
-tion failed: only new .ai-dev operational ch
-anges remain, but -AllowCommit is required to create the final meta commit.
-`nBaseline dirty count: $baselineDirtyCount`
-nFinal dirty count: $finalDirtyCount`nFinal .ai-dev meta commit created: sk
-ipped (-AllowCommit missing).`n$($statusLine
-s -join "`n")"
-  scripts\ai-dev-auto-goal.ps1:643:        $script:steps += New-StepResult 
-$StepNumber "final-change-gate" $command $tr
-ue $false 1 $message
-> scripts\ai-dev-auto-goal.ps1:644:        Stop-AutoGoal $script:steps "fin
-al_ai_dev_changes_require_commit" $false 1
-  scripts\ai-dev-auto-goal.ps1:645:    }
-  scripts\ai-dev-auto-goal.ps1:646:
-  scripts\ai-dev-auto-goal.ps1:647:    $addArguments = @("add", "--") + $ne
-wAiDevPaths
-  scripts\ai-dev-auto-goal.ps1:651:    if ($addExitCode -ne 0) {
-  scripts\ai-dev-auto-goal.ps1:652:        & git restore --staged -- $newAi
-DevPaths 2>&1 | Out-String | Out-Null
-> scripts\ai-dev-auto-goal.ps1:653:        $restoredPaths = @(Restore-AutoG
-oalCurrentRunOperationalChanges $newAiDevPat
-hs)
-  scripts\ai-dev-auto-goal.ps1:654:        $message = "auto-goal 최종 .ai-dev
- 메타 변경 git add 실패. exit code: $addExitCode`n
-$addOutput"
-  scripts\ai-dev-auto-goal.ps1:655:        $script:steps += New-StepResult 
-$StepNumber "final-change-gate" "git add -- 
-<final .ai-dev files>" $true $false 1 "$message`nRestored run-owned files: 
-$($restoredPaths -join ', ')"
-> scripts\ai-dev-auto-goal.ps1:656:        Stop-AutoGoal $script:steps "fin
-al_meta_add_failed" $false 1
-  scripts\ai-dev-auto-goal.ps1:657:    }
-  scripts\ai-dev-auto-goal.ps1:658:
-  scripts\ai-dev-auto-goal.ps1:659:    $metaCommitMessage = "chore(ai-dev):
- record final auto-goal state"
-  scripts\ai-dev-auto-goal.ps1:664:    if ($commitExitCode -ne 0) {
-  scripts\ai-dev-auto-goal.ps1:665:        & git restore --staged -- $newAi
-DevPaths 2>&1 | Out-String | Out-Null
-> scripts\ai-dev-auto-goal.ps1:666:        $restoredPaths = @(Restore-AutoG
-oalCurrentRunOperationalChanges $newAiDevPat
-hs)
-  scripts\ai-dev-auto-goal.ps1:667:        $message = "auto-goal 최종 .ai-dev
- 메타 커밋 실패. exit code: $commitExitCode`n$comm
-itOutput"
-  scripts\ai-dev-auto-goal.ps1:668:        $script:steps += New-StepResult 
-$StepNumber "final-change-gate" "git commit 
--m '$metaCommitMessage' -- <final .ai-dev files>" $true $false 1 "$message`
-nRestored run-owned files: $($restoredPaths 
--join ', ')"
-> scripts\ai-dev-auto-goal.ps1:669:        Stop-AutoGoal $script:steps "fin
-al_meta_commit_failed" $false 1
-  scripts\ai-dev-auto-goal.ps1:670:    }
-  scripts\ai-dev-auto-goal.ps1:671:
-  scripts\ai-dev-auto-goal.ps1:672:    $remainingStatus = @(Get-GitStatusLi
-nes $StepNumber "final-change-gate")
-  scripts\ai-dev-auto-goal.ps1:675:        $message = "Final clean verifica
-tion failed: changes remain after the final 
-.ai-dev meta commit, so auto-goal will not report completed.`nBaseline dirt
-y count: $baselineDirtyCount`nFinal dirty co
-unt: $finalDirtyCount`nFinal .ai-dev meta commit created: yes`nFinal clean 
-verification: failed; git status --short sti
-ll reports $($remainingStatus.Count) change(s).`n$($remainingStatus -join "
-`n")"
-  scripts\ai-dev-auto-goal.ps1:676:        $script:steps += New-StepResult 
-$StepNumber "final-change-gate" "git status 
---short" $true $false 1 $message
-> scripts\ai-dev-auto-goal.ps1:677:        Stop-AutoGoal $script:steps "fin
-al_worktree_dirty" $false 1
-  scripts\ai-dev-auto-goal.ps1:678:    }
-  scripts\ai-dev-auto-goal.ps1:679:
-  scripts\ai-dev-auto-goal.ps1:680:    $message = ($commitOutput.Trim(), "B
-aseline dirty count: $baselineDirtyCount", "
-Final dirty count: $finalDirtyCount", "Final .ai-dev meta commit created: y
-es", "Final clean verification: git status -
--short returned no changes.") -join "`n"
-  scripts\ai-dev-auto-goal.ps1:690:        $message = "Completed clean veri
-fication failed: git status --short still re
-ports $($remainingStatus.Count) change(s) after all result/state files were
- written and the final gate ran.`n$($remaini
-ngStatus -join "`n")"
-  scripts\ai-dev-auto-goal.ps1:691:        $script:steps += New-StepResult 
-$StepNumber "completed-clean-gate" "git stat
-us --short" $true $false 1 $message
-> scripts\ai-dev-auto-goal.ps1:692:        Stop-AutoGoal $script:steps "com
-pleted_worktree_dirty" $false 1
-  scripts\ai-dev-auto-goal.ps1:693:    }
-  scripts\ai-dev-auto-goal.ps1:694:
-  scripts\ai-dev-auto-goal.ps1:695:    $script:steps += New-StepResult $Ste
-pNumber "completed-clean-gate" "git status -
--short" $true $false 0 "Completed clean verification passed: git status --s
-hort returned no changes after all result/st
-ate files were written."
-  scripts\ai-dev-auto-goal.ps1:718:        $message = "Final clean verifica
-tion failed: baseline dirty paths from auto-
-goal start are no longer visible in git status. They may have been committe
-d or otherwise swallowed, so auto-goal will 
-not report completed.`nBaseline dirty count: $baselineDirtyCount`nFinal dir
-ty count: $finalDirtyCount`nFinal .ai-dev me
-ta commit created: skipped (baseline dirty disappeared).`nBaseline dirty pa
-ths:`n$($baselineDirtyPaths -join "`n")"
-  scripts\ai-dev-auto-goal.ps1:719:        $script:steps += New-StepResult 
-$StepNumber "final-change-gate" $command $tr
-ue $false 1 $message
-> scripts\ai-dev-auto-goal.ps1:720:        Stop-AutoGoal $script:steps "fin
-al_baseline_dirty_disappeared" $false 1
-  scripts\ai-dev-auto-goal.ps1:721:    }
-  scripts\ai-dev-auto-goal.ps1:722:
-  scripts\ai-dev-auto-goal.ps1:723:    if ($statusLines.Count -eq 0) {
-  scripts\ai-dev-auto-goal.ps1:750:        $message = "Final clean verifica
-tion failed: baseline dirty paths from auto-
-goal start disappeared before completion. They may have been committed or o
-therwise swallowed, so auto-goal will not re
-port completed.`nBaseline dirty count: $baselineDirtyCount`nFinal dirty cou
-nt: $finalDirtyCount`nFinal .ai-dev meta com
-mit created: skipped (baseline dirty disappeared).`nMissing baseline dirty 
-paths:`n$($baselineMissingPaths -join "`n")`
-n$($statusLines -join "`n")"
-  scripts\ai-dev-auto-goal.ps1:751:        $script:steps += New-StepResult 
-$StepNumber "final-change-gate" $command $tr
-ue $false 1 $message
-> scripts\ai-dev-auto-goal.ps1:752:        Stop-AutoGoal $script:steps "fin
-al_baseline_dirty_disappeared" $false 1
-  scripts\ai-dev-auto-goal.ps1:753:    }
-  scripts\ai-dev-auto-goal.ps1:754:
-  scripts\ai-dev-auto-goal.ps1:755:    if ($baselineRemainingPaths.Count -g
-t 0) {
-  scripts\ai-dev-auto-goal.ps1:756:        $message = "Final clean verifica
-tion failed: baseline dirty files remain, so
- auto-goal will not report completed.`nBaseline dirty count: $baselineDirty
-Count`nFinal dirty count: $finalDirtyCount`n
-Final .ai-dev meta commit created: skipped (baseline dirty remains).`nRemai
-ning baseline dirty paths:`n$($baselineRemai
-ningPaths -join "`n")`n$($statusLines -join "`n")"
-  scripts\ai-dev-auto-goal.ps1:757:        $script:steps += New-StepResult 
-$StepNumber "final-change-gate" $command $tr
-ue $false 1 $message
-> scripts\ai-dev-auto-goal.ps1:758:        Stop-AutoGoal $script:steps "fin
-al_baseline_dirty_remains" $false 1
-  scripts\ai-dev-auto-goal.ps1:759:    }
-  scripts\ai-dev-auto-goal.ps1:760:
-  scripts\ai-dev-auto-goal.ps1:761:    if ($nonAiDevPaths.Count -gt 0) {
-  scripts\ai-dev-auto-goal.ps1:762:        $message = "Final clean verifica
-tion failed: non-.ai-dev changes remain, so 
-auto-goal will not report completed.`nBaseline dirty count: $baselineDirtyC
-ount`nFinal dirty count: $finalDirtyCount`nF
-inal .ai-dev meta commit created: skipped (non-.ai-dev dirty remains).`n$($
-statusLines -join "`n")"
-  scripts\ai-dev-auto-goal.ps1:763:        $script:steps += New-StepResult 
-$StepNumber "final-change-gate" $command $tr
-ue $false 1 $message
-> scripts\ai-dev-auto-goal.ps1:764:        Stop-AutoGoal $script:steps "fin
-al_non_ai_dev_changes" $false 1
-  scripts\ai-dev-auto-goal.ps1:765:    }
-  scripts\ai-dev-auto-goal.ps1:766:
-  scripts\ai-dev-auto-goal.ps1:767:    if ($newAiDevPaths.Count -eq 0) {
-  scripts\ai-dev-auto-goal.ps1:768:        $message = "Final clean verifica
-tion failed: dirty paths remain, but none ar
-e new .ai-dev operational changes that auto-goal may commit.`nBaseline dirt
-y count: $baselineDirtyCount`nFinal dirty co
-unt: $finalDirtyCount`nFinal .ai-dev meta commit created: skipped (no eligi
-ble .ai-dev changes).`n$($statusLines -join 
-"`n")"
-  scripts\ai-dev-auto-goal.ps1:769:        $script:steps += New-StepResult 
-$StepNumber "final-change-gate" $command $tr
-ue $false 1 $message
-> scripts\ai-dev-auto-goal.ps1:770:        Stop-AutoGoal $script:steps "fin
-al_no_eligible_meta_changes" $false 1
-  scripts\ai-dev-auto-goal.ps1:771:    }
-  scripts\ai-dev-auto-goal.ps1:772:
-  scripts\ai-dev-auto-goal.ps1:773:    if (-not $AllowCommit) {
-  scripts\ai-dev-auto-goal.ps1:774:        $message = "Final clean verifica
-tion failed: only new .ai-dev operational ch
-anges remain, but -AllowCommit is required to create the final meta commit.
-`nBaseline dirty count: $baselineDirtyCount`
-nFinal dirty count: $finalDirtyCount`nFinal .ai-dev meta commit created: sk
-ipped (-AllowCommit missing).`n$($statusLine
-s -join "`n")"
-  scripts\ai-dev-auto-goal.ps1:775:        $script:steps += New-StepResult 
-$StepNumber "final-change-gate" $command $tr
-ue $false 1 $message
-> scripts\ai-dev-auto-goal.ps1:776:        Stop-AutoGoal $script:steps "fin
-al_ai_dev_changes_require_commit" $false 1
-  scripts\ai-dev-auto-goal.ps1:777:    }
-  scripts\ai-dev-auto-goal.ps1:778:
-  scripts\ai-dev-auto-goal.ps1:779:    if (-not $preparedGateStepsWritten) 
-{
-  scripts\ai-dev-auto-goal.ps1:797:        $message = "Final clean verifica
-tion failed: no final .ai-dev operational pa
-ths were available to commit after the final result file was written.`n$($s
-tatusLines -join "`n")"
-  scripts\ai-dev-auto-goal.ps1:798:        $script:steps += New-StepResult 
-$StepNumber "final-change-gate" $command $tr
-ue $false 1 $message
-> scripts\ai-dev-auto-goal.ps1:799:        Stop-AutoGoal $script:steps "fin
-al_no_eligible_meta_changes" $false 1
-  scripts\ai-dev-auto-goal.ps1:800:    }
-  scripts\ai-dev-auto-goal.ps1:801:
-  scripts\ai-dev-auto-goal.ps1:802:    $addArguments = @("add", "--") + $ne
-wAiDevPaths
-  scripts\ai-dev-auto-goal.ps1:806:    if ($addExitCode -ne 0) {
-  scripts\ai-dev-auto-goal.ps1:807:        & git restore --staged -- $newAi
-DevPaths 2>&1 | Out-String | Out-Null
-> scripts\ai-dev-auto-goal.ps1:808:        $restoredPaths = @(Restore-AutoG
-oalCurrentRunOperationalChanges $newAiDevPat
-hs)
-  scripts\ai-dev-auto-goal.ps1:809:        $message = "auto-goal 최종 .ai-dev
- 메타 변경 git add 실패. exit code: $addExitCode`n
-$addOutput"
-  scripts\ai-dev-auto-goal.ps1:810:        $script:steps += New-StepResult 
-$StepNumber "final-change-gate" "git add -- 
-<final .ai-dev files>" $true $false 1 "$message`nRestored run-owned files: 
-$($restoredPaths -join ', ')"
-> scripts\ai-dev-auto-goal.ps1:811:        Stop-AutoGoal $script:steps "fin
-al_meta_add_failed" $false 1
-  scripts\ai-dev-auto-goal.ps1:812:    }
-  scripts\ai-dev-auto-goal.ps1:813:
-  scripts\ai-dev-auto-goal.ps1:814:    $metaCommitMessage = "chore(ai-dev):
- record final auto-goal state"
-  scripts\ai-dev-auto-goal.ps1:819:    if ($commitExitCode -ne 0) {
-  scripts\ai-dev-auto-goal.ps1:820:        & git restore --staged -- $newAi
-DevPaths 2>&1 | Out-String | Out-Null
-> scripts\ai-dev-auto-goal.ps1:821:        $restoredPaths = @(Restore-AutoG
-oalCurrentRunOperationalChanges $newAiDevPat
-hs)
-  scripts\ai-dev-auto-goal.ps1:822:        $message = "auto-goal 최종 .ai-dev
- 메타 커밋 실패. exit code: $commitExitCode`n$comm
-itOutput"
-  scripts\ai-dev-auto-goal.ps1:823:        $script:steps += New-StepResult 
-$StepNumber "final-change-gate" "git commit 
--m '$metaCommitMessage' -- <final .ai-dev files>" $true $false 1 "$message`
-nRestored run-owned files: $($restoredPaths 
--join ', ')"
-> scripts\ai-dev-auto-goal.ps1:824:        Stop-AutoGoal $script:steps "fin
-al_meta_commit_failed" $false 1
-  scripts\ai-dev-auto-goal.ps1:825:    }
-  scripts\ai-dev-auto-goal.ps1:826:
-  scripts\ai-dev-auto-goal.ps1:827:    $remainingStatus = @(Get-GitStatusLi
-nes $CleanGateStepNumber "completed-clean-ga
-te")
-  scripts\ai-dev-auto-goal.ps1:830:        $message = "Completed clean veri
-fication failed: changes remain after the fi
-nal .ai-dev meta commit, so auto-goal will not report completed.`n$($remain
-ingStatus -join "`n")"
-  scripts\ai-dev-auto-goal.ps1:831:        $script:steps += New-StepResult 
-$CleanGateStepNumber "completed-clean-gate" 
-"git status --short" $true $false 1 $message
-> scripts\ai-dev-auto-goal.ps1:832:        Stop-AutoGoal $script:steps "com
-pleted_worktree_dirty" $false 1
-  scripts\ai-dev-auto-goal.ps1:833:    }
-  scripts\ai-dev-auto-goal.ps1:834:}
-  scripts\ai-dev-auto-goal.ps1:835:
-  scripts\ai-dev-auto-goal.ps1:847:    Invoke-FinalPreparedResultGate $Post
-FinalGateStepNumber $CleanGateStepNumber $St
-oppedReason
-  scripts\ai-dev-auto-goal.ps1:848:    $script:autoGoalCanCleanTempArtifact
-s = $false
-> scripts\ai-dev-auto-goal.ps1:849:    Stop-AutoGoal $script:steps $Stopped
-Reason $true 0
-  scripts\ai-dev-auto-goal.ps1:850:}
-  scripts\ai-dev-auto-goal.ps1:851:
-  scripts\ai-dev-auto-goal.ps1:852:function Get-JsonObjectCandidates {
-  scripts\ai-dev-auto-goal.ps1:1329:    if ($exitCode -ne 0) {
-  scripts\ai-dev-auto-goal.ps1:1330:        $childStoppedReason = Get-Stopp
-edReasonFromOutput $message
-> scripts\ai-dev-auto-goal.ps1:1331:        $stoppedReason = if (Test-IsExp
-ectedPreImplementationStop $childStoppedReas
-on) { $childStoppedReason } else { "$Name`_failed" }
-> scripts\ai-dev-auto-goal.ps1:1332:        Stop-AutoGoal $script:steps $st
-oppedReason $false 1
-  scripts\ai-dev-auto-goal.ps1:1333:    }
-  scripts\ai-dev-auto-goal.ps1:1334:}
-  scripts\ai-dev-auto-goal.ps1:1335:
-  scripts\ai-dev-auto-goal.ps1:1401:if (-not (Test-HasValue $GoalTitle)) {
-  scripts\ai-dev-auto-goal.ps1:1402:    $script:steps += New-StepResult 0 "
-validate-input" "check GoalTitle" $false $fa
-lse 1 "GoalTitle must not be empty."
-> scripts\ai-dev-auto-goal.ps1:1403:    Stop-AutoGoal $script:steps "invali
-d_goal_title" $false 1
-  scripts\ai-dev-auto-goal.ps1:1404:}
-  scripts\ai-dev-auto-goal.ps1:1405:
-  scripts\ai-dev-auto-goal.ps1:1406:if (-not (Test-HasValue $GoalDescriptio
-n)) {
-  scripts\ai-dev-auto-goal.ps1:1407:    $script:steps += New-StepResult 0 "
-validate-input" "check GoalDescription" $fal
-se $false 1 "GoalDescription must not be empty."
-> scripts\ai-dev-auto-goal.ps1:1408:    Stop-AutoGoal $script:steps "invali
-d_goal_description" $false 1
-  scripts\ai-dev-auto-goal.ps1:1409:}
-  scripts\ai-dev-auto-goal.ps1:1410:
-  scripts\ai-dev-auto-goal.ps1:1411:if ($MaxTasks -lt 1) {
-  scripts\ai-dev-auto-goal.ps1:1412:    $script:steps += New-StepResult 0 "
-validate-input" "check MaxTasks" $false $fal
-se 1 "MaxTasks must be at least 1."
-> scripts\ai-dev-auto-goal.ps1:1413:    Stop-AutoGoal $script:steps "max_ta
-sks_must_be_at_least_1" $false 1
-  scripts\ai-dev-auto-goal.ps1:1414:}
-  scripts\ai-dev-auto-goal.ps1:1415:
-  scripts\ai-dev-auto-goal.ps1:1416:if ($MaxSteps -lt 1) {
-  scripts\ai-dev-auto-goal.ps1:1417:    $script:steps += New-StepResult 0 "
-validate-input" "check MaxSteps" $false $fal
-se 1 "MaxSteps must be at least 1."
-> scripts\ai-dev-auto-goal.ps1:1418:    Stop-AutoGoal $script:steps "max_st
-eps_must_be_at_least_1" $false 1
-  scripts\ai-dev-auto-goal.ps1:1419:}
-  scripts\ai-dev-auto-goal.ps1:1420:
-  scripts\ai-dev-auto-goal.ps1:1421:$makePromptPath = Join-Path $PSScriptRo
-ot "ai-dev-make-prompt.ps1"
-  scripts\ai-dev-auto-goal.ps1:1425:    if (-not (Test-Path -LiteralPath $r
-equiredScript -PathType Leaf)) {
-  scripts\ai-dev-auto-goal.ps1:1426:        $script:steps += New-StepResult
- 0 "prepare" "check required scripts" $false
- $false 1 "Missing required script: $requiredScript"
-> scripts\ai-dev-auto-goal.ps1:1427:        Stop-AutoGoal $script:steps "pr
-epare_failed" $false 1
-  scripts\ai-dev-auto-goal.ps1:1428:    }
-  scripts\ai-dev-auto-goal.ps1:1429:}
-  scripts\ai-dev-auto-goal.ps1:1430:
-  scripts\ai-dev-auto-goal.ps1:1441:    if ($previewValidationErrors.Count 
--gt 0) {
-  scripts\ai-dev-auto-goal.ps1:1442:        $script:steps += New-StepResult
- 2 "preview-plan" "local dry-run plan previe
-w" $false $false 1 "DryRun preview plan validation failed: $($previewValida
-tionErrors -join '; ')"
-> scripts\ai-dev-auto-goal.ps1:1443:        Stop-AutoGoal $script:steps "dr
-y_run_preview_invalid" $false 1
-  scripts\ai-dev-auto-goal.ps1:1444:    }
-  scripts\ai-dev-auto-goal.ps1:1445:
-  scripts\ai-dev-auto-goal.ps1:1446:    $plannedAutoGoalOutputPaths = @(Get
--PlannedAutoGoalOutputPaths)
-  scripts\ai-dev-auto-goal.ps1:1457:    }
-  scripts\ai-dev-auto-goal.ps1:1458:
-> scripts\ai-dev-auto-goal.ps1:1459:    Stop-AutoGoal $script:steps "dry_ru
-n" $false 0
-  scripts\ai-dev-auto-goal.ps1:1460:}
-  scripts\ai-dev-auto-goal.ps1:1461:
-  scripts\ai-dev-auto-goal.ps1:1462:$script:autoGoalBaselineStatusLines = @
-(Get-GitPorcelainStatusLines)
-  scripts\ai-dev-auto-goal.ps1:1477:    $dirtyText = ($statusLines -join "`
-n")
-  scripts\ai-dev-auto-goal.ps1:1478:    $script:steps += New-StepResult 2 "
-dirty-worktree-gate" "git status --porcelain
-" $false $true 1 "Baseline dirty count: $baselineDirtyCount`nWorktree is di
-rty. Use -AllowDirty only when this is inten
-tional.`n$dirtyText"
-> scripts\ai-dev-auto-goal.ps1:1479:    Stop-AutoGoal $script:steps "dirty_
-worktree" $false 1
-  scripts\ai-dev-auto-goal.ps1:1480:}
-  scripts\ai-dev-auto-goal.ps1:1481:
-  scripts\ai-dev-auto-goal.ps1:1482:if ($statusLines.Count -gt 0) {
-  scripts\ai-dev-auto-goal.ps1:1493:if ($null -eq $codexCommand) {
-  scripts\ai-dev-auto-goal.ps1:1494:    $script:steps += New-StepResult 3 "
-plan-goal" "codex exec <auto-goal planning p
-rompt>" $false $false 1 "Codex CLI was not found."
-> scripts\ai-dev-auto-goal.ps1:1495:    Stop-AutoGoal $script:steps "codex_
-not_found" $false 1
-  scripts\ai-dev-auto-goal.ps1:1496:}
-  scripts\ai-dev-auto-goal.ps1:1497:
-  scripts\ai-dev-auto-goal.ps1:1498:$plannerPrompt = New-CodexAutoGoalPromp
-t $GoalTitle.Trim() $GoalDescription.Trim()
-  scripts\ai-dev-auto-goal.ps1:1528:if ($codexExitCode -ne 0) {
-  scripts\ai-dev-auto-goal.ps1:1529:    $script:steps += New-StepResult 3 "
-plan-goal" "codex exec <auto-goal planning p
-rompt>" $true $false 1 "Codex goal planning failed. Result: $(ConvertTo-Rep
-oRelativePath $ResultPath)"
-> scripts\ai-dev-auto-goal.ps1:1530:    Stop-AutoGoal $script:steps "codex_
-plan_failed" $false 1
-  scripts\ai-dev-auto-goal.ps1:1531:}
-  scripts\ai-dev-auto-goal.ps1:1532:
-  scripts\ai-dev-auto-goal.ps1:1533:$script:steps += New-StepResult 3 "plan
--goal" "codex exec <auto-goal planning promp
-t>" $true $false 0 "Codex goal planning completed. Result: $(ConvertTo-Repo
-RelativePath $ResultPath)"
-  scripts\ai-dev-auto-goal.ps1:1538:    $preview = Get-InputPreview $codexO
-utput
-  scripts\ai-dev-auto-goal.ps1:1539:    $script:steps += New-StepResult 4 "
-validate-generated-json" "goal/queue/state J
-SON validation" $false $false 1 "Codex plan JSON extraction failed: $($_.Ex
-ception.Message) Output preview: $preview"
-> scripts\ai-dev-auto-goal.ps1:1540:    Stop-AutoGoal $script:steps "genera
-ted_json_invalid" $false 1
-  scripts\ai-dev-auto-goal.ps1:1541:}
-  scripts\ai-dev-auto-goal.ps1:1542:
-  scripts\ai-dev-auto-goal.ps1:1543:$script:steps += New-StepResult 4 "vali
-date-generated-json" "goal/queue/state JSON 
-validation" $false $false 0 "goalMarkdown, queue, and state JSON validation
- completed. currentTaskId: $($autoGoalPlan.P
-arsed.queue.currentTaskId)"
-  scripts\ai-dev-auto-goal.ps1:1567:} catch {
-  scripts\ai-dev-auto-goal.ps1:1568:    $script:steps += New-StepResult 8 "
-verify-goal-status" "$stateRelativePath goal
-Status 확인" $false $false 1 $_.Exception.Message
-> scripts\ai-dev-auto-goal.ps1:1569:    Stop-AutoGoal $script:steps "goal_s
-tatus_verify_failed" $false 1
-  scripts\ai-dev-auto-goal.ps1:1570:}
-  scripts\ai-dev-auto-goal.ps1:1571:
-  scripts\ai-dev-auto-goal.ps1:1572:if ($goalStatusAfterFullCycle -ne "comp
-leted") {
-  scripts\ai-dev-auto-goal.ps1:1573:    $script:steps += New-StepResult 8 "
-verify-goal-status" "$stateRelativePath goal
-Status 확인" $false $true 1 "auto-cycle-full은 성공 종료했지만 goalStatus가 completed가
- 아닙니다: $goalStatusAfterFullCycle"
-> scripts\ai-dev-auto-goal.ps1:1574:    Stop-AutoGoal $script:steps "auto_c
-ycle_incomplete" $false 1
-  scripts\ai-dev-auto-goal.ps1:1575:}
-  scripts\ai-dev-auto-goal.ps1:1576:
-  scripts\ai-dev-auto-goal.ps1:1577:$script:steps += New-StepResult 8 "veri
-fy-goal-status" "$stateRelativePath goalStat
-us 확인" $false $false 0 "auto-cycle-full 성공 후 goalStatus completed 확인."
-
-
-
-codex
-확인 결과 `baseline_output_conflict`, `dirty_worktree`, `max_steps_too_small_fo
-r_full_cycle`는 이미 예상 비작업 종료 분류에 들어가 있고, 종료 경로에서 스냅샷 복원이 호출됩니다. 리뷰의 요구는 이 세 
-사유별 검증 기록 보강이므로 `.ai-dev/test-result.md`와 루프 로그에만 최소 기록을 추가하겠습니다.
-apply patch
-patch: completed
-D:\ai-apps\planpilot-local\.ai-dev\test-result.md
-diff --git a/.ai-dev/test-result.md b/.ai-dev/test-result.md
-index 319407268cf2fbf038adcb8052ec14ea08580fe0..de2c96045f106148a10135235d8
-0e842851f6a6e
---- a/.ai-dev/test-result.md
-+++ b/.ai-dev/test-result.md
-@@ -76,9 +76,9 @@
- 
- ```
- 
--### Captured autopilot output
--```text
--Step 1: validate-input
-+### Captured autopilot output
-+```text
-+Step 1: validate-input
-   Executed: False
-   Skipped: False
-   Exit code: 0
-@@ -109,6 +109,48 @@
- Next run without manual restore: True
- Completed: False
- Prepared goals: 0/1
--Exit code: 1
--
--```
-+Exit code: 1
-+
-+```
-+
-+## Expected pre-implementation stop path verification
-+
-+- Verification type: code-path review, no destructive repo operations
-+- Scope: review-requested expected non-work reasons that were not covered 
-by the previous isolated run
-+- Commands not run in this revise pass: `git`, `npm run build`, `npm run l
-int`, `npm run test`
-+
-+### baseline_output_conflict
-+
-+- Auto-goal source path: `scripts/ai-dev-auto-goal.ps1`
-+- Stop reason producer: `Invoke-BaselineOutputConflictGate` stops with `ba
-seline_output_conflict` before protected output files are written or delete
-d.
-+- Classification check: `Test-IsExpectedPreImplementationStop` includes `b
-aseline_output_conflict`, so `New-AutoGoalResult` records `outcomeCategory=
-expected_non_work`.
-+- Cleanup check: `Stop-AutoGoal` calls `Restore-AutoGoalCurrentRunOperatio
-nalChanges` for expected pre-implementation stops.
-+- Baseline preservation check: `Restore-AutoGoalCurrentRunOperationalChang
-es` skips paths present in `$script:autoGoalBaselineDirtyPaths`, so files d
-irty before the run are not overwritten or deleted.
-+- Result/meta handling check: when `-AllowCommit` is not set, the expected
- non-work result is reported to console only and no new `.ai-dev` result fi
-le is intentionally left behind; when `-AllowCommit` is set, `Test-CanWrite
-ExpectedNonWorkResultFile` prevents overwriting a baseline-dirty result pat
-h.
-+- Manual restore expectation: current-run operational file changes are res
-tored; baseline dirty operational files remain preserved.
-+
-+### dirty_worktree
-+
-+- Auto-goal source path: `scripts/ai-dev-auto-goal.ps1`
-+- Stop reason producer: the dirty worktree gate stops with `dirty_worktree
-` when baseline dirty paths exist and `-AllowDirty` is not provided.
-+- Classification check: `Test-IsExpectedPreImplementationStop` includes `d
-irty_worktree`, so `New-AutoGoalResult` records `outcomeCategory=expected_n
-on_work`.
-+- Cleanup check: `Stop-AutoGoal` calls `Restore-AutoGoalCurrentRunOperatio
-nalChanges` for expected pre-implementation stops.
-+- Baseline preservation check: snapshot restore skips `$script:autoGoalBas
-elineDirtyPaths`; the dirty files that caused the gate remain untouched.
-+- Result/meta handling check: without `-AllowCommit`, no final result file
- is written after cleanup; with `-AllowCommit`, a baseline-dirty `ResultPat
-h` is protected from overwrite.
-+- Manual restore expectation: no run-owned `.ai-dev` operational dirty fil
-es should remain; the original dirty worktree remains for the user to handl
-e.
-+
-+### max_steps_too_small_for_full_cycle
-+
-+- Autopilot source path: `scripts/ai-dev-autopilot.ps1`
-+- Stop reason propagation: child auto-goal output is parsed by `Get-Stoppe
-dReasonFromOutput`; if the child reports `max_steps_too_small_for_full_cycl
-e`, Autopilot preserves that stopped reason instead of collapsing it into `
-auto_goal_failed`.
-+- Classification check: `Test-IsExpectedAutopilotNonWorkStop` includes `ma
-x_steps_too_small_for_full_cycle`, so `New-AutopilotResult` records `outcom
-eCategory=expected_non_work`.
-+- Cleanup check: `Stop-Autopilot` calls `Restore-AutopilotCurrentRunOperat
-ionalChanges` for expected non-work stops.
-+- Baseline preservation check: `Restore-AutopilotCurrentRunOperationalChan
-ges` skips `Test-IsAutopilotBaselineDirtyPath`, so baseline-dirty `loop-log
-.md` or `autopilot-goal-history.json` changes are not overwritten or delete
-d.
-+- Meta handling check: `Invoke-AutopilotLoopLogMetaCommit` filters out bas
-eline-dirty meta paths and commits only current-run meta paths when `-Allow
-Commit` is set; without `-AllowCommit`, cleanup still runs and meta commit 
-is skipped.
-+- Manual restore expectation: current-run autopilot operational changes ar
-e cleaned or limited to eligible meta commit paths; baseline user edits are
- preserved.
-+
-+### Outcome category distinction
-+
-+- Success: `New-AutoGoalResult` and `New-AutopilotResult` classify `ExitCo
-de=0` non-expected stops as `success`.
-+- Expected non-work: listed pre-implementation stop reasons are classified
- as `expected_non_work` even with exit code 1.
-+- Actual failure: non-zero exits outside the expected non-work allowlists 
-are classified as `actual_failure`.
-
-diff --git a/.ai-dev/test-result.md b/.ai-dev/test-result.md
-index 319407268cf2fbf038adcb8052ec14ea08580fe0..de2c96045f106148a10135235d8
-0e842851f6a6e
---- a/.ai-dev/test-result.md
-+++ b/.ai-dev/test-result.md
-@@ -76,9 +76,9 @@
- 
- ```
- 
--### Captured autopilot output
--```text
--Step 1: validate-input
-+### Captured autopilot output
-+```text
-+Step 1: validate-input
-   Executed: False
-   Skipped: False
-   Exit code: 0
-@@ -109,6 +109,48 @@
- Next run without manual restore: True
- Completed: False
- Prepared goals: 0/1
--Exit code: 1
--
--```
-+Exit code: 1
-+
-+```
-+
-+## Expected pre-implementation stop path verification
-+
-+- Verification type: code-path review, no destructive repo operations
-+- Scope: review-requested expected non-work reasons that were not covered 
-by the previous isolated run
-+- Commands not run in this revise pass: `git`, `npm run build`, `npm run l
-int`, `npm run test`
-+
-+### baseline_output_conflict
-+
-+- Auto-goal source path: `scripts/ai-dev-auto-goal.ps1`
-+- Stop reason producer: `Invoke-BaselineOutputConflictGate` stops with `ba
-seline_output_conflict` before protected output files are written or delete
-d.
-+- Classification check: `Test-IsExpectedPreImplementationStop` includes `b
-aseline_output_conflict`, so `New-AutoGoalResult` records `outcomeCategory=
-expected_non_work`.
-+- Cleanup check: `Stop-AutoGoal` calls `Restore-AutoGoalCurrentRunOperatio
-nalChanges` for expected pre-implementation stops.
-+- Baseline preservation check: `Restore-AutoGoalCurrentRunOperationalChang
-es` skips paths present in `$script:autoGoalBaselineDirtyPaths`, so files d
-irty before the run are not overwritten or deleted.
-+- Result/meta handling check: when `-AllowCommit` is not set, the expected
- non-work result is reported to console only and no new `.ai-dev` result fi
-le is intentionally left behind; when `-AllowCommit` is set, `Test-CanWrite
-ExpectedNonWorkResultFile` prevents overwriting a baseline-dirty result pat
-h.
-+- Manual restore expectation: current-run operational file changes are res
-tored; baseline dirty operational files remain preserved.
-+
-+### dirty_worktree
-+
-+- Auto-goal source path: `scripts/ai-dev-auto-goal.ps1`
-+- Stop reason producer: the dirty worktree gate stops with `dirty_worktree
-` when baseline dirty paths exist and `-AllowDirty` is not provided.
-+- Classification check: `Test-IsExpectedPreImplementationStop` includes `d
-irty_worktree`, so `New-AutoGoalResult` records `outcomeCategory=expected_n
-on_work`.
-+- Cleanup check: `Stop-AutoGoal` calls `Restore-AutoGoalCurrentRunOperatio
-nalChanges` for expected pre-implementation stops.
-+- Baseline preservation check: snapshot restore skips `$script:autoGoalBas
-elineDirtyPaths`; the dirty files that caused the gate remain untouched.
-+- Result/meta handling check: without `-AllowCommit`, no final result file
- is written after cleanup; with `-AllowCommit`, a baseline-dirty `ResultPat
-h` is protected from overwrite.
-+- Manual restore expectation: no run-owned `.ai-dev` operational dirty fil
-es should remain; the original dirty worktree remains for the user to handl
-e.
-+
-+### max_steps_too_small_for_full_cycle
-+
-+- Autopilot source path: `scripts/ai-dev-autopilot.ps1`
-+- Stop reason propagation: child auto-goal output is parsed by `Get-Stoppe
-dReasonFromOutput`; if the child reports `max_steps_too_small_for_full_cycl
-e`, Autopilot preserves that stopped reason instead of collapsing it into `
-auto_goal_failed`.
-+- Classification check: `Test-IsExpectedAutopilotNonWorkStop` includes `ma
-x_steps_too_small_for_full_cycle`, so `New-AutopilotResult` records `outcom
-eCategory=expected_non_work`.
-+- Cleanup check: `Stop-Autopilot` calls `Restore-AutopilotCurrentRunOperat
-ionalChanges` for expected non-work stops.
-+- Baseline preservation check: `Restore-AutopilotCurrentRunOperationalChan
-ges` skips `Test-IsAutopilotBaselineDirtyPath`, so baseline-dirty `loop-log
-.md` or `autopilot-goal-history.json` changes are not overwritten or delete
-d.
-+- Meta handling check: `Invoke-AutopilotLoopLogMetaCommit` filters out bas
-eline-dirty meta paths and commits only current-run meta paths when `-Allow
-Commit` is set; without `-AllowCommit`, cleanup still runs and meta commit 
-is skipped.
-+- Manual restore expectation: current-run autopilot operational changes ar
-e cleaned or limited to eligible meta commit paths; baseline user edits are
- preserved.
-+
-+### Outcome category distinction
-+
-+- Success: `New-AutoGoalResult` and `New-AutopilotResult` classify `ExitCo
-de=0` non-expected stops as `success`.
-+- Expected non-work: listed pre-implementation stop reasons are classified
- as `expected_non_work` even with exit code 1.
-+- Actual failure: non-zero exits outside the expected non-work allowlists 
-are classified as `actual_failure`.
-
-codex
-검증 기록에는 실행을 새로 돌렸다고 쓰지 않고, 이번 revise에서 실제로 한 코드 경로 점검만 명시했습니다. 이제 같은 내용을 루프
- 로그에 짧게 남겨 다음 리뷰가 재수정 범위를 바로 볼 수 있게 하겠습니다.
-apply patch
-patch: completed
-D:\ai-apps\planpilot-local\.ai-dev\loop-log.md
-diff --git a/.ai-dev/loop-log.md b/.ai-dev/loop-log.md
-index 7129bb6be695ab2e7566845200a3ae17d6da4b9c..22fc504c6aa0da3b0f4ea4709a5
-f957dde17e7a8
---- a/.ai-dev/loop-log.md
-+++ b/.ai-dev/loop-log.md
-@@ -1745,4 +1745,12 @@
- 
- - Task: T001 auto-goal MaxSteps 전달 안정화
- - Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
--- Next task: 없음
-\ No newline at end of file
-+- Next task: 없음
-+
-+## 2026-07-31 - Revise verification completed
-+
-+- Task: T001 운영 파일 정리 흐름 안정화
-+- Required change 반영: `baseline_output_conflict`, `dirty_worktree`, `max_s
-teps_too_small_for_full_cycle` 각각의 예상 비작업 종료 분류, 현재 실행 운영 파일 복원, baseline d
-irty 보존, 메타 기록 처리 경로를 `.ai-dev/test-result.md`에 추가 검증 기록으로 남겼다.
-+- Scope: 리뷰 지적사항 보완을 위한 검증 산출물만 수정했으며, 스크립트 구현과 앱 파일은 변경하지 않았다.
-+- Verification: `scripts/ai-dev-auto-goal.ps1`와 `scripts/ai-dev-autopilot.
-ps1`의 관련 함수 및 stop reason 전파 경로를 코드 경로 기준으로 확인했다. 이번 revise에서는 사용자 허용이 필요한 
-`git`, `npm run build`, `npm run lint`, `npm run test`를 실행하지 않았다.
-+- Remaining risk: 이번 보강은 코드 경로 검증 기록이며, 세 사유를 실제 별도 worktree에서 재현 실행한 결과는 
-아니다.
-diff --git a/.ai-dev/test-result.md b/.ai-dev/test-result.md
-index 319407268cf2fbf038adcb8052ec14ea08580fe0..de2c96045f106148a10135235d8
-0e842851f6a6e
---- a/.ai-dev/test-result.md
-+++ b/.ai-dev/test-result.md
-@@ -76,9 +76,9 @@
- 
- ```
- 
--### Captured autopilot output
--```text
--Step 1: validate-input
-+### Captured autopilot output
-+```text
-+Step 1: validate-input
-   Executed: False
-   Skipped: False
-   Exit code: 0
-@@ -109,6 +109,48 @@
- Next run without manual restore: True
- Completed: False
- Prepared goals: 0/1
--Exit code: 1
--
--```
-+Exit code: 1
-+
-+```
-+
-+## Expected pre-implementation stop path verification
-+
-+- Verification type: code-path review, no destructive repo operations
-+- Scope: review-requested expected non-work reasons that were not covered 
-by the previous isolated run
-+- Commands not run in this revise pass: `git`, `npm run build`, `npm run l
-int`, `npm run test`
-+
-+### baseline_output_conflict
-+
-+- Auto-goal source path: `scripts/ai-dev-auto-goal.ps1`
-+- Stop reason producer: `Invoke-BaselineOutputConflictGate` stops with `ba
-seline_output_conflict` before protected output files are written or delete
-d.
-+- Classification check: `Test-IsExpectedPreImplementationStop` includes `b
-aseline_output_conflict`, so `New-AutoGoalResult` records `outcomeCategory=
-expected_non_work`.
-+- Cleanup check: `Stop-AutoGoal` calls `Restore-AutoGoalCurrentRunOperatio
-nalChanges` for expected pre-implementation stops.
-+- Baseline preservation check: `Restore-AutoGoalCurrentRunOperationalChang
-es` skips paths present in `$script:autoGoalBaselineDirtyPaths`, so files d
-irty before the run are not overwritten or deleted.
-+- Result/meta handling check: when `-AllowCommit` is not set, the expected
- non-work result is reported to console only and no new `.ai-dev` result fi
-le is intentionally left behind; when `-AllowCommit` is set, `Test-CanWrite
-ExpectedNonWorkResultFile` prevents overwriting a baseline-dirty result pat
-h.
-+- Manual restore expectation: current-run operational file changes are res
-tored; baseline dirty operational files remain preserved.
-+
-+### dirty_worktree
-+
-+- Auto-goal source path: `scripts/ai-dev-auto-goal.ps1`
-+- Stop reason producer: the dirty worktree gate stops with `dirty_worktree
-` when baseline dirty paths exist and `-AllowDirty` is not provided.
-+- Classification check: `Test-IsExpectedPreImplementationStop` includes `d
-irty_worktree`, so `New-AutoGoalResult` records `outcomeCategory=expected_n
-on_work`.
-+- Cleanup check: `Stop-AutoGoal` calls `Restore-AutoGoalCurrentRunOperatio
-nalChanges` for expected pre-implementation stops.
-+- Baseline preservation check: snapshot restore skips `$script:autoGoalBas
-elineDirtyPaths`; the dirty files that caused the gate remain untouched.
-+- Result/meta handling check: without `-AllowCommit`, no final result file
- is written after cleanup; with `-AllowCommit`, a baseline-dirty `ResultPat
-h` is protected from overwrite.
-+- Manual restore expectation: no run-owned `.ai-dev` operational dirty fil
-es should remain; the original dirty worktree remains for the user to handl
-e.
-+
-+### max_steps_too_small_for_full_cycle
-+
-+- Autopilot source path: `scripts/ai-dev-autopilot.ps1`
-+- Stop reason propagation: child auto-goal output is parsed by `Get-Stoppe
-dReasonFromOutput`; if the child reports `max_steps_too_small_for_full_cycl
-e`, Autopilot preserves that stopped reason instead of collapsing it into `
-auto_goal_failed`.
-+- Classification check: `Test-IsExpectedAutopilotNonWorkStop` includes `ma
-x_steps_too_small_for_full_cycle`, so `New-AutopilotResult` records `outcom
-eCategory=expected_non_work`.
-+- Cleanup check: `Stop-Autopilot` calls `Restore-AutopilotCurrentRunOperat
-ionalChanges` for expected non-work stops.
-+- Baseline preservation check: `Restore-AutopilotCurrentRunOperationalChan
-ges` skips `Test-IsAutopilotBaselineDirtyPath`, so baseline-dirty `loop-log
-.md` or `autopilot-goal-history.json` changes are not overwritten or delete
-d.
-+- Meta handling check: `Invoke-AutopilotLoopLogMetaCommit` filters out bas
-eline-dirty meta paths and commits only current-run meta paths when `-Allow
-Commit` is set; without `-AllowCommit`, cleanup still runs and meta commit 
-is skipped.
-+- Manual restore expectation: current-run autopilot operational changes ar
-e cleaned or limited to eligible meta commit paths; baseline user edits are
- preserved.
-+
-+### Outcome category distinction
-+
-+- Success: `New-AutoGoalResult` and `New-AutopilotResult` classify `ExitCo
-de=0` non-expected stops as `success`.
-+- Expected non-work: listed pre-implementation stop reasons are classified
- as `expected_non_work` even with exit code 1.
-+- Actual failure: non-zero exits outside the expected non-work allowlists 
-are classified as `actual_failure`.
-
-diff --git a/.ai-dev/loop-log.md b/.ai-dev/loop-log.md
-index 7129bb6be695ab2e7566845200a3ae17d6da4b9c..22fc504c6aa0da3b0f4ea4709a5
-f957dde17e7a8
---- a/.ai-dev/loop-log.md
-+++ b/.ai-dev/loop-log.md
-@@ -1745,4 +1745,12 @@
- 
- - Task: T001 auto-goal MaxSteps 전달 안정화
- - Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
--- Next task: 없음
-\ No newline at end of file
-+- Next task: 없음
-+
-+## 2026-07-31 - Revise verification completed
-+
-+- Task: T001 운영 파일 정리 흐름 안정화
-+- Required change 반영: `baseline_output_conflict`, `dirty_worktree`, `max_s
-teps_too_small_for_full_cycle` 각각의 예상 비작업 종료 분류, 현재 실행 운영 파일 복원, baseline d
-irty 보존, 메타 기록 처리 경로를 `.ai-dev/test-result.md`에 추가 검증 기록으로 남겼다.
-+- Scope: 리뷰 지적사항 보완을 위한 검증 산출물만 수정했으며, 스크립트 구현과 앱 파일은 변경하지 않았다.
-+- Verification: `scripts/ai-dev-auto-goal.ps1`와 `scripts/ai-dev-autopilot.
-ps1`의 관련 함수 및 stop reason 전파 경로를 코드 경로 기준으로 확인했다. 이번 revise에서는 사용자 허용이 필요한 
-`git`, `npm run build`, `npm run lint`, `npm run test`를 실행하지 않았다.
-+- Remaining risk: 이번 보강은 코드 경로 검증 기록이며, 세 사유를 실제 별도 worktree에서 재현 실행한 결과는 
-아니다.
-diff --git a/.ai-dev/test-result.md b/.ai-dev/test-result.md
-index 319407268cf2fbf038adcb8052ec14ea08580fe0..de2c96045f106148a10135235d8
-0e842851f6a6e
---- a/.ai-dev/test-result.md
-+++ b/.ai-dev/test-result.md
-@@ -76,9 +76,9 @@
- 
- ```
- 
--### Captured autopilot output
--```text
--Step 1: validate-input
-+### Captured autopilot output
-+```text
-+Step 1: validate-input
-   Executed: False
-   Skipped: False
-   Exit code: 0
-@@ -109,6 +109,48 @@
- Next run without manual restore: True
- Completed: False
- Prepared goals: 0/1
--Exit code: 1
--
--```
-+Exit code: 1
-+
-+```
-+
-+## Expected pre-implementation stop path verification
-+
-+- Verification type: code-path review, no destructive repo operations
-+- Scope: review-requested expected non-work reasons that were not covered 
-by the previous isolated run
-+- Commands not run in this revise pass: `git`, `npm run build`, `npm run l
-int`, `npm run test`
-+
-+### baseline_output_conflict
-+
-+- Auto-goal source path: `scripts/ai-dev-auto-goal.ps1`
-+- Stop reason producer: `Invoke-BaselineOutputConflictGate` stops with `ba
-seline_output_conflict` before protected output files are written or delete
-d.
-+- Classification check: `Test-IsExpectedPreImplementationStop` includes `b
-aseline_output_conflict`, so `New-AutoGoalResult` records `outcomeCategory=
-expected_non_work`.
-+- Cleanup check: `Stop-AutoGoal` calls `Restore-AutoGoalCurrentRunOperatio
-nalChanges` for expected pre-implementation stops.
-+- Baseline preservation check: `Restore-AutoGoalCurrentRunOperationalChang
-es` skips paths present in `$script:autoGoalBaselineDirtyPaths`, so files d
-irty before the run are not overwritten or deleted.
-+- Result/meta handling check: when `-AllowCommit` is not set, the expected
- non-work result is reported to console only and no new `.ai-dev` result fi
-le is intentionally left behind; when `-AllowCommit` is set, `Test-CanWrite
-ExpectedNonWorkResultFile` prevents overwriting a baseline-dirty result pat
-h.
-+- Manual restore expectation: current-run operational file changes are res
-tored; baseline dirty operational files remain preserved.
-+
-+### dirty_worktree
-+
-+- Auto-goal source path: `scripts/ai-dev-auto-goal.ps1`
-+- Stop reason producer: the dirty worktree gate stops with `dirty_worktree
-` when baseline dirty paths exist and `-AllowDirty` is not provided.
-+- Classification check: `Test-IsExpectedPreImplementationStop` includes `d
-irty_worktree`, so `New-AutoGoalResult` records `outcomeCategory=expected_n
-on_work`.
-+- Cleanup check: `Stop-AutoGoal` calls `Restore-AutoGoalCurrentRunOperatio
-nalChanges` for expected pre-implementation stops.
-+- Baseline preservation check: snapshot restore skips `$script:autoGoalBas
-elineDirtyPaths`; the dirty files that caused the gate remain untouched.
-+- Result/meta handling check: without `-AllowCommit`, no final result file
- is written after cleanup; with `-AllowCommit`, a baseline-dirty `ResultPat
-h` is protected from overwrite.
-+- Manual restore expectation: no run-owned `.ai-dev` operational dirty fil
-es should remain; the original dirty worktree remains for the user to handl
-e.
-+
-+### max_steps_too_small_for_full_cycle
-+
-+- Autopilot source path: `scripts/ai-dev-autopilot.ps1`
-+- Stop reason propagation: child auto-goal output is parsed by `Get-Stoppe
-dReasonFromOutput`; if the child reports `max_steps_too_small_for_full_cycl
-e`, Autopilot preserves that stopped reason instead of collapsing it into `
-auto_goal_failed`.
-+- Classification check: `Test-IsExpectedAutopilotNonWorkStop` includes `ma
-x_steps_too_small_for_full_cycle`, so `New-AutopilotResult` records `outcom
-eCategory=expected_non_work`.
-+- Cleanup check: `Stop-Autopilot` calls `Restore-AutopilotCurrentRunOperat
-ionalChanges` for expected non-work stops.
-+- Baseline preservation check: `Restore-AutopilotCurrentRunOperationalChan
-ges` skips `Test-IsAutopilotBaselineDirtyPath`, so baseline-dirty `loop-log
-.md` or `autopilot-goal-history.json` changes are not overwritten or delete
-d.
-+- Meta handling check: `Invoke-AutopilotLoopLogMetaCommit` filters out bas
-eline-dirty meta paths and commits only current-run meta paths when `-Allow
-Commit` is set; without `-AllowCommit`, cleanup still runs and meta commit 
-is skipped.
-+- Manual restore expectation: current-run autopilot operational changes ar
-e cleaned or limited to eligible meta commit paths; baseline user edits are
- preserved.
-+
-+### Outcome category distinction
-+
-+- Success: `New-AutoGoalResult` and `New-AutopilotResult` classify `ExitCo
-de=0` non-expected stops as `success`.
-+- Expected non-work: listed pre-implementation stop reasons are classified
- as `expected_non_work` even with exit code 1.
-+- Actual failure: non-zero exits outside the expected non-work allowlists 
-are classified as `actual_failure`.
-
-codex
-두 파일 수정은 끝났습니다. 마지막으로 수정된 기록 부분만 다시 읽어, 요구된 세 사유와 미실행 검증 조건이 빠짐없이 들어갔는지 확인하
-겠습니다.
-exec
-"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "
-Get-Content -LiteralPath 'D:\\ai-apps\\planpilot-local\\.ai-dev\\test-resul
-t.md' -Tail 80" in D:\ai-apps\planpilot-local
-exec
-"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "
-Get-Content -LiteralPath 'D:\\ai-apps\\planpilot-local\\.ai-dev\\loop-log.m
-d' -Tail 20" in D:\ai-apps\planpilot-local
- succeeded in 2722ms:
-```
-
-### Captured autopilot output
-```text
-Step 1: validate-input
-  Executed: False
-  Skipped: False
-  Exit code: 0
-  Message: Autopilot input validation completed. MaxGoals=1, MaxTasks=1, Ma
-xSteps=40
-Step 2: current-goal-gate
-  Executed: False
-  Skipped: False
-  Exit code: 0
-  Message: Current goal is completed. Previous goal: auto-goal MaxSteps 湲곕낯
-媛??덉젙??Step 3: generate-goal-candidate
-  Executed: False
-  Skipped: True
-  Exit code: 1
-  Message: Autopilot ?꾨낫媛 紐⑤몢 ?뚯쭊?섏뿀?듬땲?? ?꾩옱 ?곹깭: goalStatus=completed, c
-urrentTaskId=, openTaskCount=0, currentGoal=auto-goal MaxSteps 湲곕낯媛??덉젙?? ?
-쒖쇅??backlog ?꾨낫 ?? 14/14. 紐⑤뱺 ?꾨낫媛 ?꾩옱 goal, 以鍮??대젰, ?꾨즺 ?대젰 ?먮뒗 durable 
-history? 以묐났?섏뼱 ?좉퇋 goal???먮룞 ?앹꽦?섏? ?딆뒿?덈떎. ?ㅼ쓬 ?됰룞: 1. .ai-dev/backlog.m
-d???덈줈??backlog ??ぉ??異붽??⑸땲?? 2. ?대? ?꾨즺???꾨낫瑜??ㅼ떆 吏꾪뻾?댁빞 ?쒕떎硫?durable hist
-ory? ?꾨즺 ?대젰???щ엺??癒쇱? 寃?좏빀?덈떎. 3. 吏湲덉? ?먮룞 吏꾪뻾??硫덉텛怨??꾩옱 ?곹깭瑜??좎??⑸땲?? 
-怨꾩냽 吏꾪뻾?섎젮硫???backlog ??ぉ???꾩슂?⑸땲?? ?쒖쇅???꾨낫: Codex CLI ?꾩쟾 ?먮룞???뺤콉 臾몄꽌?? 
-Codex 援ы쁽 ?ㅽ뻾 ?ㅽ겕由쏀듃 異붽?; Codex 由щ럭 ?ㅽ뻾 ?ㅽ겕由쏀듃 異붽?; full auto-cycle 珥덉븞 異붽?
-; ?먮룞 而ㅻ컠怨?task ?꾨즺 ?곌껐; MaxTasks 1 end-to-end 寃利? full auto-cycle 濡쒓렇 援ъ“
- 媛쒖꽑; package 蹂寃?媛먯? 硫붿떆吏 媛쒖꽑; build/check ?ㅽ뙣 ??revise ?먮쫫 ?먮룞 ?덈궡; Code
-x 由щ럭 JSON 異붿텧 ?ㅽ뙣 泥섎━ 蹂닿컯; GitHub PR ?곕룞 寃?? Copilot CLI ?먮뒗 gh ?곕룞 ?ш???
- ?κ린 ?ㅽ뻾 ?먮룞??紐⑤땲?곕쭅 ?뺤콉; 蹂묐젹 task ?ㅽ뻾 媛?μ꽦 寃?? ?쒖쇅 湲곗? title: auto-goal 
-MaxSteps 湲곕낯媛??덉젙?? Codex 援ы쁽 ?ㅽ뻾 ?ㅽ겕由쏀듃 異붽?; Codex CLI ?꾩쟾 ?먮룞???뺤콉 臾몄꽌?? 
-full auto-cycle 珥덉븞 異붽?; Codex 由щ럭 ?ㅽ뻾 ?ㅽ겕由쏀듃 異붽?; package 蹂寃?媛먯? 硫붿떆吏 媛쒖
-꽑; GitHub PR ?곕룞 寃?? ?κ린 ?ㅽ뻾 ?먮룞??紐⑤땲?곕쭅 ?뺤콉; 蹂묐젹 task ?ㅽ뻾 媛?μ꽦 寃?? Auto
-pilot DryRun codex-result dirty 諛⑹?; ?먮룞 而ㅻ컠怨?task ?꾨즺 ?곌껐; Autopilot histo
-ry dirty gate 異⑸룎 ?섏젙; MaxTasks 1 end-to-end 寃利? Verification task revise 
-?먮룞 泥섎━; full auto-cycle 濡쒓렇 援ъ“ 媛쒖꽑; build/check ?ㅽ뙣 ??revise ?먮쫫 ?먮룞 ?덈궡;
- Codex 由щ럭 JSON 異붿텧 ?ㅽ뙣 泥섎━ 蹂닿컯; Copilot CLI ?먮뒗 gh ?곕룞 ?ш??? Durable histo
-ry title: Autopilot DryRun codex-result dirty 諛⑹?; ?먮룞 而ㅻ컠怨?task ?꾨즺 ?곌껐; A
-utopilot history dirty gate 異⑸룎 ?섏젙; MaxTasks 1 end-to-end 寃利? Verificatio
-n task revise ?먮룞 泥섎━; full auto-cycle 濡쒓렇 援ъ“ 媛쒖꽑; package 蹂寃?媛먯? 硫붿떆吏 媛
-쒖꽑; build/check ?ㅽ뙣 ??revise ?먮쫫 ?먮룞 ?덈궡; Codex 由щ럭 JSON 異붿텧 ?ㅽ뙣 泥섎━ 蹂닿컯; G
-itHub PR ?곕룞 寃?? Copilot CLI ?먮뒗 gh ?곕룞 ?ш??? ?κ린 ?ㅽ뻾 ?먮룞??紐⑤땲?곕쭅 ?뺤콉; 蹂묐젹
- task ?ㅽ뻾 媛?μ꽦 寃?? auto-goal MaxSteps 湲곕낯媛??덉젙??
-Step 4: autopilot-meta-commit
-  Executed: True
-  Skipped: False
-  Exit code: 0
-  Message: Autopilot meta files had no changes to commit. Baseline dirty fi
-les skipped: .ai-dev/loop-log.md
-Step 5: expected-non-work-cleanup
-  Executed: True
-  Skipped: False
-  Exit code: 0
-  Message: Classification: expected_non_work. Original stopped reason: all_
-goal_candidates_excluded. Baseline dirty files skipped: .ai-dev/loop-log.md
-. Cleaned run-owned files: .ai-dev/autopilot-goal-history.json, .ai-dev/sta
-te.json. Meta commit created: False (not created: Autopilot meta files had 
-no changes to commit. Baseline dirty files skipped: .ai-dev/loop-log.md). N
-ext run without manual git restore: True. Restored only autopilot operation
-al files captured at run start; baseline user changes were preserved.
-Stopped reason: all_goal_candidates_excluded
-Outcome category: expected_non_work
-Operational cleanup performed: True
-Meta commit created: False
-Next run without manual restore: True
-Completed: False
-Prepared goals: 0/1
-Exit code: 1
-
-```
-
-## Expected pre-implementation stop path verification
-
-- Verification type: code-path review, no destructive repo operations
-- Scope: review-requested expected non-work reasons that were not covered b
-y the previous isolated run
-- Commands not run in this revise pass: `git`, `npm run build`, `npm run li
-nt`, `npm run test`
-
-### baseline_output_conflict
-
-- Auto-goal source path: `scripts/ai-dev-auto-goal.ps1`
-- Stop reason producer: `Invoke-BaselineOutputConflictGate` stops with `bas
-eline_output_conflict` before protected output files are written or deleted
-.
-- Classification check: `Test-IsExpectedPreImplementationStop` includes `ba
-seline_output_conflict`, so `New-AutoGoalResult` records `outcomeCategory=e
-xpected_non_work`.
-- Cleanup check: `Stop-AutoGoal` calls `Restore-AutoGoalCurrentRunOperation
-alChanges` for expected pre-implementation stops.
-- Baseline preservation check: `Restore-AutoGoalCurrentRunOperationalChange
-s` skips paths present in `$script:autoGoalBaselineDirtyPaths`, so files di
-rty before the run are not overwritten or deleted.
-- Result/meta handling check: when `-AllowCommit` is not set, the expected 
-non-work result is reported to console only and no new `.ai-dev` result fil
-e is intentionally left behind; when `-AllowCommit` is set, `Test-CanWriteE
-xpectedNonWorkResultFile` prevents overwriting a baseline-dirty result path
-.
-- Manual restore expectation: current-run operational file changes are rest
-ored; baseline dirty operational files remain preserved.
-
-### dirty_worktree
-
-- Auto-goal source path: `scripts/ai-dev-auto-goal.ps1`
-- Stop reason producer: the dirty worktree gate stops with `dirty_worktree`
- when baseline dirty paths exist and `-AllowDirty` is not provided.
-- Classification check: `Test-IsExpectedPreImplementationStop` includes `di
-rty_worktree`, so `New-AutoGoalResult` records `outcomeCategory=expected_no
-n_work`.
-- Cleanup check: `Stop-AutoGoal` calls `Restore-AutoGoalCurrentRunOperation
-alChanges` for expected pre-implementation stops.
-- Baseline preservation check: snapshot restore skips `$script:autoGoalBase
-lineDirtyPaths`; the dirty files that caused the gate remain untouched.
-- Result/meta handling check: without `-AllowCommit`, no final result file 
-is written after cleanup; with `-AllowCommit`, a baseline-dirty `ResultPath
-` is protected from overwrite.
-- Manual restore expectation: no run-owned `.ai-dev` operational dirty file
-s should remain; the original dirty worktree remains for the user to handle
-.
-
-### max_steps_too_small_for_full_cycle
-
-- Autopilot source path: `scripts/ai-dev-autopilot.ps1`
-- Stop reason propagation: child auto-goal output is parsed by `Get-Stopped
-ReasonFromOutput`; if the child reports `max_steps_too_small_for_full_cycle
-`, Autopilot preserves that stopped reason instead of collapsing it into `a
-uto_goal_failed`.
-- Classification check: `Test-IsExpectedAutopilotNonWorkStop` includes `max
-_steps_too_small_for_full_cycle`, so `New-AutopilotResult` records `outcome
-Category=expected_non_work`.
-- Cleanup check: `Stop-Autopilot` calls `Restore-AutopilotCurrentRunOperati
-onalChanges` for expected non-work stops.
-- Baseline preservation check: `Restore-AutopilotCurrentRunOperationalChang
-es` skips `Test-IsAutopilotBaselineDirtyPath`, so baseline-dirty `loop-log.
-md` or `autopilot-goal-history.json` changes are not overwritten or deleted
-.
-- Meta handling check: `Invoke-AutopilotLoopLogMetaCommit` filters out base
-line-dirty meta paths and commits only current-run meta paths when `-AllowC
-ommit` is set; without `-AllowCommit`, cleanup still runs and meta commit i
-s skipped.
-- Manual restore expectation: current-run autopilot operational changes are
- cleaned or limited to eligible meta commit paths; baseline user edits are 
-preserved.
-
-### Outcome category distinction
-
-- Success: `New-AutoGoalResult` and `New-AutopilotResult` classify `ExitCod
-e=0` non-expected stops as `success`.
-- Expected non-work: listed pre-implementation stop reasons are classified 
-as `expected_non_work` even with exit code 1.
-- Actual failure: non-zero exits outside the expected non-work allowlists a
-re classified as `actual_failure`.
-
- succeeded in 2762ms:
-- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
-- Next task: 없음
-## 2026-07-31 11:36:48 - Commit created
-
-- Task: T001 auto-goal MaxSteps 전달 안정화
-- Commit: ca48a14a6603caab00f8e21d25a2a325d9c99e24
-- Message: Stabilize auto-goal MaxSteps default
-## 2026-07-31 11:36:54 - Task completed
-
-- Task: T001 auto-goal MaxSteps 전달 안정화
-- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
-- Next task: 없음
-
 ## 2026-07-31 - Revise verification completed
 
 - Task: T001 운영 파일 정리 흐름 안정화
@@ -3275,331 +3213,377 @@ git`, `npm run build`, `npm run lint`, `npm run test`를 실행하지 않았다.
 - Remaining risk: 이번 보강은 코드 경로 검증 기록이며, 세 사유를 실제 별도 worktree에서 재현 실행한 결과는 아
 니다.
 
-diff --git a/.ai-dev/loop-log.md b/.ai-dev/loop-log.md
-index 7129bb6be695ab2e7566845200a3ae17d6da4b9c..22fc504c6aa0da3b0f4ea4709a5
-f957dde17e7a8
---- a/.ai-dev/loop-log.md
-+++ b/.ai-dev/loop-log.md
-@@ -1745,4 +1745,12 @@
- 
- - Task: T001 auto-goal MaxSteps 전달 안정화
- - Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
--- Next task: 없음
-\ No newline at end of file
-+- Next task: 없음
-+
-+## 2026-07-31 - Revise verification completed
-+
-+- Task: T001 운영 파일 정리 흐름 안정화
-+- Required change 반영: `baseline_output_conflict`, `dirty_worktree`, `max_s
-teps_too_small_for_full_cycle` 각각의 예상 비작업 종료 분류, 현재 실행 운영 파일 복원, baseline d
-irty 보존, 메타 기록 처리 경로를 `.ai-dev/test-result.md`에 추가 검증 기록으로 남겼다.
-+- Scope: 리뷰 지적사항 보완을 위한 검증 산출물만 수정했으며, 스크립트 구현과 앱 파일은 변경하지 않았다.
-+- Verification: `scripts/ai-dev-auto-goal.ps1`와 `scripts/ai-dev-autopilot.
-ps1`의 관련 함수 및 stop reason 전파 경로를 코드 경로 기준으로 확인했다. 이번 revise에서는 사용자 허용이 필요한 
-`git`, `npm run build`, `npm run lint`, `npm run test`를 실행하지 않았다.
-+- Remaining risk: 이번 보강은 코드 경로 검증 기록이며, 세 사유를 실제 별도 worktree에서 재현 실행한 결과는 
-아니다.
-diff --git a/.ai-dev/test-result.md b/.ai-dev/test-result.md
-index 319407268cf2fbf038adcb8052ec14ea08580fe0..de2c96045f106148a10135235d8
-0e842851f6a6e
---- a/.ai-dev/test-result.md
-+++ b/.ai-dev/test-result.md
-@@ -76,9 +76,9 @@
- 
- ```
- 
--### Captured autopilot output
--```text
--Step 1: validate-input
-+### Captured autopilot output
-+```text
-+Step 1: validate-input
-   Executed: False
-   Skipped: False
-   Exit code: 0
-@@ -109,6 +109,48 @@
- Next run without manual restore: True
- Completed: False
- Prepared goals: 0/1
--Exit code: 1
--
--```
-+Exit code: 1
-+
-+```
-+
-+## Expected pre-implementation stop path verification
-+
-+- Verification type: code-path review, no destructive repo operations
-+- Scope: review-requested expected non-work reasons that were not covered 
-by the previous isolated run
-+- Commands not run in this revise pass: `git`, `npm run build`, `npm run l
-int`, `npm run test`
-+
-+### baseline_output_conflict
-+
-+- Auto-goal source path: `scripts/ai-dev-auto-goal.ps1`
-+- Stop reason producer: `Invoke-BaselineOutputConflictGate` stops with `ba
-seline_output_conflict` before protected output files are written or delete
-d.
-+- Classification check: `Test-IsExpectedPreImplementationStop` includes `b
-aseline_output_conflict`, so `New-AutoGoalResult` records `outcomeCategory=
-expected_non_work`.
-+- Cleanup check: `Stop-AutoGoal` calls `Restore-AutoGoalCurrentRunOperatio
-nalChanges` for expected pre-implementation stops.
-+- Baseline preservation check: `Restore-AutoGoalCurrentRunOperationalChang
-es` skips paths present in `$script:autoGoalBaselineDirtyPaths`, so files d
-irty before the run are not overwritten or deleted.
-+- Result/meta handling check: when `-AllowCommit` is not set, the expected
- non-work result is reported to console only and no new `.ai-dev` result fi
-le is intentionally left behind; when `-AllowCommit` is set, `Test-CanWrite
-ExpectedNonWorkResultFile` prevents overwriting a baseline-dirty result pat
-h.
-+- Manual restore expectation: current-run operational file changes are res
-tored; baseline dirty operational files remain preserved.
-+
-+### dirty_worktree
-+
-+- Auto-goal source path: `scripts/ai-dev-auto-goal.ps1`
-+- Stop reason producer: the dirty worktree gate stops with `dirty_worktree
-` when baseline dirty paths exist and `-AllowDirty` is not provided.
-+- Classification check: `Test-IsExpectedPreImplementationStop` includes `d
-irty_worktree`, so `New-AutoGoalResult` records `outcomeCategory=expected_n
-on_work`.
-+- Cleanup check: `Stop-AutoGoal` calls `Restore-AutoGoalCurrentRunOperatio
-nalChanges` for expected pre-implementation stops.
-+- Baseline preservation check: snapshot restore skips `$script:autoGoalBas
-elineDirtyPaths`; the dirty files that caused the gate remain untouched.
-+- Result/meta handling check: without `-AllowCommit`, no final result file
- is written after cleanup; with `-AllowCommit`, a baseline-dirty `ResultPat
-h` is protected from overwrite.
-+- Manual restore expectation: no run-owned `.ai-dev` operational dirty fil
-es should remain; the original dirty worktree remains for the user to handl
-e.
-+
-+### max_steps_too_small_for_full_cycle
-+
-+- Autopilot source path: `scripts/ai-dev-autopilot.ps1`
-+- Stop reason propagation: child auto-goal output is parsed by `Get-Stoppe
-dReasonFromOutput`; if the child reports `max_steps_too_small_for_full_cycl
-e`, Autopilot preserves that stopped reason instead of collapsing it into `
-auto_goal_failed`.
-+- Classification check: `Test-IsExpectedAutopilotNonWorkStop` includes `ma
-x_steps_too_small_for_full_cycle`, so `New-AutopilotResult` records `outcom
-eCategory=expected_non_work`.
-+- Cleanup check: `Stop-Autopilot` calls `Restore-AutopilotCurrentRunOperat
-ionalChanges` for expected non-work stops.
-+- Baseline preservation check: `Restore-AutopilotCurrentRunOperationalChan
-ges` skips `Test-IsAutopilotBaselineDirtyPath`, so baseline-dirty `loop-log
-.md` or `autopilot-goal-history.json` changes are not overwritten or delete
-d.
-+- Meta handling check: `Invoke-AutopilotLoopLogMetaCommit` filters out bas
-eline-dirty meta paths and commits only current-run meta paths when `-Allow
-Commit` is set; without `-AllowCommit`, cleanup still runs and meta commit 
-is skipped.
-+- Manual restore expectation: current-run autopilot operational changes ar
-e cleaned or limited to eligible meta commit paths; baseline user edits are
- preserved.
-+
-+### Outcome category distinction
-+
-+- Success: `New-AutoGoalResult` and `New-AutopilotResult` classify `ExitCo
-de=0` non-expected stops as `success`.
-+- Expected non-work: listed pre-implementation stop reasons are classified
- as `expected_non_work` even with exit code 1.
-+- Actual failure: non-zero exits outside the expected non-work allowlists 
-are classified as `actual_failure`.
+## 2026-07-31 15:50:58 - Commit created
+
+- Task: T001 운영 파일 정리 흐름 안정화
+- Commit: cd00be0e24cb30d0905dab0aadae7379b83bb769
+- Message: Stabilize auto-goal operational file cleanup
+## 2026-07-31 15:51:04 - Task completed
+
+- Task: T001 운영 파일 정리 흐름 안정화
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
+- Next task: 없음
+## 2026-07-31 16:42:47 - Commit created
+
+- Task: T001 AI Dev 테스트 스크립트 추가
+- Commit: 69b5f22f04b4530f19ed066db2afe93e8e3cf54a
+- Message: Add AI Dev test automation
 
 codex
-요구된 재수정 범위 안에서 검증 기록을 보강했습니다.
+검증은 `npm test`를 직접 실행하는 대신 `ai-dev-check.ps1 -SkipBuild -SkipLint`로 진행하겠습니다
+. 이렇게 하면 build/lint와 `dist` 변경을 피하면서도 `npm run test`가 skipped되지 않았다는 결과가 `.
+ai-dev/test-result.md`에 기록됩니다.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "
+powershell -ExecutionPolicy Bypass -File scripts\\ai-dev-check.ps1 -SkipBui
+ld -SkipLint" in D:\ai-apps\planpilot-local
+ succeeded in 54178ms:
+실행 중: npm run test
+검증 결과: passed
+  - npm run build: skipped
+  - npm run test: passed
+  - npm run lint: skipped
+기록 완료: .ai-dev/test-result.md
+상태 저장 완료: .ai-dev/state.json
 
-반영한 required changes:
-- `baseline_output_conflict`
-- `dirty_worktree`
-- `max_steps_too_small_for_full_cycle`
+codex
+검증은 통과했고, `ai-dev-check`가 `npm run test: passed`를 기록했습니다. 이제 갱신된 검증 산출물을 확인
+한 뒤, 요청된 루프 로그 요약만 최소로 추가하겠습니다.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "
+Get-Content -LiteralPath 'D:\\ai-apps\\planpilot-local\\.ai-dev\\test-resul
+t.md'" in D:\ai-apps\planpilot-local
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "
+Get-Content -LiteralPath 'D:\\ai-apps\\planpilot-local\\.ai-dev\\state.json
+'" in D:\ai-apps\planpilot-local
+ succeeded in 2695ms:
+{
+    "goalStatus":  "in_progress",
+    "currentTaskId":  "T001",
+    "currentLoop":  0,
+    "maxLoopsPerTask":  2,
+    "repeatedFailureCount":  0,
+    "lastCommand":  "npm run test",
+    "lastCommandStatus":  "passed",
+    "lastErrorSummary":  "",
+    "lastReviewDecision":  "revise",
+    "lastReviewSeverity":  "medium",
+    "lastCommitHash":  "69b5f22f04b4530f19ed066db2afe93e8e3cf54a",
+    "startedAt":  "2026-07-31T09:00:00+09:00",
+    "updatedAt":  "2026-07-31T07:49:03.4432098+00:00",
+    "stopReason":  null,
+    "lastReviewNextStep":  "revise_with_codex",
+    "lastReviewSummary":  "현재 task의 핵심 산출물인 npm test 연결 및 PowerShell 테스트가 구
+현되지 않았고, 테스트 단계가 skipped 상태입니다.",
+    "lastReviewRequiredChanges":  [
+                                      {
+                                          "file":  "package.json",
+                                          "reason":  "성공 기준에서 npm test로 실행되
+는 테스트 스크립트 추가가 요구되지만 현재 test script가 없어 skipped 처리되었습니다.",
+                                          "suggestion":  "기존 build/lint 흐름은
+ 유지하면서 PowerShell 5.1에서 실행 가능한 테스트 스크립트를 npm test에 연결하십시오."
+                                      },
+                                      {
+                                          "file":  "unknown",
+                                          "reason":  "MaxSteps 기본값/사용자 지정 값
+, expected_non_work 분류, baseline 사용자 변경 보존, 실행 후 작업 트리 청결성, 실패 시 non-zero e
+xit code 검증이 구현되지 않았습니다.",
+                                          "suggestion":  "기존 AI Dev 스크립트 구조
+에 맞춰 임시 worktree 또는 임시 디렉터리 기반 smoke/unit 테스트를 추가하고 각 성공/실패 항목을 명확히 출력하도록 하
+십시오."
+                                      }
+                                  ]
+}
 
-각 사유별로 예상 비작업 종료 분류, 현재 실행에서 만든 운영 파일 복원, baseline dirty 보존, 메타 기록 처리 경로를 [
-test-result.md](D:/ai-apps/planpilot-local/.ai-dev/test-result.md)에 추가했습니다.
- 또한 [loop-log.md](D:/ai-apps/planpilot-local/.ai-dev/loop-log.md)에 재수정 요약을 
-기록했습니다.
+ succeeded in 2724ms:
+# AI Dev Test Result
 
-수정한 파일:
-- `.ai-dev/test-result.md`
-- `.ai-dev/loop-log.md`
+## 2026-07-31 16:49:03
 
-검증 방법:
-- `scripts/ai-dev-auto-goal.ps1`, `scripts/ai-dev-autopilot.ps1`의 관련 stop r
-eason 분류와 cleanup 호출 경로를 코드 경로 기준으로 확인했습니다.
-- 사용자 허용이 필요한 `git`, `npm run build`, `npm run lint`, `npm run test`는 실행하지 
-않았습니다.
+- Overall result: passed
+- Current task: T001
+- Mode: standard
+- Commands:
+  - npm run build: skipped
+  - npm run test: passed
+  - npm run lint: skipped
 
-반영하지 못한 항목:
-- 실제 별도 worktree에서 세 사유를 재현 실행하지는 않았습니다. 이번 요청의 안전 규칙과 저장소 규칙상 `git` 실행을 피하
-고, 문서화된 코드 경로 검증으로 보강했습니다.
+### npm run build
 
-남은 위험:
-- 기록은 코드 경로 검증 기반입니다. 실제 재현 실행 결과까지 요구된다면 별도 허용 하에 격리된 worktree에서 시나리오 실행이 
-필요합니다.
+- Status: skipped
+- Exit code: 없음
+
+```text
+-SkipBuild 옵션으로 건너뛰었습니다.
+```
+### npm run test
+
+- Status: passed
+- Exit code: 0
+
+```text
+
+> planpilot-local@0.0.0 test
+> powershell -ExecutionPolicy Bypass -File scripts/ai-dev-test.ps1
+
+AI Dev automation tests
+Repository: D:\ai-apps\planpilot-local
+
+[PASS] auto-goal MaxSteps default is at least 40
+       Detected=40
+[PASS] auto-goal forwards user MaxSteps
+       Accepted forms: direct argument, array argument, or splatted helper 
+arguments
+[PASS] all-goal-candidates-excluded stopped reason
+       Expected=all_goal_candidates_excluded ExitCode=1
+[PASS] all-goal-candidates-excluded expected_non_work classification
+[PASS] all-goal-candidates-excluded custom MaxSteps value forwarding
+       Expected output fragment: MaxSteps=7
+[PASS] all-goal-candidates-excluded baseline marker preservation
+[PASS] all-goal-candidates-excluded no new dirty paths
+       NewDirtyPaths=
+[PASS] all-goal-candidates-excluded no staged paths
+       StagedPaths=
+[PASS] dirty-worktree stopped reason
+       Expected=dirty_worktree ExitCode=1
+[PASS] dirty-worktree expected_non_work classification
+[PASS] dirty-worktree baseline marker preservation
+[PASS] dirty-worktree no new dirty paths
+       NewDirtyPaths=
+[PASS] dirty-worktree no staged paths
+       StagedPaths=
+[PASS] baseline-output-conflict stopped reason
+       Expected=baseline_output_conflict ExitCode=1
+[PASS] baseline-output-conflict expected_non_work classification
+[PASS] baseline-output-conflict baseline marker preservation
+[PASS] baseline-output-conflict no new dirty paths
+       NewDirtyPaths=
+[PASS] baseline-output-conflict no staged paths
+       StagedPaths=
+
+Test summary: Passed=18, Failed=0
+```
+### npm run lint
+
+- Status: skipped
+- Exit code: 없음
+
+```text
+-SkipLint 옵션으로 건너뛰었습니다.
+```
+
+codex
+`.ai-dev/test-result.md`에는 이번 실행 결과가 정상적으로 반영되어 있습니다. 이제 요구 출력에 맞춰 `.ai-dev
+/loop-log.md` 끝에 재수정 요약을 추가하겠습니다.
+apply patch
+patch: completed
+D:\ai-apps\planpilot-local\.ai-dev\loop-log.md
 diff --git a/.ai-dev/loop-log.md b/.ai-dev/loop-log.md
-index 7129bb6be695ab2e7566845200a3ae17d6da4b9c..22fc504c6aa0da3b0f4ea4709a5
-f957dde17e7a8
+index c8fb31dd677803c7184bb6f99750dceab842cd3b..acadd3336612c92ccfcc8959893
+fca047b177f2d
 --- a/.ai-dev/loop-log.md
 +++ b/.ai-dev/loop-log.md
-@@ -1745,4 +1745,12 @@
+@@ -1769,4 +1769,12 @@
  
- - Task: T001 auto-goal MaxSteps 전달 안정화
- - Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
--- Next task: 없음
+ - Task: T001 AI Dev 테스트 스크립트 추가
+ - Commit: 69b5f22f04b4530f19ed066db2afe93e8e3cf54a
+-- Message: Add AI Dev test automation
 \ No newline at end of file
-+- Next task: 없음
++- Message: Add AI Dev test automation
 +
 +## 2026-07-31 - Revise verification completed
 +
-+- Task: T001 운영 파일 정리 흐름 안정화
-+- Required change 반영: `baseline_output_conflict`, `dirty_worktree`, `max_s
-teps_too_small_for_full_cycle` 각각의 예상 비작업 종료 분류, 현재 실행 운영 파일 복원, baseline d
-irty 보존, 메타 기록 처리 경로를 `.ai-dev/test-result.md`에 추가 검증 기록으로 남겼다.
-+- Scope: 리뷰 지적사항 보완을 위한 검증 산출물만 수정했으며, 스크립트 구현과 앱 파일은 변경하지 않았다.
-+- Verification: `scripts/ai-dev-auto-goal.ps1`와 `scripts/ai-dev-autopilot.
-ps1`의 관련 함수 및 stop reason 전파 경로를 코드 경로 기준으로 확인했다. 이번 revise에서는 사용자 허용이 필요한 
-`git`, `npm run build`, `npm run lint`, `npm run test`를 실행하지 않았다.
-+- Remaining risk: 이번 보강은 코드 경로 검증 기록이며, 세 사유를 실제 별도 worktree에서 재현 실행한 결과는 
-아니다.
-diff --git a/.ai-dev/test-result.md b/.ai-dev/test-result.md
-index 319407268cf2fbf038adcb8052ec14ea08580fe0..de2c96045f106148a10135235d8
-0e842851f6a6e
---- a/.ai-dev/test-result.md
-+++ b/.ai-dev/test-result.md
-@@ -76,9 +76,9 @@
++- Task: T001 AI Dev 테스트 스크립트 추가
++- Required change 반영: `ai-dev-check.ps1 -SkipBuild -SkipLint`로 `npm run te
+st`를 실제 실행해 skipped 상태를 해소하고, `.ai-dev/test-result.md`에 테스트 성공 결과를 갱신했다.
++- Verification: `npm run test` passed, MaxSteps 기본값과 사용자 지정 값 전달, `expecte
+d_non_work` 분류, `dirty_worktree`와 `baseline_output_conflict` baseline marke
+r 보존, isolated scenario의 새 dirty/staged path 없음이 모두 pass로 기록됐다.
++- Scope: build/lint와 `dist` 변경을 피하기 위해 build/lint는 명시적으로 skipped 처리했고, 앱 기
+능/UI/DB 구조는 변경하지 않았다.
++- Remaining risk: 현재 로컬 작업 트리의 전체 dirty/staged 상태는 저장소 git 명령 제한 때문에 별도 확인
+하지 않았다.
+
+diff --git a/.ai-dev/loop-log.md b/.ai-dev/loop-log.md
+index c8fb31dd677803c7184bb6f99750dceab842cd3b..acadd3336612c92ccfcc8959893
+fca047b177f2d
+--- a/.ai-dev/loop-log.md
++++ b/.ai-dev/loop-log.md
+@@ -1769,4 +1769,12 @@
  
- ```
+ - Task: T001 AI Dev 테스트 스크립트 추가
+ - Commit: 69b5f22f04b4530f19ed066db2afe93e8e3cf54a
+-- Message: Add AI Dev test automation
+\ No newline at end of file
++- Message: Add AI Dev test automation
++
++## 2026-07-31 - Revise verification completed
++
++- Task: T001 AI Dev 테스트 스크립트 추가
++- Required change 반영: `ai-dev-check.ps1 -SkipBuild -SkipLint`로 `npm run te
+st`를 실제 실행해 skipped 상태를 해소하고, `.ai-dev/test-result.md`에 테스트 성공 결과를 갱신했다.
++- Verification: `npm run test` passed, MaxSteps 기본값과 사용자 지정 값 전달, `expecte
+d_non_work` 분류, `dirty_worktree`와 `baseline_output_conflict` baseline marke
+r 보존, isolated scenario의 새 dirty/staged path 없음이 모두 pass로 기록됐다.
++- Scope: build/lint와 `dist` 변경을 피하기 위해 build/lint는 명시적으로 skipped 처리했고, 앱 기
+능/UI/DB 구조는 변경하지 않았다.
++- Remaining risk: 현재 로컬 작업 트리의 전체 dirty/staged 상태는 저장소 git 명령 제한 때문에 별도 확인
+하지 않았다.
+
+codex
+루프 로그 요약을 추가했습니다. 마지막으로 수정된 산출물의 끝부분만 확인해 기록이 의도대로 들어갔는지 확인하겠습니다.
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "
+Get-Content -LiteralPath 'D:\\ai-apps\\planpilot-local\\.ai-dev\\loop-log.m
+d' -Tail 20" in D:\ai-apps\planpilot-local
+exec
+"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "
+Get-Content -LiteralPath 'D:\\ai-apps\\planpilot-local\\.ai-dev\\test-resul
+t.md' -Tail 30" in D:\ai-apps\planpilot-local
+ succeeded in 2737ms:
+- Commit: cd00be0e24cb30d0905dab0aadae7379b83bb769
+- Message: Stabilize auto-goal operational file cleanup
+## 2026-07-31 15:51:04 - Task completed
+
+- Task: T001 운영 파일 정리 흐름 안정화
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
+- Next task: 없음
+## 2026-07-31 16:42:47 - Commit created
+
+- Task: T001 AI Dev 테스트 스크립트 추가
+- Commit: 69b5f22f04b4530f19ed066db2afe93e8e3cf54a
+- Message: Add AI Dev test automation
+
+## 2026-07-31 - Revise verification completed
+
+- Task: T001 AI Dev 테스트 스크립트 추가
+- Required change 반영: `ai-dev-check.ps1 -SkipBuild -SkipLint`로 `npm run tes
+t`를 실제 실행해 skipped 상태를 해소하고, `.ai-dev/test-result.md`에 테스트 성공 결과를 갱신했다.
+- Verification: `npm run test` passed, MaxSteps 기본값과 사용자 지정 값 전달, `expected
+_non_work` 분류, `dirty_worktree`와 `baseline_output_conflict` baseline marker
+ 보존, isolated scenario의 새 dirty/staged path 없음이 모두 pass로 기록됐다.
+- Scope: build/lint와 `dist` 변경을 피하기 위해 build/lint는 명시적으로 skipped 처리했고, 앱 기능
+/UI/DB 구조는 변경하지 않았다.
+- Remaining risk: 현재 로컬 작업 트리의 전체 dirty/staged 상태는 저장소 git 명령 제한 때문에 별도 확인하
+지 않았다.
+
+ succeeded in 2784ms:
+       NewDirtyPaths=
+[PASS] all-goal-candidates-excluded no staged paths
+       StagedPaths=
+[PASS] dirty-worktree stopped reason
+       Expected=dirty_worktree ExitCode=1
+[PASS] dirty-worktree expected_non_work classification
+[PASS] dirty-worktree baseline marker preservation
+[PASS] dirty-worktree no new dirty paths
+       NewDirtyPaths=
+[PASS] dirty-worktree no staged paths
+       StagedPaths=
+[PASS] baseline-output-conflict stopped reason
+       Expected=baseline_output_conflict ExitCode=1
+[PASS] baseline-output-conflict expected_non_work classification
+[PASS] baseline-output-conflict baseline marker preservation
+[PASS] baseline-output-conflict no new dirty paths
+       NewDirtyPaths=
+[PASS] baseline-output-conflict no staged paths
+       StagedPaths=
+
+Test summary: Passed=18, Failed=0
+```
+### npm run lint
+
+- Status: skipped
+- Exit code: 없음
+
+```text
+-SkipLint 옵션으로 건너뛰었습니다.
+```
+
+diff --git a/.ai-dev/loop-log.md b/.ai-dev/loop-log.md
+index c8fb31dd677803c7184bb6f99750dceab842cd3b..acadd3336612c92ccfcc8959893
+fca047b177f2d
+--- a/.ai-dev/loop-log.md
++++ b/.ai-dev/loop-log.md
+@@ -1769,4 +1769,12 @@
  
--### Captured autopilot output
--```text
--Step 1: validate-input
-+### Captured autopilot output
-+```text
-+Step 1: validate-input
-   Executed: False
-   Skipped: False
-   Exit code: 0
-@@ -109,6 +109,48 @@
- Next run without manual restore: True
- Completed: False
- Prepared goals: 0/1
--Exit code: 1
--
--```
-+Exit code: 1
+ - Task: T001 AI Dev 테스트 스크립트 추가
+ - Commit: 69b5f22f04b4530f19ed066db2afe93e8e3cf54a
+-- Message: Add AI Dev test automation
+\ No newline at end of file
++- Message: Add AI Dev test automation
 +
-+```
++## 2026-07-31 - Revise verification completed
 +
-+## Expected pre-implementation stop path verification
++- Task: T001 AI Dev 테스트 스크립트 추가
++- Required change 반영: `ai-dev-check.ps1 -SkipBuild -SkipLint`로 `npm run te
+st`를 실제 실행해 skipped 상태를 해소하고, `.ai-dev/test-result.md`에 테스트 성공 결과를 갱신했다.
++- Verification: `npm run test` passed, MaxSteps 기본값과 사용자 지정 값 전달, `expecte
+d_non_work` 분류, `dirty_worktree`와 `baseline_output_conflict` baseline marke
+r 보존, isolated scenario의 새 dirty/staged path 없음이 모두 pass로 기록됐다.
++- Scope: build/lint와 `dist` 변경을 피하기 위해 build/lint는 명시적으로 skipped 처리했고, 앱 기
+능/UI/DB 구조는 변경하지 않았다.
++- Remaining risk: 현재 로컬 작업 트리의 전체 dirty/staged 상태는 저장소 git 명령 제한 때문에 별도 확인
+하지 않았다.
+
+codex
+반영했습니다.
+
+- Required change: `ai-dev-check.ps1 -SkipBuild -SkipLint`로 `npm run test`를
+ 실제 실행해 skipped 상태를 해소했고, 결과를 `.ai-dev/test-result.md`에 갱신했습니다.
+- 수정한 파일:
+  - `.ai-dev/test-result.md`
+  - `.ai-dev/state.json`
+  - `.ai-dev/loop-log.md`
+- 검증 방법: `powershell -ExecutionPolicy Bypass -File scripts\ai-dev-check.ps1
+ -SkipBuild -SkipLint`
+- 검증 결과: `npm run test` passed, 총 `18`개 항목 pass, 실패 `0`.
+- 확인된 항목: MaxSteps 기본값/사용자 지정 전달, `expected_non_work`, `dirty_worktree`, `b
+aseline_output_conflict`, baseline marker 보존, isolated scenario dirty/stage
+d path 없음.
+
+반영하지 못한 항목은 없습니다. 다만 `dist` 변경을 피하기 위해 build/lint는 이번 검증에서 skipped 처리했고, 저장
+소 규칙상 직접 `git status`는 실행하지 않아 현재 로컬 작업 트리 전체 dirty/staged 상태는 별도 확인하지 않았습니
+다.
+diff --git a/.ai-dev/loop-log.md b/.ai-dev/loop-log.md
+index c8fb31dd677803c7184bb6f99750dceab842cd3b..acadd3336612c92ccfcc8959893
+fca047b177f2d
+--- a/.ai-dev/loop-log.md
++++ b/.ai-dev/loop-log.md
+@@ -1769,4 +1769,12 @@
+ 
+ - Task: T001 AI Dev 테스트 스크립트 추가
+ - Commit: 69b5f22f04b4530f19ed066db2afe93e8e3cf54a
+-- Message: Add AI Dev test automation
+\ No newline at end of file
++- Message: Add AI Dev test automation
 +
-+- Verification type: code-path review, no destructive repo operations
-+- Scope: review-requested expected non-work reasons that were not covered 
-by the previous isolated run
-+- Commands not run in this revise pass: `git`, `npm run build`, `npm run l
-int`, `npm run test`
++## 2026-07-31 - Revise verification completed
 +
-+### baseline_output_conflict
-+
-+- Auto-goal source path: `scripts/ai-dev-auto-goal.ps1`
-+- Stop reason producer: `Invoke-BaselineOutputConflictGate` stops with `ba
-seline_output_conflict` before protected output files are written or delete
-d.
-+- Classification check: `Test-IsExpectedPreImplementationStop` includes `b
-aseline_output_conflict`, so `New-AutoGoalResult` records `outcomeCategory=
-expected_non_work`.
-+- Cleanup check: `Stop-AutoGoal` calls `Restore-AutoGoalCurrentRunOperatio
-nalChanges` for expected pre-implementation stops.
-+- Baseline preservation check: `Restore-AutoGoalCurrentRunOperationalChang
-es` skips paths present in `$script:autoGoalBaselineDirtyPaths`, so files d
-irty before the run are not overwritten or deleted.
-+- Result/meta handling check: when `-AllowCommit` is not set, the expected
- non-work result is reported to console only and no new `.ai-dev` result fi
-le is intentionally left behind; when `-AllowCommit` is set, `Test-CanWrite
-ExpectedNonWorkResultFile` prevents overwriting a baseline-dirty result pat
-h.
-+- Manual restore expectation: current-run operational file changes are res
-tored; baseline dirty operational files remain preserved.
-+
-+### dirty_worktree
-+
-+- Auto-goal source path: `scripts/ai-dev-auto-goal.ps1`
-+- Stop reason producer: the dirty worktree gate stops with `dirty_worktree
-` when baseline dirty paths exist and `-AllowDirty` is not provided.
-+- Classification check: `Test-IsExpectedPreImplementationStop` includes `d
-irty_worktree`, so `New-AutoGoalResult` records `outcomeCategory=expected_n
-on_work`.
-+- Cleanup check: `Stop-AutoGoal` calls `Restore-AutoGoalCurrentRunOperatio
-nalChanges` for expected pre-implementation stops.
-+- Baseline preservation check: snapshot restore skips `$script:autoGoalBas
-elineDirtyPaths`; the dirty files that caused the gate remain untouched.
-+- Result/meta handling check: without `-AllowCommit`, no final result file
- is written after cleanup; with `-AllowCommit`, a baseline-dirty `ResultPat
-h` is protected from overwrite.
-+- Manual restore expectation: no run-owned `.ai-dev` operational dirty fil
-es should remain; the original dirty worktree remains for the user to handl
-e.
-+
-+### max_steps_too_small_for_full_cycle
-+
-+- Autopilot source path: `scripts/ai-dev-autopilot.ps1`
-+- Stop reason propagation: child auto-goal output is parsed by `Get-Stoppe
-dReasonFromOutput`; if the child reports `max_steps_too_small_for_full_cycl
-e`, Autopilot preserves that stopped reason instead of collapsing it into `
-auto_goal_failed`.
-+- Classification check: `Test-IsExpectedAutopilotNonWorkStop` includes `ma
-x_steps_too_small_for_full_cycle`, so `New-AutopilotResult` records `outcom
-eCategory=expected_non_work`.
-+- Cleanup check: `Stop-Autopilot` calls `Restore-AutopilotCurrentRunOperat
-ionalChanges` for expected non-work stops.
-+- Baseline preservation check: `Restore-AutopilotCurrentRunOperationalChan
-ges` skips `Test-IsAutopilotBaselineDirtyPath`, so baseline-dirty `loop-log
-.md` or `autopilot-goal-history.json` changes are not overwritten or delete
-d.
-+- Meta handling check: `Invoke-AutopilotLoopLogMetaCommit` filters out bas
-eline-dirty meta paths and commits only current-run meta paths when `-Allow
-Commit` is set; without `-AllowCommit`, cleanup still runs and meta commit 
-is skipped.
-+- Manual restore expectation: current-run autopilot operational changes ar
-e cleaned or limited to eligible meta commit paths; baseline user edits are
- preserved.
-+
-+### Outcome category distinction
-+
-+- Success: `New-AutoGoalResult` and `New-AutopilotResult` classify `ExitCo
-de=0` non-expected stops as `success`.
-+- Expected non-work: listed pre-implementation stop reasons are classified
- as `expected_non_work` even with exit code 1.
-+- Actual failure: non-zero exits outside the expected non-work allowlists 
-are classified as `actual_failure`.
++- Task: T001 AI Dev 테스트 스크립트 추가
++- Required change 반영: `ai-dev-check.ps1 -SkipBuild -SkipLint`로 `npm run te
+st`를 실제 실행해 skipped 상태를 해소하고, `.ai-dev/test-result.md`에 테스트 성공 결과를 갱신했다.
++- Verification: `npm run test` passed, MaxSteps 기본값과 사용자 지정 값 전달, `expecte
+d_non_work` 분류, `dirty_worktree`와 `baseline_output_conflict` baseline marke
+r 보존, isolated scenario의 새 dirty/staged path 없음이 모두 pass로 기록됐다.
++- Scope: build/lint와 `dist` 변경을 피하기 위해 build/lint는 명시적으로 skipped 처리했고, 앱 기
+능/UI/DB 구조는 변경하지 않았다.
++- Remaining risk: 현재 로컬 작업 트리의 전체 dirty/staged 상태는 저장소 git 명령 제한 때문에 별도 확인
+하지 않았다.
 
 tokens used
-65,523
-요구된 재수정 범위 안에서 검증 기록을 보강했습니다.
+55,675
+반영했습니다.
 
-반영한 required changes:
-- `baseline_output_conflict`
-- `dirty_worktree`
-- `max_steps_too_small_for_full_cycle`
+- Required change: `ai-dev-check.ps1 -SkipBuild -SkipLint`로 `npm run test`를 실제 실행해 skipped 상태를 해소했고, 결과를 `.ai-dev/test-result.md`에 갱신했습니다.
+- 수정한 파일:
+  - `.ai-dev/test-result.md`
+  - `.ai-dev/state.json`
+  - `.ai-dev/loop-log.md`
+- 검증 방법: `powershell -ExecutionPolicy Bypass -File scripts\ai-dev-check.ps1 -SkipBuild -SkipLint`
+- 검증 결과: `npm run test` passed, 총 `18`개 항목 pass, 실패 `0`.
+- 확인된 항목: MaxSteps 기본값/사용자 지정 전달, `expected_non_work`, `dirty_worktree`, `baseline_output_conflict`, baseline marker 보존, isolated scenario dirty/staged path 없음.
 
-각 사유별로 예상 비작업 종료 분류, 현재 실행에서 만든 운영 파일 복원, baseline dirty 보존, 메타 기록 처리 경로를 [test-result.md](D:/ai-apps/planpilot-local/.ai-dev/test-result.md)에 추가했습니다. 또한 [loop-log.md](D:/ai-apps/planpilot-local/.ai-dev/loop-log.md)에 재수정 요약을 기록했습니다.
-
-수정한 파일:
-- `.ai-dev/test-result.md`
-- `.ai-dev/loop-log.md`
-
-검증 방법:
-- `scripts/ai-dev-auto-goal.ps1`, `scripts/ai-dev-autopilot.ps1`의 관련 stop reason 분류와 cleanup 호출 경로를 코드 경로 기준으로 확인했습니다.
-- 사용자 허용이 필요한 `git`, `npm run build`, `npm run lint`, `npm run test`는 실행하지 않았습니다.
-
-반영하지 못한 항목:
-- 실제 별도 worktree에서 세 사유를 재현 실행하지는 않았습니다. 이번 요청의 안전 규칙과 저장소 규칙상 `git` 실행을 피하고, 문서화된 코드 경로 검증으로 보강했습니다.
-
-남은 위험:
-- 기록은 코드 경로 검증 기반입니다. 실제 재현 실행 결과까지 요구된다면 별도 허용 하에 격리된 worktree에서 시나리오 실행이 필요합니다.
+반영하지 못한 항목은 없습니다. 다만 `dist` 변경을 피하기 위해 build/lint는 이번 검증에서 skipped 처리했고, 저장소 규칙상 직접 `git status`는 실행하지 않아 현재 로컬 작업 트리 전체 dirty/staged 상태는 별도 확인하지 않았습니다.
 
 ```

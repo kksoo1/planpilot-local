@@ -1,14 +1,14 @@
 ﻿{
-    "goalTitle":  "자동화 중단 후 운영 파일 정리 안정화",
+    "goalTitle":  "AI Dev 자동화 테스트 체계 추가",
     "goalSource":  ".ai-dev/goal.md",
-    "createdAt":  "2026-07-31T00:00:00+09:00",
-    "updatedAt":  "2026-07-31T06:51:01.8516887+00:00",
+    "createdAt":  "2026-07-31T09:00:00+09:00",
+    "updatedAt":  "2026-07-31T08:04:21.3368744+00:00",
     "currentTaskId":  null,
     "tasks":  [
                   {
                       "id":  "T001",
-                      "title":  "운영 파일 정리 흐름 안정화",
-                      "description":  "자동화가 구현 시작 전 예상된 사유로 중단될 때 이번 실행에서 만든 운영 파일 변경만 정리하거나 메타 기록 대상으로 분류하도록 기존 흐름을 점검하고 최소 수정한다.",
+                      "title":  "AI Dev 테스트 스크립트 추가",
+                      "description":  "현재 AI Dev 관련 스크립트 구조를 확인한 뒤 PowerShell 5.1에서 실행 가능한 자동화 테스트를 추가하고 `npm test`로 연결한다.",
                       "type":  "implementation",
                       "status":  "done",
                       "priority":  "P0",
@@ -16,17 +16,18 @@
 
                                     ],
                       "filesLikelyToChange":  [
-                                                  ".ai-dev/ai-dev-autopilot.ps1",
-                                                  ".ai-dev/ai-dev-auto-goal.ps1"
+                                                  "package.json",
+                                                  ".ai-dev/scripts/ai-dev-test.ps1"
                                               ],
                       "verification":  [
-                                           "예상된 비작업 종료 사유에서 운영 파일 변경 처리 경로를 확인한다.",
-                                           "실행 전부터 있던 사용자 변경을 보존하는 조건을 확인한다.",
-                                           "성공, 예상된 비작업 종료, 실제 실패 기록이 구분되는지 확인한다."
+                                           "`npm test`가 테스트 스크립트를 실행한다.",
+                                           "MaxSteps 기본값과 사용자 지정 값 전달이 검증된다.",
+                                           "`expected_non_work`, baseline 사용자 변경 보존, 실행 후 작업 트리 청결성이 검증된다.",
+                                           "실패 시 0이 아닌 종료 코드와 명확한 실패 출력이 제공된다."
                                        ],
-                      "commitMessage":  "Stabilize auto-goal operational file cleanup",
-                      "completedAt":  "2026-07-31T06:51:01.8516887+00:00",
-                      "resultSummary":  "자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료"
+                      "commitMessage":  "Add AI Dev test automation",
+                      "completedAt":  "2026-07-31T08:04:21.3368744+00:00",
+                      "resultSummary":  "자동 완료: AI Dev 테스트 체계 구현, build/test/lint 통과, Codex 리뷰 pass, 구현 커밋 완료"
                   }
               ]
 }
