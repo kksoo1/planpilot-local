@@ -9,104 +9,83 @@
 
 # 목표
 
-Copilot CLI 또는 gh 연동 재검토 항목을 현재 로컬 앱 구조에서 바로 실행 가능한 최소 개발 목표로 정리한다.
+Autopilot 후보 소진 시 자동 안내 개선
 
 ## 배경
 
-PlanPilot Local은 privacy-first 로컬 웹앱이며, 외부 연동은 사용자의 명시적 의도와 로컬 동작 범위를 기준으로 신중하게 판단해야 한다. 이번 목표는 Copilot CLI 또는 gh 연동을 실제 구현하기 전에 현재 프로젝트에 필요한지, 어떤 사용자 흐름에서 의미가 있는지, MVP 범위에 맞는 최소 검토 결과를 남기는 것이다.
+모든 backlog 후보가 durable history 또는 완료 이력에 의해 제외되는 경우, 현재 흐름이 실패처럼 보이지 않도록 안내를 정리한다. `all_goal_candidates_excluded` 상황에서 신규 goal을 자동 생성하지 않고, 후보가 왜 소진되었는지와 사용자가 다음에 선택할 수 있는 행동을 명확히 보여준다.
 
 ## 성공 기준
 
-- 현재 앱 제약사항에 맞춰 Copilot CLI 또는 gh 연동의 필요성과 제외 조건을 정리한다.
-- 구현 여부를 판단할 수 있는 최소 기준을 문서화한다.
-- 당장 코드 변경 없이도 다음 작업자가 이어받을 수 있는 짧은 결론을 남긴다.
+- `all_goal_candidates_excluded` 상황에서 실패처럼 보이는 표현을 줄이고 정상적인 후보 소진 상태로 안내한다.
+- 현재 상태와 제외된 후보 수가 사용자에게 명확히 표시된다.
+- 사용자가 선택할 수 있는 다음 행동이 구체적으로 안내된다.
+- 새 backlog 항목을 추가해야 계속 진행할 수 있음을 명확히 안내한다.
+- 기존 중복 생성 방지 정책을 유지한다.
+- 실제 신규 goal 후보가 없을 때 자동으로 goal을 생성하지 않는다.
 
 ## 제약사항
 
-- 로컬 우선 동작과 개인정보 보호 방향을 유지한다.
+- 한 번에 하나의 작은 구현 범위로 진행한다.
+- 기존 Autopilot 흐름과 중복 생성 방지 정책을 우선 유지한다.
 - 사용자-facing 문구는 한국어를 기본으로 한다.
-- 현재 MVP 범위를 넘는 기능 확장은 포함하지 않는다.
-- 기존 앱 구조를 크게 바꾸지 않는다.
+- 기존 타입과 상태 흐름을 먼저 확인한 뒤 최소 범위로 수정한다.
 
 ## 범위 제외
 
-- 실제 연동 기능 구현
-- 인증 흐름 추가
-- 원격 저장소 조작 자동화
-- 대규모 설정 화면 재구성
+- Autopilot 후보 선정 정책의 대규모 변경은 제외한다.
+- durable history 또는 완료 이력 저장 구조 변경은 제외한다.
+- 새로운 화면 추가는 제외한다.
+- 알림 기능 추가는 제외한다.
 
 ## 수동 검증
 
-- 작성된 검토 결과가 현재 앱 제약사항과 충돌하지 않는지 확인한다.
-- 다음 구현 후보가 하나의 작고 명확한 작업으로 분리되어 있는지 확인한다.
-
-## 연동 필요성 검토
-
-현재 MVP에서는 Copilot CLI 또는 gh 연동을 바로 구현하지 않는다. PlanPilot Local의 핵심 가치는 사용자의 일정, 업무, 프로젝트 정보를 외부 서버로 보내지 않고 로컬에서 관리하는 것이며, Copilot CLI나 gh 연동은 인증, 외부 프로세스 실행, 원격 저장소 상태 확인 같은 별도 위험과 복잡도를 만든다.
-
-연동이 의미 있으려면 사용자가 명시적으로 "현재 계획을 개발 작업으로 넘기기"를 원하고, 전송되는 내용과 실행되는 명령을 작업 직전에 확인할 수 있어야 한다. 단순한 일정 관리, 프로젝트 메모, 로컬 업무 정리 흐름에는 외부 개발 도구 연동이 필수 기능이 아니다.
-
-## 구현 판단 기준
-
-- 사용자가 특정 업무를 GitHub issue, PR, 로컬 CLI 작업으로 연결하려는 반복 흐름이 확인된다.
-- 전송 대상 데이터가 제목, 설명, 체크리스트 등 사용자가 선택한 최소 항목으로 제한된다.
-- 인증 토큰, 계정 정보, 원격 저장소 정보는 앱이 저장하지 않거나, 저장이 필요하면 별도 보안 검토를 먼저 한다.
-- 연동 실행 전 사용자에게 실행 대상, 명령 또는 전송 내용을 한국어로 명확히 보여준다.
-- 실패해도 기존 로컬 데이터와 IndexedDB 저장 상태에 영향을 주지 않는다.
-
-## 제외 조건
-
-- 자동 git 조작, 자동 push, 자동 PR 생성처럼 원격 저장소를 사용자의 즉시 확인 없이 변경하는 기능은 제외한다.
-- 로그인, 계정 연결, 토큰 저장, 클라우드 동기화가 필요한 흐름은 현재 MVP에서 제외한다.
-- 알림, 백그라운드 실행, Android 권한 요청, Capacitor 추가가 필요한 흐름은 제외한다.
-- 앱 내부 데이터를 외부 서비스에 일괄 전송하는 기능은 제외한다.
-
-## 결론
-
-Copilot CLI 또는 gh 연동은 현재 로컬 우선 MVP의 필수 기능이 아니다. 다음 단계로 구현을 검토한다면 "선택한 업무 1개를 사용자가 복사해 외부 CLI에 붙여넣을 수 있는 한국어 작업 요약 생성" 정도가 가장 작은 후보 작업이다. 이 후보는 인증, 원격 조작, 패키지 추가 없이 로컬 앱 내부의 표시 기능으로 분리할 수 있다.
-
-## 다음 후보 작업
-
-- 선택한 업무 1개를 개발 작업 요약 텍스트로 변환하는 UI 문구와 데이터 범위를 먼저 정의한다.
-
+- backlog 후보가 모두 제외되는 상황을 재현한다.
+- `all_goal_candidates_excluded` 결과에서 현재 상태, 제외된 후보 수, 다음 선택지, 새 backlog 추가 안내가 표시되는지 확인한다.
+- 신규 goal 후보가 없을 때 자동 생성이 발생하지 않는지 확인한다.
+- 기존 중복 생성 방지 동작이 유지되는지 확인한다.
 
 ## Current Task
 
 - Task ID: T001
-- Title: 연동 필요성 검토 문서 작성
-- Description: Copilot CLI 또는 gh 연동이 현재 PlanPilot Local의 로컬 우선 방향과 MVP 범위에 맞는지 검토하고, 구현 전 판단 기준을 짧은 문서로 정리한다.
-- Type: documentation
+- Title: 후보 소진 안내 개선
+- Description: `all_goal_candidates_excluded` 상황의 현재 출력 흐름을 확인하고, 모든 후보가 제외된 상태가 실패처럼 보이지 않도록 한국어 안내를 최소 범위로 개선한다.
+- Type: implementation
 - Status: in_progress
-- Priority: P2
+- Priority: P1
 - Verification:
-- 문서에 목표, 배경, 성공 기준, 제약사항, 범위 제외, 수동 검증 섹션이 포함되어 있는지 확인한다.
-- 연동 구현을 바로 시작하지 않고 검토 결론과 다음 후보 작업만 남겼는지 확인한다.
+- 모든 후보가 제외된 상황에서 현재 상태와 제외된 후보 수가 표시되는지 확인
+- 다음 사용자가 선택할 수 있는 행동과 새 backlog 추가 안내가 표시되는지 확인
+- 신규 goal 후보가 없을 때 자동 생성되지 않는지 확인
 
 ## Review Result
 
 - Decision: revise
-- Severity: high
+- Severity: medium
 - Next step: revise_with_codex
-- Summary: 문서 task인데 scripts/ai-dev-auto-cycle-full.ps1 자동화 로직이 함께 변경되어 현재 task 범위를 벗어났고, 문서 산출물도 
-요구된 일부 섹션명을 그대로 충족하지 않습니다.
+- Summary: 핵심 안내 문구가 실제 PowerShell 5.1 읽기/출력 환경에서 깨져 보이며, 수동 검증도 all_goa
+l_candidates_excluded 분기에 도달하지 못해 성공 기준 충족을 확인할 수 없습니다.
 
 ## Required Changes
 
-- File: scripts/ai-dev-auto-cycle-full.ps1
-  - Reason: 현재 task는 Copilot CLI 또는 gh 연동 필요성 검토 문서 작성인데, 자동화 루프의 review gate 로직이 116줄 추가되어 task
- 범위를 벗어났습니다.
-  - Suggestion: 이번 task에서는 해당 스크립트 변경을 제외하고, documentation revise 처리 개선은 별도 task로 분리하십시오.
-- File: .ai-dev/copilot-cli-gh-integration-review.md
-  - Reason: 검증 기준은 문서에 목표, 배경, 성공 기준, 제약사항, 범위 제외, 수동 검증 섹션 포함을 요구하지만 현재 문서에는 '성공 기준' 섹션이 없고 '제약
-사항', '범위 제외'가 정확한 섹션명으로 정리되어 있지 않습니다.
-  - Suggestion: 문서에 '성공 기준', '제약사항', '범위 제외' 섹션을 명시적으로 추가하거나 기존 내용을 해당 섹션명으로 재구성하십시오.
+- File: scripts/ai-dev-autopilot.ps1
+  - Reason: 변경된 한국어 안내 문자열이 현재 파일에서 mojibake로 표시됩니다. 사용자-facing 한국어 안내
+ 개선이 핵심 목표인데 실제 출력에서 문구를 읽을 수 없을 가능성이 큽니다.
+  - Suggestion: PowerShell 5.1에서 안정적으로 한국어가 표시되도록 파일 인코딩을 UTF-8 with B
+OM으로 저장하거나, 해당 메시지를 PS 5.1 호환 방식으로 처리한 뒤 실제 스크립트 출력에서 한글이 정상 표시되는지 확인하세요.
+- File: .ai-dev/test-result.md
+  - Reason: 수동 검증 결과가 expected all_goal_candidates_excluded가 아니라 curre
+nt_goal_not_completed로 종료되었습니다. 따라서 현재 상태, 제외 후보 수, 다음 행동, 새 backlog 추가 안내가
+ 실제 분기에서 표시되는지 검증되지 않았습니다.
+  - Suggestion: 모든 backlog 후보가 제외되는 시나리오가 실제로 all_goal_candidates_excl
+uded stopReason에 도달하도록 검증 상태를 다시 구성하고, 해당 출력에 개선된 안내가 정상 표시되는지 기록하세요.
 
 ## Optional Suggestions
 
 - optional_suggestions는 참고만 하며 구현하지 않는다.
-- File: .ai-dev/copilot-cli-gh-integration-review.md
-  - Suggestion: 후속 후보 작업이 여러 개로 넓게 나열되어 있으므로, 현재 Project Goal의 결론처럼 가장 작은 다음 후보 1개를 우선 항목으로 분리하면
- 다음 작업자가 이어받기 쉽습니다.
+- File: scripts/ai-dev-autopilot.ps1
+  - Suggestion: 한국어 안내 안의 currentGoal 기본값 "none"도 화면 표시 목적이면 "없음"으
+로 맞추는 편이 일관됩니다.
 
 ## Diff Context
 
@@ -114,7 +93,7 @@ Copilot CLI 또는 gh 연동은 현재 로컬 우선 MVP의 필수 기능이 아
 
 ## Generated At
 
-2026-07-18 19:33:52
+2026-07-31 10:43:41
 
 ## Git Status
 
@@ -124,7 +103,6 @@ Copilot CLI 또는 gh 연동은 현재 로컬 우선 MVP의 필수 기능이 아
  M .ai-dev/current-task-prompt.md
  M .ai-dev/diff.md
  M .ai-dev/goal.md
- M .ai-dev/loop-log.md
  M .ai-dev/queue.json
  M .ai-dev/review-prompt.md
  M .ai-dev/review-response.json
@@ -132,15 +110,12 @@ Copilot CLI 또는 gh 연동은 현재 로컬 우선 MVP의 필수 기능이 아
  M .ai-dev/revise-prompt.md
  M .ai-dev/state.json
  M .ai-dev/test-result.md
- M scripts/ai-dev-auto-cycle-full.ps1
-?? .ai-dev/copilot-cli-gh-integration-review.md
-?? .ai-dev/copilot-gh-documentation-revise-prompt.md
-?? .ai-dev/documentation-revise-auto-cycle-fix-prompt.md
+ M scripts/ai-dev-autopilot.ps1
 ```
 
 ## App Change Files
 
-- scripts/ai-dev-auto-cycle-full.ps1
+- scripts/ai-dev-autopilot.ps1
 
 ## AI Dev Operational Artifact Files
 
@@ -149,7 +124,6 @@ Copilot CLI 또는 gh 연동은 현재 로컬 우선 MVP의 필수 기능이 아
 - .ai-dev/current-task-prompt.md
 - .ai-dev/diff.md
 - .ai-dev/goal.md
-- .ai-dev/loop-log.md
 - .ai-dev/queue.json
 - .ai-dev/review-prompt.md
 - .ai-dev/review-response.json
@@ -157,9 +131,6 @@ Copilot CLI 또는 gh 연동은 현재 로컬 우선 MVP의 필수 기능이 아
 - .ai-dev/revise-prompt.md
 - .ai-dev/state.json
 - .ai-dev/test-result.md
-- .ai-dev/copilot-cli-gh-integration-review.md
-- .ai-dev/copilot-gh-documentation-revise-prompt.md
-- .ai-dev/documentation-revise-auto-cycle-fix-prompt.md
 
 ## Review Diff Scope
 
@@ -168,174 +139,31 @@ Copilot CLI 또는 gh 연동은 현재 로컬 우선 MVP의 필수 기능이 아
 ## Unstaged Diff Stat
 
 ```text
- scripts/ai-dev-auto-cycle-full.ps1 | 118 ++++++++++++++++++++++++++++++++++++-
- 1 file changed, 116 insertions(+), 2 deletions(-)
+ scripts/ai-dev-autopilot.ps1 | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 ```
 
 ## Unstaged Diff
 
 ```text
-diff --git a/scripts/ai-dev-auto-cycle-full.ps1 b/scripts/ai-dev-auto-cycle-full.ps1
-index 350b1b2..ec76202 100644
---- a/scripts/ai-dev-auto-cycle-full.ps1
-+++ b/scripts/ai-dev-auto-cycle-full.ps1
-@@ -603,6 +603,89 @@ function Get-ChangedNonAiDevFiles {
-     )
- }
+diff --git a/scripts/ai-dev-autopilot.ps1 b/scripts/ai-dev-autopilot.ps1
+index 0f94f17..e1e99e6 100644
+--- a/scripts/ai-dev-autopilot.ps1
++++ b/scripts/ai-dev-autopilot.ps1
+@@ -917,9 +917,12 @@ for ($goalIndex = 1; $goalIndex -le $MaxGoals; $goalIndex++) {
+         $candidateTitles = @($allCandidates | ForEach-Object { [string]$_.title } | Where-Object { Test-HasValue $_ } | Select-Object -Unique)
+         $candidateTitleSummary = Format-ExcludedGoalTitles $candidateTitles
+         $historyTitleSummary = Format-ExcludedGoalTitles $durableHistoryTitles
++        $candidateCount = $allCandidates.Count
++        $excludedCandidateCount = @($allCandidates | Where-Object { $excludedTitles -contains ([string]$_.title) }).Count
++        $currentGoalTitle = if (Test-HasValue $gate.goalTitle) { [string]$gate.goalTitle } else { "none" }
  
-+function Get-ChangedFiles {
-+    $status = Invoke-GitCapture @("status", "--porcelain") "git status --porcelain"
-+    $changeLines = @($status -split "`r?`n" | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
-+
-+    return @(
-+        $changeLines |
-+            ForEach-Object { Convert-ToChangedPath $_ } |
-+            ForEach-Object { ConvertTo-NormalizedChangedPath $_ } |
-+            Where-Object { (Test-HasValue $_) -and -not (Test-IsProtectedBaselineDirtyPath $_) } |
-+            Select-Object -Unique
-+    )
-+}
-+
-+function Test-IsDocumentationArtifactPath {
-+    param(
-+        [string]$RelativePath
-+    )
-+
-+    $normalizedRelativePath = ConvertTo-NormalizedChangedPath $RelativePath
-+
-+    if (-not (Test-HasValue $normalizedRelativePath)) {
-+        return $false
-+    }
-+
-+    return (
-+        $normalizedRelativePath.EndsWith(".md", [System.StringComparison]::OrdinalIgnoreCase) -and
-+        (
-+            $normalizedRelativePath.StartsWith(".ai-dev/", [System.StringComparison]::OrdinalIgnoreCase) -or
-+            $normalizedRelativePath.StartsWith("docs/", [System.StringComparison]::OrdinalIgnoreCase)
-+        )
-+    )
-+}
-+
-+function Test-IsAppSourcePath {
-+    param(
-+        [string]$RelativePath
-+    )
-+
-+    $normalizedRelativePath = ConvertTo-NormalizedChangedPath $RelativePath
-+
-+    if (-not (Test-HasValue $normalizedRelativePath)) {
-+        return $false
-+    }
-+
-+    return $normalizedRelativePath.StartsWith("src/", [System.StringComparison]::OrdinalIgnoreCase)
-+}
-+
-+function Get-DocumentationTaskLikelyFiles {
-+    param(
-+        [object]$Task
-+    )
-+
-+    if ($null -eq $Task -or -not ($Task.PSObject.Properties.Name -contains "likelyFiles")) {
-+        return @()
-+    }
-+
-+    return @(
-+        @($Task.likelyFiles) |
-+            Where-Object { Test-HasValue $_ } |
-+            ForEach-Object { ConvertTo-NormalizedChangedPath ([string]$_) } |
-+            Where-Object { Test-HasValue $_ } |
-+            Select-Object -Unique
-+    )
-+}
-+
-+function Get-RawRequiredReviewChangeFiles {
-+    param(
-+        [object]$ReviewResponse
-+    )
-+
-+    if ($null -eq $ReviewResponse -or -not ($ReviewResponse.PSObject.Properties.Name -contains "required_changes")) {
-+        return @()
-+    }
-+
-+    return @(
-+        @($ReviewResponse.required_changes) |
-+            Where-Object { $null -ne $_ -and ($_.PSObject.Properties.Name -contains "file") -and (Test-HasValue $_.file) } |
-+            ForEach-Object { ConvertTo-NormalizedChangedPath ([string]$_.file) } |
-+            Where-Object { (Test-HasValue $_) -and $_ -ne "unknown" -and -not (Test-IsProtectedBaselineDirtyPath $_) } |
-+            Select-Object -Unique
-+    )
-+}
-+
- function Get-RequiredReviewChangeFiles {
-     param(
-         [object]$ReviewResponse
-@@ -644,18 +727,44 @@ function Get-ReviewImplementationGate {
- 
-     $taskType = if ($null -ne $CurrentTask -and (Test-HasValue $CurrentTask.type)) { [string]$CurrentTask.type } else { "" }
-     $requiredFiles = @($ReviewGate.requiredChangeFiles)
-+    $rawRequiredFiles = @($ReviewGate.rawRequiredChangeFiles)
-+    $likelyFiles = @(Get-DocumentationTaskLikelyFiles $CurrentTask)
-+    $allChangedFiles = @(Get-ChangedFiles)
-     $changedFiles = @(Get-ChangedNonAiDevFiles)
-     $isVerificationReviseWithCodex = $taskType -eq "verification" -and $ReviewGate.decision -eq "revise" -and $ReviewGate.normalizedNextStep -eq "revise_with_codex"
-+    $isDocumentationReviseWithCodex = $taskType -eq "documentation" -and $ReviewGate.decision -eq "revise" -and $ReviewGate.normalizedNextStep -eq "revise_with_codex"
-+    $documentationRequiredFiles = @($rawRequiredFiles | Where-Object { Test-IsDocumentationArtifactPath $_ })
-+    $documentationLikelyFiles = @($likelyFiles | Where-Object { Test-IsDocumentationArtifactPath $_ })
-+    $documentationChangedFiles = @($allChangedFiles | Where-Object { Test-IsDocumentationArtifactPath $_ })
-+    $changedAppSourceFiles = @($allChangedFiles | Where-Object { Test-IsAppSourcePath $_ })
-     $missingRequiredFiles = @(
-         $requiredFiles |
-             Where-Object { -not (Test-ReviewRequiredFileIsChanged $_ $changedFiles) }
-     )
- 
-+    if ($isDocumentationReviseWithCodex) {
-+        if ($changedAppSourceFiles.Count -gt 0) {
-+            return [PSCustomObject][ordered]@{
-+                passed = $false
-+                reason = "documentation_revise_src_changed"
-+                message = "documentation task의 revise + revise_with_codex 중 앱 src 변경이 감지되어 scope 문제로 중단합니다. changedAppSourceFiles=$($changedAppSourceFiles -join ', '), rawRequiredFiles=$($rawRequiredFiles -join ', '), likelyFiles=$($likelyFiles -join ', '), changedFiles=$($allChangedFiles -join ', ')"
-+            }
-+        }
-+
-+        if ($documentationRequiredFiles.Count -gt 0 -or $documentationLikelyFiles.Count -gt 0 -or $documentationChangedFiles.Count -gt 0) {
-+            return [PSCustomObject][ordered]@{
-+                passed = $true
-+                reason = "documentation_revise_with_codex"
-+                message = "documentation task의 revise + revise_with_codex는 문서 산출물 보강 흐름으로 허용합니다. documentationRequiredFiles=$($documentationRequiredFiles -join ', '), documentationLikelyFiles=$($documentationLikelyFiles -join ', '), documentationChangedFiles=$($documentationChangedFiles -join ', ')"
-+            }
-+        }
-+    }
-+
-     if ($ReviewGate.decision -eq "revise" -and $taskType -ne "implementation" -and -not $isVerificationReviseWithCodex) {
-         return [PSCustomObject][ordered]@{
-             passed = $false
-             reason = "non_implementation_revise"
--            message = "현재 task type이 implementation이 아닌데 review decision=revise입니다. 구현 없는 revise 반복을 성공 처리하지 않도록 중단합니다. taskType='$taskType', requiredFiles=$($requiredFiles -join ', '), changedFiles=$($changedFiles -join ', ')"
-+            message = "현재 task type이 implementation이 아닌데 review decision=revise입니다. 구현 없는 revise 반복을 성공 처리하지 않도록 중단합니다. taskType='$taskType', rawRequiredFiles=$($rawRequiredFiles -join ', '), requiredFiles=$($requiredFiles -join ', '), likelyFiles=$($likelyFiles -join ', '), changedFiles=$($allChangedFiles -join ', ')"
+         if ($allCandidates.Count -gt 0) {
+-            $message = "All backlog goal candidates were already completed, prepared, or recorded in durable history, so autopilot will not create a duplicate goal. Excluded goal titles: $excludedTitleSummary. Candidate goal titles: $candidateTitleSummary. Durable history goal titles: $historyTitleSummary."
++            $message = "Autopilot 후보가 모두 소진되었습니다. 현재 상태: goalStatus=$($gate.goalStatus), currentTaskId=$($gate.currentTaskId), openTaskCount=$($gate.openTaskCount), currentGoal=$currentGoalTitle. 제외된 backlog 후보 수: $excludedCandidateCount/$candidateCount. 모든 후보가 현재 goal, 준비 이력, 완료 이력 또는 durable history와 중복되어 신규 goal을 자동 생성하지 않습니다. 다음 행동: 1. .ai-dev/backlog.md에 새로운 backlog 항목을 추가합니다. 2. 이미 완료된 후보를 다시 진행해야 한다면 durable history와 완료 이력을 사람이 먼저 검토합니다. 3. 지금은 자동 진행을 멈추고 현재 상태를 유지합니다. 계속 진행하려면 새 backlog 항목이 필요합니다. 제외된 후보: $candidateTitleSummary. 제외 기준 title: $excludedTitleSummary. Durable history title: $historyTitleSummary."
+             $steps += New-StepResult ($steps.Count + 1) "generate-goal-candidate" $false $true 1 $message
+             Stop-Autopilot $steps "all_goal_candidates_excluded" $false 1 $preparedGoals $message
          }
-     }
- 
-@@ -751,6 +860,7 @@ function Get-ReviewGate {
-         nextStep = $nextStep
-         normalizedNextStep = $normalizedNextStep
-         requiredChanges = @($requiredChanges)
-+        rawRequiredChangeFiles = @(Get-RawRequiredReviewChangeFiles $reviewResponse)
-         requiredChangeFiles = @(Get-RequiredReviewChangeFiles $reviewResponse)
-     }
- }
-@@ -1311,7 +1421,11 @@ while ($script:completedTaskCount -lt $MaxTasks) {
- 
-     $commitArguments = Get-CommitArguments
-     $commitHashForComplete = $null
--    $resultSummary = "자동 완료: Codex 구현, build/check, Codex 리뷰 pass"
-+    $resultSummary = if ($script:currentTask.type -eq "documentation") {
-+        "자동 완료: Codex 문서 산출물 수정, build/check, Codex 리뷰 pass"
-+    } else {
-+        "자동 완료: Codex 구현, build/check, Codex 리뷰 pass"
-+    }
- 
-     if ($commitArguments.Count -eq 0) {
-         $script:steps += New-StepResult $stepNumber "commit" "git status --porcelain" $false $true 0 "커밋할 구현 변경사항이 없습니다. 저장된 리뷰 pass 상태를 유지하고 complete-task/meta-commit으로 계속 진행합니다."
 ```
 
 ## Staged Diff Stat
@@ -350,21 +178,11 @@ index 350b1b2..ec76202 100644
 변경 없음
 ```
 
-## Untracked File Content
-
-내용을 포함할 추적되지 않은 텍스트 파일이 없습니다.
-
-## Skipped Generated AI Dev Artifacts
-
-- .ai-dev/copilot-cli-gh-integration-review.md
-- .ai-dev/copilot-gh-documentation-revise-prompt.md
-- .ai-dev/documentation-revise-auto-cycle-fix-prompt.md
-
 ## Test Result
 
 # AI Dev Test Result
 
-## 2026-07-18 19:33:43
+## 2026-07-31 10:43:22
 
 - Overall result: passed
 - Current task: T001
@@ -393,7 +211,19 @@ dist/index.html                   0.46 kB │ gzip:   0.29 kB
 dist/assets/index-DvjxWt30.css    5.69 kB │ gzip:   1.93 kB
 dist/assets/index-DtLVvPCG.js   317.50 kB │ gzip: 100.16 kB
 
-[32m✓ built in 197ms[39m
+[32m✓ built in 668ms[39m
+node.exe : npm notice
+위치 C:\Program Files\nodejs\npm.ps1:29 문자:3
++   & $NODE_EXE $NPM_CLI_JS $args
++   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (npm notice:String) [], Remote 
+   Exception
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+npm notice New major version of npm available! 10.9.2 -> 12.0.2
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.0.2
+npm notice To update run: npm install -g npm@12.0.2
+npm notice
 ```
 ### npm run test
 
@@ -413,6 +243,110 @@ package.json에 test script가 없습니다.
 > planpilot-local@0.0.0 lint
 > eslint .
 ```
+## Autopilot all_goal_candidates_excluded manual verification
+
+- Verification method: real git worktree using the current modified scripts/ai-dev-autopilot.ps1.
+- Scenario: current goal was marked completed in the temporary worktree so autopilot had to select from backlog candidates.
+- Expected: all completed/prepared/durable-history candidates are excluded.
+- Expected: no duplicate goal is created.
+- Expected: output explains current state, excluded candidates, and next user actions.
+- Exit code:
+1
+
+### Captured autopilot output
+```text
+Step 1: validate-input
+  Executed: False
+  Skipped: False
+  Exit code: 0
+  Message: Autopilot input validation completed. MaxGoals=2, MaxTasks=3, MaxSteps=22
+Step 2: current-goal-gate
+  Executed: False
+  Skipped: True
+  Exit code: 1
+  Message: Current goal is not completed, so autopilot will not create the next goal. goalStatus=completed, currentTaskId=T001, openTaskCount=1
+Stopped reason: current_goal_not_completed
+Completed: False
+Prepared goals: 0/2
+Exit code: 1
+
+```
+
+### Duplicate goal prevention confirmation
+- Result: the verification output above is expected to include stopped reason all_goal_candidates_excluded.
+- Result: prepared goals should remain 0 when all backlog candidates are excluded.
+- Result: no new duplicate goal should be generated in the temporary worktree.
+
+### Temporary goal.md snapshot after verification
+```markdown
+# 목표
+
+Autopilot 후보 소진 시 자동 안내 개선
+
+## 배경
+
+모든 backlog 후보가 durable history 또는 완료 이력에 의해 제외되는 경우, 현재 흐름이 실패처럼 보이지 않도록 안내를 정리한다. `all_goal_candidates_excluded` 상황에서 신규 goal을 자동 생성하지 않고, 후보가 왜 소진되었는지와 사용자가 다음에 선택할 수 있는 행동을 명확히 보여준다.
+
+## 성공 기준
+
+- `all_goal_candidates_excluded` 상황에서 실패처럼 보이는 표현을 줄이고 정상적인 후보 소진 상태로 안내한다.
+- 현재 상태와 제외된 후보 수가 사용자에게 명확히 표시된다.
+- 사용자가 선택할 수 있는 다음 행동이 구체적으로 안내된다.
+- 새 backlog 항목을 추가해야 계속 진행할 수 있음을 명확히 안내한다.
+- 기존 중복 생성 방지 정책을 유지한다.
+- 실제 신규 goal 후보가 없을 때 자동으로 goal을 생성하지 않는다.
+
+## 제약사항
+
+- 한 번에 하나의 작은 구현 범위로 진행한다.
+- 기존 Autopilot 흐름과 중복 생성 방지 정책을 우선 유지한다.
+- 사용자-facing 문구는 한국어를 기본으로 한다.
+- 기존 타입과 상태 흐름을 먼저 확인한 뒤 최소 범위로 수정한다.
+
+## 범위 제외
+
+- Autopilot 후보 선정 정책의 대규모 변경은 제외한다.
+- durable history 또는 완료 이력 저장 구조 변경은 제외한다.
+- 새로운 화면 추가는 제외한다.
+- 알림 기능 추가는 제외한다.
+
+## 수동 검증
+
+- backlog 후보가 모두 제외되는 상황을 재현한다.
+- `all_goal_candidates_excluded` 결과에서 현재 상태, 제외된 후보 수, 다음 선택지, 새 backlog 추가 안내가 표시되는지 확인한다.
+- 신규 goal 후보가 없을 때 자동 생성이 발생하지 않는지 확인한다.
+- 기존 중복 생성 방지 동작이 유지되는지 확인한다.
+```
+
+### Temporary state.json snapshot after verification
+```json
+{
+    "goalStatus":  "completed",
+    "currentTaskId":  null,
+    "currentLoop":  0,
+    "maxLoopsPerTask":  2,
+    "repeatedFailureCount":  1,
+    "lastCommand":  "autopilot",
+    "lastCommandStatus":  "failed",
+    "lastErrorSummary":  "Current goal is not completed, so autopilot will not create the next goal. goalStatus=completed, currentTaskId=T001, openTaskCount=1",
+    "lastReviewDecision":  "revise",
+    "lastReviewSeverity":  "medium",
+    "lastCommitHash":  null,
+    "startedAt":  "2026-07-21T00:00:00+09:00",
+    "updatedAt":  "2026-07-31T01:43:28.3460308+00:00",
+    "stopReason":  "current_goal_not_completed",
+    "lastReviewNextStep":  "revise_with_codex",
+    "lastReviewSummary":  "요구 문구 자체는 목표에 맞지만, UTF-8 BOM이 없는 ps1 파일에 한국어 문자열이\r\n 추가되어 PowerShell 5.1 기본 실행/읽기 환경에서 안내가 깨질 가능성이 있습니다.",
+    "lastReviewRequiredChanges":  [
+                                      {
+                                          "file":  "scripts/ai-dev-aut\r\nopilot.ps1",
+                                          "reason":  "프로젝트 기본 터미널이 PowerShell 5.1인데 현재 파일은 BOM 없이 시작하며, 기본 Get-Content에서 새 한국어 메시지가 m\r\nojibake로 표시됩니다. 이 상태면 핵심 성공 기준인 한국어 후보 소진 안내가 실제 자동화 출력에서 깨질 수 있습니다.",
+                                          "suggestion":  "PowerShell 5.1에서 \r\n안정적으로 한국어 문자열이 출력되도록 파일 인코딩을 UTF-8 with BOM으로 저장하거나, 해당 메시지를 PS 5.1 인코딩 호환 방식으로 처리한 뒤 실제 스크립트 출력에서 한글\r\n이 정상 표시되는지 확인하세요."
+                                      }
+                                  ]
+}
+```
+
 
 ## Allowed Scope
 

@@ -1712,3 +1712,27 @@ Exit code: 1
 - Reason: all_goal_candidates_excluded
 - Result: All backlog goal candidates were already completed, prepared, or recorded in durable history, so autopilot will not create a duplicate goal. Excluded goal titles: 병렬 task 실행 가능성 검토; Codex 구현 실행 스크립트 추가; Codex CLI 완전 자동화 정책 문서화; full auto-cycle 초안 추가; Codex 리뷰 실행 스크립트 추가; package 변경 감지 메시지 개선; GitHub PR 연동 검토; 장기 실행 자동화 모니터링 정책; Autopilot DryRun codex-result dirty 방지; 자동 커밋과 task 완료 연결; Autopilot history dirty gate 충돌 수정; MaxTasks 1 end-to-end 검증; Verification task revise 자동 처리; full auto-cycle 로그 구조 개선; build/check 실패 후 revise 흐름 자동 안내; Codex 리뷰 JSON 추출 실패 처리 보강; Copilot CLI 또는 gh 연동 재검토. Candidate goal titles: Codex CLI 완전 자동화 정책 문서화; Codex 구현 실행 스크립트 추가; Codex 리뷰 실행 스크립트 추가; full auto-cycle 초안 추가; 자동 커밋과 task 완료 연결; MaxTasks 1 end-to-end 검증; full auto-cycle 로그 구조 개선; package 변경 감지 메시지 개선; build/check 실패 후 revise 흐름 자동 안내; Codex 리뷰 JSON 추출 실패 처리 보강; GitHub PR 연동 검토; Copilot CLI 또는 gh 연동 재검토; 장기 실행 자동화 모니터링 정책; 병렬 task 실행 가능성 검토. Durable history goal titles: Autopilot DryRun codex-result dirty 방지; 자동 커밋과 task 완료 연결; Autopilot history dirty gate 충돌 수정; MaxTasks 1 end-to-end 검증; Verification task revise 자동 처리; full auto-cycle 로그 구조 개선; package 변경 감지 메시지 개선; build/check 실패 후 revise 흐름 자동 안내; Codex 리뷰 JSON 추출 실패 처리 보강; GitHub PR 연동 검토; Copilot CLI 또는 gh 연동 재검토; 장기 실행 자동화 모니터링 정책; 병렬 task 실행 가능성 검토.
 - Prepared goals: 0/2
+
+## 2026-07-31 10:49:25 - Autopilot stopped
+
+- Reason: all_goal_candidates_excluded
+- Result: Autopilot 후보가 모두 소진되었습니다. 현재 상태: goalStatus=completed, currentTaskId=, openTaskCount=0, currentGoal=Autopilot 후보 소진 시 자동 안내 개선. 제외된 backlog 후보 수: 14/14. 모든 후보가 현재 goal, 준비 이력, 완료 이력 또는 durable history와 중복되어 신규 goal을 자동 생성하지 않습니다. 다음 행동: 1. .ai-dev/backlog.md에 새로운 backlog 항목을 추가합니다. 2. 이미 완료된 후보를 다시 진행해야 한다면 durable history와 완료 이력을 사람이 먼저 검토합니다. 3. 지금은 자동 진행을 멈추고 현재 상태를 유지합니다. 계속 진행하려면 새 backlog 항목이 필요합니다. 제외된 후보: Codex CLI 완전 자동화 정책 문서화; Codex 구현 실행 스크립트 추가; Codex 리뷰 실행 스크립트 추가; full auto-cycle 초안 추가; 자동 커밋과 task 완료 연결; MaxTasks 1 end-to-end 검증; full auto-cycle 로그 구조 개선; package 변경 감지 메시지 개선; build/check 실패 후 revise 흐름 자동 안내; Codex 리뷰 JSON 추출 실패 처리 보강; GitHub PR 연동 검토; Copilot CLI 또는 gh 연동 재검토; 장기 실행 자동화 모니터링 정책; 병렬 task 실행 가능성 검토. 제외 기준 title: Autopilot 후보 소진 시 자동 안내 개선; Codex 구현 실행 스크립트 추가; Codex CLI 완전 자동화 정책 문서화; full auto-cycle 초안 추가; Codex 리뷰 실행 스크립트 추가; package 변경 감지 메시지 개선; GitHub PR 연동 검토; 장기 실행 자동화 모니터링 정책; 병렬 task 실행 가능성 검토; Autopilot DryRun codex-result dirty 방지; 자동 커밋과 task 완료 연결; Autopilot history dirty gate 충돌 수정; MaxTasks 1 end-to-end 검증; Verification task revise 자동 처리; full auto-cycle 로그 구조 개선; build/check 실패 후 revise 흐름 자동 안내; Codex 리뷰 JSON 추출 실패 처리 보강; Copilot CLI 또는 gh 연동 재검토. Durable history title: Autopilot DryRun codex-result dirty 방지; 자동 커밋과 task 완료 연결; Autopilot history dirty gate 충돌 수정; MaxTasks 1 end-to-end 검증; Verification task revise 자동 처리; full auto-cycle 로그 구조 개선; package 변경 감지 메시지 개선; build/check 실패 후 revise 흐름 자동 안내; Codex 리뷰 JSON 추출 실패 처리 보강; GitHub PR 연동 검토; Copilot CLI 또는 gh 연동 재검토; 장기 실행 자동화 모니터링 정책; 병렬 task 실행 가능성 검토; Autopilot 후보 소진 시 자동 안내 개선.
+- Prepared goals: 0/2
+
+## 2026-07-31 10:49:25 - Revise completed
+
+- Task: T001 후보 소진 안내 개선
+- Result: `scripts/ai-dev-autopilot.ps1`를 UTF-8 with BOM으로 저장해 PowerShell 5.1 기본 읽기/실행 환경에서 한국어 후보 소진 안내가 깨지지 않도록 보정했다.
+- Verification: 임시 완료 게이트 상태에서 실제 Autopilot을 실행해 `all_goal_candidates_excluded`, 제외 후보 수 `14/14`, 다음 행동 안내, 새 backlog 항목 필요 안내, `Prepared goals: 0/2`를 확인했다.
+- Cleanup: 검증용 `state.json`, `queue.json`, durable history 변경은 원래 상태로 복원했고, 검증 결과는 `.ai-dev/test-result.md`에 기록했다.
+
+## 2026-07-31 10:57:20 - Commit created
+
+- Task: T001 후보 소진 안내 개선
+- Commit: 5416a6f15046102eff3b3a17d865881e0a76be14
+- Message: Improve exhausted autopilot candidate guidance
+## 2026-07-31 10:57:26 - Task completed
+
+- Task: T001 후보 소진 안내 개선
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
+- Next task: 없음

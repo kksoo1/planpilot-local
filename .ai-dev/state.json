@@ -9,8 +9,17 @@
     "lastErrorSummary":  "",
     "lastReviewDecision":  "pass",
     "lastReviewSeverity":  "none",
-    "lastCommitHash":  null,
+    "lastCommitHash":  "5416a6f15046102eff3b3a17d865881e0a76be14",
     "startedAt":  "2026-07-21T00:00:00+09:00",
-    "updatedAt":  "2026-07-21T06:38:14.1094577+00:00",
-    "stopReason":  "all_tasks_completed"
+    "updatedAt":  "2026-07-31T01:57:23.7907677+00:00",
+    "stopReason":  "all_tasks_completed",
+    "lastReviewNextStep":  "revise_with_codex",
+    "lastReviewSummary":  "요구 문구 자체는 목표에 맞지만, UTF-8 BOM이 없는 ps1 파일에 한국어 문자열이\r\n 추가되어 PowerShell 5.1 기본 실행/읽기 환경에서 안내가 깨질 가능성이 있습니다.",
+    "lastReviewRequiredChanges":  [
+                                      {
+                                          "file":  "scripts/ai-dev-aut\r\nopilot.ps1",
+                                          "reason":  "프로젝트 기본 터미널이 PowerShell 5.1인데 현재 파일은 BOM 없이 시작하며, 기본 Get-Content에서 새 한국어 메시지가 m\r\nojibake로 표시됩니다. 이 상태면 핵심 성공 기준인 한국어 후보 소진 안내가 실제 자동화 출력에서 깨질 수 있습니다.",
+                                          "suggestion":  "PowerShell 5.1에서 \r\n안정적으로 한국어 문자열이 출력되도록 파일 인코딩을 UTF-8 with BOM으로 저장하거나, 해당 메시지를 PS 5.1 인코딩 호환 방식으로 처리한 뒤 실제 스크립트 출력에서 한글\r\n이 정상 표시되는지 확인하세요."
+                                      }
+                                  ]
 }

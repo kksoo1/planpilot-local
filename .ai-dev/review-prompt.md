@@ -15,100 +15,66 @@
 ## Project Goal
 
 # 목표
-병렬 task 실행 가능성 검토
+
+Autopilot 후보 소진 시 자동 안내 개선
 
 ## 배경
-현재 PlanPilot Local의 task 처리 구조에서 여러 task를 동시에 진행하거나 표시할 수 있는지 확인하고, 실제 구현 전에 필요한 변경 범위와 위험 요소를 작게 정리한다.
+
+모든 backlog 후보가 durable history 또는 완료 이력에 의해 제외되는 경우, 현재 흐름이 실패처럼 보이지 않도록 안내를 정리한다. `all_goal_candidates_excluded` 상황에서 신규 goal을 자동 생성하지 않고, 후보가 왜 소진되었는지와 사용자가 다음에 선택할 수 있는 행동을 명확히 보여준다.
 
 ## 성공 기준
-- 현재 task 데이터 구조와 화면 흐름에서 병렬 task 개념을 수용할 수 있는 지점을 확인한다.
-- 병렬 task 실행을 위해 변경이 필요한 파일과 상태 흐름을 최소 범위로 정리한다.
-- 즉시 구현 가능한 작은 후속 작업과 보류해야 할 항목을 구분한다.
+
+- `all_goal_candidates_excluded` 상황에서 실패처럼 보이는 표현을 줄이고 정상적인 후보 소진 상태로 안내한다.
+- 현재 상태와 제외된 후보 수가 사용자에게 명확히 표시된다.
+- 사용자가 선택할 수 있는 다음 행동이 구체적으로 안내된다.
+- 새 backlog 항목을 추가해야 계속 진행할 수 있음을 명확히 안내한다.
+- 기존 중복 생성 방지 정책을 유지한다.
+- 실제 신규 goal 후보가 없을 때 자동으로 goal을 생성하지 않는다.
 
 ## 제약사항
-- 기존 사용자 데이터를 깨뜨리지 않는다.
-- 기존 타입, store 액션, DB 구조를 우선 확인한다.
-- 한 번에 하나의 기능만 다룬다.
-- 큰 구조 변경이 필요하면 구현보다 검토 결과 정리를 우선한다.
+
+- 한 번에 하나의 작은 구현 범위로 진행한다.
+- 기존 Autopilot 흐름과 중복 생성 방지 정책을 우선 유지한다.
+- 사용자-facing 문구는 한국어를 기본으로 한다.
+- 기존 타입과 상태 흐름을 먼저 확인한 뒤 최소 범위로 수정한다.
 
 ## 범위 제외
-- 실제 병렬 실행 UI 구현은 제외한다.
-- 데이터 구조 변경은 제외한다.
+
+- Autopilot 후보 선정 정책의 대규모 변경은 제외한다.
+- durable history 또는 완료 이력 저장 구조 변경은 제외한다.
+- 새로운 화면 추가는 제외한다.
 - 알림 기능 추가는 제외한다.
-- 대규모 화면 재구성은 제외한다.
 
 ## 수동 검증
-- 관련 task 타입과 상태 흐름을 읽고 병렬 task 요구사항과 충돌하는 부분이 있는지 확인한다.
-- 검토 결과가 작은 후속 구현 작업으로 이어질 만큼 구체적인지 확인한다.
 
-## T002 검토 결과
-
-### 수정 파일과 이유
-- `.ai-dev/goal.md`: 현재 작업의 결과물은 구현이 아니라 병렬 task 실행 가능성 검토 문서이므로 `src`가 아닌 AI Dev Loop 목표 문서에만 정리한다.
-
-### 현재 구조에서 수용 가능한 지점
-- `src/types.ts`의 `Task.status`는 이미 `"todo" | "in_progress" | "done"`을 허용한다.
-- `src/db.ts`의 Dexie v1 schema는 `tasks: "id,projectId,status,sortOrder"`로 `status` 인덱스를 가지고 있어 여러 `in_progress` task 저장 자체를 막지 않는다.
-- `src/store.ts`의 `addTask`와 `updateTask`는 단일 active task 제약을 두지 않는다. 따라서 같은 시점에 여러 task가 `in_progress`가 되는 데이터 상태는 현재 store/DB 흐름과 충돌하지 않는다.
-- `src/views/TasksView.tsx`는 `in_progress` 개수를 요약에 포함한다. 병렬 진행 상태를 읽어서 표시하는 최소 기반은 이미 있다.
-- `src/utils/taskLabels.ts`, `src/utils/importValidation.ts`는 `in_progress` 상태를 기존 enum 값으로 인식한다.
-
-### 현재 흐름의 제한
-- `src/hooks/useTaskActions.ts`의 `handleToggleTaskDone`은 `done`과 `todo` 사이만 전환한다. 사용자가 task를 `in_progress`로 시작하거나 되돌리는 액션은 없다.
-- `src/components/TaskCard.tsx`는 완료/미완료 토글만 제공한다. 진행 시작/진행 해제/진행 중 여러 개 표시 같은 명시적 조작 UI는 없다.
-- `src/components/TaskForm.tsx`는 생성/수정 폼에서 status를 편집하지 않는다. 새 task는 기본적으로 `todo`로 생성된다.
-- `src/views/TodayView.tsx`의 추천 업무는 최대 3개를 보여주지만, 이것은 추천 표시 제한일 뿐 병렬 실행 상태 모델은 아니다.
-- `src/utils/taskFilters.ts`는 완료 숨김만 지원한다. `in_progress`만 따로 보는 필터는 없다.
-
-### 병렬 task 실행을 위한 최소 변경 범위
-- 작은 구현 1: `TaskCard`에 `todo <-> in_progress` 전환 버튼을 추가하고, 기존 `done` 토글과 역할을 분리한다.
-- 작은 구현 2: `useTaskActions`에 `handleToggleTaskInProgress` 같은 액션을 추가한다. 이 액션은 다른 `in_progress` task를 자동으로 `todo`로 되돌리지 않아야 병렬 실행을 유지할 수 있다.
-- 작은 구현 3: `TasksView`에 진행 중 개수를 이미 계산하고 있으므로, 필요하면 진행 중 task를 시각적으로 구분하는 표시만 추가한다.
-- 작은 구현 4: `TodayView`에서 진행 중 task 섹션을 별도로 보여줄지 검토한다. 단, 첫 후속 작업에서는 전체 업무 화면의 상태 전환만 다루는 편이 범위가 작다.
-
-### 데이터와 마이그레이션 판단
-- 새 필드나 schema version 증가는 필요하지 않다.
-- 기존 `status` 값 중 `in_progress`를 더 적극적으로 사용하는 변경이므로 기존 사용자 데이터는 그대로 유지할 수 있다.
-- import 검증은 이미 `in_progress`를 허용하므로 백업/복원 형식 변경도 필요하지 않다.
-
-### 보류해야 할 항목
-- 실제 병렬 실행 UI의 큰 재구성, 타이머, 칸반 보드, 드래그 앤 드롭은 보류한다.
-- 알림 기능, Android notification 권한, 백그라운드 실행 추적은 범위 밖이다.
-- task 간 의존성, 동시 실행 개수 제한, 자동 스케줄링은 현재 MVP 흐름보다 큰 정책 결정이 필요하므로 보류한다.
-- DB schema 변경이나 migration은 현재 검토 기준에서는 불필요하므로 진행하지 않는다.
-
-### 남은 위험
-- 화면 문자열 일부가 깨져 보이는 파일이 있어 UI 문구를 함께 건드리면 범위가 커질 수 있다. 병렬 task 후속 작업은 상태 전환 로직과 최소 UI만 별도 task로 다루는 것이 안전하다.
-- `in_progress`의 제품 의미가 아직 명확하지 않다. 예를 들어 "진행 중"을 여러 개 허용할지, 오늘 진행 목록인지, 실제 실행 세션인지에 따라 UI 명칭과 액션이 달라질 수 있다.
-- 현재 `completedAt`만 store에서 자동 관리한다. `startedAt` 같은 실행 이력은 없으므로 실제 실행 시간 기록까지 요구하면 데이터 구조 변경 검토가 필요하다.
-
-### 다음 task 제안
-- 다음 task로 넘어가도 된다.
-- 우선순위가 가장 낮은 위험의 후속 작업은 `TaskCard`와 `useTaskActions` 중심으로 "진행 중으로 표시/해제"를 추가하는 것이다.
-- 이 후속 작업은 DB schema 변경 없이 가능하며, 다른 진행 중 task를 강제로 변경하지 않는 정책을 명시해야 한다.
-
+- backlog 후보가 모두 제외되는 상황을 재현한다.
+- `all_goal_candidates_excluded` 결과에서 현재 상태, 제외된 후보 수, 다음 선택지, 새 backlog 추가 안내가 표시되는지 확인한다.
+- 신규 goal 후보가 없을 때 자동 생성이 발생하지 않는지 확인한다.
+- 기존 중복 생성 방지 동작이 유지되는지 확인한다.
 
 ## Current Task
 
-- Task ID: T002
-- Title: 검토 결과 정리
-- Description: 병렬 task 실행 가능성, 필요한 후속 작업, 제외할 범위를 짧은 문서로 정리한다.
-- Type: documentation
+- Task ID: T001
+- Title: 후보 소진 안내 개선
+- Description: `all_goal_candidates_excluded` 상황의 현재 출력 흐름을 확인하고, 모든 후보가 제외된 상태가 실패처럼 보이지 않도록 한국어 안내를 최소 범위로 개선한다.
+- Type: implementation
 - Status: in_progress
-- Priority: P2
+- Priority: P1
 - Depends on:
-- T001
+- 없음
 - Verification:
-- 성공 기준과 제약사항이 검토 결과에 반영되어 있는지 확인한다.
+- 모든 후보가 제외된 상황에서 현재 상태와 제외된 후보 수가 표시되는지 확인
+- 다음 사용자가 선택할 수 있는 행동과 새 backlog 추가 안내가 표시되는지 확인
+- 신규 goal 후보가 없을 때 자동 생성되지 않는지 확인
 
 ## Test Result
 
 # AI Dev Test Result
 
-## 2026-07-21 15:36:36
+## 2026-07-31 10:55:37
 
 - Overall result: passed
-- Current task: T002
+- Current task: T001
 - Mode: BuildOnly (build + lint when available)
 - Commands:
   - npm run build: passed
@@ -134,7 +100,7 @@ dist/index.html                   0.46 kB │ gzip:   0.29 kB
 dist/assets/index-DvjxWt30.css    5.69 kB │ gzip:   1.93 kB
 dist/assets/index-DtLVvPCG.js   317.50 kB │ gzip: 100.16 kB
 
-[32m✓ built in 239ms[39m
+[32m✓ built in 263ms[39m
 ```
 ### npm run test
 
@@ -161,27 +127,46 @@ package.json에 test script가 없습니다.
 
 ## Generated At
 
-2026-07-21 15:36:45
+2026-07-31 10:55:48
 
 ## Git Status
 
 ```text
+ M .ai-dev/autopilot-goal-history.json
  M .ai-dev/codex-result.md
+ M .ai-dev/codex-review-result.md
  M .ai-dev/current-task-prompt.md
+ M .ai-dev/diff.md
  M .ai-dev/goal.md
+ M .ai-dev/loop-log.md
+ M .ai-dev/queue.json
+ M .ai-dev/review-prompt.md
+ M .ai-dev/review-response.json
+ M .ai-dev/review.md
+ M .ai-dev/revise-prompt.md
  M .ai-dev/state.json
  M .ai-dev/test-result.md
+ M scripts/ai-dev-autopilot.ps1
 ```
 
 ## App Change Files
 
-- 없음
+- scripts/ai-dev-autopilot.ps1
 
 ## AI Dev Operational Artifact Files
 
+- .ai-dev/autopilot-goal-history.json
 - .ai-dev/codex-result.md
+- .ai-dev/codex-review-result.md
 - .ai-dev/current-task-prompt.md
+- .ai-dev/diff.md
 - .ai-dev/goal.md
+- .ai-dev/loop-log.md
+- .ai-dev/queue.json
+- .ai-dev/review-prompt.md
+- .ai-dev/review-response.json
+- .ai-dev/review.md
+- .ai-dev/revise-prompt.md
 - .ai-dev/state.json
 - .ai-dev/test-result.md
 
@@ -192,13 +177,37 @@ package.json에 test script가 없습니다.
 ## Unstaged Diff Stat
 
 ```text
-변경 없음
+ scripts/ai-dev-autopilot.ps1 | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 ```
 
 ## Unstaged Diff
 
 ```text
-변경 없음
+diff --git a/scripts/ai-dev-autopilot.ps1 b/scripts/ai-dev-autopilot.ps1
+index 0f94f17..52da0ce 100644
+--- a/scripts/ai-dev-autopilot.ps1
++++ b/scripts/ai-dev-autopilot.ps1
+@@ -1,4 +1,4 @@
+-param(
++﻿param(
+     [int]$MaxGoals = 1,
+     [int]$MaxTasks = 1,
+     [int]$MaxSteps = 22,
+@@ -917,9 +917,12 @@ for ($goalIndex = 1; $goalIndex -le $MaxGoals; $goalIndex++) {
+         $candidateTitles = @($allCandidates | ForEach-Object { [string]$_.title } | Where-Object { Test-HasValue $_ } | Select-Object -Unique)
+         $candidateTitleSummary = Format-ExcludedGoalTitles $candidateTitles
+         $historyTitleSummary = Format-ExcludedGoalTitles $durableHistoryTitles
++        $candidateCount = $allCandidates.Count
++        $excludedCandidateCount = @($allCandidates | Where-Object { $excludedTitles -contains ([string]$_.title) }).Count
++        $currentGoalTitle = if (Test-HasValue $gate.goalTitle) { [string]$gate.goalTitle } else { "none" }
+ 
+         if ($allCandidates.Count -gt 0) {
+-            $message = "All backlog goal candidates were already completed, prepared, or recorded in durable history, so autopilot will not create a duplicate goal. Excluded goal titles: $excludedTitleSummary. Candidate goal titles: $candidateTitleSummary. Durable history goal titles: $historyTitleSummary."
++            $message = "Autopilot 후보가 모두 소진되었습니다. 현재 상태: goalStatus=$($gate.goalStatus), currentTaskId=$($gate.currentTaskId), openTaskCount=$($gate.openTaskCount), currentGoal=$currentGoalTitle. 제외된 backlog 후보 수: $excludedCandidateCount/$candidateCount. 모든 후보가 현재 goal, 준비 이력, 완료 이력 또는 durable history와 중복되어 신규 goal을 자동 생성하지 않습니다. 다음 행동: 1. .ai-dev/backlog.md에 새로운 backlog 항목을 추가합니다. 2. 이미 완료된 후보를 다시 진행해야 한다면 durable history와 완료 이력을 사람이 먼저 검토합니다. 3. 지금은 자동 진행을 멈추고 현재 상태를 유지합니다. 계속 진행하려면 새 backlog 항목이 필요합니다. 제외된 후보: $candidateTitleSummary. 제외 기준 title: $excludedTitleSummary. Durable history title: $historyTitleSummary."
+             $steps += New-StepResult ($steps.Count + 1) "generate-goal-candidate" $false $true 1 $message
+             Stop-Autopilot $steps "all_goal_candidates_excluded" $false 1 $preparedGoals $message
+         }
 ```
 
 ## Staged Diff Stat
