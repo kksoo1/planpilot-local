@@ -4,7 +4,7 @@
     [AllowEmptyString()]
     [string]$GoalDescription,
     [int]$MaxTasks = 1,
-    [int]$MaxSteps = 20,
+    [int]$MaxSteps = 40,
     [switch]$DryRun,
     [switch]$Json,
     [switch]$AllowRun,
