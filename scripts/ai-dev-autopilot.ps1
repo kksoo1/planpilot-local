@@ -38,6 +38,8 @@ $backlogPath = Join-Path $repoRoot $backlogRelativePath
 $loopLogPath = Join-Path $repoRoot $loopLogRelativePath
 $goalHistoryPath = Join-Path $repoRoot $goalHistoryRelativePath
 $utf8WithBom = New-Object System.Text.UTF8Encoding($true)
+$script:autopilotOperationalFileSnapshots = @{}
+$script:autopilotBaselineDirtyPaths = @()
 
 function Test-HasValue {
     param([object]$Value)
@@ -153,6 +155,10 @@ function Add-AutopilotGoalHistoryTitle {
         return
     }
 
+    if (Test-IsAutopilotBaselineDirtyPath $goalHistoryRelativePath) {
+        return
+    }
+
     $now = [DateTimeOffset]::UtcNow.ToString("o")
     $trimmedTitle = $Title.Trim()
     $history = Read-AutopilotGoalHistory
@@ -245,11 +251,187 @@ function Add-LoopLogEntry {
         return
     }
 
+    if (Test-IsAutopilotBaselineDirtyPath $loopLogRelativePath) {
+        return
+    }
+
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
     $entryLines = @("", "## $timestamp - $Title", "")
     $entryLines += @($Lines)
     $entryLines += ""
     [System.IO.File]::AppendAllText($loopLogPath, ($entryLines -join "`r`n"), $utf8WithBom)
+}
+
+function Test-IsExpectedAutopilotNonWorkStop {
+    param([string]$StoppedReason)
+
+    return @(
+        "all_goal_candidates_excluded",
+        "baseline_output_conflict",
+        "dirty_worktree",
+        "goal_candidate_not_found",
+        "current_goal_not_completed",
+        "max_steps_too_small_for_full_cycle"
+    ) -contains $StoppedReason
+}
+
+function Get-StoppedReasonFromOutput {
+    param([string]$Output)
+
+    if (-not (Test-HasValue $Output)) {
+        return ""
+    }
+
+    if ($Output -match '(?m)^\s*Stopped reason:\s*(\S+)\s*$') {
+        return $Matches[1]
+    }
+
+    if ($Output -match '(?m)"stoppedReason"\s*:\s*"([^"]+)"') {
+        return $Matches[1]
+    }
+
+    return ""
+}
+
+function ConvertTo-NormalizedChangedPath {
+    param([string]$RelativePath)
+
+    if (-not (Test-HasValue $RelativePath)) {
+        return $null
+    }
+
+    return $RelativePath.Trim().Trim('"').Replace('\', '/')
+}
+
+function Convert-ToChangedPath {
+    param([string]$ChangeLine)
+
+    if ([string]::IsNullOrWhiteSpace($ChangeLine)) {
+        return @()
+    }
+
+    $pathText = $ChangeLine
+
+    if ($ChangeLine.Length -ge 4 -and $ChangeLine.Substring(2, 1) -eq " ") {
+        $pathText = $ChangeLine.Substring(3)
+    }
+
+    if ($pathText.Contains(" -> ")) {
+        return @($pathText -split " -> " | Where-Object { Test-HasValue $_ })
+    }
+
+    return @($pathText)
+}
+
+function Get-AutopilotBaselineDirtyPaths {
+    $statusOutput = & git status --porcelain 2>&1
+
+    if ($LASTEXITCODE -ne 0) {
+        throw "git status --porcelain failed while capturing autopilot baseline dirty paths: $($statusOutput -join "`n")"
+    }
+
+    return @(
+        $statusOutput |
+            ForEach-Object { Convert-ToChangedPath $_ } |
+            Where-Object { Test-HasValue $_ } |
+            ForEach-Object { ConvertTo-NormalizedChangedPath $_ } |
+            Select-Object -Unique
+    )
+}
+
+function Test-IsAutopilotBaselineDirtyPath {
+    param([string]$RelativePath)
+
+    $normalizedRelativePath = ConvertTo-NormalizedChangedPath $RelativePath
+    return @($script:autopilotBaselineDirtyPaths) -contains $normalizedRelativePath
+}
+
+function Initialize-AutopilotOperationalFileSnapshots {
+    $script:autopilotOperationalFileSnapshots = @{}
+
+    foreach ($relativePath in @($stateRelativePath, $loopLogRelativePath, $goalHistoryRelativePath)) {
+        $fullPath = [System.IO.Path]::GetFullPath((Join-Path $repoRoot $relativePath))
+
+        if (-not $fullPath.StartsWith($repoRoot.TrimEnd("\") + "\", [System.StringComparison]::OrdinalIgnoreCase)) {
+            continue
+        }
+
+        $exists = [System.IO.File]::Exists($fullPath)
+        $bytes = $null
+
+        if ($exists) {
+            $bytes = [System.IO.File]::ReadAllBytes($fullPath)
+        }
+
+        $script:autopilotOperationalFileSnapshots[$relativePath] = [PSCustomObject][ordered]@{
+            path = $fullPath
+            existed = $exists
+            bytes = $bytes
+        }
+    }
+}
+
+function Restore-AutopilotCurrentRunOperationalChanges {
+    param([string[]]$RelativePaths = @())
+
+    $restoredPaths = @()
+
+    if ($null -eq $script:autopilotOperationalFileSnapshots) {
+        return @($restoredPaths)
+    }
+
+    $targetPaths = @($RelativePaths | ForEach-Object { ConvertTo-NormalizedChangedPath $_ } | Where-Object { Test-HasValue $_ } | Select-Object -Unique)
+
+    foreach ($entry in @($script:autopilotOperationalFileSnapshots.GetEnumerator())) {
+        $relativePath = ConvertTo-NormalizedChangedPath ([string]$entry.Key)
+        $snapshot = $entry.Value
+
+        if ($targetPaths.Count -gt 0 -and $targetPaths -notcontains $relativePath) {
+            continue
+        }
+
+        if (Test-IsAutopilotBaselineDirtyPath $relativePath) {
+            continue
+        }
+
+        $fullPath = [string]$snapshot.path
+
+        if (-not $fullPath.StartsWith($repoRoot.TrimEnd("\") + "\", [System.StringComparison]::OrdinalIgnoreCase)) {
+            continue
+        }
+
+        try {
+            if ($snapshot.existed) {
+                [System.IO.File]::WriteAllBytes($fullPath, [byte[]]$snapshot.bytes)
+            } elseif ([System.IO.File]::Exists($fullPath)) {
+                [System.IO.File]::Delete($fullPath)
+            }
+            $restoredPaths += $relativePath
+        } catch {
+            Write-Warning "Failed to restore autopilot operational file snapshot: $fullPath"
+        }
+    }
+
+    return @($restoredPaths | Select-Object -Unique)
+}
+
+function Add-AutopilotExpectedNonWorkLogEntry {
+    param(
+        [string]$StoppedReason,
+        [string]$Message,
+        [int]$PreparedGoals
+    )
+
+    $resultMessage = if (Test-HasValue $Message) { $Message } else { "Autopilot stopped before implementation work." }
+
+    Add-LoopLogEntry "Autopilot expected non-work stop" @(
+        "- Reason: $StoppedReason",
+        "- Outcome category: expected_non_work",
+        "- Result: $resultMessage",
+        "- Prepared goals: $PreparedGoals/$MaxGoals",
+        "- Failure counter: not incremented",
+        "- Cleanup: restored current-run autopilot operational file snapshots before writing this meta log entry"
+    )
 }
 
 function Invoke-AutopilotLoopLogMetaCommit {
@@ -263,7 +445,25 @@ function Invoke-AutopilotLoopLogMetaCommit {
         return New-StepResult $StepNumber "autopilot-meta-commit" $false $true 0 "AllowCommit is not set, so autopilot loop-log/history meta commit was not executed."
     }
 
-    $statusOutput = & git status --short -- $autopilotMetaCommitRelativePaths 2>&1 | Out-String
+    $skippedBaselinePaths = @(
+        @($loopLogRelativePath, $goalHistoryRelativePath) |
+            ForEach-Object { ConvertTo-NormalizedChangedPath $_ } |
+            Where-Object { Test-IsAutopilotBaselineDirtyPath $_ } |
+            Select-Object -Unique
+    )
+    $currentRunMetaPaths = @(
+        $loopLogRelativePath,
+        $goalHistoryRelativePath
+    ) |
+        ForEach-Object { ConvertTo-NormalizedChangedPath $_ } |
+        Where-Object { -not (Test-IsAutopilotBaselineDirtyPath $_) } |
+        Select-Object -Unique
+
+    if ($currentRunMetaPaths.Count -eq 0) {
+        return New-StepResult $StepNumber "autopilot-meta-commit" $false $true 0 "Autopilot meta commit skipped because all meta files were baseline dirty and protected: $($skippedBaselinePaths -join ', ')"
+    }
+
+    $statusOutput = & git status --short -- $currentRunMetaPaths 2>&1 | Out-String
     $statusExitCode = $LASTEXITCODE
 
     if ($statusExitCode -ne 0) {
@@ -271,25 +471,33 @@ function Invoke-AutopilotLoopLogMetaCommit {
     }
 
     if (-not (Test-HasValue $statusOutput)) {
-        return New-StepResult $StepNumber "autopilot-meta-commit" $true $false 0 "Autopilot meta files had no changes to commit."
+        $message = "Autopilot meta files had no changes to commit."
+        if ($skippedBaselinePaths.Count -gt 0) {
+            $message = "$message Baseline dirty files skipped: $($skippedBaselinePaths -join ', ')"
+        }
+        return New-StepResult $StepNumber "autopilot-meta-commit" $true $false 0 $message
     }
 
-    $addOutput = & git add -- $autopilotMetaCommitRelativePaths 2>&1 | Out-String
+    $addOutput = & git add -- $currentRunMetaPaths 2>&1 | Out-String
     $addExitCode = $LASTEXITCODE
 
     if ($addExitCode -ne 0) {
-        return New-StepResult $StepNumber "autopilot-meta-commit" $true $false 1 "Autopilot meta files git add failed. exit code: $addExitCode`n$addOutput"
+        & git restore --staged -- $currentRunMetaPaths 2>&1 | Out-String | Out-Null
+        $restoredPaths = @(Restore-AutopilotCurrentRunOperationalChanges $currentRunMetaPaths)
+        return New-StepResult $StepNumber "autopilot-meta-commit" $true $false 1 "Autopilot meta files git add failed. exit code: $addExitCode`n$addOutput`nRestored run-owned files: $($restoredPaths -join ', ')"
     }
 
     $metaCommitMessage = "chore(ai-dev): record autopilot progress"
-    $commitOutput = & git commit -m $metaCommitMessage -- $autopilotMetaCommitRelativePaths 2>&1 | Out-String
+    $commitOutput = & git commit -m $metaCommitMessage -- $currentRunMetaPaths 2>&1 | Out-String
     $commitExitCode = $LASTEXITCODE
 
     if ($commitExitCode -ne 0) {
-        return New-StepResult $StepNumber "autopilot-meta-commit" $true $false 1 "Autopilot meta commit failed. exit code: $commitExitCode`n$commitOutput"
+        & git restore --staged -- $currentRunMetaPaths 2>&1 | Out-String | Out-Null
+        $restoredPaths = @(Restore-AutopilotCurrentRunOperationalChanges $currentRunMetaPaths)
+        return New-StepResult $StepNumber "autopilot-meta-commit" $true $false 1 "Autopilot meta commit failed. exit code: $commitExitCode`n$commitOutput`nRestored run-owned files: $($restoredPaths -join ', ')"
     }
 
-    $remainingStatus = & git status --short -- $autopilotMetaCommitRelativePaths 2>&1 | Out-String
+    $remainingStatus = & git status --short -- $currentRunMetaPaths 2>&1 | Out-String
     $remainingStatusExitCode = $LASTEXITCODE
 
     if ($remainingStatusExitCode -ne 0) {
@@ -300,7 +508,7 @@ function Invoke-AutopilotLoopLogMetaCommit {
         return New-StepResult $StepNumber "autopilot-meta-commit" $true $false 1 "Autopilot meta clean verification failed: git status --short still reports meta changes after the autopilot meta commit.`n$remainingStatus"
     }
 
-    $message = ($commitOutput.Trim(), "Autopilot meta clean verification: git status --short returned no autopilot meta changes.") -join "`n"
+    $message = ($commitOutput.Trim(), "Baseline dirty files skipped: $($skippedBaselinePaths -join ', ')", "Autopilot meta clean verification: git status --short returned no autopilot meta changes.") -join "`n"
     return New-StepResult $StepNumber "autopilot-meta-commit" $true $false 0 $message
 }
 
@@ -365,16 +573,31 @@ function New-AutopilotResult {
         [string]$StoppedReason,
         [bool]$Completed,
         [int]$ExitCode,
-        [int]$PreparedGoals
+        [int]$PreparedGoals,
+        [bool]$OperationalCleanupPerformed = $false,
+        [bool]$MetaCommitCreated = $false,
+        [bool]$NextRunWithoutManualRestore = $false
     )
+
+    $outcomeCategory = if (Test-IsExpectedAutopilotNonWorkStop $StoppedReason) {
+        "expected_non_work"
+    } elseif ($ExitCode -eq 0) {
+        "success"
+    } else {
+        "actual_failure"
+    }
 
     return [PSCustomObject][ordered]@{
         steps = @($Steps)
         stoppedReason = $StoppedReason
+        outcomeCategory = $outcomeCategory
         completed = $Completed
         exitCode = $ExitCode
         maxGoals = $MaxGoals
         preparedGoals = $PreparedGoals
+        operationalCleanupPerformed = $OperationalCleanupPerformed
+        metaCommitCreated = $MetaCommitCreated
+        nextRunWithoutManualRestore = $NextRunWithoutManualRestore
     }
 }
 
@@ -399,6 +622,10 @@ function Write-AutopilotResult {
     }
 
     Write-Host "Stopped reason: $($Result.stoppedReason)"
+    Write-Host "Outcome category: $($Result.outcomeCategory)"
+    Write-Host "Operational cleanup performed: $($Result.operationalCleanupPerformed)"
+    Write-Host "Meta commit created: $($Result.metaCommitCreated)"
+    Write-Host "Next run without manual restore: $($Result.nextRunWithoutManualRestore)"
     Write-Host "Completed: $($Result.completed)"
     Write-Host "Prepared goals: $($Result.preparedGoals)/$($Result.maxGoals)"
     Write-Host "Exit code: $($Result.exitCode)"
@@ -414,7 +641,12 @@ function Stop-Autopilot {
         [string]$FailureMessage = ""
     )
 
-    if ($ExitCode -ne 0 -and (Test-HasValue $FailureMessage)) {
+    $isExpectedNonWorkStop = Test-IsExpectedAutopilotNonWorkStop $StoppedReason
+    $operationalCleanupPerformed = $false
+    $metaCommitCreated = $false
+    $nextRunWithoutManualRestore = ($ExitCode -eq 0)
+
+    if ($ExitCode -ne 0 -and (Test-HasValue $FailureMessage) -and -not $isExpectedNonWorkStop) {
         Save-AutopilotFailureState $StoppedReason $FailureMessage
         Add-LoopLogEntry "Autopilot stopped" @(
             "- Reason: $StoppedReason",
@@ -423,7 +655,42 @@ function Stop-Autopilot {
         )
     }
 
-    $result = New-AutopilotResult $Steps $StoppedReason $Completed $ExitCode $PreparedGoals
+    if ($ExitCode -ne 0 -and $isExpectedNonWorkStop -and -not $DryRun) {
+        $cleanedRunOwnedPaths = @(Restore-AutopilotCurrentRunOperationalChanges)
+        $operationalCleanupPerformed = $true
+        $metaCommitMessage = "skipped (-AllowCommit not set)"
+        $nextRunWithoutManualRestore = $true
+        $skippedBaselineMetaPaths = @(
+            @($loopLogRelativePath, $goalHistoryRelativePath) |
+                ForEach-Object { ConvertTo-NormalizedChangedPath $_ } |
+                Where-Object { Test-IsAutopilotBaselineDirtyPath $_ } |
+                Select-Object -Unique
+        )
+
+        if ($AllowCommit) {
+            Add-AutopilotExpectedNonWorkLogEntry $StoppedReason $FailureMessage $PreparedGoals
+            $metaCommitStep = Invoke-AutopilotLoopLogMetaCommit ($Steps.Count + 1)
+            $metaCommitCreated = ($metaCommitStep.exitCode -eq 0 -and $metaCommitStep.executed -and -not $metaCommitStep.skipped -and $metaCommitStep.message -notmatch 'had no changes to commit')
+            $metaCommitMessage = if ($metaCommitCreated) { "created" } else { "not created: $($metaCommitStep.message)" }
+
+            if ($metaCommitStep.exitCode -ne 0) {
+                $cleanedRunOwnedPaths = @(Restore-AutopilotCurrentRunOperationalChanges)
+                $operationalCleanupPerformed = $true
+                $nextRunWithoutManualRestore = $true
+                $Steps += $metaCommitStep
+                $Steps += New-StepResult ($Steps.Count + 1) "expected-non-work-cleanup" $true $false 0 "Classification: expected_non_work. Original stopped reason: $StoppedReason. Baseline dirty files skipped: $($skippedBaselineMetaPaths -join ', '). Cleaned run-owned files: $($cleanedRunOwnedPaths -join ', '). Meta commit created: false. Next run without manual git restore: $nextRunWithoutManualRestore."
+                $result = New-AutopilotResult $Steps "autopilot_expected_non_work_meta_commit_failed" $false 1 $PreparedGoals $operationalCleanupPerformed $false $nextRunWithoutManualRestore
+                Write-AutopilotResult $result
+                exit 1
+            }
+
+            $Steps += $metaCommitStep
+        }
+
+        $Steps += New-StepResult ($Steps.Count + 1) "expected-non-work-cleanup" $true $false 0 "Classification: expected_non_work. Original stopped reason: $StoppedReason. Baseline dirty files skipped: $($skippedBaselineMetaPaths -join ', '). Cleaned run-owned files: $($cleanedRunOwnedPaths -join ', '). Meta commit created: $metaCommitCreated ($metaCommitMessage). Next run without manual git restore: $nextRunWithoutManualRestore. Restored only autopilot operational files captured at run start; baseline user changes were preserved."
+    }
+
+    $result = New-AutopilotResult $Steps $StoppedReason $Completed $ExitCode $PreparedGoals $operationalCleanupPerformed $metaCommitCreated $nextRunWithoutManualRestore
     Write-AutopilotResult $result
     exit $ExitCode
 }
@@ -842,6 +1109,8 @@ function Invoke-AutoGoal {
 }
 
 Set-Location $repoRoot
+$script:autopilotBaselineDirtyPaths = @(Get-AutopilotBaselineDirtyPaths)
+Initialize-AutopilotOperationalFileSnapshots
 
 $steps = @()
 $preparedGoals = 0
@@ -970,13 +1239,15 @@ for ($goalIndex = 1; $goalIndex -le $MaxGoals; $goalIndex++) {
     $steps += $autoGoalStep
 
     if ($autoGoalStep.exitCode -ne 0) {
+        $childStoppedReason = Get-StoppedReasonFromOutput $autoGoalStep.message
+        $stoppedReason = if (Test-IsExpectedAutopilotNonWorkStop $childStoppedReason) { $childStoppedReason } else { "auto_goal_failed" }
         $failureMessage = "Auto-goal failed with exit code $($autoGoalStep.exitCode): $($autoGoalStep.message)"
 
         if (Test-HasValue $candidate.fallbackReason) {
             $failureMessage = "$failureMessage Fallback context: $($candidate.fallbackReason)"
         }
 
-        Stop-Autopilot $steps "auto_goal_failed" $false 1 $preparedGoals $failureMessage
+        Stop-Autopilot $steps $stoppedReason $false 1 $preparedGoals $failureMessage
     }
 
     $preparedGoals++
