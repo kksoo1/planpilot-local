@@ -44,14 +44,14 @@ auto-cycle 전체 테스트 실행과 MaxSteps 전달 검증을 보강한다.
 
 ## Current Task
 
-- Task ID: T001
-- Title: auto-cycle 검증 흐름 수정
-- Description: implementation 및 verification task의 check/check-revise 단계에서 test script가 있으면 build, test, lint 전체 검증을 실행하도록 `scripts/ai-dev-auto-cycle-full.ps1`의 BuildOnly 사용 조건을 조정한다.
+- Task ID: T002
+- Title: MaxSteps 전달 동작 검증 보강
+- Description: `scripts/ai-dev-test.ps1`에서 격리된 임시 작업 공간과 fake `ai-dev-auto-cycle-full.ps1`을 사용해 사용자 지정 MaxSteps 값이 실제 하위 호출 인수로 전달되는지 검증한다.
 - Type: implementation
 - Status: in_progress
 - Priority: P0
 - Depends on:
-- 없음
+- T001
 
 ## Task Scope
 
@@ -62,12 +62,13 @@ auto-cycle 전체 테스트 실행과 MaxSteps 전달 검증을 보강한다.
 
 ## Likely Files
 
-- scripts/ai-dev-auto-cycle-full.ps1
+- scripts/ai-dev-test.ps1
 
 ## Verification
 
-- package.json에 test script가 있는 경우 check/check-revise가 전체 검증 경로를 사용하는지 확인한다.
-- analysis 또는 documentation task에서만 필요한 경우 BuildOnly가 유지되는지 확인한다.
+- MaxSteps 57 지정 시 fake 하위 스크립트가 받은 인수에 57이 기록되는지 확인한다.
+- 기존 17개 expected_non_work 테스트와 baseline 보존 테스트가 계속 실행되는지 확인한다.
+- 허용된 경우 전체 npm test가 Failed=0으로 종료되는지 확인한다.
 
 - 필요한 경우 `npm run build`는 사람이 별도로 실행한다.
 - 이 프롬프트는 자동으로 build, test, lint를 실행하라고 지시하지 않는다.

@@ -2,8 +2,8 @@
     "goalTitle":  "auto-cycle 전체 테스트 실행과 MaxSteps 전달 검증 보강",
     "goalSource":  ".ai-dev/goal.md",
     "createdAt":  "2026-07-31T00:00:00+09:00",
-    "updatedAt":  "2026-07-31T08:26:45.4936400+00:00",
-    "currentTaskId":  "T002",
+    "updatedAt":  "2026-07-31T08:52:11.1028459+00:00",
+    "currentTaskId":  null,
     "tasks":  [
                   {
                       "id":  "T001",
@@ -31,7 +31,7 @@
                       "title":  "MaxSteps 전달 동작 검증 보강",
                       "description":  "`scripts/ai-dev-test.ps1`에서 격리된 임시 작업 공간과 fake `ai-dev-auto-cycle-full.ps1`을 사용해 사용자 지정 MaxSteps 값이 실제 하위 호출 인수로 전달되는지 검증한다.",
                       "type":  "implementation",
-                      "status":  "in_progress",
+                      "status":  "done",
                       "priority":  "P0",
                       "dependsOn":  [
                                         "T001"
@@ -44,7 +44,9 @@
                                            "기존 17개 expected_non_work 테스트와 baseline 보존 테스트가 계속 실행되는지 확인한다.",
                                            "허용된 경우 전체 npm test가 Failed=0으로 종료되는지 확인한다."
                                        ],
-                      "commitMessage":  "Verify MaxSteps forwarding behavior"
+                      "commitMessage":  "Verify MaxSteps forwarding behavior",
+                      "completedAt":  "2026-07-31T08:52:11.1028459+00:00",
+                      "resultSummary":  "자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료"
                   }
               ]
 }
