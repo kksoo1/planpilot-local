@@ -1736,3 +1736,13 @@ Exit code: 1
 - Task: T001 후보 소진 안내 개선
 - Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
 - Next task: 없음
+## 2026-07-31 11:36:48 - Commit created
+
+- Task: T001 auto-goal MaxSteps 전달 안정화
+- Commit: ca48a14a6603caab00f8e21d25a2a325d9c99e24
+- Message: Stabilize auto-goal MaxSteps default
+## 2026-07-31 11:36:54 - Task completed
+
+- Task: T001 auto-goal MaxSteps 전달 안정화
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
+- Next task: 없음

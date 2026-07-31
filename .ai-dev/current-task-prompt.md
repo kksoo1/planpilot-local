@@ -8,50 +8,47 @@
 
 # 목표
 
-Autopilot 후보 소진 시 자동 안내 개선
+auto-goal 실행 시 `ai-dev-auto-goal.ps1`이 full-cycle을 안정적으로 호출할 수 있도록 MaxSteps 기본값 및 전달 흐름을 정리한다.
 
 ## 배경
 
-모든 backlog 후보가 durable history 또는 완료 이력에 의해 제외되는 경우, 현재 흐름이 실패처럼 보이지 않도록 안내를 정리한다. `all_goal_candidates_excluded` 상황에서 신규 goal을 자동 생성하지 않고, 후보가 왜 소진되었는지와 사용자가 다음에 선택할 수 있는 행동을 명확히 보여준다.
+현재 auto-goal 흐름에서 내부적으로 `ai-dev-auto-cycle-full.ps1`을 호출할 때 전달되는 MaxSteps 값이 full-cycle의 최소 요구 단계보다 작아 `max_steps_too_small_for_full_cycle`로 중단될 수 있다. 이로 인해 auto-goal이 생성한 task가 별도 수동 재실행 없이 full-cycle까지 이어지지 못한다.
 
 ## 성공 기준
 
-- `all_goal_candidates_excluded` 상황에서 실패처럼 보이는 표현을 줄이고 정상적인 후보 소진 상태로 안내한다.
-- 현재 상태와 제외된 후보 수가 사용자에게 명확히 표시된다.
-- 사용자가 선택할 수 있는 다음 행동이 구체적으로 안내된다.
-- 새 backlog 항목을 추가해야 계속 진행할 수 있음을 명확히 안내한다.
-- 기존 중복 생성 방지 정책을 유지한다.
-- 실제 신규 goal 후보가 없을 때 자동으로 goal을 생성하지 않는다.
+- `ai-dev-auto-goal.ps1`의 기본 MaxSteps가 full-cycle 최소 요구 단계보다 작지 않다.
+- 사용자가 MaxSteps를 지정한 경우 full-cycle 호출 시 의도한 값이 안전하게 반영된다.
+- 기존 `AllowCodex`, `AllowReviewCodex`, `AllowCommit`, `AllowDirty` 전달 흐름은 유지된다.
+- auto-goal이 생성한 task가 기본 설정으로 full-cycle 단계까지 진행 가능하다.
 
 ## 제약사항
 
-- 한 번에 하나의 작은 구현 범위로 진행한다.
-- 기존 Autopilot 흐름과 중복 생성 방지 정책을 우선 유지한다.
-- 사용자-facing 문구는 한국어를 기본으로 한다.
-- 기존 타입과 상태 흐름을 먼저 확인한 뒤 최소 범위로 수정한다.
+- 변경 범위는 auto-goal과 full-cycle 호출부 확인 및 최소 수정으로 제한한다.
+- 기존 플래그 전달 방식은 유지한다.
+- 관련 PowerShell 스크립트의 현재 구조를 우선 따른다.
 
 ## 범위 제외
 
-- Autopilot 후보 선정 정책의 대규모 변경은 제외한다.
-- durable history 또는 완료 이력 저장 구조 변경은 제외한다.
-- 새로운 화면 추가는 제외한다.
-- 알림 기능 추가는 제외한다.
+- AI Dev Loop 전체 구조 재설계는 하지 않는다.
+- unrelated 스크립트 동작 변경은 하지 않는다.
+- UI나 앱 런타임 코드는 변경하지 않는다.
 
 ## 수동 검증
 
-- backlog 후보가 모두 제외되는 상황을 재현한다.
-- `all_goal_candidates_excluded` 결과에서 현재 상태, 제외된 후보 수, 다음 선택지, 새 backlog 추가 안내가 표시되는지 확인한다.
-- 신규 goal 후보가 없을 때 자동 생성이 발생하지 않는지 확인한다.
-- 기존 중복 생성 방지 동작이 유지되는지 확인한다.
+- `ai-dev-auto-goal.ps1`의 MaxSteps 기본값과 full-cycle 호출 인자를 확인한다.
+- 기본 MaxSteps가 full-cycle 최소 요구 단계 이상인지 확인한다.
+- 사용자가 MaxSteps를 지정했을 때 해당 값이 full-cycle 호출에 반영되는지 확인한다.
+- 기존 허용 플래그들이 기존 이름과 의미로 전달되는지 확인한다.
+
 
 ## Current Task
 
 - Task ID: T001
-- Title: 후보 소진 안내 개선
-- Description: `all_goal_candidates_excluded` 상황의 현재 출력 흐름을 확인하고, 모든 후보가 제외된 상태가 실패처럼 보이지 않도록 한국어 안내를 최소 범위로 개선한다.
+- Title: auto-goal MaxSteps 전달 안정화
+- Description: auto-goal 스크립트의 MaxSteps 기본값과 full-cycle 호출부를 확인하고, full-cycle 최소 요구 단계보다 작아 중단되지 않도록 최소 범위로 조정한다. 기존 허용 플래그 전달 흐름은 유지한다.
 - Type: implementation
 - Status: in_progress
-- Priority: P1
+- Priority: P0
 - Depends on:
 - 없음
 
@@ -64,16 +61,13 @@ Autopilot 후보 소진 시 자동 안내 개선
 
 ## Likely Files
 
-- .ai-dev/goal.md
-- .ai-dev/queue.json
-- .ai-dev/state.json
-- Autopilot 안내를 처리하는 관련 소스 파일
+- .ai-dev/scripts/ai-dev-auto-goal.ps1
 
 ## Verification
 
-- 모든 후보가 제외된 상황에서 현재 상태와 제외된 후보 수가 표시되는지 확인
-- 다음 사용자가 선택할 수 있는 행동과 새 backlog 추가 안내가 표시되는지 확인
-- 신규 goal 후보가 없을 때 자동 생성되지 않는지 확인
+- MaxSteps 기본값이 full-cycle 최소 요구 단계 이상인지 확인한다.
+- 사용자 지정 MaxSteps가 full-cycle 호출에 전달되는지 확인한다.
+- AllowCodex, AllowReviewCodex, AllowCommit, AllowDirty 전달 흐름이 유지되는지 확인한다.
 
 - 필요한 경우 `npm run build`는 사람이 별도로 실행한다.
 - 이 프롬프트는 자동으로 build, test, lint를 실행하라고 지시하지 않는다.
