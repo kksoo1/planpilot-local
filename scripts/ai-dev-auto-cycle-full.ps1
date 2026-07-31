@@ -690,6 +690,27 @@ function Get-ReviewImplementationGate {
     }
 }
 
+function Get-CheckCommandSpec {
+    param(
+        [object]$CurrentTask
+    )
+
+    $taskType = if ($null -ne $CurrentTask -and (Test-HasValue $CurrentTask.type)) { [string]$CurrentTask.type } else { "" }
+    $useBuildOnly = $taskType -in @("analysis", "documentation")
+    $arguments = @()
+    $command = "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-check.ps1"
+
+    if ($useBuildOnly) {
+        $arguments += "-BuildOnly"
+        $command = "$command -BuildOnly"
+    }
+
+    return [PSCustomObject][ordered]@{
+        command = $command
+        arguments = $arguments
+    }
+}
+
 function Get-ChangedAiDevOperationalFiles {
     $status = Invoke-GitCapture @("status", "--porcelain") "git status --porcelain"
     $changeLines = @($status -split "`r?`n" | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
@@ -1087,7 +1108,8 @@ while ($script:completedTaskCount -lt $MaxTasks) {
         Invoke-CycleCommand $stepNumber "run-codex" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-codex.ps1 -AllowDirty" $scriptPaths.runCodex $runCodexArguments
         $stepNumber++
 
-        Invoke-CycleCommand $stepNumber "check" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-check.ps1 -BuildOnly" $scriptPaths.check @("-BuildOnly")
+        $checkSpec = Get-CheckCommandSpec $script:currentTask
+        Invoke-CycleCommand $stepNumber "check" $checkSpec.command $scriptPaths.check $checkSpec.arguments
         $stepNumber++
 
         Invoke-CycleCommand $stepNumber "save-diff" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-save-diff.ps1" $scriptPaths.saveDiff @()
@@ -1125,7 +1147,8 @@ while ($script:completedTaskCount -lt $MaxTasks) {
         $stepNumber++
         $script:steps += New-StepResult $stepNumber "run-codex-revise" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-codex.ps1 -AllowDirty -PromptPath .ai-dev/revise-prompt.md" $false $true 0 "DryRun: Codex 재수정 실행을 실행하지 않았습니다."
         $stepNumber++
-        $script:steps += New-StepResult $stepNumber "check-revise" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-check.ps1 -BuildOnly" $false $true 0 "DryRun: 재수정 검증을 실행하지 않았습니다."
+        $checkSpec = Get-CheckCommandSpec $script:currentTask
+        $script:steps += New-StepResult $stepNumber "check-revise" $checkSpec.command $false $true 0 "DryRun: 재수정 검증을 실행하지 않았습니다."
         $stepNumber++
         $script:steps += New-StepResult $stepNumber "save-diff-revise" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-save-diff.ps1" $false $true 0 "DryRun: 재수정 diff 저장을 실행하지 않았습니다."
         $stepNumber++
@@ -1196,7 +1219,8 @@ while ($script:completedTaskCount -lt $MaxTasks) {
         Invoke-CycleCommand $stepNumber "run-codex-revise" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-run-codex.ps1 -AllowDirty -PromptPath .ai-dev/revise-prompt.md" $scriptPaths.runCodex @("-AllowDirty", "-PromptPath", ".ai-dev/revise-prompt.md")
         $stepNumber++
 
-        Invoke-CycleCommand $stepNumber "check-revise" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-check.ps1 -BuildOnly" $scriptPaths.check @("-BuildOnly")
+        $checkSpec = Get-CheckCommandSpec $script:currentTask
+        Invoke-CycleCommand $stepNumber "check-revise" $checkSpec.command $scriptPaths.check $checkSpec.arguments
         $stepNumber++
 
         Invoke-CycleCommand $stepNumber "save-diff-revise" "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-save-diff.ps1" $scriptPaths.saveDiff @()
