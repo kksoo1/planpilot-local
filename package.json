@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "ai-dev:review": "powershell -ExecutionPolicy Bypass -File ./scripts/ai-dev-run-review-codex.ps1 -AllowDirty -SaveReview"
+    "ai-dev:review": "powershell -ExecutionPolicy Bypass -File ./scripts/ai-dev-run-review-codex.ps1 -AllowDirty -SaveReview",
+    "test": "powershell -ExecutionPolicy Bypass -File scripts/ai-dev-test.ps1"
   },
   "dependencies": {
     "dexie": "^4.4.2",
