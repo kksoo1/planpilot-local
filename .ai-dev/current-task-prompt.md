@@ -38,14 +38,14 @@ Windows PowerShell 5.1에서 AI Dev 관련 PowerShell 스크립트와 하위 스
 
 ## Current Task
 
-- Task ID: T001
-- Title: PowerShell UTF-8 처리 흐름 점검 및 최소 수정
-- Description: AI Dev PowerShell 스크립트의 출력 인코딩 초기화, 파일 입출력 인코딩, 자식 PowerShell 및 npm 결과 캡처 흐름을 확인하고 PowerShell 5.1 호환 방식으로 필요한 최소 변경을 적용한다.
-- Type: implementation
+- Task ID: T002
+- Title: 허용된 검증 실행 및 결과 정리
+- Description: 사용자가 허용한 검증 명령만 실행해 build, test 20개, lint 통과 여부를 확인하고 실패 시 원인을 요약한다.
+- Type: verification
 - Status: in_progress
-- Priority: P0
+- Priority: P1
 - Depends on:
-- 없음
+- T001
 
 ## Task Scope
 
@@ -56,15 +56,13 @@ Windows PowerShell 5.1에서 AI Dev 관련 PowerShell 스크립트와 하위 스
 
 ## Likely Files
 
-- .ai-dev/ai-dev-autopilot.ps1
-- .ai-dev/ai-dev-auto-goal.ps1
-- .ai-dev/ai-dev-auto-cycle-full.ps1
+- 없음
 
 ## Verification
 
-- PowerShell 5.1에서 한글 출력이 깨지지 않는지 주요 스크립트 실행 결과를 확인한다.
-- 자식 powershell 프로세스와 npm 실행 결과 캡처에서 한글 메시지가 유지되는지 확인한다.
-- 기존 영어 고정 토큰 `Stopped reason`, `Outcome category`, `expected_non_work`가 유지되는지 확인한다.
+- 허용된 경우 build를 실행해 통과 여부를 확인한다.
+- 허용된 경우 test 20개를 실행해 통과 여부를 확인한다.
+- 허용된 경우 lint를 실행해 통과 여부를 확인한다.
 
 - 필요한 경우 `npm run build`는 사람이 별도로 실행한다.
 - 이 프롬프트는 자동으로 build, test, lint를 실행하라고 지시하지 않는다.

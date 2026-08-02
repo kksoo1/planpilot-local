@@ -2,8 +2,8 @@
     "goalTitle":  "AI Dev PowerShell UTF-8 출력 표준화",
     "goalSource":  ".ai-dev/goal.md",
     "createdAt":  "2026-07-31T17:58:35.1646044+09:00",
-    "updatedAt":  "2026-08-02T14:57:04.5865045+00:00",
-    "currentTaskId":  "T002",
+    "updatedAt":  "2026-08-02T14:59:47.0619189+00:00",
+    "currentTaskId":  null,
     "tasks":  [
                   {
                       "id":  "T001",
@@ -34,7 +34,7 @@
                       "title":  "허용된 검증 실행 및 결과 정리",
                       "description":  "사용자가 허용한 검증 명령만 실행해 build, test 20개, lint 통과 여부를 확인하고 실패 시 원인을 요약한다.",
                       "type":  "verification",
-                      "status":  "in_progress",
+                      "status":  "done",
                       "priority":  "P1",
                       "dependsOn":  [
                                         "T001"
@@ -47,7 +47,9 @@
                                            "허용된 경우 test 20개를 실행해 통과 여부를 확인한다.",
                                            "허용된 경우 lint를 실행해 통과 여부를 확인한다."
                                        ],
-                      "commitMessage":  null
+                      "commitMessage":  null,
+                      "completedAt":  "2026-08-02T14:59:47.0619189+00:00",
+                      "resultSummary":  "자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 구현 커밋 없음, 저장된 리뷰 pass에서 자동 완료"
                   }
               ]
 }

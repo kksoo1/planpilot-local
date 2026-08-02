@@ -1,6 +1,6 @@
 ﻿{
-    "goalStatus":  "in_progress",
-    "currentTaskId":  "T002",
+    "goalStatus":  "completed",
+    "currentTaskId":  null,
     "currentLoop":  0,
     "maxLoopsPerTask":  2,
     "repeatedFailureCount":  0,
@@ -11,8 +11,8 @@
     "lastReviewSeverity":  "none",
     "lastCommitHash":  "ab9aab0b37824cca15338f1e2a3d12020bb00e2f",
     "startedAt":  "2026-07-31T17:58:35.1646044+09:00",
-    "updatedAt":  "2026-08-02T14:57:04.5865045+00:00",
-    "stopReason":  null,
+    "updatedAt":  "2026-08-02T14:59:47.0619189+00:00",
+    "stopReason":  "all_tasks_completed",
     "lastReviewNextStep":  "revise_with_codex",
     "lastReviewSummary":  "대부분의 PowerShell 하위 호출과 npm 호출은 최소 수정됐지만, ProcessStartInfo 기반 \r\ngit 캡처 경로에 UTF-8 인코딩 지정이 빠져 있어 캡처 일관성 요구를 완전히 충족하지 못한다.",
     "lastReviewRequiredChanges":  [
