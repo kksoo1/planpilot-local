@@ -1,35 +1,29 @@
 ﻿# 목표
-
-auto-cycle 전체 테스트 실행과 MaxSteps 전달 검증을 보강한다.
+AI Dev PowerShell UTF-8 출력 표준화
 
 ## 배경
-
-현재 `scripts/ai-dev-auto-cycle-full.ps1`은 implementation 및 verification task의 check와 check-revise 단계에서 `ai-dev-check.ps1`을 항상 `-BuildOnly`로 실행해 `npm test` 결과가 skipped로 덮어써질 수 있다. 또한 `scripts/ai-dev-test.ps1`의 MaxSteps 사용자 지정 검증은 정규식 확인에 머물러 실제 하위 호출 인수 전달을 충분히 검증하지 못한다.
+Windows PowerShell 5.1에서 AI Dev 관련 PowerShell 스크립트와 하위 스크립트 실행 중 한글 출력이 깨지는 문제가 있다. 공통 UTF-8 초기화 방식을 적용해 콘솔 출력, PowerShell 출력, 파일 읽기와 쓰기, 자식 PowerShell 프로세스 및 npm 실행 결과 캡처에서 한글 메시지가 일관되게 보이도록 개선한다.
 
 ## 성공 기준
-
-- implementation 및 verification task의 check/check-revise 단계에서 package.json에 test script가 있으면 build, test, lint 전체 검증을 실행한다.
-- documentation 또는 analysis task에서 필요한 경우에만 BuildOnly 흐름을 사용한다.
-- MaxSteps 사용자 지정 검증은 격리된 임시 작업 공간에서 fake `ai-dev-auto-cycle-full.ps1`을 사용해 `ai-dev-auto-goal.ps1`이 지정된 MaxSteps 값을 실제 하위 호출 인수로 전달했는지 동작 기반으로 확인한다.
-- 예시로 MaxSteps 57 지정 시 하위 스크립트가 받은 인수에 57이 기록되는지 검증한다.
-- 기존 17개 expected_non_work 테스트와 baseline 보존 테스트를 유지한다.
-- 전체 `npm test`가 Failed=0으로 종료되어야 한다.
+- `ai-dev-autopilot.ps1`, `ai-dev-auto-goal.ps1`, `ai-dev-auto-cycle-full.ps1` 및 관련 하위 스크립트에서 한글 출력이 깨지지 않는다.
+- Console OutputEncoding과 PowerShell OutputEncoding이 PowerShell 5.1 호환 방식으로 UTF-8 처리된다.
+- 파일 읽기와 쓰기 인코딩이 UTF-8 기준으로 일관되게 처리된다.
+- 자식 powershell 프로세스와 npm 실행 결과를 캡처할 때 한글 메시지가 유지된다.
+- 기존 영어 고정 토큰 `Stopped reason`, `Outcome category`, `expected_non_work`는 변경하지 않는다.
+- 기존 build, test 20개, lint가 모두 통과한다.
 
 ## 제약사항
-
-- 변경 범위는 관련 PowerShell 스크립트와 테스트에 한정한다.
-- 기존 테스트 의도를 유지하고 필요한 검증만 보강한다.
-- 로컬 저장소 구조와 기존 AI Dev Loop 상태 파일 형식을 존중한다.
-- 큰 구조 변경은 피하고 작은 수정으로 해결한다.
+- PowerShell 5.1 호환성을 유지한다.
+- UTF-8 적용을 위해 기존 사용자 파일 내용을 불필요하게 전체 재작성하지 않는다.
+- 줄바꿈 형식을 대량 변경하지 않는다.
+- 한 번에 변경 범위를 작게 유지하고, 기존 스크립트 구조를 우선 따른다.
 
 ## 범위 제외
-
-- 신규 기능 추가는 제외한다.
-- UI 변경은 제외한다.
-- 데이터 저장 구조 변경은 제외한다.
-- 배포 관련 변경은 제외한다.
+- AI Dev 워크플로우 자체의 기능 변경은 포함하지 않는다.
+- 출력 메시지의 의미 변경이나 영어 고정 토큰 변경은 포함하지 않는다.
+- 관련 없는 파일 정리나 대규모 리팩터링은 포함하지 않는다.
 
 ## 수동 검증
-
-- 허용된 경우 `npm test`를 실행해 Failed=0인지 확인한다.
-- MaxSteps 57 전달 검증 로그 또는 결과가 실제 하위 호출 인수 기반인지 확인한다.
+- PowerShell 5.1에서 주요 AI Dev 스크립트를 실행해 한글 출력이 정상 표시되는지 확인한다.
+- 자식 PowerShell 실행 결과와 npm 실행 결과 캡처 로그에서 한글이 깨지지 않는지 확인한다.
+- 허용된 경우 build, test 20개, lint를 실행해 모두 통과하는지 확인한다.

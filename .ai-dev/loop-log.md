@@ -1813,3 +1813,13 @@ Exit code: 1
 - Task: T002 MaxSteps 전달 동작 검증 보강
 - Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
 - Next task: 없음
+## 2026-08-02 23:57:01 - Commit created
+
+- Task: T001 PowerShell UTF-8 처리 흐름 점검 및 최소 수정
+- Commit: ab9aab0b37824cca15338f1e2a3d12020bb00e2f
+- Message: Standardize PowerShell UTF-8 output handling
+## 2026-08-02 23:57:07 - Task completed
+
+- Task: T001 PowerShell UTF-8 처리 흐름 점검 및 최소 수정
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
+- Next task: T002 허용된 검증 실행 및 결과 정리

@@ -2,26 +2,64 @@
 
 ## Generated At
 
-2026-07-31 17:47:26
+2026-08-02 23:18:44
 
 ## Git Status
 
 ```text
  M .ai-dev/codex-result.md
+ M .ai-dev/codex-review-result.md
  M .ai-dev/current-task-prompt.md
+ M .ai-dev/diff.md
+ M .ai-dev/goal.md
+ M .ai-dev/queue.json
+ M .ai-dev/review-prompt.md
+ M .ai-dev/review-response.json
+ M .ai-dev/review.md
+ M .ai-dev/scripts/run-codex-review.ps1
  M .ai-dev/state.json
  M .ai-dev/test-result.md
+ M scripts/ai-dev-auto-cycle-full.ps1
+ M scripts/ai-dev-auto-cycle.ps1
+ M scripts/ai-dev-auto-goal.ps1
+ M scripts/ai-dev-auto-step.ps1
+ M scripts/ai-dev-autopilot.ps1
+ M scripts/ai-dev-check.ps1
+ M scripts/ai-dev-copy-review-prompt.ps1
+ M scripts/ai-dev-env.ps1
+ M scripts/ai-dev-run-codex.ps1
+ M scripts/ai-dev-run-review-codex.ps1
+ M scripts/ai-dev-save-diff.ps1
  M scripts/ai-dev-test.ps1
 ```
 
 ## App Change Files
 
+- scripts/ai-dev-auto-cycle-full.ps1
+- scripts/ai-dev-auto-cycle.ps1
+- scripts/ai-dev-auto-goal.ps1
+- scripts/ai-dev-auto-step.ps1
+- scripts/ai-dev-autopilot.ps1
+- scripts/ai-dev-check.ps1
+- scripts/ai-dev-copy-review-prompt.ps1
+- scripts/ai-dev-env.ps1
+- scripts/ai-dev-run-codex.ps1
+- scripts/ai-dev-run-review-codex.ps1
+- scripts/ai-dev-save-diff.ps1
 - scripts/ai-dev-test.ps1
 
 ## AI Dev Operational Artifact Files
 
 - .ai-dev/codex-result.md
+- .ai-dev/codex-review-result.md
 - .ai-dev/current-task-prompt.md
+- .ai-dev/diff.md
+- .ai-dev/goal.md
+- .ai-dev/queue.json
+- .ai-dev/review-prompt.md
+- .ai-dev/review-response.json
+- .ai-dev/review.md
+- .ai-dev/scripts/run-codex-review.ps1
 - .ai-dev/state.json
 - .ai-dev/test-result.md
 
@@ -32,340 +70,234 @@
 ## Unstaged Diff Stat
 
 ```text
- scripts/ai-dev-test.ps1 | 282 +++++++++++++++++++++++++++++++++++++++++++++---
- 1 file changed, 266 insertions(+), 16 deletions(-)
+ scripts/ai-dev-auto-cycle-full.ps1    |  2 +-
+ scripts/ai-dev-auto-cycle.ps1         |  2 +-
+ scripts/ai-dev-auto-goal.ps1          |  2 +-
+ scripts/ai-dev-auto-step.ps1          |  4 ++--
+ scripts/ai-dev-autopilot.ps1          |  2 +-
+ scripts/ai-dev-check.ps1              |  2 +-
+ scripts/ai-dev-copy-review-prompt.ps1 |  2 +-
+ scripts/ai-dev-env.ps1                | 12 +++++++++---
+ scripts/ai-dev-run-codex.ps1          |  2 +-
+ scripts/ai-dev-run-review-codex.ps1   |  4 ++--
+ scripts/ai-dev-save-diff.ps1          | 14 ++++++++++++++
+ scripts/ai-dev-test.ps1               |  3 ++-
+ 12 files changed, 36 insertions(+), 15 deletions(-)
 ```
 
 ## Unstaged Diff
 
 ```text
-diff --git a/scripts/ai-dev-test.ps1 b/scripts/ai-dev-test.ps1
-index 018cddc..5933e25 100644
---- a/scripts/ai-dev-test.ps1
-+++ b/scripts/ai-dev-test.ps1
-@@ -139,24 +139,226 @@ function Remove-IsolatedScenarioRoot {
+diff --git a/scripts/ai-dev-auto-cycle-full.ps1 b/scripts/ai-dev-auto-cycle-full.ps1
+index 844d2d6..c116e2b 100644
+--- a/scripts/ai-dev-auto-cycle-full.ps1
++++ b/scripts/ai-dev-auto-cycle-full.ps1
+@@ -474,7 +474,7 @@ function Invoke-CycleCommand {
+         return
+     }
+ 
+-    $output = & powershell -ExecutionPolicy Bypass -File $ScriptPath @Arguments 2>&1 | Out-String
++    $output = & powershell -NoProfile -ExecutionPolicy Bypass -File $ScriptPath @Arguments 2>&1 | Out-String
+     $exitCode = $LASTEXITCODE
+     $message = $output.Trim()
+ 
+diff --git a/scripts/ai-dev-auto-cycle.ps1 b/scripts/ai-dev-auto-cycle.ps1
+index 2d131c2..3e09a44 100644
+--- a/scripts/ai-dev-auto-cycle.ps1
++++ b/scripts/ai-dev-auto-cycle.ps1
+@@ -455,7 +455,7 @@ for ($index = 1; $index -le $MaxSteps; $index++) {
+         $arguments += "-AllowReviewPrompt"
+     }
+ 
+-    $autoStepOutput = & powershell -ExecutionPolicy Bypass -File $autoStepPath @arguments 2>&1 | Out-String
++    $autoStepOutput = & powershell -NoProfile -ExecutionPolicy Bypass -File $autoStepPath @arguments 2>&1 | Out-String
+     $autoStepExitCode = $LASTEXITCODE
+ 
+     if ($autoStepExitCode -ne 0) {
+diff --git a/scripts/ai-dev-auto-goal.ps1 b/scripts/ai-dev-auto-goal.ps1
+index 070042f..0f036a2 100644
+--- a/scripts/ai-dev-auto-goal.ps1
++++ b/scripts/ai-dev-auto-goal.ps1
+@@ -1316,7 +1316,7 @@ function Invoke-CycleCommand {
+         return
+     }
+ 
+-    $output = & powershell -ExecutionPolicy Bypass -File $ScriptPath @Arguments 2>&1 | Out-String
++    $output = & powershell -NoProfile -ExecutionPolicy Bypass -File $ScriptPath @Arguments 2>&1 | Out-String
+     $exitCode = $LASTEXITCODE
+     $message = $output.Trim()
+ 
+diff --git a/scripts/ai-dev-auto-step.ps1 b/scripts/ai-dev-auto-step.ps1
+index 7dcf2c9..b297c30 100644
+--- a/scripts/ai-dev-auto-step.ps1
++++ b/scripts/ai-dev-auto-step.ps1
+@@ -62,7 +62,7 @@ function Invoke-AiDevScript {
+         throw "스크립트를 찾을 수 없습니다: $ScriptName"
+     }
+ 
+-    $output = & powershell -ExecutionPolicy Bypass -File $scriptPath @Arguments 2>&1 | Out-String
++    $output = & powershell -NoProfile -ExecutionPolicy Bypass -File $scriptPath @Arguments 2>&1 | Out-String
+     $exitCode = $LASTEXITCODE
+ 
+     return [PSCustomObject]@{
+@@ -98,7 +98,7 @@ function Write-StepResult {
+ }
+ 
+ try {
+-    $nextOutput = & powershell -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "ai-dev-next.ps1") -Json 2>&1 | Out-String
++    $nextOutput = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "ai-dev-next.ps1") -Json 2>&1 | Out-String
+ 
+     if ($LASTEXITCODE -ne 0) {
+         Stop-WithJsonError "ai-dev-next.ps1 실행에 실패했습니다: $nextOutput"
+diff --git a/scripts/ai-dev-autopilot.ps1 b/scripts/ai-dev-autopilot.ps1
+index 4c8c3f2..dd9588c 100644
+--- a/scripts/ai-dev-autopilot.ps1
++++ b/scripts/ai-dev-autopilot.ps1
+@@ -1097,7 +1097,7 @@ function Invoke-AutoGoal {
+         }
+     }
+ 
+-    $output = & powershell -ExecutionPolicy Bypass -File $autoGoalPath @arguments 2>&1 | Out-String
++    $output = & powershell -NoProfile -ExecutionPolicy Bypass -File $autoGoalPath @arguments 2>&1 | Out-String
+     $exitCode = $LASTEXITCODE
+     $message = $output.Trim()
+ 
+diff --git a/scripts/ai-dev-check.ps1 b/scripts/ai-dev-check.ps1
+index 024cc3d..9264577 100644
+--- a/scripts/ai-dev-check.ps1
++++ b/scripts/ai-dev-check.ps1
+@@ -84,7 +84,7 @@ function Invoke-NpmCheck {
+     }
+ 
+     Write-Host "실행 중: $command"
+-    $output = & npm run $Name 2>&1 | Out-String
++    $output = & npm.cmd run $Name 2>&1 | Out-String
+     $exitCode = $LASTEXITCODE
+     $status = if ($exitCode -eq 0) { "passed" } else { "failed" }
+ 
+diff --git a/scripts/ai-dev-copy-review-prompt.ps1 b/scripts/ai-dev-copy-review-prompt.ps1
+index d640570..060934e 100644
+--- a/scripts/ai-dev-copy-review-prompt.ps1
++++ b/scripts/ai-dev-copy-review-prompt.ps1
+@@ -99,7 +99,7 @@ if (-not (Test-Path -LiteralPath $reviewPromptPath -PathType Leaf)) {
+         $arguments += "-Strict"
+     }
+ 
+-    $makeReviewOutput = & powershell -ExecutionPolicy Bypass -File $makeReviewPromptPath @arguments 2>&1 | Out-String
++    $makeReviewOutput = & powershell -NoProfile -ExecutionPolicy Bypass -File $makeReviewPromptPath @arguments 2>&1 | Out-String
+ 
+     if ($LASTEXITCODE -ne 0) {
+         Write-CopyResult `
+diff --git a/scripts/ai-dev-env.ps1 b/scripts/ai-dev-env.ps1
+index 39cbe1a..b9bd368 100644
+--- a/scripts/ai-dev-env.ps1
++++ b/scripts/ai-dev-env.ps1
+@@ -1,8 +1,14 @@
+ ﻿try {
++    $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
++
+     chcp 65001 | Out-Null
+-    $OutputEncoding = [System.Text.Encoding]::UTF8
+-    [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+-    [Console]::InputEncoding = [System.Text.Encoding]::UTF8
++    [Console]::OutputEncoding = $utf8NoBom
++    [Console]::InputEncoding = $utf8NoBom
++    $OutputEncoding = $utf8NoBom
++
++    $env:PYTHONIOENCODING = "utf-8"
++    $env:PYTHONUTF8 = "1"
++    $env:npm_config_unicode = "true"
+ } catch {
+     # UTF-8 콘솔 설정 실패는 AI Dev 스크립트 실행을 중단하지 않는다.
+ }
+diff --git a/scripts/ai-dev-run-codex.ps1 b/scripts/ai-dev-run-codex.ps1
+index 0556efc..edb7cd0 100644
+--- a/scripts/ai-dev-run-codex.ps1
++++ b/scripts/ai-dev-run-codex.ps1
+@@ -187,7 +187,7 @@ if (-not (Test-Path -LiteralPath $resolvedPromptPath -PathType Leaf)) {
+         Write-RunResult "run_codex" $false 1 "프롬프트 생성 스크립트를 찾을 수 없습니다: scripts/ai-dev-make-prompt.ps1"
+     }
+ 
+-    $makePromptOutput = & powershell -ExecutionPolicy Bypass -File $makePromptPath 2>&1 | Out-String
++    $makePromptOutput = & powershell -NoProfile -ExecutionPolicy Bypass -File $makePromptPath 2>&1 | Out-String
+ 
+     if ($LASTEXITCODE -ne 0) {
+         Write-RunResult "run_codex" $false 1 "프롬프트 생성에 실패했습니다: $($makePromptOutput.Trim())"
+diff --git a/scripts/ai-dev-run-review-codex.ps1 b/scripts/ai-dev-run-review-codex.ps1
+index 389f5b4..5799ca6 100644
+--- a/scripts/ai-dev-run-review-codex.ps1
++++ b/scripts/ai-dev-run-review-codex.ps1
+@@ -355,7 +355,7 @@ if (-not $promptExists -and $GenerateReviewPromptIfMissing) {
+         Write-RunResult "run_review_codex" $false 1 "리뷰 프롬프트 생성 스크립트를 찾을 수 없습니다: scripts/ai-dev-make-review-prompt.ps1"
+     }
+ 
+-    $makeReviewPromptOutput = & powershell -ExecutionPolicy Bypass -File $makeReviewPromptPath 2>&1 | Out-String
++    $makeReviewPromptOutput = & powershell -NoProfile -ExecutionPolicy Bypass -File $makeReviewPromptPath 2>&1 | Out-String
+ 
+     if ($LASTEXITCODE -ne 0) {
+         Write-RunResult "run_review_codex" $false 1 "리뷰 프롬프트 생성에 실패했습니다: $($makeReviewPromptOutput.Trim())"
+@@ -421,7 +421,7 @@ if ($SaveReview) {
+         Write-RunResult "run_review_codex" $true 1 "리뷰 저장 스크립트를 찾을 수 없습니다: scripts/ai-dev-save-review.ps1"
+     }
+ 
+-    $saveReviewOutput = & powershell -ExecutionPolicy Bypass -File $saveReviewPath -ReviewFile $reviewResponseRelativePath 2>&1 | Out-String
++    $saveReviewOutput = & powershell -NoProfile -ExecutionPolicy Bypass -File $saveReviewPath -ReviewFile $reviewResponseRelativePath 2>&1 | Out-String
+ 
+     if ($LASTEXITCODE -ne 0) {
+         Write-RunResult "run_review_codex" $true 1 "리뷰 JSON은 저장했지만 save-review 실행에 실패했습니다: $($saveReviewOutput.Trim())"
+diff --git a/scripts/ai-dev-save-diff.ps1 b/scripts/ai-dev-save-diff.ps1
+index fcaed07..37ff89f 100644
+--- a/scripts/ai-dev-save-diff.ps1
++++ b/scripts/ai-dev-save-diff.ps1
+@@ -50,6 +50,19 @@ function Set-ObjectProperty {
      }
  }
  
--function Test-MaxStepsForwarding {
-+function Test-MaxStepsForwardingBehavior {
-     param(
-         [Parameter(Mandatory = $true)]
--        [string]$Content
-+        [string]$Name,
-+
-+        [Parameter(Mandatory = $true)]
-+        [int]$ExpectedMaxSteps
-     )
- 
--    $forwardingPatterns = @(
--        '-MaxSteps\s+(?:\(\s*)?(?:\[string\]\s*)?\$MaxSteps',
--        '["'']-MaxSteps["'']\s*,\s*(?:\(\s*)?(?:\[string\]\s*)?\$MaxSteps'
-+    $expectedMaxTasks = 3
-+
-+    $tmpRoot = Join-Path $env:TEMP (
-+        "planpilot-test-" +
-+        $Name +
-+        "-" +
-+        (Get-Date -Format "yyyyMMddHHmmssfff")
-     )
- 
--    foreach ($pattern in $forwardingPatterns) {
--        if ([regex]::IsMatch($Content, $pattern, [System.Text.RegularExpressions.RegexOptions]::Singleline)) {
--            return $true
-+    $scenarioRoot = New-IsolatedScenarioRoot -Name $Name -Root $tmpRoot
-+
-+    if ($scenarioRoot.Cleanup -eq "none") {
-+        Write-TestResult `
-+            -Name "$Name isolated repository creation" `
-+            -Passed $false `
-+            -Detail $scenarioRoot.Error
-+
-+        return
-+    }
++function Set-ProcessStartInfoUtf8Encoding {
++    param(
++        [System.Diagnostics.ProcessStartInfo]$StartInfo
++    )
 +
 +    try {
-+        Copy-Item `
-+            -LiteralPath (
-+                Join-Path $repoRoot "scripts\ai-dev-auto-goal.ps1"
-+            ) `
-+            -Destination (
-+                Join-Path $tmpRoot "scripts\ai-dev-auto-goal.ps1"
-+            ) `
-+            -Force
-+
-+        $fakeBinPath = Join-Path $env:TEMP (
-+            "planpilot-fake-bin-" +
-+            $Name +
-+            "-" +
-+            (Get-Date -Format "yyyyMMddHHmmssfff")
-+        )
-+        [System.IO.Directory]::CreateDirectory($fakeBinPath) | Out-Null
-+
-+        $fakeCodexPath = Join-Path $fakeBinPath "codex.cmd"
-+        $fakeAutoCyclePath = Join-Path $tmpRoot "scripts\ai-dev-auto-cycle-full.ps1"
-+        $forwardedArgsPath = Join-Path $env:TEMP (
-+            "planpilot-maxsteps-forwarding-args-" +
-+            $Name +
-+            "-" +
-+            (Get-Date -Format "yyyyMMddHHmmssfff") +
-+            ".txt"
-+        )
-+        $childStatusPath = Join-Path $env:TEMP (
-+            "planpilot-maxsteps-forwarding-child-status-" +
-+            $Name +
-+            "-" +
-+            (Get-Date -Format "yyyyMMddHHmmssfff") +
-+            ".txt"
-+        )
-+
-+        $fakeCodexContent = @'
-+@echo off
-+echo {"goalMarkdown":"# Goal","queue":{"goalTitle":"Forwarding test","goalSource":".ai-dev/goal.md","createdAt":"2026-01-01T00:00:00Z","updatedAt":"2026-01-01T00:00:00Z","currentTaskId":"T001","tasks":[{"id":"T001","title":"Forwarding test","description":"Verify MaxSteps forwarding.","type":"implementation","status":"in_progress","priority":"P0","dependsOn":[],"filesLikelyToChange":["scripts/ai-dev-test.ps1"],"verification":["Verify MaxSteps forwarding."],"commitMessage":null}]},"state":{"goalStatus":"in_progress","currentTaskId":"T001","currentLoop":0,"maxLoopsPerTask":2,"repeatedFailureCount":0,"lastCommand":null,"lastCommandStatus":"not_started","lastErrorSummary":null,"lastReviewDecision":"not_started","lastReviewSeverity":null,"lastCommitHash":null,"startedAt":"2026-01-01T00:00:00Z","updatedAt":"2026-01-01T00:00:00Z","stopReason":null}}
-+'@
-+
-+        [System.IO.File]::WriteAllText(
-+            $fakeCodexPath,
-+            $fakeCodexContent,
-+            [System.Text.Encoding]::ASCII
-+        )
-+
-+        $escapedForwardedArgsPath = $forwardedArgsPath.Replace("'", "''")
-+        $escapedChildStatusPath = $childStatusPath.Replace("'", "''")
-+        $fakeAutoCycleContent = @"
-+param(
-+    [Parameter(ValueFromRemainingArguments = `$true)]
-+    [string[]]`$RemainingArguments
-+)
-+
-+`$argsToRecord = @(`$RemainingArguments)
-+
-+if (`$argsToRecord.Count -eq 0) {
-+    `$argsToRecord = @(`$args)
++        $StartInfo.StandardOutputEncoding = [System.Text.Encoding]::UTF8
++        $StartInfo.StandardErrorEncoding = [System.Text.Encoding]::UTF8
++    } catch {
++        Write-Warning "ProcessStartInfo UTF-8 인코딩 속성을 설정할 수 없어 기본 인코딩으로 진행합니다: $($_.Exception.Message)"
++    }
 +}
 +
-+[System.IO.File]::WriteAllLines('$escapedForwardedArgsPath', [string[]]`$argsToRecord)
-+[System.IO.File]::WriteAllText('$escapedChildStatusPath', 'exit 0', [System.Text.Encoding]::ASCII)
-+
-+`$statePath = Join-Path (Get-Location) '.ai-dev\state.json'
-+`$state = Get-Content -LiteralPath `$statePath -Raw | ConvertFrom-Json
-+`$state.goalStatus = 'completed'
-+`$stateJson = `$state | ConvertTo-Json -Depth 30
-+`$utf8WithBom = New-Object System.Text.UTF8Encoding(`$true)
-+[System.IO.File]::WriteAllText(`$statePath, `$stateJson, `$utf8WithBom)
-+
-+exit 0
-+"@
-+
-+        [System.IO.File]::WriteAllText(
-+            $fakeAutoCyclePath,
-+            $fakeAutoCycleContent,
-+            (New-Object System.Text.UTF8Encoding($true))
-+        )
-+
-+        $previousPath = $env:PATH
-+        $env:PATH = $fakeBinPath + [System.IO.Path]::PathSeparator + $previousPath
-+
-+        Push-Location $tmpRoot
-+
-+        try {
-+            $output = & powershell `
-+                -ExecutionPolicy Bypass `
-+                -File ".\scripts\ai-dev-auto-goal.ps1" `
-+                -GoalTitle "MaxSteps forwarding test" `
-+                -GoalDescription "Verify custom MaxSteps reaches the child full cycle script." `
-+                -MaxTasks $expectedMaxTasks `
-+                -MaxSteps $ExpectedMaxSteps `
-+                -AllowCodex `
-+                -AllowReviewCodex `
-+                -AllowCommit `
-+                -AllowRun `
-+                -AllowDirty 2>&1
-+            $scenarioExitCode = $LASTEXITCODE
-+            $outputText = $output | Out-String
+ function Save-StateResult {
+     param(
+         [object]$State,
+@@ -87,6 +100,7 @@ function Invoke-GitCapture {
+     $startInfo.RedirectStandardOutput = $true
+     $startInfo.RedirectStandardError = $true
+     $startInfo.CreateNoWindow = $true
++    Set-ProcessStartInfoUtf8Encoding $startInfo
+ 
+     $process = New-Object System.Diagnostics.Process
+     $process.StartInfo = $startInfo
+diff --git a/scripts/ai-dev-test.ps1 b/scripts/ai-dev-test.ps1
+index 5933e25..c789156 100644
+--- a/scripts/ai-dev-test.ps1
++++ b/scripts/ai-dev-test.ps1
+@@ -254,6 +254,7 @@ exit 0
+ 
+         try {
+             $output = & powershell `
++                -NoProfile `
+                 -ExecutionPolicy Bypass `
+                 -File ".\scripts\ai-dev-auto-goal.ps1" `
+                 -GoalTitle "MaxSteps forwarding test" `
+@@ -501,7 +502,7 @@ function Invoke-IsolatedScenario {
+         Push-Location $tmpRoot
+ 
+         try {
+-            $output = & powershell @CommandArguments 2>&1
++            $output = & powershell -NoProfile @CommandArguments 2>&1
+             $scenarioExitCode = $LASTEXITCODE
+             $outputText = $output | Out-String
          }
-+        finally {
-+            Pop-Location
-+            $env:PATH = $previousPath
-+        }
-+
-+        $forwardedArgs = @()
-+
-+        if ([System.IO.File]::Exists($forwardedArgsPath)) {
-+            $forwardedArgs = @(Get-Content -LiteralPath $forwardedArgsPath)
-+        }
-+
-+        $maxStepsIndex = [array]::IndexOf([object[]]$forwardedArgs, "-MaxSteps")
-+        $actualMaxSteps = ""
-+
-+        if ($maxStepsIndex -ge 0 -and ($maxStepsIndex + 1) -lt $forwardedArgs.Count) {
-+            $actualMaxSteps = [string]$forwardedArgs[$maxStepsIndex + 1]
-+        }
-+
-+        $maxStepsMatched = ($actualMaxSteps -eq ([string]$ExpectedMaxSteps))
-+        $maxTasksIndex = [array]::IndexOf([object[]]$forwardedArgs, "-MaxTasks")
-+        $actualMaxTasks = ""
-+
-+        if ($maxTasksIndex -ge 0 -and ($maxTasksIndex + 1) -lt $forwardedArgs.Count) {
-+            $actualMaxTasks = [string]$forwardedArgs[$maxTasksIndex + 1]
-+        }
-+
-+        $requiredSwitches = @(
-+            "-AllowCodex",
-+            "-AllowReviewCodex",
-+            "-AllowCommit",
-+            "-AllowDirty"
-+        )
-+        $missingSwitches = @(
-+            $requiredSwitches |
-+                Where-Object { $forwardedArgs -notcontains $_ }
-+        )
-+
-+        Write-TestResult `
-+            -Name "$Name forwards MaxSteps $ExpectedMaxSteps to child script" `
-+            -Passed $maxStepsMatched `
-+            -Detail (
-+                "Expected=$ExpectedMaxSteps Actual=$actualMaxSteps ExitCode=$scenarioExitCode Args=" +
-+                ($forwardedArgs -join " ")
-+            )
-+
-+        Write-TestResult `
-+            -Name "$Name forwards MaxTasks and allow switches" `
-+            -Passed (
-+                $actualMaxTasks -eq ([string]$expectedMaxTasks) -and
-+                $missingSwitches.Count -eq 0
-+            ) `
-+            -Detail (
-+                "ExpectedMaxTasks=$expectedMaxTasks ActualMaxTasks=$actualMaxTasks MissingSwitches=" +
-+                ($missingSwitches -join ", ")
-+            )
-+
-+        Write-TestResult `
-+            -Name "$Name fake child exited successfully" `
-+            -Passed (
-+                [System.IO.File]::Exists($childStatusPath) -and
-+                ((Get-Content -LiteralPath $childStatusPath -Raw).Trim() -eq "exit 0")
-+            ) `
-+            -Detail "AutoGoalExitCode=$scenarioExitCode"
-+
-+        Write-TestResult `
-+            -Name "$Name child script was invoked" `
-+            -Passed ([System.IO.File]::Exists($forwardedArgsPath)) `
-+            -Detail (
-+                "ExitCode=$scenarioExitCode OutputPreview=" +
-+                (($outputText.Replace("`r", " ").Replace("`n", " ")).Trim())
-+            )
-+    }
-+    catch {
-+        Write-TestResult `
-+            -Name "$Name execution" `
-+            -Passed $false `
-+            -Detail $_.Exception.Message
-     }
-+    finally {
-+        Remove-IsolatedScenarioRoot -ScenarioRoot $scenarioRoot
-+
-+        if ([System.IO.Directory]::Exists($fakeBinPath)) {
-+            [System.IO.Directory]::Delete($fakeBinPath, $true)
-+        }
- 
--    return $false
-+        foreach ($tempFile in @($forwardedArgsPath, $childStatusPath)) {
-+            if ([System.IO.File]::Exists($tempFile)) {
-+                [System.IO.File]::Delete($tempFile)
-+            }
-+        }
-+    }
- }
- 
- function Invoke-IsolatedScenario {
-@@ -170,6 +372,7 @@ function Invoke-IsolatedScenario {
-         [Parameter(Mandatory = $true)]
-         [ValidateSet(
-             "none",
-+            "all_goal_candidates_excluded",
-             "dirty_worktree",
-             "baseline_output_conflict"
-         )]
-@@ -234,6 +437,56 @@ function Invoke-IsolatedScenario {
-                 -Value $marker
-         }
- 
-+        if ($SetupType -eq "all_goal_candidates_excluded") {
-+            $queuePath = Join-Path $tmpRoot ".ai-dev\queue.json"
-+            $statePath = Join-Path $tmpRoot ".ai-dev\state.json"
-+            $backlogPath = Join-Path $tmpRoot ".ai-dev\backlog.md"
-+            $fixtureTitle = "Only backlog task"
-+            $utf8WithBom = New-Object System.Text.UTF8Encoding($true)
-+
-+            $queue = [PSCustomObject][ordered]@{
-+                goalTitle = $fixtureTitle
-+                goalSource = ".ai-dev/goal.md"
-+                currentTaskId = $null
-+                tasks = @(
-+                    [PSCustomObject][ordered]@{
-+                        id = "T001"
-+                        title = $fixtureTitle
-+                        status = "done"
-+                    }
-+                )
-+            }
-+
-+            $state = [PSCustomObject][ordered]@{
-+                goalStatus = "completed"
-+                currentTaskId = $null
-+            }
-+
-+            $backlog = @"
-+# Test Backlog
-+
-+## P0
-+
-+- $fixtureTitle
-+"@
-+
-+            [System.IO.File]::WriteAllText(
-+                $queuePath,
-+                ($queue | ConvertTo-Json -Depth 30),
-+                $utf8WithBom
-+            )
-+            [System.IO.File]::WriteAllText(
-+                $statePath,
-+                ($state | ConvertTo-Json -Depth 30),
-+                $utf8WithBom
-+            )
-+            [System.IO.File]::WriteAllText(
-+                $backlogPath,
-+                $backlog,
-+                $utf8WithBom
-+            )
-+        }
-+
-         if ($SetupType -eq "baseline_output_conflict") {
-             $markerPath = Join-Path $tmpRoot ".ai-dev\codex-result.md"
- 
-@@ -350,17 +603,14 @@ Write-TestResult `
-     -Passed $defaultMaxStepsValid `
-     -Detail "Detected=$defaultMaxStepsValue"
- 
--$maxStepsForwarded = Test-MaxStepsForwarding -Content $autoGoalContent
--
--Write-TestResult `
--    -Name "auto-goal forwards user MaxSteps" `
--    -Passed $maxStepsForwarded `
--    -Detail "Accepted forms: direct argument, array argument, or splatted helper arguments"
-+Test-MaxStepsForwardingBehavior `
-+    -Name "maxsteps-forwarding" `
-+    -ExpectedMaxSteps 57
- 
- Invoke-IsolatedScenario `
-     -Name "all-goal-candidates-excluded" `
-     -ExpectedReason "all_goal_candidates_excluded" `
--    -SetupType "none" `
-+    -SetupType "all_goal_candidates_excluded" `
-     -CommandArguments @(
-         "-ExecutionPolicy", "Bypass",
-         "-File", ".\scripts\ai-dev-autopilot.ps1",
 ```
 
 ## Staged Diff Stat

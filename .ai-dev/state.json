@@ -1,6 +1,6 @@
 ﻿{
-    "goalStatus":  "completed",
-    "currentTaskId":  null,
+    "goalStatus":  "in_progress",
+    "currentTaskId":  "T002",
     "currentLoop":  0,
     "maxLoopsPerTask":  2,
     "repeatedFailureCount":  0,
@@ -9,17 +9,17 @@
     "lastErrorSummary":  "",
     "lastReviewDecision":  "pass",
     "lastReviewSeverity":  "none",
-    "lastCommitHash":  "0d0e23cc23910e6eae7a0c8da66a3e81dd62693e",
-    "startedAt":  "2026-07-31T00:00:00+09:00",
-    "updatedAt":  "2026-07-31T08:52:11.1028459+00:00",
-    "stopReason":  "all_tasks_completed",
+    "lastCommitHash":  "ab9aab0b37824cca15338f1e2a3d12020bb00e2f",
+    "startedAt":  "2026-07-31T17:58:35.1646044+09:00",
+    "updatedAt":  "2026-08-02T14:57:04.5865045+00:00",
+    "stopReason":  null,
     "lastReviewNextStep":  "revise_with_codex",
-    "lastReviewSummary":  "코드 변경 방향은 현재 task와 대체로 일치하지만, 검증 결과가 BuildOnly로 남아 있어 npm tes\r\nt가 skipped입니다.",
+    "lastReviewSummary":  "대부분의 PowerShell 하위 호출과 npm 호출은 최소 수정됐지만, ProcessStartInfo 기반 \r\ngit 캡처 경로에 UTF-8 인코딩 지정이 빠져 있어 캡처 일관성 요구를 완전히 충족하지 못한다.",
     "lastReviewRequiredChanges":  [
                                       {
-                                          "file":  ".ai-dev/test-result.md",
-                                          "reason":  "현재 task의 성공 기준은 package.json에 test script가 있을 때 전체 검증을 실행하\r\n는 것인데, 제공된 검증 결과는 npm run test가 -BuildOnly로 skipped입니다.",
-                                          "suggestion":  "허용된 검증 흐름에서 BuildOnly 없이 전체 검증을 다시 실행하고 npm run test가 \r\npassed이며 Failed=0임을 기록하세요."
+                                          "file":  "scripts/ai-dev-save-diff.ps1",
+                                          "reason":  "Invoke-GitCapture가 RedirectStandardOutput/RedirectStandard\r\nError로 자식 프로세스 출력을 직접 캡처하지만 StandardOutputEncoding/StandardErrorEncoding을 지\r\n정하지 않는다. PowerShell 5.1 환경에서 한글 포함 diff나 경고 출력 캡처가 시스템 기본 인코딩에 의존할 수 있다.",
+                                          "suggestion":  "$startInfo.RedirectStandardOutput/Error 설정 흐름에 PowerSh\r\nell 5.1 호환 방식으로 UTF-8 인코딩을 지정한다. 단, 해당 속성이 없는 런타임을 고려해 PSObject 속성 존재 확인 또는\r\n try/catch로 최소 방어 처리한다."
                                       }
                                   ]
 }

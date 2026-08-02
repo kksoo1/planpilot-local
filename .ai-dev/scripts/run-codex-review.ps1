@@ -26,7 +26,12 @@ param(
 )
 
 $repoRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\.."))
+$envPath = Join-Path $repoRoot "scripts\ai-dev-env.ps1"
 $reviewRunnerPath = Join-Path $repoRoot "scripts\ai-dev-run-review-codex.ps1"
+
+if (Test-Path -LiteralPath $envPath -PathType Leaf) {
+    . $envPath
+}
 
 if (-not (Test-Path -LiteralPath $reviewRunnerPath -PathType Leaf)) {
     Write-Error "Codex review runner was not found: scripts/ai-dev-run-review-codex.ps1"
@@ -66,5 +71,5 @@ if ($SaveReview) {
     $arguments += "-SaveReview"
 }
 
-& powershell @arguments
+& powershell -NoProfile @arguments
 exit $LASTEXITCODE
