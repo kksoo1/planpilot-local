@@ -254,6 +254,7 @@ exit 0
 
         try {
             $output = & powershell `
+                -NoProfile `
                 -ExecutionPolicy Bypass `
                 -File ".\scripts\ai-dev-auto-goal.ps1" `
                 -GoalTitle "MaxSteps forwarding test" `
@@ -501,7 +502,7 @@ function Invoke-IsolatedScenario {
         Push-Location $tmpRoot
 
         try {
-            $output = & powershell @CommandArguments 2>&1
+            $output = & powershell -NoProfile @CommandArguments 2>&1
             $scenarioExitCode = $LASTEXITCODE
             $outputText = $output | Out-String
         }

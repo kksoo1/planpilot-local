@@ -455,7 +455,7 @@ for ($index = 1; $index -le $MaxSteps; $index++) {
         $arguments += "-AllowReviewPrompt"
     }
 
-    $autoStepOutput = & powershell -ExecutionPolicy Bypass -File $autoStepPath @arguments 2>&1 | Out-String
+    $autoStepOutput = & powershell -NoProfile -ExecutionPolicy Bypass -File $autoStepPath @arguments 2>&1 | Out-String
     $autoStepExitCode = $LASTEXITCODE
 
     if ($autoStepExitCode -ne 0) {

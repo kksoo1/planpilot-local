@@ -62,7 +62,7 @@ function Invoke-AiDevScript {
         throw "스크립트를 찾을 수 없습니다: $ScriptName"
     }
 
-    $output = & powershell -ExecutionPolicy Bypass -File $scriptPath @Arguments 2>&1 | Out-String
+    $output = & powershell -NoProfile -ExecutionPolicy Bypass -File $scriptPath @Arguments 2>&1 | Out-String
     $exitCode = $LASTEXITCODE
 
     return [PSCustomObject]@{
@@ -98,7 +98,7 @@ function Write-StepResult {
 }
 
 try {
-    $nextOutput = & powershell -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "ai-dev-next.ps1") -Json 2>&1 | Out-String
+    $nextOutput = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "ai-dev-next.ps1") -Json 2>&1 | Out-String
 
     if ($LASTEXITCODE -ne 0) {
         Stop-WithJsonError "ai-dev-next.ps1 실행에 실패했습니다: $nextOutput"

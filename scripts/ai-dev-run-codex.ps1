@@ -187,7 +187,7 @@ if (-not (Test-Path -LiteralPath $resolvedPromptPath -PathType Leaf)) {
         Write-RunResult "run_codex" $false 1 "프롬프트 생성 스크립트를 찾을 수 없습니다: scripts/ai-dev-make-prompt.ps1"
     }
 
-    $makePromptOutput = & powershell -ExecutionPolicy Bypass -File $makePromptPath 2>&1 | Out-String
+    $makePromptOutput = & powershell -NoProfile -ExecutionPolicy Bypass -File $makePromptPath 2>&1 | Out-String
 
     if ($LASTEXITCODE -ne 0) {
         Write-RunResult "run_codex" $false 1 "프롬프트 생성에 실패했습니다: $($makePromptOutput.Trim())"

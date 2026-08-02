@@ -50,6 +50,19 @@ function Set-ObjectProperty {
     }
 }
 
+function Set-ProcessStartInfoUtf8Encoding {
+    param(
+        [System.Diagnostics.ProcessStartInfo]$StartInfo
+    )
+
+    try {
+        $StartInfo.StandardOutputEncoding = [System.Text.Encoding]::UTF8
+        $StartInfo.StandardErrorEncoding = [System.Text.Encoding]::UTF8
+    } catch {
+        Write-Warning "ProcessStartInfo UTF-8 인코딩 속성을 설정할 수 없어 기본 인코딩으로 진행합니다: $($_.Exception.Message)"
+    }
+}
+
 function Save-StateResult {
     param(
         [object]$State,
@@ -87,6 +100,7 @@ function Invoke-GitCapture {
     $startInfo.RedirectStandardOutput = $true
     $startInfo.RedirectStandardError = $true
     $startInfo.CreateNoWindow = $true
+    Set-ProcessStartInfoUtf8Encoding $startInfo
 
     $process = New-Object System.Diagnostics.Process
     $process.StartInfo = $startInfo

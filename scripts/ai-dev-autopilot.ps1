@@ -1097,7 +1097,7 @@ function Invoke-AutoGoal {
         }
     }
 
-    $output = & powershell -ExecutionPolicy Bypass -File $autoGoalPath @arguments 2>&1 | Out-String
+    $output = & powershell -NoProfile -ExecutionPolicy Bypass -File $autoGoalPath @arguments 2>&1 | Out-String
     $exitCode = $LASTEXITCODE
     $message = $output.Trim()
 

@@ -84,7 +84,7 @@ function Invoke-NpmCheck {
     }
 
     Write-Host "실행 중: $command"
-    $output = & npm run $Name 2>&1 | Out-String
+    $output = & npm.cmd run $Name 2>&1 | Out-String
     $exitCode = $LASTEXITCODE
     $status = if ($exitCode -eq 0) { "passed" } else { "failed" }
 

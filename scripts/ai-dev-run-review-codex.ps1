@@ -355,7 +355,7 @@ if (-not $promptExists -and $GenerateReviewPromptIfMissing) {
         Write-RunResult "run_review_codex" $false 1 "리뷰 프롬프트 생성 스크립트를 찾을 수 없습니다: scripts/ai-dev-make-review-prompt.ps1"
     }
 
-    $makeReviewPromptOutput = & powershell -ExecutionPolicy Bypass -File $makeReviewPromptPath 2>&1 | Out-String
+    $makeReviewPromptOutput = & powershell -NoProfile -ExecutionPolicy Bypass -File $makeReviewPromptPath 2>&1 | Out-String
 
     if ($LASTEXITCODE -ne 0) {
         Write-RunResult "run_review_codex" $false 1 "리뷰 프롬프트 생성에 실패했습니다: $($makeReviewPromptOutput.Trim())"
@@ -421,7 +421,7 @@ if ($SaveReview) {
         Write-RunResult "run_review_codex" $true 1 "리뷰 저장 스크립트를 찾을 수 없습니다: scripts/ai-dev-save-review.ps1"
     }
 
-    $saveReviewOutput = & powershell -ExecutionPolicy Bypass -File $saveReviewPath -ReviewFile $reviewResponseRelativePath 2>&1 | Out-String
+    $saveReviewOutput = & powershell -NoProfile -ExecutionPolicy Bypass -File $saveReviewPath -ReviewFile $reviewResponseRelativePath 2>&1 | Out-String
 
     if ($LASTEXITCODE -ne 0) {
         Write-RunResult "run_review_codex" $true 1 "리뷰 JSON은 저장했지만 save-review 실행에 실패했습니다: $($saveReviewOutput.Trim())"

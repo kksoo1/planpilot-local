@@ -1316,7 +1316,7 @@ function Invoke-CycleCommand {
         return
     }
 
-    $output = & powershell -ExecutionPolicy Bypass -File $ScriptPath @Arguments 2>&1 | Out-String
+    $output = & powershell -NoProfile -ExecutionPolicy Bypass -File $ScriptPath @Arguments 2>&1 | Out-String
     $exitCode = $LASTEXITCODE
     $message = $output.Trim()
 
