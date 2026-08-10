@@ -1,6 +1,6 @@
 ﻿{
     "goalStatus":  "in_progress",
-    "currentTaskId":  "T002",
+    "currentTaskId":  "T003",
     "currentLoop":  1,
     "maxLoopsPerTask":  2,
     "repeatedFailureCount":  0,
@@ -8,9 +8,18 @@
     "lastCommandStatus":  "passed",
     "lastErrorSummary":  "",
     "lastReviewDecision":  "pass",
-    "lastReviewSeverity":  "low",
-    "lastCommitHash":  null,
+    "lastReviewSeverity":  "none",
+    "lastCommitHash":  "cc4a9ff5e78dac30c0e1455ca017e8e7b0dd0834",
     "startedAt":  "2026-08-10T00:00:00+09:00",
-    "updatedAt":  "2026-08-10T03:40:44.8287154+00:00",
-    "stopReason":  null
+    "updatedAt":  "2026-08-10T06:03:42.1000243+00:00",
+    "stopReason":  null,
+    "autoRecovery":  {
+                         "T002":  {
+                                      "counts":  {
+                                                     "stale_review_required_file_missing":  1,
+                                                     "review_revise_repeated":  1
+                                                 },
+                                      "lastStoppedReason":  "review_revise_repeated"
+                                  }
+                     }
 }
