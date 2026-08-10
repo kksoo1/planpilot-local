@@ -7,51 +7,47 @@
 ## Goal
 
 # 목표
-AI Dev 자동화의 반복 실패 유형을 분류하고, 안전하게 자동 복구 가능한 경우 task별 최대 1회 재시도하도록 강화한다.
+AI Software Company 고객 포털과 자율 개발회사 운영 기반을 기존 PlanPilot AI Dev 자동화 엔진 위에 작고 안전한 단위로 설계하고 초기 상태 파일 계획을 준비한다.
 
 ## 배경
-현재 AI Dev 흐름에서는 test_failed, review_json_extraction_failed, review_revise_repeated, stale_review_required_file_missing, missing_implementation, package_files_changed 같은 실패가 반복될 수 있다. 각 실패 유형을 명확히 구분하고, 이미 구현 커밋과 최신 검증 결과가 있는 재개 흐름은 불필요하게 Codex를 다시 실행하지 않도록 한다.
+사용자는 개발팀 관리자가 아니라 고객/발주자 관점에서 제품을 의뢰하고, CEO Agent가 요구사항 분석부터 납품 검수까지 회사 운영 흐름을 조율하는 로컬 운영 플랫폼을 원한다. 기존 자동개발 스크립트와 회귀 테스트 안전장치는 재사용하며 약화하지 않는다.
 
 ## 성공 기준
-- test_failed 발생 시 실패 항목과 test-result를 포함한 수정 프롬프트로 Codex 재수정을 최대 1회 수행한다.
-- review_json_extraction_failed 발생 시 원본 리뷰 응답을 보존하고 JSON 추출 또는 리뷰 생성을 최대 1회 재시도한다.
-- review_revise_repeated와 stale_review_required_file_missing 발생 시 최신 required_changes와 실제 changedFiles를 비교해 누락 파일만 대상으로 재시도한다.
-- 최신 review가 pass이고 검증 결과가 current이며 task 구현 커밋이 존재하면 Codex 재실행 없이 다음 흐름으로 진행한다.
-- package.json의 scripts 필드만 변경되고 dependencies, devDependencies, package-lock.json이 변경되지 않은 경우에만 안전한 변경으로 허용한다.
-- missing_implementation은 Codex 결과와 실제 diff가 모두 없을 때만 발생한다.
-- task별 복구 횟수와 최종 stopped reason을 기록해 무한 반복을 방지한다.
-- 기존 영어 판정 토큰, expected_non_work 처리, baseline 사용자 변경 보존, PowerShell 5.1 호환성을 유지한다.
-- npm run build, npm test 20개 이상, npm run lint가 모두 통과한다.
+- 고객 의뢰, CEO 검토, 내부 역할 흐름, 납품 준비 상태를 분리된 회사 상태 모델로 표현한다.
+- 기존 AI Dev Goal/Task 흐름과 연결 가능한 어댑터 경계를 정의한다.
+- 고객 포털과 회사 내부 보기를 PlanPilot 제품 UI와 섞지 않는 구조로 준비한다.
+- 고객 의사결정이 필요한 상황과 회사가 자율 처리할 개발 세부사항의 경계를 명확히 한다.
+- 이후 구현이 PowerShell 5.1, UTF-8, 로컬 파일 기반 상태 저장 정책을 유지하도록 한다.
 
 ## 제약사항
-- 한 번에 하나의 복구 흐름만 작게 구현한다.
-- 기존 AI Dev 상태 파일과 queue/state 형식을 유지한다.
-- 사용자 변경 사항과 baseline 변경 사항을 보존한다.
-- package 의존성 및 lock file 변경은 안전 복구 대상으로 보지 않는다.
-- PowerShell 5.1에서 동작하는 명령 형식을 유지한다.
+- 기존 PlanPilot 제품 UI와 회사 운영 GUI의 경계를 유지한다.
+- 기존 테스트와 자동개발 안전장치를 약화하거나 중복 구현하지 않는다.
+- 고객 baseline 변경을 보존한다.
+- 상태 파일은 전용 회사 디렉터리에 분리하고 재시작 후 복원 가능해야 한다.
+- 한 번에 하나의 기능 단위로 진행한다.
 
 ## 범위 제외
-- 새로운 실행 환경 도입은 제외한다.
-- 대규모 구조 재작성은 제외한다.
-- 알림 기능 추가는 제외한다.
-- UI 화면 변경은 제외한다.
+- 외부 서비스 연동은 포함하지 않는다.
+- 대규모 기존 화면 재작성은 포함하지 않는다.
+- 제품 요구사항과 무관한 리팩터링은 포함하지 않는다.
+- 알림, 모바일 권한, 동기화 기능은 포함하지 않는다.
 
 ## 수동 검증
-- 실패 유형별 샘플 상태를 사용해 자동 복구 횟수가 task별 최대 1회로 제한되는지 확인한다.
-- 최신 review pass, current 검증, 구현 커밋 존재 조건에서 Codex 재실행 없이 이어지는지 확인한다.
-- package.json scripts 단독 변경과 의존성 변경 케이스가 각각 허용/차단되는지 확인한다.
+- 생성된 목표와 큐가 작고 순차적인지 확인한다.
+- T001이 현재 진행 작업으로 설정되었는지 확인한다.
+- 회사 상태와 기존 AI Dev 상태가 분리되는 방향인지 확인한다.
+- 고객 의사결정 기준이 제품 수준 결정으로 제한되어 있는지 확인한다.
 
 ## Current Task
 
-- Task ID: T003
-- Title: 전체 검증 실행
-- Description: 자동 복구 변경 후 build, test, lint를 실행해 목표 성공 기준을 최종 확인한다.
-- Type: verification
+- Task ID: T001
+- Title: 회사 운영 상태 모델 설계
+- Description: AI Software Company의 프로젝트 생명주기, 역할 상태, 고객 의사결정, 납품 상태를 기존 AI Dev 상태와 분리되는 작은 상태 모델로 정리한다.
+- Type: analysis
 - Status: in_progress
-- Priority: P1
+- Priority: P0
 - Depends on:
-- T001
-- T002
+- 없음
 
 ## Task Scope
 
@@ -62,13 +58,15 @@ AI Dev 자동화의 반복 실패 유형을 분류하고, 안전하게 자동 �
 
 ## Likely Files
 
-- 없음
+- .ai-dev/goal.md
+- .ai-dev/queue.json
+- .ai-dev/state.json
 
 ## Verification
 
-- npm run build를 통과한다.
-- npm test에서 20개 이상의 테스트가 통과한다.
-- npm run lint를 통과한다.
+- 상태 단계가 요청된 생명주기와 일치하는지 확인
+- 고객 결정 필요 조건과 회사 자율 처리 범위가 분리되어 있는지 확인
+- 기존 AI Dev 상태 파일과 회사 상태 파일의 책임이 섞이지 않는지 확인
 
 - 필요한 경우 `npm run build`는 사람이 별도로 실행한다.
 - 이 프롬프트는 자동으로 build, test, lint를 실행하라고 지시하지 않는다.

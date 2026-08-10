@@ -1848,3 +1848,17 @@ Exit code: 1
 - Task: T003 전체 검증 실행
 - Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 구현 커밋 없음, 저장된 리뷰 pass에서 자동 완료
 - Next task: 없음
+
+## 2026-08-10 12:34:44 - Task progress
+
+- Task: T001 회사 운영 상태 모델 설계
+- Result: `.ai-dev/goal.md`에 AI Software Company 운영 상태 모델을 추가했다. 프로젝트 생명주기, 역할 상태, 고객 의사결정 경계, 납품 상태, 기존 AI Dev 어댑터 경계, 초기 `.ai-company/` 상태 파일 계획을 분리해 정리했다.
+- Scope: 분석 task 산출물만 반영했으며, `.ai-company/` 실제 파일 생성은 T002 범위로 남겼다. PlanPilot 제품 UI, `src`, package 파일, DB schema, 기존 자동개발 스크립트는 수정하지 않았다.
+- Verification: T001이 현재 `in_progress`로 유지되는지, T002/T003이 순차 `pending`인지, 회사 상태 책임이 `.ai-company/`로 분리되는지, 고객 결정 기준이 제품 수준 결정으로 제한되는지 문서 기준으로 확인한다.
+- Remaining risk: 실제 회사 상태 JSON/JSONL 파일은 아직 생성하지 않았으므로 재시작 복원 동작 검증은 T002에서 필요하다.
+
+## 2026-08-10 12:40:44 - Task completed
+
+- Task: T001 회사 운영 상태 모델 설계
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 구현 커밋 없음, 저장된 리뷰 pass에서 자동 완료
+- Next task: T002 초기 회사 상태 파일 구조 추가

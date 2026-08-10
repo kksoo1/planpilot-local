@@ -1,34 +1,88 @@
 ﻿# 목표
-AI Dev 자동화의 반복 실패 유형을 분류하고, 안전하게 자동 복구 가능한 경우 task별 최대 1회 재시도하도록 강화한다.
+AI Software Company 고객 포털과 자율 개발회사 운영 기반을 기존 PlanPilot AI Dev 자동화 엔진 위에 작고 안전한 단위로 설계하고 초기 상태 파일 계획을 준비한다.
 
 ## 배경
-현재 AI Dev 흐름에서는 test_failed, review_json_extraction_failed, review_revise_repeated, stale_review_required_file_missing, missing_implementation, package_files_changed 같은 실패가 반복될 수 있다. 각 실패 유형을 명확히 구분하고, 이미 구현 커밋과 최신 검증 결과가 있는 재개 흐름은 불필요하게 Codex를 다시 실행하지 않도록 한다.
+사용자는 개발팀 관리자가 아니라 고객/발주자 관점에서 제품을 의뢰하고, CEO Agent가 요구사항 분석부터 납품 검수까지 회사 운영 흐름을 조율하는 로컬 운영 플랫폼을 원한다. 기존 자동개발 스크립트와 회귀 테스트 안전장치는 재사용하며 약화하지 않는다.
 
 ## 성공 기준
-- test_failed 발생 시 실패 항목과 test-result를 포함한 수정 프롬프트로 Codex 재수정을 최대 1회 수행한다.
-- review_json_extraction_failed 발생 시 원본 리뷰 응답을 보존하고 JSON 추출 또는 리뷰 생성을 최대 1회 재시도한다.
-- review_revise_repeated와 stale_review_required_file_missing 발생 시 최신 required_changes와 실제 changedFiles를 비교해 누락 파일만 대상으로 재시도한다.
-- 최신 review가 pass이고 검증 결과가 current이며 task 구현 커밋이 존재하면 Codex 재실행 없이 다음 흐름으로 진행한다.
-- package.json의 scripts 필드만 변경되고 dependencies, devDependencies, package-lock.json이 변경되지 않은 경우에만 안전한 변경으로 허용한다.
-- missing_implementation은 Codex 결과와 실제 diff가 모두 없을 때만 발생한다.
-- task별 복구 횟수와 최종 stopped reason을 기록해 무한 반복을 방지한다.
-- 기존 영어 판정 토큰, expected_non_work 처리, baseline 사용자 변경 보존, PowerShell 5.1 호환성을 유지한다.
-- npm run build, npm test 20개 이상, npm run lint가 모두 통과한다.
+- 고객 의뢰, CEO 검토, 내부 역할 흐름, 납품 준비 상태를 분리된 회사 상태 모델로 표현한다.
+- 기존 AI Dev Goal/Task 흐름과 연결 가능한 어댑터 경계를 정의한다.
+- 고객 포털과 회사 내부 보기를 PlanPilot 제품 UI와 섞지 않는 구조로 준비한다.
+- 고객 의사결정이 필요한 상황과 회사가 자율 처리할 개발 세부사항의 경계를 명확히 한다.
+- 이후 구현이 PowerShell 5.1, UTF-8, 로컬 파일 기반 상태 저장 정책을 유지하도록 한다.
 
 ## 제약사항
-- 한 번에 하나의 복구 흐름만 작게 구현한다.
-- 기존 AI Dev 상태 파일과 queue/state 형식을 유지한다.
-- 사용자 변경 사항과 baseline 변경 사항을 보존한다.
-- package 의존성 및 lock file 변경은 안전 복구 대상으로 보지 않는다.
-- PowerShell 5.1에서 동작하는 명령 형식을 유지한다.
+- 기존 PlanPilot 제품 UI와 회사 운영 GUI의 경계를 유지한다.
+- 기존 테스트와 자동개발 안전장치를 약화하거나 중복 구현하지 않는다.
+- 고객 baseline 변경을 보존한다.
+- 상태 파일은 전용 회사 디렉터리에 분리하고 재시작 후 복원 가능해야 한다.
+- 한 번에 하나의 기능 단위로 진행한다.
 
 ## 범위 제외
-- 새로운 실행 환경 도입은 제외한다.
-- 대규모 구조 재작성은 제외한다.
-- 알림 기능 추가는 제외한다.
-- UI 화면 변경은 제외한다.
+- 외부 서비스 연동은 포함하지 않는다.
+- 대규모 기존 화면 재작성은 포함하지 않는다.
+- 제품 요구사항과 무관한 리팩터링은 포함하지 않는다.
+- 알림, 모바일 권한, 동기화 기능은 포함하지 않는다.
 
 ## 수동 검증
-- 실패 유형별 샘플 상태를 사용해 자동 복구 횟수가 task별 최대 1회로 제한되는지 확인한다.
-- 최신 review pass, current 검증, 구현 커밋 존재 조건에서 Codex 재실행 없이 이어지는지 확인한다.
-- package.json scripts 단독 변경과 의존성 변경 케이스가 각각 허용/차단되는지 확인한다.
+- 생성된 목표와 큐가 작고 순차적인지 확인한다.
+- T001이 현재 진행 작업으로 설정되었는지 확인한다.
+- 회사 상태와 기존 AI Dev 상태가 분리되는 방향인지 확인한다.
+- 고객 의사결정 기준이 제품 수준 결정으로 제한되어 있는지 확인한다.
+
+## T001 분석 결과: 회사 운영 상태 모델
+
+### 상태 저장 경계
+- 회사 운영 상태는 이후 `.ai-company/` 전용 디렉터리에 저장한다.
+- 기존 `.ai-dev/` 파일은 자동 개발 목표, task 큐, 실행 상태, 검증/리뷰 기록만 담당한다.
+- 회사 상태 파일은 고객 포털과 내부 회사 운영 GUI의 복원 가능한 원천 상태로 사용하며, PlanPilot 제품 데이터와 섞지 않는다.
+- PowerShell 5.1 환경을 고려해 모든 회사 상태 파일은 UTF-8 JSON 또는 append-only JSONL로 유지한다.
+
+### 프로젝트 생명주기
+- `intake`: 고객 의뢰가 접수되었고 제품 수준 요구사항이 정리되기 전 상태.
+- `ceo_review`: CEO Agent가 요구사항, 범위, 리스크, 고객 결정 필요 여부를 검토하는 상태.
+- `planning`: 내부 역할들이 작업 단위, 검증 기준, 납품 기준을 작게 나누는 상태.
+- `development`: 기존 AI Dev Goal/Task 흐름으로 전달 가능한 내부 개발 작업이 실행되는 상태.
+- `qa_review`: 테스트, 회귀 안전장치, 리뷰 결과를 확인하는 상태.
+- `delivery_preparation`: 고객에게 보여줄 요약, 변경 내역, 검수 기준을 준비하는 상태.
+- `customer_acceptance`: 고객이 제품 수준 결과를 승인하거나 보완 요청을 남기는 상태.
+- `closed`: 납품이 승인되어 회사 운영 관점에서 종료된 상태.
+- `paused`: 고객 결정, 범위 충돌, 안전 규칙 충돌 등으로 진행을 멈춘 상태.
+
+### 역할 상태
+- `CEO`: 고객 의뢰 해석, 우선순위 판단, 고객 결정 필요 여부 판정, 납품 승인 준비를 담당한다.
+- `Product`: 제품 수준 요구사항, 수용 기준, 고객-facing 변경 요약을 담당한다.
+- `CTO`: 기술 범위, 기존 AI Dev 연결 가능성, 안전장치 유지 여부를 판단한다.
+- `Developer`: 기존 AI Dev task 단위 구현을 수행한다.
+- `QA`: build/test/lint/review 결과와 회귀 위험을 확인한다.
+- 각 역할 상태는 `idle`, `assigned`, `working`, `blocked`, `done` 중 하나로 표현하고, 차단 사유는 회사 상태 파일에 기록한다.
+
+### 고객 의사결정 경계
+- 고객 결정이 필요한 항목은 목표 변경, 범위 확대/축소, 우선순위 변경, 납품 승인, 제품 동작 또는 UX 방향 선택으로 제한한다.
+- 고객에게 내부 구현 방식, 파일 분리 방식, 테스트 명령 선택, 코드 스타일 같은 개발 세부사항을 묻지 않는다.
+- 회사가 자율 처리할 항목은 task 분해, 기존 AI Dev 큐 생성, 검증 순서, 리뷰 대응, 작은 리팩터링 제안, 납품 요약 작성이다.
+- 고객 결정 대기 상태에서는 개발 세부 task를 새로 시작하지 않고, 기존 진행 결과와 필요한 선택지를 요약한다.
+
+### 납품 상태
+- `not_ready`: 개발 또는 검증이 끝나지 않아 고객 검수가 불가능한 상태.
+- `qa_pending`: 구현은 끝났지만 QA 또는 리뷰 확인이 남은 상태.
+- `ready_for_customer`: QA와 리뷰가 통과되어 고객 검수 자료를 준비할 수 있는 상태.
+- `changes_requested`: 고객이 제품 수준 보완을 요청한 상태.
+- `accepted`: 고객이 납품을 승인한 상태.
+- QA와 리뷰가 통과하기 전에는 `ready_for_customer`로 이동하지 않는다.
+
+### 기존 AI Dev 어댑터 경계
+- 회사 운영 모델은 내부 개발 작업을 기존 AI Dev Goal/Task 큐로 변환하는 계획까지만 담당한다.
+- 실제 구현, 검증, 리뷰, 실패 복구는 기존 `.ai-dev/queue.json`, `.ai-dev/state.json`, 자동개발 스크립트의 책임으로 남긴다.
+- 어댑터는 회사 프로젝트 ID, 내부 작업 목적, 성공 기준, 예상 변경 파일, 검증 방법을 AI Dev task 입력으로 전달한다.
+- AI Dev 실행 결과는 고객에게 raw 로그가 아니라 상태 요약, 검증 결과, 남은 위험, 고객 결정 필요 여부로 변환해 보여준다.
+- 기존 테스트와 자동개발 안전장치를 대체하거나 우회하는 별도 실행기를 만들지 않는다.
+
+### 초기 회사 상태 파일 계획
+- `.ai-company/company-state.json`: 회사 운영 런타임 상태, 현재 프로젝트, 역할별 상태, 차단 사유.
+- `.ai-company/projects.json`: 고객 프로젝트 목록과 생명주기 상태.
+- `.ai-company/customer-requests.json`: 고객 의뢰 원문과 정리된 제품 요구사항.
+- `.ai-company/customer-decisions.json`: 고객 결정 대기/완료 항목과 선택지.
+- `.ai-company/deliveries.json`: 납품 준비 상태, 검수 기준, 고객 승인 상태.
+- `.ai-company/company-config.json`: 로컬 운영 정책과 역할 기본 설정.
+- `.ai-company/events.jsonl`: 재시작 후 흐름 복원을 위한 append-only 회사 이벤트 로그.

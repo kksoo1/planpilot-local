@@ -1,79 +1,79 @@
 ﻿{
-    "goalTitle":  "AI Dev 실패 유형별 자동 복구 강화",
+    "goalTitle":  "AI Software Company 고객 포털과 자율 개발회사 운영 기반 구축",
     "goalSource":  ".ai-dev/goal.md",
-    "createdAt":  "2026-08-03T00:00:00+09:00",
-    "updatedAt":  "2026-08-10T02:22:24.1341452+00:00",
-    "currentTaskId":  null,
+    "createdAt":  "2026-08-10T00:00:00+09:00",
+    "updatedAt":  "2026-08-10T03:40:44.8287154+00:00",
+    "currentTaskId":  "T002",
     "tasks":  [
                   {
                       "id":  "T001",
-                      "title":  "실패 유형별 자동 복구 흐름 구현",
-                      "description":  "AI Dev 자동화의 반복 실패 유형을 분류하고, 안전한 유형에 대해 task별 최대 1회만 복구 프롬프트 또는 재시도 흐름을 실행하도록 구현한다.",
-                      "type":  "implementation",
+                      "title":  "회사 운영 상태 모델 설계",
+                      "description":  "AI Software Company의 프로젝트 생명주기, 역할 상태, 고객 의사결정, 납품 상태를 기존 AI Dev 상태와 분리되는 작은 상태 모델로 정리한다.",
+                      "type":  "analysis",
                       "status":  "done",
                       "priority":  "P0",
                       "dependsOn":  [
 
                                     ],
                       "filesLikelyToChange":  [
-                                                  ".ai-dev/ai-dev-loop.ps1",
-                                                  ".ai-dev/lib/*.ps1"
+                                                  ".ai-dev/goal.md",
+                                                  ".ai-dev/queue.json",
+                                                  ".ai-dev/state.json"
                                               ],
                       "verification":  [
-                                           "PowerShell 5.1 호환 문법을 유지한다.",
-                                           "test_failed, review_json_extraction_failed, review_revise_repeated, stale_review_required_file_missing, missing_implementation, package_files_changed 분기 조건을 확인한다.",
-                                           "복구 횟수와 stopped reason 기록 경로를 확인한다."
+                                           "상태 단계가 요청된 생명주기와 일치하는지 확인",
+                                           "고객 결정 필요 조건과 회사 자율 처리 범위가 분리되어 있는지 확인",
+                                           "기존 AI Dev 상태 파일과 회사 상태 파일의 책임이 섞이지 않는지 확인"
                                        ],
-                      "commitMessage":  "Add typed auto recovery handling",
-                      "commitHash":  "c131c4390ee0b21899fe7a8a2bb4cc28de28c7ef",
-                      "completedAt":  "2026-08-10T01:58:28.1085788+00:00",
-                      "resultSummary":  "자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료"
+                      "commitMessage":  null,
+                      "completedAt":  "2026-08-10T03:40:44.8287154+00:00",
+                      "resultSummary":  "자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 구현 커밋 없음, 저장된 리뷰 pass에서 자동 완료"
                   },
                   {
                       "id":  "T002",
-                      "title":  "재개 흐름과 package 변경 판정 검증",
-                      "description":  "최신 review pass와 current 검증 및 구현 커밋이 있는 경우 Codex 재실행을 건너뛰는 흐름과 package.json scripts 단독 변경 허용 조건을 검증한다.",
-                      "type":  "verification",
-                      "status":  "done",
-                      "priority":  "P1",
+                      "title":  "초기 회사 상태 파일 구조 추가",
+                      "description":  "전용 회사 상태 디렉터리와 최소 JSON/JSONL 파일 구조를 작게 추가하고, Windows PowerShell 5.1 환경에서 한글 UTF-8을 유지하는 파일 형식을 사용한다.",
+                      "type":  "implementation",
+                      "status":  "in_progress",
+                      "priority":  "P0",
                       "dependsOn":  [
                                         "T001"
                                     ],
                       "filesLikelyToChange":  [
-                                                  ".ai-dev/ai-dev-loop.ps1",
-                                                  ".ai-dev/lib/*.ps1"
+                                                  ".ai-company/company-state.json",
+                                                  ".ai-company/projects.json",
+                                                  ".ai-company/customer-requests.json",
+                                                  ".ai-company/customer-decisions.json",
+                                                  ".ai-company/deliveries.json",
+                                                  ".ai-company/company-config.json",
+                                                  ".ai-company/events.jsonl"
                                               ],
                       "verification":  [
-                                           "구현 커밋이 있는 재개 흐름에서 missing_implementation이 발생하지 않는지 확인한다.",
-                                           "package.json scripts 단독 변경만 안전 변경으로 분류되는지 확인한다.",
-                                           "dependencies, devDependencies, package-lock.json 변경은 차단되는지 확인한다."
+                                           "각 파일이 유효한 UTF-8 JSON 또는 JSONL 형식인지 확인",
+                                           "초기 회사 상태가 IDLE 또는 대기 상태로 복원 가능한지 확인",
+                                           "events.jsonl이 append-only 이벤트 로그로 사용할 수 있는지 확인"
                                        ],
-                      "commitMessage":  "Verify recovery resume guards",
-                      "completedAt":  "2026-08-10T02:11:26.4584254+00:00",
-                      "resultSummary":  "자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 구현 커밋 없음, 저장된 리뷰 pass에서 자동 완료"
+                      "commitMessage":  "Add initial company state files"
                   },
                   {
                       "id":  "T003",
-                      "title":  "전체 검증 실행",
-                      "description":  "자동 복구 변경 후 build, test, lint를 실행해 목표 성공 기준을 최종 확인한다.",
-                      "type":  "verification",
-                      "status":  "done",
+                      "title":  "기존 AI Dev 연결 경계 문서화",
+                      "description":  "CEO/Product/CTO/Project 단계에서 만들어진 내부 Task가 기존 AI Dev Goal/Task 실행 흐름으로 전달되는 어댑터 책임과 검증 게이트를 문서화한다.",
+                      "type":  "documentation",
+                      "status":  "pending",
                       "priority":  "P1",
                       "dependsOn":  [
-                                        "T001",
                                         "T002"
                                     ],
                       "filesLikelyToChange":  [
-
+                                                  ".ai-company/reports/adapter-plan.md"
                                               ],
                       "verification":  [
-                                           "npm run build를 통과한다.",
-                                           "npm test에서 20개 이상의 테스트가 통과한다.",
-                                           "npm run lint를 통과한다."
+                                           "QA와 Review 통과 전 납품 준비로 이동하지 않는지 확인",
+                                           "Recovery 흐름이 기존 task 단위 제한과 실패 사유를 재사용하도록 명시되어 있는지 확인",
+                                           "고객 포털에 raw 로그보다 요약 이벤트를 우선 표시하는 원칙이 포함되어 있는지 확인"
                                        ],
-                      "commitMessage":  null,
-                      "completedAt":  "2026-08-10T02:22:24.1341452+00:00",
-                      "resultSummary":  "자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 구현 커밋 없음, 저장된 리뷰 pass에서 자동 완료"
+                      "commitMessage":  "Document company adapter plan"
                   }
               ]
 }

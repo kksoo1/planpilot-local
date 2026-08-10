@@ -2,15 +2,19 @@
 
 ## Generated At
 
-2026-08-10 11:21:33
+2026-08-10 12:39:07
 
 ## Git Status
 
 ```text
  M .ai-dev/codex-result.md
  M .ai-dev/current-task-prompt.md
+ M .ai-dev/goal.md
+ M .ai-dev/loop-log.md
+ M .ai-dev/queue.json
  M .ai-dev/state.json
  M .ai-dev/test-result.md
+?? .ai-dev/auto-goal-planning-prompt.md
 ```
 
 ## App Change Files
@@ -21,8 +25,12 @@
 
 - .ai-dev/codex-result.md
 - .ai-dev/current-task-prompt.md
+- .ai-dev/goal.md
+- .ai-dev/loop-log.md
+- .ai-dev/queue.json
 - .ai-dev/state.json
 - .ai-dev/test-result.md
+- .ai-dev/auto-goal-planning-prompt.md
 
 ## Review Diff Scope
 

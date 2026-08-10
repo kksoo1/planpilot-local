@@ -1,30 +1,16 @@
 ﻿{
-    "goalStatus":  "completed",
-    "currentTaskId":  null,
-    "currentLoop":  0,
+    "goalStatus":  "in_progress",
+    "currentTaskId":  "T002",
+    "currentLoop":  1,
     "maxLoopsPerTask":  2,
     "repeatedFailureCount":  0,
     "lastCommand":  "complete-task",
     "lastCommandStatus":  "passed",
     "lastErrorSummary":  "",
     "lastReviewDecision":  "pass",
-    "lastReviewSeverity":  "none",
-    "lastCommitHash":  "c131c4390ee0b21899fe7a8a2bb4cc28de28c7ef",
-    "startedAt":  "2026-08-03T00:00:00+09:00",
-    "updatedAt":  "2026-08-10T02:22:24.1341452+00:00",
-    "stopReason":  "all_tasks_completed",
-    "lastReviewNextStep":  "revise_with_codex",
-    "lastReviewSummary":  "review_revise_repeated 복구가 실제 changedFiles와 비교하지 않아 누락 파일만 대상\r\n으로 재시도한다는 핵심 요구사항을 충족하지 못합니다.",
-    "lastReviewRequiredChanges":  [
-                                      {
-                                          "file":  "scripts/ai-dev-auto-cycle-full.ps1",
-                                          "reason":  "재리뷰가 review_revise_repeated로 떨어질 때 recoveryGate.missingReq\r\nuiredFiles에 reviewGate.requiredChangeFiles 전체를 넣고, Invoke-RequiredFilesReco\r\nvery가 이 값을 우선 사용합니다. 이 때문에 이미 변경된 파일까지 누락 파일로 간주되어 \u0027최신 required_changes와 실제\r\n changedFiles를 비교해 누락 파일만 대상으로 재시도\u0027한다는 성공 기준을 위반합니다.",
-                                          "suggestion":  "review_revise_repeated recoveryGate를 만들 때 missingRequi\r\nredFiles를 직접 전체 requiredChangeFiles로 채우지 말고, Get-ChangedNonAiDevFiles와 Test\r\n-ReviewRequiredFileIsChanged를 사용해 실제 누락된 파일만 계산하거나 missingRequiredFiles 속성을\r\n 생략해 Invoke-RequiredFilesRecovery 내부 비교 경로를 타도록 수정하세요."
-                                      },
-                                      {
-                                          "file":  "scripts/ai-dev-test.ps1",
-                                          "reason":  "제공된 테스트 결과는 기존 maxsteps/baseline 중심 20개 PASS만 보여주며, 이번 tas\r\nk의 핵심 분기인 test_failed, review_json_extraction_failed, review_revise_repeate\r\nd, stale_review_required_file_missing, missing_implementation, package_file\r\ns_changed 복구 조건을 검증했다는 증거가 없습니다. Strict Criteria상 핵심 변경에 대한 테스트 공백은 revise \r\n대상입니다.",
-                                          "suggestion":  "최소한 review_revise_repeated에서 이미 변경된 required file은 누락 \r\n대상에서 제외되는 케이스와 package.json scripts-only 허용/의존성 변경 차단 케이스를 포함해 이번 task의 주요 \r\n분기 테스트를 추가하세요."
-                                      }
-                                  ]
+    "lastReviewSeverity":  "low",
+    "lastCommitHash":  null,
+    "startedAt":  "2026-08-10T00:00:00+09:00",
+    "updatedAt":  "2026-08-10T03:40:44.8287154+00:00",
+    "stopReason":  null
 }
