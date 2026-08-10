@@ -43,14 +43,14 @@ AI Dev 자동화의 반복 실패 유형을 분류하고, 안전하게 자동 �
 
 ## Current Task
 
-- Task ID: T001
-- Title: 실패 유형별 자동 복구 흐름 구현
-- Description: AI Dev 자동화의 반복 실패 유형을 분류하고, 안전한 유형에 대해 task별 최대 1회만 복구 프롬프트 또는 재시도 흐름을 실행하도록 구현한다.
-- Type: implementation
+- Task ID: T002
+- Title: 재개 흐름과 package 변경 판정 검증
+- Description: 최신 review pass와 current 검증 및 구현 커밋이 있는 경우 Codex 재실행을 건너뛰는 흐름과 package.json scripts 단독 변경 허용 조건을 검증한다.
+- Type: verification
 - Status: in_progress
-- Priority: P0
+- Priority: P1
 - Depends on:
-- 없음
+- T001
 
 ## Task Scope
 
@@ -66,9 +66,9 @@ AI Dev 자동화의 반복 실패 유형을 분류하고, 안전하게 자동 �
 
 ## Verification
 
-- PowerShell 5.1 호환 문법을 유지한다.
-- test_failed, review_json_extraction_failed, review_revise_repeated, stale_review_required_file_missing, missing_implementation, package_files_changed 분기 조건을 확인한다.
-- 복구 횟수와 stopped reason 기록 경로를 확인한다.
+- 구현 커밋이 있는 재개 흐름에서 missing_implementation이 발생하지 않는지 확인한다.
+- package.json scripts 단독 변경만 안전 변경으로 분류되는지 확인한다.
+- dependencies, devDependencies, package-lock.json 변경은 차단되는지 확인한다.
 
 - 필요한 경우 `npm run build`는 사람이 별도로 실행한다.
 - 이 프롬프트는 자동으로 build, test, lint를 실행하라고 지시하지 않는다.

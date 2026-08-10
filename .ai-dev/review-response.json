@@ -1,7 +1,7 @@
 ﻿{
     "decision":  "pass",
     "severity":  "none",
-    "summary":  "현재 task 요구사항에 맞게 자동 복구 분기, task별 1회 제한, 저장된 리뷰 재개, package 변경\r\n 게이트, missing_implementation 조건이 구현되었고 검증도 통과했습니다.",
+    "summary":  "앱 변경 파일 없이 T002 검증 결과만 갱신되었고, 요구된 재개 흐름 및 package 변경 판정 검증이 모\r\n두 통과했습니다.",
     "required_changes":  [
 
                          ],

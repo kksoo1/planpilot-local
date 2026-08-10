@@ -1838,3 +1838,8 @@ Exit code: 1
 - Task: T001 실패 유형별 자동 복구 흐름 구현
 - Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
 - Next task: T002 재개 흐름과 package 변경 판정 검증
+## 2026-08-10 11:11:26 - Task completed
+
+- Task: T002 재개 흐름과 package 변경 판정 검증
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 구현 커밋 없음, 저장된 리뷰 pass에서 자동 완료
+- Next task: T003 전체 검증 실행
