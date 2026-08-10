@@ -15,122 +15,73 @@
 ## Project Goal
 
 # 목표
-AI Software Company 고객 포털과 자율 개발회사 운영 기반을 기존 PlanPilot AI Dev 자동화 엔진 위에 작고 안전한 단위로 설계하고 초기 상태 파일 계획을 준비한다.
+AI Software Company 무인 개발 흐름에서 사람이 개입하게 만드는 commit scope 처리와 비구현 task revise 자동화를 보강한다.
 
 ## 배경
-사용자는 개발팀 관리자가 아니라 고객/발주자 관점에서 제품을 의뢰하고, CEO Agent가 요구사항 분석부터 납품 검수까지 회사 운영 흐름을 조율하는 로컬 운영 플랫폼을 원한다. 기존 자동개발 스크립트와 회귀 테스트 안전장치는 재사용하며 약화하지 않는다.
+현재 자동 commit 스크립트는 디렉터리 경로가 -Files로 전달될 때 해당 디렉터리 아래의 실제 변경 파일 범위를 안정적으로 해석하지 못할 수 있다. 또한 documentation, analysis, verification task에서 strict review가 revise를 요구하는 경우 허용 범위 안의 명확한 수정임에도 자동 복구가 끊길 수 있다.
 
 ## 성공 기준
-- 고객 의뢰, CEO 검토, 내부 역할 흐름, 납품 준비 상태를 분리된 회사 상태 모델로 표현한다.
-- 기존 AI Dev Goal/Task 흐름과 연결 가능한 어댑터 경계를 정의한다.
-- 고객 포털과 회사 내부 보기를 PlanPilot 제품 UI와 섞지 않는 구조로 준비한다.
-- 고객 의사결정이 필요한 상황과 회사가 자율 처리할 개발 세부사항의 경계를 명확히 한다.
-- 이후 구현이 PowerShell 5.1, UTF-8, 로컬 파일 기반 상태 저장 정책을 유지하도록 한다.
+- -Files에 .ai-company/, .ai-company/reports/, ai-software-company/ 같은 디렉터리 경로가 전달되면 해당 디렉터리 아래 변경 파일로 안전하게 확장된다.
+- 파일 경로와 디렉터리 경로 혼합 입력, untracked 파일, 수정 파일, 삭제 파일이 정상 처리된다.
+- 선택 디렉터리 내부 변경은 선택 파일 외 staged 파일로 오판하지 않는다.
+- 선택 범위 밖 staged 파일은 기존처럼 차단한다.
+- repo root 밖 경로와 .. traversal 경로는 차단된다.
+- 비구현 task에서 strict review가 revise를 요구하면 조건이 명확하고 파일 범위가 허용될 때 Codex 자동 재수정을 최대 1회 수행한다.
+- 비구현 task의 두 번째 revise는 추가 자동 수정 없이 명확한 stopped reason으로 중단된다.
+- documentation task의 BuildOnly 검증 정책에서 npm test skipped는 실패로 보지 않는다.
+- implementation task의 기존 build/test/lint 정책은 유지된다.
+- scripts/ai-dev-test.ps1에 실제 임시 Git 저장소 또는 worktree 기반 테스트가 추가되고 기존 안전장치는 약화되지 않는다.
+- 최종 검증에서 build, 전체 npm test, lint, strict review가 통과한다.
 
 ## 제약사항
-- 기존 PlanPilot 제품 UI와 회사 운영 GUI의 경계를 유지한다.
-- 기존 테스트와 자동개발 안전장치를 약화하거나 중복 구현하지 않는다.
-- 고객 baseline 변경을 보존한다.
-- 상태 파일은 전용 회사 디렉터리에 분리하고 재시작 후 복원 가능해야 한다.
-- 한 번에 하나의 기능 단위로 진행한다.
+- PowerShell 5.1 호환성을 유지한다.
+- UTF-8 호환성을 유지한다.
+- 기존 테스트를 삭제하거나 약화하지 않는다.
+- Git pathspec 의미를 무분별하게 확장하지 않는다.
+- 한 번에 필요한 범위의 스크립트와 테스트만 수정한다.
 
 ## 범위 제외
-- 외부 서비스 연동은 포함하지 않는다.
-- 대규모 기존 화면 재작성은 포함하지 않는다.
-- 제품 요구사항과 무관한 리팩터링은 포함하지 않는다.
-- 알림, 모바일 권한, 동기화 기능은 포함하지 않는다.
+- GUI 또는 Supervisor 신규 구현은 포함하지 않는다.
+- 데이터 저장 구조 변경은 포함하지 않는다.
+- 알림, 동기화, 인증 관련 기능은 포함하지 않는다.
+- 대규모 구조 재작성은 포함하지 않는다.
 
 ## 수동 검증
-- 생성된 목표와 큐가 작고 순차적인지 확인한다.
-- T001이 현재 진행 작업으로 설정되었는지 확인한다.
-- 회사 상태와 기존 AI Dev 상태가 분리되는 방향인지 확인한다.
-- 고객 의사결정 기준이 제품 수준 결정으로 제한되어 있는지 확인한다.
-
-## T001 분석 결과: 회사 운영 상태 모델
-
-### 상태 저장 경계
-- 회사 운영 상태는 이후 `.ai-company/` 전용 디렉터리에 저장한다.
-- 기존 `.ai-dev/` 파일은 자동 개발 목표, task 큐, 실행 상태, 검증/리뷰 기록만 담당한다.
-- 회사 상태 파일은 고객 포털과 내부 회사 운영 GUI의 복원 가능한 원천 상태로 사용하며, PlanPilot 제품 데이터와 섞지 않는다.
-- PowerShell 5.1 환경을 고려해 모든 회사 상태 파일은 UTF-8 JSON 또는 append-only JSONL로 유지한다.
-
-### 프로젝트 생명주기
-- `intake`: 고객 의뢰가 접수되었고 제품 수준 요구사항이 정리되기 전 상태.
-- `ceo_review`: CEO Agent가 요구사항, 범위, 리스크, 고객 결정 필요 여부를 검토하는 상태.
-- `planning`: 내부 역할들이 작업 단위, 검증 기준, 납품 기준을 작게 나누는 상태.
-- `development`: 기존 AI Dev Goal/Task 흐름으로 전달 가능한 내부 개발 작업이 실행되는 상태.
-- `qa_review`: 테스트, 회귀 안전장치, 리뷰 결과를 확인하는 상태.
-- `delivery_preparation`: 고객에게 보여줄 요약, 변경 내역, 검수 기준을 준비하는 상태.
-- `customer_acceptance`: 고객이 제품 수준 결과를 승인하거나 보완 요청을 남기는 상태.
-- `closed`: 납품이 승인되어 회사 운영 관점에서 종료된 상태.
-- `paused`: 고객 결정, 범위 충돌, 안전 규칙 충돌 등으로 진행을 멈춘 상태.
-
-### 역할 상태
-- `CEO`: 고객 의뢰 해석, 우선순위 판단, 고객 결정 필요 여부 판정, 납품 승인 준비를 담당한다.
-- `Product`: 제품 수준 요구사항, 수용 기준, 고객-facing 변경 요약을 담당한다.
-- `CTO`: 기술 범위, 기존 AI Dev 연결 가능성, 안전장치 유지 여부를 판단한다.
-- `Developer`: 기존 AI Dev task 단위 구현을 수행한다.
-- `QA`: build/test/lint/review 결과와 회귀 위험을 확인한다.
-- 각 역할 상태는 `idle`, `assigned`, `working`, `blocked`, `done` 중 하나로 표현하고, 차단 사유는 회사 상태 파일에 기록한다.
-
-### 고객 의사결정 경계
-- 고객 결정이 필요한 항목은 목표 변경, 범위 확대/축소, 우선순위 변경, 납품 승인, 제품 동작 또는 UX 방향 선택으로 제한한다.
-- 고객에게 내부 구현 방식, 파일 분리 방식, 테스트 명령 선택, 코드 스타일 같은 개발 세부사항을 묻지 않는다.
-- 회사가 자율 처리할 항목은 task 분해, 기존 AI Dev 큐 생성, 검증 순서, 리뷰 대응, 작은 리팩터링 제안, 납품 요약 작성이다.
-- 고객 결정 대기 상태에서는 개발 세부 task를 새로 시작하지 않고, 기존 진행 결과와 필요한 선택지를 요약한다.
-
-### 납품 상태
-- `not_ready`: 개발 또는 검증이 끝나지 않아 고객 검수가 불가능한 상태.
-- `qa_pending`: 구현은 끝났지만 QA 또는 리뷰 확인이 남은 상태.
-- `ready_for_customer`: QA와 리뷰가 통과되어 고객 검수 자료를 준비할 수 있는 상태.
-- `changes_requested`: 고객이 제품 수준 보완을 요청한 상태.
-- `accepted`: 고객이 납품을 승인한 상태.
-- QA와 리뷰가 통과하기 전에는 `ready_for_customer`로 이동하지 않는다.
-
-### 기존 AI Dev 어댑터 경계
-- 회사 운영 모델은 내부 개발 작업을 기존 AI Dev Goal/Task 큐로 변환하는 계획까지만 담당한다.
-- 실제 구현, 검증, 리뷰, 실패 복구는 기존 `.ai-dev/queue.json`, `.ai-dev/state.json`, 자동개발 스크립트의 책임으로 남긴다.
-- 어댑터는 회사 프로젝트 ID, 내부 작업 목적, 성공 기준, 예상 변경 파일, 검증 방법을 AI Dev task 입력으로 전달한다.
-- AI Dev 실행 결과는 고객에게 raw 로그가 아니라 상태 요약, 검증 결과, 남은 위험, 고객 결정 필요 여부로 변환해 보여준다.
-- 기존 테스트와 자동개발 안전장치를 대체하거나 우회하는 별도 실행기를 만들지 않는다.
-
-### 초기 회사 상태 파일 계획
-- `.ai-company/company-state.json`: 회사 운영 런타임 상태, 현재 프로젝트, 역할별 상태, 차단 사유.
-- `.ai-company/projects.json`: 고객 프로젝트 목록과 생명주기 상태.
-- `.ai-company/customer-requests.json`: 고객 의뢰 원문과 정리된 제품 요구사항.
-- `.ai-company/customer-decisions.json`: 고객 결정 대기/완료 항목과 선택지.
-- `.ai-company/deliveries.json`: 납품 준비 상태, 검수 기준, 고객 승인 상태.
-- `.ai-company/company-config.json`: 로컬 운영 정책과 역할 기본 설정.
-- `.ai-company/events.jsonl`: 재시작 후 흐름 복원을 위한 append-only 회사 이벤트 로그.
-
+- scripts/ai-dev-test.ps1 실행 결과를 확인한다.
+- build, 전체 npm test, lint 결과를 확인한다.
+- strict review 결과가 pass인지 확인한다.
 
 ## Current Task
 
-- Task ID: T003
-- Title: 기존 AI Dev 연결 경계 문서화
-- Description: CEO/Product/CTO/Project 단계에서 만들어진 내부 Task가 기존 AI Dev Goal/Task 실행 흐름으로 전달되는 어댑터 책임과 검증 게이트를 문서화한다.
-- Type: documentation
+- Task ID: T001
+- Title: commit scope 디렉터리 확장 보강
+- Description: -Files로 전달된 파일 및 디렉터리 입력을 repo 내부 실제 변경 파일 목록으로 안전하게 정규화하고, 선택 범위 밖 staged 파일 차단 로직을 유지한다.
+- Type: implementation
 - Status: in_progress
-- Priority: P1
+- Priority: P0
 - Depends on:
-- T002
+- 없음
 - Verification:
-- QA와 Review 통과 전 납품 준비로 이동하지 않는지 확인
-- Recovery 흐름이 기존 task 단위 제한과 실패 사유를 재사용하도록 명시되어 있는지 확인
-- 고객 포털에 raw 로그보다 요약 이벤트를 우선 표시하는 원칙이 포함되어 있는지 확인
+- .ai-company/ 디렉터리 대상 여러 파일 commit 성공 테스트
+- .ai-company/reports/ 하위 문서 commit 성공 테스트
+- 디렉터리 내부 untracked 파일 포함 테스트
+- 디렉터리 내부 삭제 파일 포함 테스트
+- 디렉터리 밖 staged 파일 차단 테스트
+- 파일과 디렉터리 혼합 scope 처리 테스트
+- repo 외부 및 traversal 경로 차단 테스트
 
 ## Test Result
 
 # AI Dev Test Result
 
-## 2026-08-10 15:36:22
+## 2026-08-10 16:26:57
 
 - Overall result: passed
-- Current task: T003
-- Mode: BuildOnly (build + lint when available)
+- Current task: T001
+- Mode: standard
 - Commands:
   - npm run build: passed
-  - npm run test: skipped
+  - npm run test: passed
   - npm run lint: passed
 
 ### npm run build
@@ -152,15 +103,341 @@ dist/index.html                   0.46 kB │ gzip:   0.29 kB
 dist/assets/index-DvjxWt30.css    5.69 kB │ gzip:   1.93 kB
 dist/assets/index-DtLVvPCG.js   317.50 kB │ gzip: 100.16 kB
 
-[32m✓ built in 410ms[39m
+[32m✓ built in 255ms[39m
 ```
 ### npm run test
 
-- Status: skipped
-- Exit code: 없음
+- Status: passed
+- Exit code: 0
 
 ```text
--BuildOnly 옵션으로 건너뛰었습니다.
+
+> planpilot-local@0.0.0 test
+> powershell -ExecutionPolicy Bypass -File scripts/ai-dev-test.ps1
+
+AI Dev automation tests
+Repository: D:\ai-apps\planpilot-local
+
+[PASS] auto-goal MaxSteps default is at least 40
+       Detected=40
+[PASS] maxsteps-forwarding forwards MaxSteps 57 to child script
+       Expected=57 Actual=57 ExitCode=1 Args=-MaxTasks 3 -MaxSteps 57 -AllowCodex -AllowReviewCodex -AllowCommit -AllowDirty -ProtectedBaselineDirtyPaths scripts/ai-dev-auto-cycle-full.ps1,scripts/ai-dev-auto-goal.ps1
+[PASS] maxsteps-forwarding forwards MaxTasks and allow switches
+       ExpectedMaxTasks=3 ActualMaxTasks=3 MissingSwitches=
+[PASS] maxsteps-forwarding fake child exited successfully
+       AutoGoalExitCode=1
+[PASS] maxsteps-forwarding child script was invoked
+       ExitCode=1 OutputPreview=Step 1: validate-input    Command: check GoalTitle/GoalDescription    Executed: False    Skipped: False    Exit code: 0    Message: Input validation completed: MaxSteps forwarding test  Step 2: dirty-worktree-gate    Command: git status --porcelain    Executed: True    Skipped: False    Exit code: 0    Message: AllowDirty is set. Baseline dirty count: 2  Step 3: plan-goal    Command: codex exec <auto-goal planning prompt>    Executed: True    Skipped: False    Exit code: 0    Message: Codex goal planning completed. Result: .ai-dev/codex-result.md  Step 4: validate-generated-json    Command: goal/queue/state JSON validation    Executed: False    Skipped: False    Exit code: 0    Message: goalMarkdown, queue, and state JSON validation completed. currentTaskId: T001  Step 5: write-state-files    Command: .ai-dev/goal.md, .ai-dev/queue.json, .ai-dev/state.json    Executed: True    Skipped: False    Exit code: 0    Message: New goal, queue, and state files were written.  Step 6: make-prompt    Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-prompt.ps1    Executed: True    Skipped: False    Exit code: 0    Message: 생성된 프롬프트 파일: .ai-dev/current-task-prompt.md  Current task id: T001  Current task title: Forwarding test  Step 7: auto-cycle-full    Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cycle-full.ps1 -MaxTasks 3 -MaxSteps 57 -AllowCodex -AllowReviewCodex -AllowCommit -AllowDirty -ProtectedBaselineDirtyPaths scripts/ai-dev-auto-cycle-full.ps1,scripts/ai-dev-auto-goal.ps1    Executed: True    Skipped: False    Exit code: 0    Message: completed  Step 8: verify-goal-status    Command: .ai-dev/state.json goalStatus 확인    Executed: False    Skipped: False    Exit code: 0    Message: auto-cycle-full 성공 후 goalStatus completed 확인.  Step 9: final-change-gate    Command: cleanup auto-goal temp artifacts, git status --short    Executed: True    Skipped: False    Exit code: 1    Message: Final clean verification failed: baseline dirty files remain, so auto-goal will not report completed.  Baseline dirty count: 2  Final dirty count: 7  Final .ai-dev meta commit created: skipped (baseline dirty remains).  Remaining baseline dirty paths:  scripts/ai-dev-auto-cycle-full.ps1  scripts/ai-dev-auto-goal.ps1   M .ai-dev/codex-result.md   M .ai-dev/current-task-prompt.md   M .ai-dev/goal.md   M .ai-dev/queue.json   M .ai-dev/state.json   M scripts/ai-dev-auto-cycle-full.ps1   M scripts/ai-dev-auto-goal.ps1  Plan preview:    Goal title: Forwarding test    Current task id: T001    Task T001: Forwarding test      Type: implementation      Status: in_progress      Priority: P0      Likely files: scripts/ai-dev-test.ps1      Verification: Verify MaxSteps forwarding.  Stopped reason: final_baseline_dirty_remains  Outcome category: actual_failure  Completed: False  Exit code: 1
+[PASS] all-goal-candidates-excluded stopped reason
+       Expected=all_goal_candidates_excluded ExitCode=1
+[PASS] all-goal-candidates-excluded expected_non_work classification
+[PASS] all-goal-candidates-excluded baseline marker preservation
+[PASS] all-goal-candidates-excluded no new dirty paths
+       NewDirtyPaths=
+[PASS] all-goal-candidates-excluded no staged paths
+       StagedPaths=
+[PASS] dirty-worktree stopped reason
+       Expected=dirty_worktree ExitCode=1
+[PASS] dirty-worktree expected_non_work classification
+[PASS] dirty-worktree baseline marker preservation
+[PASS] dirty-worktree no new dirty paths
+       NewDirtyPaths=
+[PASS] dirty-worktree no staged paths
+       StagedPaths=
+[PASS] baseline-output-conflict stopped reason
+       Expected=baseline_output_conflict ExitCode=1
+[PASS] baseline-output-conflict expected_non_work classification
+[PASS] baseline-output-conflict baseline marker preservation
+[PASS] baseline-output-conflict no new dirty paths
+       NewDirtyPaths=
+[PASS] baseline-output-conflict no staged paths
+       StagedPaths=
+[PASS] commit-scope-ai-company-directory commit succeeds
+       ExitCode=0 OutputPreview=WARNING: 현재 task를 찾지 못했습니다. 기본 커밋 메시지를 사용할 수 있습니다.  커밋 메시지: test: commit scope commit-scope-ai-company-directory  커밋 해시: 501d557308a1db8ac02284abe9d0442282834904  앱 변경 파일 수: 4  AI Dev 운영 산출물 수: 0  전체 변경 파일 수: 4  현재 task: unknown
+[PASS] commit-scope-ai-company-directory committed file scope
+       Expected=.ai-company/customer-decisions.json, .ai-company/customer-requests.json, .ai-company/reports/adapter-plan.md, .ai-company/reports/new-scope-report.md Actual=.ai-company/customer-decisions.json, .ai-company/customer-requests.json, .ai-company/reports/adapter-plan.md, .ai-company/reports/new-scope-report.md Missing= Unexpected=
+[PASS] commit-scope-reports-directory commit succeeds
+       ExitCode=0 OutputPreview=WARNING: 현재 task를 찾지 못했습니다. 기본 커밋 메시지를 사용할 수 있습니다.  커밋 메시지: test: commit scope commit-scope-reports-directory  커밋 해시: 44585c8ea2c81268e5c8ee06aa89d684035571f5  앱 변경 파일 수: 1  AI Dev 운영 산출물 수: 0  전체 변경 파일 수: 1  현재 task: unknown
+[PASS] commit-scope-reports-directory committed file scope
+       Expected=.ai-company/reports/adapter-plan.md Actual=.ai-company/reports/adapter-plan.md Missing= Unexpected=
+[PASS] commit-scope-new-directory commit succeeds
+       ExitCode=0 OutputPreview=WARNING: 현재 task를 찾지 못했습니다. 기본 커밋 메시지를 사용할 수 있습니다.  커밋 메시지: test: commit scope commit-scope-new-directory  커밋 해시: 1fd757780e81aac367a851fbf1bda988a7abb64f  앱 변경 파일 수: 2  AI Dev 운영 산출물 수: 0  전체 변경 파일 수: 2  현재 task: unknown
+[PASS] commit-scope-new-directory committed file scope
+       Expected=ai-software-company/notes.md, ai-software-company/reports/summary.md Actual=ai-software-company/notes.md, ai-software-company/reports/summary.md Missing= Unexpected=
+[PASS] commit-scope-file-and-directory commit succeeds
+       ExitCode=0 OutputPreview=WARNING: 현재 task를 찾지 못했습니다. 기본 커밋 메시지를 사용할 수 있습니다.  커밋 메시지: test: commit scope commit-scope-file-and-directory  커밋 해시: e7ce2014d6e5af67417ed91c1e3a13490679416d  앱 변경 파일 수: 2  AI Dev 운영 산출물 수: 0  전체 변경 파일 수: 2  현재 task: unknown
+[PASS] commit-scope-file-and-directory committed file scope
+       Expected=.ai-company/reports/adapter-plan.md, scripts/ai-dev-status.ps1 Actual=.ai-company/reports/adapter-plan.md, scripts/ai-dev-status.ps1 Missing= Unexpected=
+[PASS] commit-scope-blocks-outside-staged-file commit blocked
+       ExitCode=1 ExpectedFragment=선택 파일 외에 이미 staged 된 파일 OutputPreview=WARNING: 현재 task를 찾지 못했습니다. 기본 커밋 메시지를 사용할 수 있습니다.  powershell.exe : Stop-WithError : 선택 파일 외에 이미 staged 된 파일이 있습니다: scripts/ai  -dev-status.ps1  At D:\ai-apps\planpilot-local\scripts\ai-dev-test.ps1:681 char:23  +             $output = & powershell `  +                       ~~~~~~~~~~~~~~      + CategoryInfo          : NotSpecified: (Stop-WithError ...-dev-status      .ps1:String) [], RemoteException      + FullyQualifiedErrorId : NativeCommandError     At C:\Users\SECUI\AppData\Local\Temp\planpilot-test-commit-scope-blocks-out  side-staged-file-20260810161817156\scripts\ai-dev-commit.ps1:353 char:9  +         Stop-WithError "선택 파일 외에 이미 staged 된 파일이 있습니다: $($unexpectedS ...  +         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~      + CategoryInfo          : NotSpecified: (:) [Write-Error], WriteErrorE      xception      + FullyQualifiedErrorId : Microsoft.PowerShell.Commands.WriteErrorExce      ption,Stop-WithError
+[PASS] commit-scope-blocks-repo-outside-path commit blocked
+       ExitCode=1 ExpectedFragment=저장소 밖 파일 OutputPreview=WARNING: 현재 task를 찾지 못했습니다. 기본 커밋 메시지를 사용할 수 있습니다.  powershell.exe : Stop-WithError : 저장소 밖 파일은 선택할 수 없습니다: C:\Users\SECUI\AppD  ata\Local\Temp  At D:\ai-apps\planpilot-local\scripts\ai-dev-test.ps1:681 char:23  +             $output = & powershell `  +                       ~~~~~~~~~~~~~~      + CategoryInfo          : NotSpecified: (Stop-WithError ...Data\Local\      Temp:String) [], RemoteException      + FullyQualifiedErrorId : NativeCommandError     At C:\Users\SECUI\AppData\Local\Temp\planpilot-test-commit-scope-blocks-rep  o-outside-path-20260810161836706\scripts\ai-dev-commit.ps1:173 char:9  +         Stop-WithError "저장소 밖 파일은 선택할 수 없습니다: $Pathspec"  +         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~      + CategoryInfo          : NotSpecified: (:) [Write-Error], WriteErrorE      xception      + FullyQualifiedErrorId : Microsoft.PowerShell.Commands.WriteErrorExce      ption,Stop-WithError
+[PASS] commit-scope-blocks-traversal-path commit blocked
+       ExitCode=1 ExpectedFragment=traversal OutputPreview=WARNING: 현재 task를 찾지 못했습니다. 기본 커밋 메시지를 사용할 수 있습니다.  powershell.exe : Stop-WithError : 상위 디렉터리 traversal 경로는 선택할 수 없습니다: ../outs  ide.txt  At D:\ai-apps\planpilot-local\scripts\ai-dev-test.ps1:681 char:23  +             $output = & powershell `  +                       ~~~~~~~~~~~~~~      + CategoryInfo          : NotSpecified: (Stop-WithError ... ../outside      .txt:String) [], RemoteException      + FullyQualifiedErrorId : NativeCommandError     At C:\Users\SECUI\AppData\Local\Temp\planpilot-test-commit-scope-blocks-tra  versal-path-20260810161850920\scripts\ai-dev-commit.ps1:156 char:9  +         Stop-WithError "상위 디렉터리 traversal 경로는 선택할 수 없습니다: $Pathspec"  +         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~      + CategoryInfo          : NotSpecified: (:) [Write-Error], WriteErrorE      xception      + FullyQualifiedErrorId : Microsoft.PowerShell.Commands.WriteErrorExce      ption,Stop-WithError
+[PASS] review-required-files-partial-diff recovery prompt expectation
+       ExpectedRecoveryPrompt=True ExitCode=1
+[PASS] review-required-files-partial-diff missing files section includes only expected targets
+       MissingSection=B.ps1
+[PASS] review-required-files-partial-diff does not stop as stale required file missing
+       ExitCode=1
+[PASS] review-required-files-all-changed recovery prompt expectation
+       ExpectedRecoveryPrompt=False ExitCode=1
+[PASS] review-required-files-all-changed missing files section includes only expected targets
+       MissingSection=
+[PASS] review-required-files-all-changed does not stop as stale required file missing
+       ExitCode=1
+[PASS] review-required-files-recovery-limit recovery prompt expectation
+       ExpectedRecoveryPrompt=False ExitCode=1
+[PASS] review-required-files-recovery-limit missing files section includes only expected targets
+       MissingSection=
+[PASS] review-required-files-recovery-limit does not stop as stale required file missing
+       ExitCode=1
+[PASS] missing-implementation-no-diff-no-commit stopped reason expectation
+       Expected=missing_implementation ExitCode=1
+[PASS] missing-implementation-no-diff-no-commit run-codex expectation
+       Expected=True Actual=True
+[PASS] missing-implementation-no-diff-no-commit run-review-codex expectation
+       Expected=True Actual=True
+[PASS] missing-implementation-no-diff-no-commit complete-task expectation
+       Expected=False Actual=False
+[PASS] missing-implementation-no-diff-no-commit missing_implementation expectation
+       Expected=True Actual=True
+[PASS] saved-review-current-commit-resumes stopped reason expectation
+       Expected=allow_commit_required ExitCode=1
+[PASS] saved-review-current-commit-resumes run-codex expectation
+       Expected=False Actual=False
+[PASS] saved-review-current-commit-resumes run-review-codex expectation
+       Expected=False Actual=False
+[PASS] saved-review-current-commit-resumes complete-task expectation
+       Expected=False Actual=False
+[PASS] saved-review-current-commit-resumes missing_implementation expectation
+       Expected=False Actual=False
+[PASS] saved-review-pass-current-skips-review-codex stopped reason expectation
+       Expected=allow_commit_required ExitCode=1
+[PASS] saved-review-pass-current-skips-review-codex run-codex expectation
+       Expected=False Actual=False
+[PASS] saved-review-pass-current-skips-review-codex run-review-codex expectation
+       Expected=False Actual=False
+[PASS] saved-review-pass-current-skips-review-codex complete-task expectation
+       Expected=False Actual=False
+[PASS] saved-review-pass-current-skips-review-codex missing_implementation expectation
+       Expected=False Actual=False
+[PASS] saved-review-previous-task-head-reruns-codex stopped reason expectation
+       Expected=allow_commit_required ExitCode=1
+[PASS] saved-review-previous-task-head-reruns-codex run-codex expectation
+       Expected=True Actual=True
+[PASS] saved-review-previous-task-head-reruns-codex run-review-codex expectation
+       Expected=True Actual=True
+[PASS] saved-review-previous-task-head-reruns-codex complete-task expectation
+       Expected=False Actual=False
+[PASS] saved-review-previous-task-head-reruns-codex missing_implementation expectation
+       Expected=False Actual=False
+[PASS] saved-review-different-task-reruns-review stopped reason expectation
+       Expected=allow_commit_required ExitCode=1
+[PASS] saved-review-different-task-reruns-review run-codex expectation
+       Expected=True Actual=True
+[PASS] saved-review-different-task-reruns-review run-review-codex expectation
+       Expected=True Actual=True
+[PASS] saved-review-different-task-reruns-review complete-task expectation
+       Expected=False Actual=False
+[PASS] saved-review-different-task-reruns-review missing_implementation expectation
+       Expected=False Actual=False
+[PASS] saved-review-stale-fingerprint-reruns-review stopped reason expectation
+       Expected=allow_commit_required ExitCode=1
+[PASS] saved-review-stale-fingerprint-reruns-review run-codex expectation
+       Expected=True Actual=True
+[PASS] saved-review-stale-fingerprint-reruns-review run-review-codex expectation
+       Expected=True Actual=True
+[PASS] saved-review-stale-fingerprint-reruns-review complete-task expectation
+       Expected=False Actual=False
+[PASS] saved-review-stale-fingerprint-reruns-review missing_implementation expectation
+       Expected=False Actual=False
+[PASS] saved-review-pass-test-failed-does-not-complete stopped reason expectation
+       Expected=test_failed ExitCode=1
+[PASS] saved-review-pass-test-failed-does-not-complete run-codex expectation
+       Expected=True Actual=True
+[PASS] saved-review-pass-test-failed-does-not-complete run-review-codex expectation
+       Expected=False Actual=False
+[PASS] saved-review-pass-test-failed-does-not-complete complete-task expectation
+       Expected=False Actual=False
+[PASS] saved-review-pass-test-failed-does-not-complete missing_implementation expectation
+       Expected=False Actual=False
+[PASS] previous-task-head-commit-not-implementation stopped reason expectation
+       Expected=missing_implementation ExitCode=1
+[PASS] previous-task-head-commit-not-implementation run-codex expectation
+       Expected=True Actual=True
+[PASS] previous-task-head-commit-not-implementation run-review-codex expectation
+       Expected=True Actual=True
+[PASS] previous-task-head-commit-not-implementation complete-task expectation
+       Expected=False Actual=False
+[PASS] previous-task-head-commit-not-implementation missing_implementation expectation
+       Expected=True Actual=True
+[PASS] previous-task-commit-not-implementation stopped reason expectation
+       Expected=missing_implementation ExitCode=1
+[PASS] previous-task-commit-not-implementation run-codex expectation
+       Expected=True Actual=True
+[PASS] previous-task-commit-not-implementation run-review-codex expectation
+       Expected=True Actual=True
+[PASS] previous-task-commit-not-implementation complete-task expectation
+       Expected=False Actual=False
+[PASS] previous-task-commit-not-implementation missing_implementation expectation
+       Expected=True Actual=True
+[PASS] test-failed-recovers-once-then-passes stopped reason expectation
+       Expected=allow_commit_required ExitCode=1
+[PASS] test-failed-recovers-once-then-passes run-codex count
+       Expected=2 Actual=2
+[PASS] test-failed-recovers-once-then-passes check count
+       Expected=2 Actual=2
+[PASS] test-failed-recovers-once-then-passes review-codex count
+       Expected=1 Actual=1
+[PASS] test-failed-recovers-once-then-passes recovery count
+       Type=test_failed Expected=1 Actual=1
+[PASS] test-failed-recovers-once-then-passes raw review preservation
+       Expected=False RawFiles=0
+[PASS] test-failed-recovers-once-then-passes revise prompt test-result content
+       Expected=True Actual=True
+[PASS] test-failed-recovers-once-then-passes seeded recovery isolation
+       SeedTask= CurrentTask=T001
+[PASS] test-failed-twice-stops-without-extra-codex stopped reason expectation
+       Expected=test_failed ExitCode=1
+[PASS] test-failed-twice-stops-without-extra-codex run-codex count
+       Expected=2 Actual=2
+[PASS] test-failed-twice-stops-without-extra-codex check count
+       Expected=2 Actual=2
+[PASS] test-failed-twice-stops-without-extra-codex review-codex count
+       Expected=0 Actual=0
+[PASS] test-failed-twice-stops-without-extra-codex recovery count
+       Type=test_failed Expected=1 Actual=1
+[PASS] test-failed-twice-stops-without-extra-codex raw review preservation
+       Expected=False RawFiles=0
+[PASS] test-failed-twice-stops-without-extra-codex revise prompt test-result content
+       Expected=True Actual=True
+[PASS] test-failed-twice-stops-without-extra-codex seeded recovery isolation
+       SeedTask= CurrentTask=T001
+[PASS] review-json-extraction-recovers-once stopped reason expectation
+       Expected=allow_commit_required ExitCode=1
+[PASS] review-json-extraction-recovers-once run-codex count
+       Expected=1 Actual=1
+[PASS] review-json-extraction-recovers-once check count
+       Expected=1 Actual=1
+[PASS] review-json-extraction-recovers-once review-codex count
+       Expected=2 Actual=2
+[PASS] review-json-extraction-recovers-once recovery count
+       Type=review_json_extraction_failed Expected=1 Actual=1
+[PASS] review-json-extraction-recovers-once raw review preservation
+       Expected=True RawFiles=1
+[PASS] review-json-extraction-recovers-once revise prompt test-result content
+       Expected=False Actual=False
+[PASS] review-json-extraction-recovers-once seeded recovery isolation
+       SeedTask= CurrentTask=T001
+[PASS] review-json-extraction-twice-stops stopped reason expectation
+       Expected=review_json_extraction_failed ExitCode=1
+[PASS] review-json-extraction-twice-stops run-codex count
+       Expected=1 Actual=1
+[PASS] review-json-extraction-twice-stops check count
+       Expected=1 Actual=1
+[PASS] review-json-extraction-twice-stops review-codex count
+       Expected=2 Actual=2
+[PASS] review-json-extraction-twice-stops recovery count
+       Type=review_json_extraction_failed Expected=1 Actual=1
+[PASS] review-json-extraction-twice-stops raw review preservation
+       Expected=True RawFiles=1
+[PASS] review-json-extraction-twice-stops revise prompt test-result content
+       Expected=False Actual=False
+[PASS] review-json-extraction-twice-stops seeded recovery isolation
+       SeedTask= CurrentTask=T001
+[PASS] stale-review-json-stop-reason-does-not-recover stopped reason expectation
+       Expected=run-review-codex_failed ExitCode=1
+[PASS] stale-review-json-stop-reason-does-not-recover run-codex count
+       Expected=1 Actual=1
+[PASS] stale-review-json-stop-reason-does-not-recover check count
+       Expected=1 Actual=1
+[PASS] stale-review-json-stop-reason-does-not-recover review-codex count
+       Expected=1 Actual=1
+[PASS] stale-review-json-stop-reason-does-not-recover recovery count
+       Type=review_json_extraction_failed Expected=0 Actual=0
+[PASS] stale-review-json-stop-reason-does-not-recover raw review preservation
+       Expected=False RawFiles=0
+[PASS] stale-review-json-stop-reason-does-not-recover revise prompt test-result content
+       Expected=False Actual=False
+[PASS] stale-review-json-stop-reason-does-not-recover seeded recovery isolation
+       SeedTask= CurrentTask=T001
+[PASS] package-scripts-only-allowed stopped reason expectation
+       Expected=allow_commit_required ExitCode=1
+[PASS] package-scripts-only-allowed run-codex count
+       Expected=1 Actual=1
+[PASS] package-scripts-only-allowed check count
+       Expected=1 Actual=1
+[PASS] package-scripts-only-allowed review-codex count
+       Expected=1 Actual=1
+[PASS] package-scripts-only-allowed raw review preservation
+       Expected=False RawFiles=0
+[PASS] package-scripts-only-allowed revise prompt test-result content
+       Expected=False Actual=False
+[PASS] package-scripts-only-allowed seeded recovery isolation
+       SeedTask= CurrentTask=T001
+[PASS] package-dependencies-blocked stopped reason expectation
+       Expected=package_files_changed ExitCode=1
+[PASS] package-dependencies-blocked run-codex count
+       Expected=1 Actual=1
+[PASS] package-dependencies-blocked check count
+       Expected=1 Actual=1
+[PASS] package-dependencies-blocked review-codex count
+       Expected=1 Actual=1
+[PASS] package-dependencies-blocked raw review preservation
+       Expected=False RawFiles=0
+[PASS] package-dependencies-blocked revise prompt test-result content
+       Expected=False Actual=False
+[PASS] package-dependencies-blocked seeded recovery isolation
+       SeedTask= CurrentTask=T001
+[PASS] package-lock-blocked stopped reason expectation
+       Expected=package_files_changed ExitCode=1
+[PASS] package-lock-blocked run-codex count
+       Expected=1 Actual=1
+[PASS] package-lock-blocked check count
+       Expected=1 Actual=1
+[PASS] package-lock-blocked review-codex count
+       Expected=1 Actual=1
+[PASS] package-lock-blocked raw review preservation
+       Expected=False RawFiles=0
+[PASS] package-lock-blocked revise prompt test-result content
+       Expected=False Actual=False
+[PASS] package-lock-blocked seeded recovery isolation
+       SeedTask= CurrentTask=T001
+[PASS] same-task-used-test-recovery-does-not-repeat stopped reason expectation
+       Expected=test_failed ExitCode=1
+[PASS] same-task-used-test-recovery-does-not-repeat run-codex count
+       Expected=1 Actual=1
+[PASS] same-task-used-test-recovery-does-not-repeat check count
+       Expected=1 Actual=1
+[PASS] same-task-used-test-recovery-does-not-repeat review-codex count
+       Expected=0 Actual=0
+[PASS] same-task-used-test-recovery-does-not-repeat recovery count
+       Type=test_failed Expected=1 Actual=1
+[PASS] same-task-used-test-recovery-does-not-repeat raw review preservation
+       Expected=False RawFiles=0
+[PASS] same-task-used-test-recovery-does-not-repeat revise prompt test-result content
+       Expected=False Actual=False
+[PASS] same-task-used-test-recovery-does-not-repeat seeded recovery isolation
+       SeedTask=T001 CurrentTask=T001
+[PASS] new-task-test-recovery-count-is-independent stopped reason expectation
+       Expected=allow_commit_required ExitCode=1
+[PASS] new-task-test-recovery-count-is-independent run-codex count
+       Expected=2 Actual=2
+[PASS] new-task-test-recovery-count-is-independent check count
+       Expected=2 Actual=2
+[PASS] new-task-test-recovery-count-is-independent review-codex count
+       Expected=1 Actual=1
+[PASS] new-task-test-recovery-count-is-independent recovery count
+       Type=test_failed Expected=1 Actual=1
+[PASS] new-task-test-recovery-count-is-independent raw review preservation
+       Expected=False RawFiles=0
+[PASS] new-task-test-recovery-count-is-independent revise prompt test-result content
+       Expected=True Actual=True
+[PASS] new-task-test-recovery-count-is-independent seeded recovery isolation
+       SeedTask=T001 CurrentTask=T002
+
+Test summary: Passed=162, Failed=0
 ```
 ### npm run lint
 
@@ -179,40 +456,38 @@ dist/assets/index-DtLVvPCG.js   317.50 kB │ gzip: 100.16 kB
 
 ## Generated At
 
-2026-08-10 15:36:39
+2026-08-10 16:27:12
 
 ## Git Status
 
 ```text
- M .ai-company/reports/adapter-plan.md
  M .ai-dev/codex-result.md
- M .ai-dev/codex-review-result.md
  M .ai-dev/current-task-prompt.md
- M .ai-dev/diff.md
- M .ai-dev/loop-log.md
- M .ai-dev/review-prompt.md
- M .ai-dev/review-response.json
- M .ai-dev/review.md
+ M .ai-dev/goal.md
+ M .ai-dev/queue.json
+ M .ai-dev/revise-prompt.md
  M .ai-dev/state.json
  M .ai-dev/test-result.md
+ M scripts/ai-dev-commit.ps1
+ M scripts/ai-dev-test.ps1
+?? .ai-dev/auto-goal-planning-prompt.md
 ```
 
 ## App Change Files
 
-- .ai-company/reports/adapter-plan.md
+- scripts/ai-dev-commit.ps1
+- scripts/ai-dev-test.ps1
 
 ## AI Dev Operational Artifact Files
 
 - .ai-dev/codex-result.md
-- .ai-dev/codex-review-result.md
 - .ai-dev/current-task-prompt.md
-- .ai-dev/diff.md
-- .ai-dev/loop-log.md
-- .ai-dev/review-prompt.md
-- .ai-dev/review-response.json
-- .ai-dev/review.md
+- .ai-dev/goal.md
+- .ai-dev/queue.json
+- .ai-dev/revise-prompt.md
 - .ai-dev/state.json
 - .ai-dev/test-result.md
+- .ai-dev/auto-goal-planning-prompt.md
 
 ## Review Diff Scope
 
@@ -221,92 +496,365 @@ dist/assets/index-DtLVvPCG.js   317.50 kB │ gzip: 100.16 kB
 ## Unstaged Diff Stat
 
 ```text
- .ai-company/reports/adapter-plan.md | 40 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 40 insertions(+)
+ scripts/ai-dev-commit.ps1 |  63 ++++++++++--
+ scripts/ai-dev-test.ps1   | 241 ++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 294 insertions(+), 10 deletions(-)
 ```
 
 ## Unstaged Diff
 
 ```text
-diff --git a/.ai-company/reports/adapter-plan.md b/.ai-company/reports/adapter-plan.md
-index 0899f3d..7499e03 100644
---- a/.ai-company/reports/adapter-plan.md
-+++ b/.ai-company/reports/adapter-plan.md
-@@ -42,6 +42,15 @@ CEO/Product/CTO/Project 단계에서 내부 task가 AI Dev로 전달되려면 
+diff --git a/scripts/ai-dev-commit.ps1 b/scripts/ai-dev-commit.ps1
+index 44338ef..4cb1051 100644
+--- a/scripts/ai-dev-commit.ps1
++++ b/scripts/ai-dev-commit.ps1
+@@ -150,6 +150,12 @@ function Convert-ToRepoPathspec {
  
- 어느 단계든 `blocked` 상태이면 새 AI Dev task를 생성하지 않는다. 고객 결정이 필요한 경우에는 회사 상태에 decision record를 남기고, 고객에게는 제품 수준 선택지만 제시한다.
+     $trimmedPathspec = $Pathspec.Trim()
+     $normalizedPathspec = $trimmedPathspec.Replace('\', '/')
++    $pathSegments = @($normalizedPathspec -split "/" | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
++
++    if ($pathSegments -contains "..") {
++        Stop-WithError "상위 디렉터리 traversal 경로는 선택할 수 없습니다: $Pathspec"
++    }
++
+     $projectRootFullPath = [System.IO.Path]::GetFullPath($projectRoot).TrimEnd('\', '/')
+     $projectRootPrefix = $projectRootFullPath + [System.IO.Path]::DirectorySeparatorChar
  
-+단계별 산출물은 다음 경계를 넘지 않는다.
-+
-+- `CEO` 산출물은 고객 목표, 우선순위, 범위 판단, 고객 결정 필요 여부까지로 제한한다.
-+- `Product` 산출물은 제품 요구사항, acceptance criteria, 고객 검수 기준까지로 제한한다.
-+- `CTO` 산출물은 기술 영향 범위, 허용 파일 후보, 금지 명령 및 안전장치 유지 확인까지로 제한한다.
-+- `Project` 산출물은 AI Dev에 넘길 단일 task 후보와 검증 계획까지로 제한한다.
-+
-+이 단계들은 `.ai-dev/queue.json`을 직접 편집하거나 AI Dev 실행 결과를 임의로 성공 처리하지 않는다. 내부 task가 아직 제품 수준 acceptance criteria와 연결되지 않았으면 handoff 대상이 아니라 회사 planning 상태에 남긴다.
-+
- ## 어댑터 책임
+@@ -172,7 +178,49 @@ function Convert-ToRepoPathspec {
+         return $relativePath.Replace('\', '/')
+     }
  
- Company -> AI Dev 어댑터의 책임은 다음으로 제한한다.
-@@ -54,6 +63,14 @@ Company -> AI Dev 어댑터의 책임은 다음으로 제한한다.
- - 고객 의사결정 dependency가 있으면 AI Dev task 생성 여부를 차단하거나 보류한다.
- - AI Dev 실행 결과를 회사 상태와 고객-facing 이벤트로 요약한다.
- 
-+어댑터는 내부 task를 전달하기 전에 다음 값을 명확히 보존해야 한다.
+-    return $normalizedPathspec.TrimStart('/')
++    $relativePathFromFullPath = $fullPath.Substring($projectRootPrefix.Length)
++    return $relativePathFromFullPath.Replace('\', '/').TrimStart('/')
++}
 +
-+- 회사 프로젝트 ID와 내부 task ID
-+- 고객-facing objective와 acceptance criteria
-+- 이번 task에서 허용된 변경 범위와 범위 제외 항목
-+- 기존 AI Dev 안전 규칙과 수동 검증 조건
-+- 실패 시 기존 AI Dev recovery 상태를 참조할 수 있는 매핑 키
++function Test-IsPathInScope {
++    param(
++        [string]$ChangedPath,
++        [string]$ScopePath
++    )
 +
- 어댑터가 직접 수행하지 않는 일:
- 
- - build/test/lint/review/recovery/commit 실행
-@@ -62,6 +79,19 @@ Company -> AI Dev 어댑터의 책임은 다음으로 제한한다.
- - task 크기 제한, baseline 보호, package 변경 보호 약화
- - 고객에게 내부 구현 세부사항 질의
- 
-+## Handoff 차단 조건
++    $normalizedChangedPath = $ChangedPath.Replace('\', '/').TrimStart('/')
++    $normalizedScopePath = $ScopePath.Replace('\', '/').TrimStart('/').TrimEnd('/')
++    $scopePrefix = $normalizedScopePath + "/"
 +
-+다음 중 하나라도 해당하면 어댑터는 AI Dev task 생성을 보류하고 회사 프로젝트 또는 내부 task를 `blocked`로 표시한다.
++    return (
++        $normalizedChangedPath.Equals($normalizedScopePath, [System.StringComparison]::OrdinalIgnoreCase) -or
++        $normalizedChangedPath.StartsWith($scopePrefix, [System.StringComparison]::OrdinalIgnoreCase)
++    )
++}
 +
-+- 고객이 제품 목표, 범위, 우선순위, 납품 승인 중 하나를 결정해야 한다.
-+- task가 둘 이상의 독립 기능을 포함해 one-task-at-a-time 제한을 위반한다.
-+- 허용 파일 또는 예상 변경 파일 범위가 불명확하다.
-+- package 추가, 외부 서비스 연동, 로그인, 클라우드 동기화, 알림, 모바일 권한처럼 현재 정책에서 제외된 작업이 필요하다.
-+- 기존 build/test/lint/review/recovery 안전장치를 우회해야만 진행할 수 있다.
-+- 고객 baseline 변경을 덮어쓰거나 복구할 위험이 있다.
++function Get-ChangedPathsForScope {
++    param(
++        [string]$ScopePath
++    )
 +
-+차단 사유는 고객 포털에 raw 오류로 표시하지 않는다. 회사 내부 상태에는 구체 사유를 남기고, 고객에게는 필요한 제품 수준 결정만 요약한다.
++    try {
++        $fileStatus = Invoke-GitCapture -Arguments @("status", "--porcelain", "--untracked-files=all", "--", $ScopePath) -DisplayName "git status --porcelain --untracked-files=all -- $ScopePath"
++    } catch {
++        Stop-WithError $_.Exception.Message
++    }
 +
- ## Handoff Payload
- 
- AI Dev로 넘기는 최소 입력은 다음 필드를 포함해야 한다.
-@@ -93,6 +123,8 @@ AI Dev 실행 결과를 회사 상태로 되돌릴 때의 최소 출력은 다
- - `remainingRisks`
- - `customerDecisionNeeded`
- 
-+결과 payload는 AI Dev 로그의 원문 복사본이 아니라 회사 상태 전이를 판단할 수 있는 요약이어야 한다. raw command output, stack trace, 내부 경로 목록은 내부 진단용으로만 참조하고 고객-facing record에는 필요한 의미만 변환해 기록한다.
++    if ([string]::IsNullOrWhiteSpace($fileStatus)) {
++        return @()
++    }
 +
- ## 호출 순서
++    return @(
++        $fileStatus -split "`r?`n" |
++            Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
++            ForEach-Object { Convert-ToChangedPath $_ } |
++            ForEach-Object { Convert-ToRepoPathspec $_ } |
++            Where-Object { Test-IsPathInScope $_ $ScopePath } |
++            Select-Object -Unique
++    )
+ }
  
- 기본 흐름은 다음 순서를 따른다.
-@@ -127,6 +159,14 @@ Company planning에서 AI Dev execution으로 넘어가기 전에는 다음을 
+ function Convert-ToFileList {
+@@ -279,19 +327,14 @@ if ($null -ne $Files -and $Files.Count -gt 0) {
+             Stop-WithError "-Files에는 비어 있지 않은 파일 경로만 지정할 수 있습니다."
+         }
  
- QA와 Review가 통과하기 전에는 `delivery_preparation`, `ready_for_customer`, `customer_acceptance`로 이동하지 않는다. `development`에서 고객 검수 상태로 직접 이동하는 것도 금지한다.
+-        $normalizedFile = Convert-ToRepoPathspec $file
+-
+-        try {
+-            $fileStatus = Invoke-GitCapture -Arguments @("status", "--porcelain", "--", $normalizedFile) -DisplayName "git status --porcelain -- $normalizedFile"
+-        } catch {
+-            Stop-WithError $_.Exception.Message
+-        }
++        $normalizedScope = Convert-ToRepoPathspec $file
++        $changedPathsInScope = @(Get-ChangedPathsForScope $normalizedScope)
  
-+AI Dev 결과 수신 후에는 다음 전이 규칙을 적용한다.
+-        if ([string]::IsNullOrWhiteSpace($fileStatus)) {
++        if ($changedPathsInScope.Count -eq 0) {
+             Stop-WithError "선택한 파일에 커밋할 변경사항이 없습니다: $file"
+         }
+ 
+-        $selectedFiles += $normalizedFile
++        $selectedFiles += $changedPathsInScope
+     }
+ 
+     $selectedFiles = @($selectedFiles | Select-Object -Unique)
+diff --git a/scripts/ai-dev-test.ps1 b/scripts/ai-dev-test.ps1
+index 78447f6..2a53635 100644
+--- a/scripts/ai-dev-test.ps1
++++ b/scripts/ai-dev-test.ps1
+@@ -579,6 +579,176 @@ function Invoke-IsolatedScenario {
+     }
+ }
+ 
++function Invoke-CommitScopeScenario {
++    param(
++        [Parameter(Mandatory = $true)]
++        [string]$Name,
 +
-+- 구현이 완료되고 QA/Review가 통과하면 `qa_review`에서 `delivery_preparation`으로 이동할 수 있다.
-+- 구현은 완료되었지만 QA 또는 Review가 미실행이면 `delivery_preparation`으로 이동하지 않고 `qa_pending` 요약을 남긴다.
-+- QA 또는 Review가 실패하면 기존 AI Dev 실패 사유와 recovery 요약을 참조해 `development`, `planning`, 또는 `paused` 중 하나로 되돌린다.
-+- 고객 제품 결정이 필요한 실패만 `customer_decision_needed`로 표시한다.
-+- AI Dev task가 실패했더라도 회사 상태에서 새 task를 자동 생성하지 않는다.
++        [Parameter(Mandatory = $true)]
++        [string[]]$ScopeArgs,
 +
- ## Recovery 경계
++        [string[]]$ExpectedCommittedFiles = @(),
++
++        [string[]]$ChangedFiles = @(),
++
++        [string[]]$DeletedFiles = @(),
++
++        [string[]]$StagedOutsideFiles = @(),
++
++        [bool]$ExpectSuccess = $true,
++
++        [string]$ExpectedOutputFragment = ""
++    )
++
++    $tmpRoot = Join-Path $env:TEMP (
++        "planpilot-test-" +
++        $Name +
++        "-" +
++        (Get-Date -Format "yyyyMMddHHmmssfff")
++    )
++
++    $scenarioRoot = New-IsolatedScenarioRoot -Name $Name -Root $tmpRoot
++
++    if ($scenarioRoot.Cleanup -eq "none") {
++        Write-TestResult `
++            -Name "$Name isolated repository creation" `
++            -Passed $false `
++            -Detail $scenarioRoot.Error
++
++        return
++    }
++
++    try {
++        Copy-Item `
++            -LiteralPath (
++                Join-Path $repoRoot "scripts\ai-dev-commit.ps1"
++            ) `
++            -Destination (
++                Join-Path $tmpRoot "scripts\ai-dev-commit.ps1"
++            ) `
++            -Force
++
++        & git -C $tmpRoot config user.email "ai-dev-test@example.invalid" | Out-Null
++        & git -C $tmpRoot config user.name "AI Dev Test" | Out-Null
++
++        $utf8WithBom = New-Object System.Text.UTF8Encoding($true)
++
++        foreach ($changedFile in @($ChangedFiles)) {
++            $changedPath = Join-Path $tmpRoot $changedFile
++            $changedDirectory = Split-Path -Parent $changedPath
++
++            if (-not [string]::IsNullOrWhiteSpace($changedDirectory)) {
++                [System.IO.Directory]::CreateDirectory($changedDirectory) | Out-Null
++            }
++
++            [System.IO.File]::WriteAllText(
++                $changedPath,
++                "changed by commit scope test $Name",
++                $utf8WithBom
++            )
++        }
++
++        foreach ($deletedFile in @($DeletedFiles)) {
++            $deletedPath = Join-Path $tmpRoot $deletedFile
++
++            if ([System.IO.File]::Exists($deletedPath)) {
++                [System.IO.File]::Delete($deletedPath)
++            }
++        }
++
++        foreach ($stagedOutsideFile in @($StagedOutsideFiles)) {
++            $stagedPath = Join-Path $tmpRoot $stagedOutsideFile
++            $stagedDirectory = Split-Path -Parent $stagedPath
++
++            if (-not [string]::IsNullOrWhiteSpace($stagedDirectory)) {
++                [System.IO.Directory]::CreateDirectory($stagedDirectory) | Out-Null
++            }
++
++            [System.IO.File]::WriteAllText(
++                $stagedPath,
++                "staged outside commit scope test $Name",
++                $utf8WithBom
++            )
++
++            & git -C $tmpRoot add -- $stagedOutsideFile | Out-Null
++        }
++
++        Push-Location $tmpRoot
++
++        try {
++            $previousErrorActionPreference = $ErrorActionPreference
++            $ErrorActionPreference = "Continue"
++            $output = & powershell `
++                -NoProfile `
++                -ExecutionPolicy Bypass `
++                -File ".\scripts\ai-dev-commit.ps1" `
++                -Message "test: commit scope $Name" `
++                -Files ($ScopeArgs -join ",") `
++                -AllowWithoutPassedCheck `
++                -AllowWithoutPassedReview 2>&1
++            $scenarioExitCode = $LASTEXITCODE
++            $outputText = $output | Out-String
++        }
++        finally {
++            $ErrorActionPreference = $previousErrorActionPreference
++            Pop-Location
++        }
++
++        if ($ExpectSuccess) {
++            $committedFiles = @(
++                & git -C $tmpRoot diff-tree --no-commit-id --name-only -r HEAD |
++                    ForEach-Object { $_.Replace('\', '/') } |
++                    Sort-Object
++            )
++            $expectedFiles = @(
++                $ExpectedCommittedFiles |
++                    ForEach-Object { $_.Replace('\', '/') } |
++                    Sort-Object
++            )
++            $unexpectedCommittedFiles = @($committedFiles | Where-Object { $expectedFiles -notcontains $_ })
++            $missingCommittedFiles = @($expectedFiles | Where-Object { $committedFiles -notcontains $_ })
++
++            Write-TestResult `
++                -Name "$Name commit succeeds" `
++                -Passed ($scenarioExitCode -eq 0) `
++                -Detail "ExitCode=$scenarioExitCode OutputPreview=$((($outputText.Replace("`r", " ").Replace("`n", " ")).Trim()))"
++
++            Write-TestResult `
++                -Name "$Name committed file scope" `
++                -Passed ($unexpectedCommittedFiles.Count -eq 0 -and $missingCommittedFiles.Count -eq 0) `
++                -Detail (
++                    "Expected=" +
++                    ($expectedFiles -join ", ") +
++                    " Actual=" +
++                    ($committedFiles -join ", ") +
++                    " Missing=" +
++                    ($missingCommittedFiles -join ", ") +
++                    " Unexpected=" +
++                    ($unexpectedCommittedFiles -join ", ")
++                )
++        } else {
++            $fragmentMatched = (
++                [string]::IsNullOrWhiteSpace($ExpectedOutputFragment) -or
++                $outputText.Contains($ExpectedOutputFragment)
++            )
++
++            Write-TestResult `
++                -Name "$Name commit blocked" `
++                -Passed ($scenarioExitCode -ne 0 -and $fragmentMatched) `
++                -Detail "ExitCode=$scenarioExitCode ExpectedFragment=$ExpectedOutputFragment OutputPreview=$((($outputText.Replace("`r", " ").Replace("`n", " ")).Trim()))"
++        }
++    }
++    catch {
++        Write-TestResult `
++            -Name "$Name execution" `
++            -Passed $false `
++            -Detail ("Line={0} Message={1}" -f $_.InvocationInfo.ScriptLineNumber, $_.Exception.Message)
++    }
++    finally {
++        Remove-IsolatedScenarioRoot -ScenarioRoot $scenarioRoot
++    }
++}
++
+ function Set-JsonFile {
+     param(
+         [Parameter(Mandatory = $true)]
+@@ -1886,6 +2056,77 @@ Invoke-IsolatedScenario `
+         "-MaxSteps", "40"
+     )
  
- Company 모델은 recovery 실행기를 새로 만들지 않는다. 기존 AI Dev task 단위 recovery 상태와 제한을 재사용한다.
++Invoke-CommitScopeScenario `
++    -Name "commit-scope-ai-company-directory" `
++    -ScopeArgs @(".ai-company/") `
++    -ChangedFiles @(
++        ".ai-company/customer-requests.json",
++        ".ai-company/reports/adapter-plan.md",
++        ".ai-company/reports/new-scope-report.md"
++    ) `
++    -DeletedFiles @(".ai-company/customer-decisions.json") `
++    -ExpectedCommittedFiles @(
++        ".ai-company/customer-requests.json",
++        ".ai-company/reports/adapter-plan.md",
++        ".ai-company/reports/new-scope-report.md",
++        ".ai-company/customer-decisions.json"
++    )
++
++Invoke-CommitScopeScenario `
++    -Name "commit-scope-reports-directory" `
++    -ScopeArgs @(".ai-company/reports/") `
++    -ChangedFiles @(".ai-company/reports/adapter-plan.md") `
++    -ExpectedCommittedFiles @(".ai-company/reports/adapter-plan.md")
++
++Invoke-CommitScopeScenario `
++    -Name "commit-scope-new-directory" `
++    -ScopeArgs @("ai-software-company/") `
++    -ChangedFiles @(
++        "ai-software-company/notes.md",
++        "ai-software-company/reports/summary.md"
++    ) `
++    -ExpectedCommittedFiles @(
++        "ai-software-company/notes.md",
++        "ai-software-company/reports/summary.md"
++    )
++
++Invoke-CommitScopeScenario `
++    -Name "commit-scope-file-and-directory" `
++    -ScopeArgs @(".ai-company/reports/", "scripts/ai-dev-status.ps1") `
++    -ChangedFiles @(
++        ".ai-company/reports/adapter-plan.md",
++        "scripts/ai-dev-status.ps1"
++    ) `
++    -ExpectedCommittedFiles @(
++        ".ai-company/reports/adapter-plan.md",
++        "scripts/ai-dev-status.ps1"
++    )
++
++Invoke-CommitScopeScenario `
++    -Name "commit-scope-blocks-outside-staged-file" `
++    -ScopeArgs @(".ai-company/") `
++    -ChangedFiles @(".ai-company/customer-requests.json") `
++    -StagedOutsideFiles @("scripts/ai-dev-status.ps1") `
++    -ExpectedCommittedFiles @() `
++    -ExpectSuccess $false `
++    -ExpectedOutputFragment "선택 파일 외에 이미 staged 된 파일"
++
++Invoke-CommitScopeScenario `
++    -Name "commit-scope-blocks-repo-outside-path" `
++    -ScopeArgs @($env:TEMP) `
++    -ChangedFiles @(".ai-company/customer-requests.json") `
++    -ExpectedCommittedFiles @() `
++    -ExpectSuccess $false `
++    -ExpectedOutputFragment "저장소 밖 파일"
++
++Invoke-CommitScopeScenario `
++    -Name "commit-scope-blocks-traversal-path" `
++    -ScopeArgs @("../outside.txt") `
++    -ChangedFiles @(".ai-company/customer-requests.json") `
++    -ExpectedCommittedFiles @() `
++    -ExpectSuccess $false `
++    -ExpectedOutputFragment "traversal"
++
+ Invoke-ReviewRequiredFilesRecoveryScenario `
+     -Name "review-required-files-partial-diff" `
+     -RequiredFiles @("A.ps1", "B.ps1") `
 ```
 
 ## Staged Diff Stat

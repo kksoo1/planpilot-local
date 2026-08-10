@@ -1,7 +1,7 @@
 ﻿{
-    "goalStatus":  "completed",
-    "currentTaskId":  null,
-    "currentLoop":  1,
+    "goalStatus":  "in_progress",
+    "currentTaskId":  "T002",
+    "currentLoop":  0,
     "maxLoopsPerTask":  2,
     "repeatedFailureCount":  0,
     "lastCommand":  "complete-task",
@@ -9,37 +9,16 @@
     "lastErrorSummary":  "",
     "lastReviewDecision":  "pass",
     "lastReviewSeverity":  "none",
-    "lastCommitHash":  "eba94cca7cd68a601002c9b92f4378c6e89a1291",
+    "lastCommitHash":  "32884a9e29c6126f97ca1c117cead762dce3a31c",
     "startedAt":  "2026-08-10T00:00:00+09:00",
-    "updatedAt":  "2026-08-10T06:38:35.6916853+00:00",
-    "stopReason":  "all_tasks_completed",
+    "updatedAt":  "2026-08-10T07:29:28.6248139+00:00",
+    "stopReason":  null,
     "autoRecovery":  {
-                         "T002":  {
+                         "T001":  {
                                       "counts":  {
-                                                     "stale_review_required_file_missing":  1,
-                                                     "review_revise_repeated":  1
+                                                     "test_failed":  1
                                                  },
-                                      "lastStoppedReason":  "review_revise_repeated"
-                                  },
-                         "T003":  {
-                                      "counts":  {
-
-                                                 },
-                                      "lastStoppedReason":  "commit_failed"
+                                      "lastStoppedReason":  "test_failed"
                                   }
-                     },
-    "lastReviewNextStep":  "revise_with_codex",
-    "lastReviewSummary":  "문서가 어댑터 책임, recovery 재사\r\n용, raw 로그 요약 원칙은 대체로 담고 있지만, 저장소 규칙의 문서 언어 기준을 지키지 않았고 QA/Review 통과 전 납품 준비\r\n 상태로 이동 금지 조건이 충분히 명확하지 않습니다.",
-    "lastReviewRequiredChanges":  [
-                                      {
-                                          "file":  ".ai-company/rep\r\norts/adapter-plan.md",
-                                          "reason":  "AGENTS.md의 언어 규칙은 문서 작성을 한국어로 요구하지만 새 문서가 영\r\n어로 작성되었습니다.",
-                                          "suggestion":  "문서 제목, 섹션명, 본문을 한국어로 작성하되 내부 enum 값과 경로명은 영어 원문을\r\n 유지하세요."
-                                      },
-                                      {
-                                          "file":  ".ai-company/reports/adapter-plan.md",
-                                          "reason":  "T003 검증 조\r\n건은 QA와 Review 통과 전 납품 준비로 이동하지 않는지 확인하는 것인데, 현재 문서는 ready_for_customer 및 cu\r\nstomer_acceptance 중심으로 표현되어 delivery_preparation 진입 금지가 다소 모호합니다.",
-                                          "suggest\r\nion":  "`qa_review`에서 QA와 Review가 통과하거나 미실행 사유와 남은 위험이 기록되기 전에는 `delivery_pre\r\nparation`, `ready_for_customer`, `customer_acceptance`로 이동할 수 없다고 명시하세요."
-                                      }
-                                  ]
+                     }
 }

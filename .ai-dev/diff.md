@@ -2,40 +2,38 @@
 
 ## Generated At
 
-2026-08-10 15:36:39
+2026-08-10 16:27:12
 
 ## Git Status
 
 ```text
- M .ai-company/reports/adapter-plan.md
  M .ai-dev/codex-result.md
- M .ai-dev/codex-review-result.md
  M .ai-dev/current-task-prompt.md
- M .ai-dev/diff.md
- M .ai-dev/loop-log.md
- M .ai-dev/review-prompt.md
- M .ai-dev/review-response.json
- M .ai-dev/review.md
+ M .ai-dev/goal.md
+ M .ai-dev/queue.json
+ M .ai-dev/revise-prompt.md
  M .ai-dev/state.json
  M .ai-dev/test-result.md
+ M scripts/ai-dev-commit.ps1
+ M scripts/ai-dev-test.ps1
+?? .ai-dev/auto-goal-planning-prompt.md
 ```
 
 ## App Change Files
 
-- .ai-company/reports/adapter-plan.md
+- scripts/ai-dev-commit.ps1
+- scripts/ai-dev-test.ps1
 
 ## AI Dev Operational Artifact Files
 
 - .ai-dev/codex-result.md
-- .ai-dev/codex-review-result.md
 - .ai-dev/current-task-prompt.md
-- .ai-dev/diff.md
-- .ai-dev/loop-log.md
-- .ai-dev/review-prompt.md
-- .ai-dev/review-response.json
-- .ai-dev/review.md
+- .ai-dev/goal.md
+- .ai-dev/queue.json
+- .ai-dev/revise-prompt.md
 - .ai-dev/state.json
 - .ai-dev/test-result.md
+- .ai-dev/auto-goal-planning-prompt.md
 
 ## Review Diff Scope
 
@@ -44,92 +42,365 @@
 ## Unstaged Diff Stat
 
 ```text
- .ai-company/reports/adapter-plan.md | 40 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 40 insertions(+)
+ scripts/ai-dev-commit.ps1 |  63 ++++++++++--
+ scripts/ai-dev-test.ps1   | 241 ++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 294 insertions(+), 10 deletions(-)
 ```
 
 ## Unstaged Diff
 
 ```text
-diff --git a/.ai-company/reports/adapter-plan.md b/.ai-company/reports/adapter-plan.md
-index 0899f3d..7499e03 100644
---- a/.ai-company/reports/adapter-plan.md
-+++ b/.ai-company/reports/adapter-plan.md
-@@ -42,6 +42,15 @@ CEO/Product/CTO/Project 단계에서 내부 task가 AI Dev로 전달되려면 
+diff --git a/scripts/ai-dev-commit.ps1 b/scripts/ai-dev-commit.ps1
+index 44338ef..4cb1051 100644
+--- a/scripts/ai-dev-commit.ps1
++++ b/scripts/ai-dev-commit.ps1
+@@ -150,6 +150,12 @@ function Convert-ToRepoPathspec {
  
- 어느 단계든 `blocked` 상태이면 새 AI Dev task를 생성하지 않는다. 고객 결정이 필요한 경우에는 회사 상태에 decision record를 남기고, 고객에게는 제품 수준 선택지만 제시한다.
+     $trimmedPathspec = $Pathspec.Trim()
+     $normalizedPathspec = $trimmedPathspec.Replace('\', '/')
++    $pathSegments = @($normalizedPathspec -split "/" | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
++
++    if ($pathSegments -contains "..") {
++        Stop-WithError "상위 디렉터리 traversal 경로는 선택할 수 없습니다: $Pathspec"
++    }
++
+     $projectRootFullPath = [System.IO.Path]::GetFullPath($projectRoot).TrimEnd('\', '/')
+     $projectRootPrefix = $projectRootFullPath + [System.IO.Path]::DirectorySeparatorChar
  
-+단계별 산출물은 다음 경계를 넘지 않는다.
-+
-+- `CEO` 산출물은 고객 목표, 우선순위, 범위 판단, 고객 결정 필요 여부까지로 제한한다.
-+- `Product` 산출물은 제품 요구사항, acceptance criteria, 고객 검수 기준까지로 제한한다.
-+- `CTO` 산출물은 기술 영향 범위, 허용 파일 후보, 금지 명령 및 안전장치 유지 확인까지로 제한한다.
-+- `Project` 산출물은 AI Dev에 넘길 단일 task 후보와 검증 계획까지로 제한한다.
-+
-+이 단계들은 `.ai-dev/queue.json`을 직접 편집하거나 AI Dev 실행 결과를 임의로 성공 처리하지 않는다. 내부 task가 아직 제품 수준 acceptance criteria와 연결되지 않았으면 handoff 대상이 아니라 회사 planning 상태에 남긴다.
-+
- ## 어댑터 책임
+@@ -172,7 +178,49 @@ function Convert-ToRepoPathspec {
+         return $relativePath.Replace('\', '/')
+     }
  
- Company -> AI Dev 어댑터의 책임은 다음으로 제한한다.
-@@ -54,6 +63,14 @@ Company -> AI Dev 어댑터의 책임은 다음으로 제한한다.
- - 고객 의사결정 dependency가 있으면 AI Dev task 생성 여부를 차단하거나 보류한다.
- - AI Dev 실행 결과를 회사 상태와 고객-facing 이벤트로 요약한다.
- 
-+어댑터는 내부 task를 전달하기 전에 다음 값을 명확히 보존해야 한다.
+-    return $normalizedPathspec.TrimStart('/')
++    $relativePathFromFullPath = $fullPath.Substring($projectRootPrefix.Length)
++    return $relativePathFromFullPath.Replace('\', '/').TrimStart('/')
++}
 +
-+- 회사 프로젝트 ID와 내부 task ID
-+- 고객-facing objective와 acceptance criteria
-+- 이번 task에서 허용된 변경 범위와 범위 제외 항목
-+- 기존 AI Dev 안전 규칙과 수동 검증 조건
-+- 실패 시 기존 AI Dev recovery 상태를 참조할 수 있는 매핑 키
++function Test-IsPathInScope {
++    param(
++        [string]$ChangedPath,
++        [string]$ScopePath
++    )
 +
- 어댑터가 직접 수행하지 않는 일:
- 
- - build/test/lint/review/recovery/commit 실행
-@@ -62,6 +79,19 @@ Company -> AI Dev 어댑터의 책임은 다음으로 제한한다.
- - task 크기 제한, baseline 보호, package 변경 보호 약화
- - 고객에게 내부 구현 세부사항 질의
- 
-+## Handoff 차단 조건
++    $normalizedChangedPath = $ChangedPath.Replace('\', '/').TrimStart('/')
++    $normalizedScopePath = $ScopePath.Replace('\', '/').TrimStart('/').TrimEnd('/')
++    $scopePrefix = $normalizedScopePath + "/"
 +
-+다음 중 하나라도 해당하면 어댑터는 AI Dev task 생성을 보류하고 회사 프로젝트 또는 내부 task를 `blocked`로 표시한다.
++    return (
++        $normalizedChangedPath.Equals($normalizedScopePath, [System.StringComparison]::OrdinalIgnoreCase) -or
++        $normalizedChangedPath.StartsWith($scopePrefix, [System.StringComparison]::OrdinalIgnoreCase)
++    )
++}
 +
-+- 고객이 제품 목표, 범위, 우선순위, 납품 승인 중 하나를 결정해야 한다.
-+- task가 둘 이상의 독립 기능을 포함해 one-task-at-a-time 제한을 위반한다.
-+- 허용 파일 또는 예상 변경 파일 범위가 불명확하다.
-+- package 추가, 외부 서비스 연동, 로그인, 클라우드 동기화, 알림, 모바일 권한처럼 현재 정책에서 제외된 작업이 필요하다.
-+- 기존 build/test/lint/review/recovery 안전장치를 우회해야만 진행할 수 있다.
-+- 고객 baseline 변경을 덮어쓰거나 복구할 위험이 있다.
++function Get-ChangedPathsForScope {
++    param(
++        [string]$ScopePath
++    )
 +
-+차단 사유는 고객 포털에 raw 오류로 표시하지 않는다. 회사 내부 상태에는 구체 사유를 남기고, 고객에게는 필요한 제품 수준 결정만 요약한다.
++    try {
++        $fileStatus = Invoke-GitCapture -Arguments @("status", "--porcelain", "--untracked-files=all", "--", $ScopePath) -DisplayName "git status --porcelain --untracked-files=all -- $ScopePath"
++    } catch {
++        Stop-WithError $_.Exception.Message
++    }
 +
- ## Handoff Payload
- 
- AI Dev로 넘기는 최소 입력은 다음 필드를 포함해야 한다.
-@@ -93,6 +123,8 @@ AI Dev 실행 결과를 회사 상태로 되돌릴 때의 최소 출력은 다
- - `remainingRisks`
- - `customerDecisionNeeded`
- 
-+결과 payload는 AI Dev 로그의 원문 복사본이 아니라 회사 상태 전이를 판단할 수 있는 요약이어야 한다. raw command output, stack trace, 내부 경로 목록은 내부 진단용으로만 참조하고 고객-facing record에는 필요한 의미만 변환해 기록한다.
++    if ([string]::IsNullOrWhiteSpace($fileStatus)) {
++        return @()
++    }
 +
- ## 호출 순서
++    return @(
++        $fileStatus -split "`r?`n" |
++            Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
++            ForEach-Object { Convert-ToChangedPath $_ } |
++            ForEach-Object { Convert-ToRepoPathspec $_ } |
++            Where-Object { Test-IsPathInScope $_ $ScopePath } |
++            Select-Object -Unique
++    )
+ }
  
- 기본 흐름은 다음 순서를 따른다.
-@@ -127,6 +159,14 @@ Company planning에서 AI Dev execution으로 넘어가기 전에는 다음을 
+ function Convert-ToFileList {
+@@ -279,19 +327,14 @@ if ($null -ne $Files -and $Files.Count -gt 0) {
+             Stop-WithError "-Files에는 비어 있지 않은 파일 경로만 지정할 수 있습니다."
+         }
  
- QA와 Review가 통과하기 전에는 `delivery_preparation`, `ready_for_customer`, `customer_acceptance`로 이동하지 않는다. `development`에서 고객 검수 상태로 직접 이동하는 것도 금지한다.
+-        $normalizedFile = Convert-ToRepoPathspec $file
+-
+-        try {
+-            $fileStatus = Invoke-GitCapture -Arguments @("status", "--porcelain", "--", $normalizedFile) -DisplayName "git status --porcelain -- $normalizedFile"
+-        } catch {
+-            Stop-WithError $_.Exception.Message
+-        }
++        $normalizedScope = Convert-ToRepoPathspec $file
++        $changedPathsInScope = @(Get-ChangedPathsForScope $normalizedScope)
  
-+AI Dev 결과 수신 후에는 다음 전이 규칙을 적용한다.
+-        if ([string]::IsNullOrWhiteSpace($fileStatus)) {
++        if ($changedPathsInScope.Count -eq 0) {
+             Stop-WithError "선택한 파일에 커밋할 변경사항이 없습니다: $file"
+         }
+ 
+-        $selectedFiles += $normalizedFile
++        $selectedFiles += $changedPathsInScope
+     }
+ 
+     $selectedFiles = @($selectedFiles | Select-Object -Unique)
+diff --git a/scripts/ai-dev-test.ps1 b/scripts/ai-dev-test.ps1
+index 78447f6..2a53635 100644
+--- a/scripts/ai-dev-test.ps1
++++ b/scripts/ai-dev-test.ps1
+@@ -579,6 +579,176 @@ function Invoke-IsolatedScenario {
+     }
+ }
+ 
++function Invoke-CommitScopeScenario {
++    param(
++        [Parameter(Mandatory = $true)]
++        [string]$Name,
 +
-+- 구현이 완료되고 QA/Review가 통과하면 `qa_review`에서 `delivery_preparation`으로 이동할 수 있다.
-+- 구현은 완료되었지만 QA 또는 Review가 미실행이면 `delivery_preparation`으로 이동하지 않고 `qa_pending` 요약을 남긴다.
-+- QA 또는 Review가 실패하면 기존 AI Dev 실패 사유와 recovery 요약을 참조해 `development`, `planning`, 또는 `paused` 중 하나로 되돌린다.
-+- 고객 제품 결정이 필요한 실패만 `customer_decision_needed`로 표시한다.
-+- AI Dev task가 실패했더라도 회사 상태에서 새 task를 자동 생성하지 않는다.
++        [Parameter(Mandatory = $true)]
++        [string[]]$ScopeArgs,
 +
- ## Recovery 경계
++        [string[]]$ExpectedCommittedFiles = @(),
++
++        [string[]]$ChangedFiles = @(),
++
++        [string[]]$DeletedFiles = @(),
++
++        [string[]]$StagedOutsideFiles = @(),
++
++        [bool]$ExpectSuccess = $true,
++
++        [string]$ExpectedOutputFragment = ""
++    )
++
++    $tmpRoot = Join-Path $env:TEMP (
++        "planpilot-test-" +
++        $Name +
++        "-" +
++        (Get-Date -Format "yyyyMMddHHmmssfff")
++    )
++
++    $scenarioRoot = New-IsolatedScenarioRoot -Name $Name -Root $tmpRoot
++
++    if ($scenarioRoot.Cleanup -eq "none") {
++        Write-TestResult `
++            -Name "$Name isolated repository creation" `
++            -Passed $false `
++            -Detail $scenarioRoot.Error
++
++        return
++    }
++
++    try {
++        Copy-Item `
++            -LiteralPath (
++                Join-Path $repoRoot "scripts\ai-dev-commit.ps1"
++            ) `
++            -Destination (
++                Join-Path $tmpRoot "scripts\ai-dev-commit.ps1"
++            ) `
++            -Force
++
++        & git -C $tmpRoot config user.email "ai-dev-test@example.invalid" | Out-Null
++        & git -C $tmpRoot config user.name "AI Dev Test" | Out-Null
++
++        $utf8WithBom = New-Object System.Text.UTF8Encoding($true)
++
++        foreach ($changedFile in @($ChangedFiles)) {
++            $changedPath = Join-Path $tmpRoot $changedFile
++            $changedDirectory = Split-Path -Parent $changedPath
++
++            if (-not [string]::IsNullOrWhiteSpace($changedDirectory)) {
++                [System.IO.Directory]::CreateDirectory($changedDirectory) | Out-Null
++            }
++
++            [System.IO.File]::WriteAllText(
++                $changedPath,
++                "changed by commit scope test $Name",
++                $utf8WithBom
++            )
++        }
++
++        foreach ($deletedFile in @($DeletedFiles)) {
++            $deletedPath = Join-Path $tmpRoot $deletedFile
++
++            if ([System.IO.File]::Exists($deletedPath)) {
++                [System.IO.File]::Delete($deletedPath)
++            }
++        }
++
++        foreach ($stagedOutsideFile in @($StagedOutsideFiles)) {
++            $stagedPath = Join-Path $tmpRoot $stagedOutsideFile
++            $stagedDirectory = Split-Path -Parent $stagedPath
++
++            if (-not [string]::IsNullOrWhiteSpace($stagedDirectory)) {
++                [System.IO.Directory]::CreateDirectory($stagedDirectory) | Out-Null
++            }
++
++            [System.IO.File]::WriteAllText(
++                $stagedPath,
++                "staged outside commit scope test $Name",
++                $utf8WithBom
++            )
++
++            & git -C $tmpRoot add -- $stagedOutsideFile | Out-Null
++        }
++
++        Push-Location $tmpRoot
++
++        try {
++            $previousErrorActionPreference = $ErrorActionPreference
++            $ErrorActionPreference = "Continue"
++            $output = & powershell `
++                -NoProfile `
++                -ExecutionPolicy Bypass `
++                -File ".\scripts\ai-dev-commit.ps1" `
++                -Message "test: commit scope $Name" `
++                -Files ($ScopeArgs -join ",") `
++                -AllowWithoutPassedCheck `
++                -AllowWithoutPassedReview 2>&1
++            $scenarioExitCode = $LASTEXITCODE
++            $outputText = $output | Out-String
++        }
++        finally {
++            $ErrorActionPreference = $previousErrorActionPreference
++            Pop-Location
++        }
++
++        if ($ExpectSuccess) {
++            $committedFiles = @(
++                & git -C $tmpRoot diff-tree --no-commit-id --name-only -r HEAD |
++                    ForEach-Object { $_.Replace('\', '/') } |
++                    Sort-Object
++            )
++            $expectedFiles = @(
++                $ExpectedCommittedFiles |
++                    ForEach-Object { $_.Replace('\', '/') } |
++                    Sort-Object
++            )
++            $unexpectedCommittedFiles = @($committedFiles | Where-Object { $expectedFiles -notcontains $_ })
++            $missingCommittedFiles = @($expectedFiles | Where-Object { $committedFiles -notcontains $_ })
++
++            Write-TestResult `
++                -Name "$Name commit succeeds" `
++                -Passed ($scenarioExitCode -eq 0) `
++                -Detail "ExitCode=$scenarioExitCode OutputPreview=$((($outputText.Replace("`r", " ").Replace("`n", " ")).Trim()))"
++
++            Write-TestResult `
++                -Name "$Name committed file scope" `
++                -Passed ($unexpectedCommittedFiles.Count -eq 0 -and $missingCommittedFiles.Count -eq 0) `
++                -Detail (
++                    "Expected=" +
++                    ($expectedFiles -join ", ") +
++                    " Actual=" +
++                    ($committedFiles -join ", ") +
++                    " Missing=" +
++                    ($missingCommittedFiles -join ", ") +
++                    " Unexpected=" +
++                    ($unexpectedCommittedFiles -join ", ")
++                )
++        } else {
++            $fragmentMatched = (
++                [string]::IsNullOrWhiteSpace($ExpectedOutputFragment) -or
++                $outputText.Contains($ExpectedOutputFragment)
++            )
++
++            Write-TestResult `
++                -Name "$Name commit blocked" `
++                -Passed ($scenarioExitCode -ne 0 -and $fragmentMatched) `
++                -Detail "ExitCode=$scenarioExitCode ExpectedFragment=$ExpectedOutputFragment OutputPreview=$((($outputText.Replace("`r", " ").Replace("`n", " ")).Trim()))"
++        }
++    }
++    catch {
++        Write-TestResult `
++            -Name "$Name execution" `
++            -Passed $false `
++            -Detail ("Line={0} Message={1}" -f $_.InvocationInfo.ScriptLineNumber, $_.Exception.Message)
++    }
++    finally {
++        Remove-IsolatedScenarioRoot -ScenarioRoot $scenarioRoot
++    }
++}
++
+ function Set-JsonFile {
+     param(
+         [Parameter(Mandatory = $true)]
+@@ -1886,6 +2056,77 @@ Invoke-IsolatedScenario `
+         "-MaxSteps", "40"
+     )
  
- Company 모델은 recovery 실행기를 새로 만들지 않는다. 기존 AI Dev task 단위 recovery 상태와 제한을 재사용한다.
++Invoke-CommitScopeScenario `
++    -Name "commit-scope-ai-company-directory" `
++    -ScopeArgs @(".ai-company/") `
++    -ChangedFiles @(
++        ".ai-company/customer-requests.json",
++        ".ai-company/reports/adapter-plan.md",
++        ".ai-company/reports/new-scope-report.md"
++    ) `
++    -DeletedFiles @(".ai-company/customer-decisions.json") `
++    -ExpectedCommittedFiles @(
++        ".ai-company/customer-requests.json",
++        ".ai-company/reports/adapter-plan.md",
++        ".ai-company/reports/new-scope-report.md",
++        ".ai-company/customer-decisions.json"
++    )
++
++Invoke-CommitScopeScenario `
++    -Name "commit-scope-reports-directory" `
++    -ScopeArgs @(".ai-company/reports/") `
++    -ChangedFiles @(".ai-company/reports/adapter-plan.md") `
++    -ExpectedCommittedFiles @(".ai-company/reports/adapter-plan.md")
++
++Invoke-CommitScopeScenario `
++    -Name "commit-scope-new-directory" `
++    -ScopeArgs @("ai-software-company/") `
++    -ChangedFiles @(
++        "ai-software-company/notes.md",
++        "ai-software-company/reports/summary.md"
++    ) `
++    -ExpectedCommittedFiles @(
++        "ai-software-company/notes.md",
++        "ai-software-company/reports/summary.md"
++    )
++
++Invoke-CommitScopeScenario `
++    -Name "commit-scope-file-and-directory" `
++    -ScopeArgs @(".ai-company/reports/", "scripts/ai-dev-status.ps1") `
++    -ChangedFiles @(
++        ".ai-company/reports/adapter-plan.md",
++        "scripts/ai-dev-status.ps1"
++    ) `
++    -ExpectedCommittedFiles @(
++        ".ai-company/reports/adapter-plan.md",
++        "scripts/ai-dev-status.ps1"
++    )
++
++Invoke-CommitScopeScenario `
++    -Name "commit-scope-blocks-outside-staged-file" `
++    -ScopeArgs @(".ai-company/") `
++    -ChangedFiles @(".ai-company/customer-requests.json") `
++    -StagedOutsideFiles @("scripts/ai-dev-status.ps1") `
++    -ExpectedCommittedFiles @() `
++    -ExpectSuccess $false `
++    -ExpectedOutputFragment "선택 파일 외에 이미 staged 된 파일"
++
++Invoke-CommitScopeScenario `
++    -Name "commit-scope-blocks-repo-outside-path" `
++    -ScopeArgs @($env:TEMP) `
++    -ChangedFiles @(".ai-company/customer-requests.json") `
++    -ExpectedCommittedFiles @() `
++    -ExpectSuccess $false `
++    -ExpectedOutputFragment "저장소 밖 파일"
++
++Invoke-CommitScopeScenario `
++    -Name "commit-scope-blocks-traversal-path" `
++    -ScopeArgs @("../outside.txt") `
++    -ChangedFiles @(".ai-company/customer-requests.json") `
++    -ExpectedCommittedFiles @() `
++    -ExpectSuccess $false `
++    -ExpectedOutputFragment "traversal"
++
+ Invoke-ReviewRequiredFilesRecoveryScenario `
+     -Name "review-required-files-partial-diff" `
+     -RequiredFiles @("A.ps1", "B.ps1") `
 ```
 
 ## Staged Diff Stat

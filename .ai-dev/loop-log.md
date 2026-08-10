@@ -1892,3 +1892,13 @@ Exit code: 1
 - Task: T003 기존 AI Dev 연결 경계 문서화
 - Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
 - Next task: 없음
+## 2026-08-10 16:29:24 - Commit created
+
+- Task: T001 commit scope 디렉터리 확장 보강
+- Commit: 32884a9e29c6126f97ca1c117cead762dce3a31c
+- Message: Handle directory file scopes safely
+## 2026-08-10 16:29:31 - Task completed
+
+- Task: T001 commit scope 디렉터리 확장 보강
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
+- Next task: T002 비구현 task revise 자동 복구 보강

@@ -1,85 +1,84 @@
 ﻿{
-    "goalTitle":  "AI Software Company 고객 포털과 자율 개발회사 운영 기반 구축",
+    "goalTitle":  "AI Software Company 무인 개발을 위한 commit 및 비구현 task 자동화 보강",
     "goalSource":  ".ai-dev/goal.md",
     "createdAt":  "2026-08-10T00:00:00+09:00",
-    "updatedAt":  "2026-08-10T06:38:35.6916853+00:00",
-    "currentTaskId":  null,
+    "updatedAt":  "2026-08-10T07:29:28.6248139+00:00",
+    "currentTaskId":  "T002",
     "tasks":  [
                   {
                       "id":  "T001",
-                      "title":  "회사 운영 상태 모델 설계",
-                      "description":  "AI Software Company의 프로젝트 생명주기, 역할 상태, 고객 의사결정, 납품 상태를 기존 AI Dev 상태와 분리되는 작은 상태 모델로 정리한다.",
-                      "type":  "analysis",
+                      "title":  "commit scope 디렉터리 확장 보강",
+                      "description":  "-Files로 전달된 파일 및 디렉터리 입력을 repo 내부 실제 변경 파일 목록으로 안전하게 정규화하고, 선택 범위 밖 staged 파일 차단 로직을 유지한다.",
+                      "type":  "implementation",
                       "status":  "done",
                       "priority":  "P0",
                       "dependsOn":  [
 
                                     ],
                       "filesLikelyToChange":  [
-                                                  ".ai-dev/goal.md",
-                                                  ".ai-dev/queue.json",
-                                                  ".ai-dev/state.json"
+                                                  "scripts/ai-dev-commit.ps1",
+                                                  "scripts/ai-dev-auto-cycle-full.ps1",
+                                                  "scripts/ai-dev-test.ps1"
                                               ],
                       "verification":  [
-                                           "상태 단계가 요청된 생명주기와 일치하는지 확인",
-                                           "고객 결정 필요 조건과 회사 자율 처리 범위가 분리되어 있는지 확인",
-                                           "기존 AI Dev 상태 파일과 회사 상태 파일의 책임이 섞이지 않는지 확인"
+                                           ".ai-company/ 디렉터리 대상 여러 파일 commit 성공 테스트",
+                                           ".ai-company/reports/ 하위 문서 commit 성공 테스트",
+                                           "디렉터리 내부 untracked 파일 포함 테스트",
+                                           "디렉터리 내부 삭제 파일 포함 테스트",
+                                           "디렉터리 밖 staged 파일 차단 테스트",
+                                           "파일과 디렉터리 혼합 scope 처리 테스트",
+                                           "repo 외부 및 traversal 경로 차단 테스트"
                                        ],
-                      "commitMessage":  null,
-                      "completedAt":  "2026-08-10T03:40:44.8287154+00:00",
-                      "resultSummary":  "자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 구현 커밋 없음, 저장된 리뷰 pass에서 자동 완료"
+                      "commitMessage":  "Handle directory file scopes safely",
+                      "commitHash":  "32884a9e29c6126f97ca1c117cead762dce3a31c",
+                      "completedAt":  "2026-08-10T07:29:28.6248139+00:00",
+                      "resultSummary":  "자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료"
                   },
                   {
                       "id":  "T002",
-                      "title":  "초기 회사 상태 파일 구조 추가",
-                      "description":  "전용 회사 상태 디렉터리와 최소 JSON/JSONL 파일 구조를 작게 추가하고, Windows PowerShell 5.1 환경에서 한글 UTF-8을 유지하는 파일 형식을 사용한다.",
+                      "title":  "비구현 task revise 자동 복구 보강",
+                      "description":  "documentation, analysis, verification task에서 strict review revise가 명확하고 허용 범위 안일 때 Codex 자동 재수정을 최대 1회 수행하고, 두 번째 revise는 명확히 중단하도록 recovery 횟수를 기록한다.",
                       "type":  "implementation",
-                      "status":  "done",
+                      "status":  "in_progress",
                       "priority":  "P0",
                       "dependsOn":  [
                                         "T001"
                                     ],
                       "filesLikelyToChange":  [
-                                                  ".ai-company/company-state.json",
-                                                  ".ai-company/projects.json",
-                                                  ".ai-company/customer-requests.json",
-                                                  ".ai-company/customer-decisions.json",
-                                                  ".ai-company/deliveries.json",
-                                                  ".ai-company/company-config.json",
-                                                  ".ai-company/events.jsonl"
+                                                  "scripts/ai-dev-auto-cycle-full.ps1",
+                                                  "scripts/ai-dev-test.ps1"
                                               ],
                       "verification":  [
-                                           "각 파일이 유효한 UTF-8 JSON 또는 JSONL 형식인지 확인",
-                                           "초기 회사 상태가 IDLE 또는 대기 상태로 복원 가능한지 확인",
-                                           "events.jsonl이 append-only 이벤트 로그로 사용할 수 있는지 확인"
+                                           "documentation review revise 후 Codex 1회 수정, review pass, commit 및 complete 테스트",
+                                           "documentation revise 두 번 발생 시 추가 Codex 실행 없이 중단 테스트",
+                                           "documentation BuildOnly에서 npm test skipped 허용 테스트",
+                                           "implementation task의 전체 test 정책 유지 테스트",
+                                           "기존 package, baseline, expected_non_work, recovery 안전장치 유지 테스트"
                                        ],
-                      "commitMessage":  "Add initial company state files",
-                      "commitHash":  "cc4a9ff5e78dac30c0e1455ca017e8e7b0dd0834",
-                      "completedAt":  "2026-08-10T06:03:42.1000243+00:00",
-                      "resultSummary":  "자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료"
+                      "commitMessage":  "Automate non-implementation revise recovery"
                   },
                   {
                       "id":  "T003",
-                      "title":  "기존 AI Dev 연결 경계 문서화",
-                      "description":  "CEO/Product/CTO/Project 단계에서 만들어진 내부 Task가 기존 AI Dev Goal/Task 실행 흐름으로 전달되는 어댑터 책임과 검증 게이트를 문서화한다.",
-                      "type":  "documentation",
-                      "status":  "done",
-                      "priority":  "P1",
+                      "title":  "전체 검증 및 strict review 확인",
+                      "description":  "변경된 자동화 흐름의 전체 테스트, build, lint, strict review 결과를 확인하고 실패 원인이 있으면 허용 범위 안에서 보정한다.",
+                      "type":  "verification",
+                      "status":  "pending",
+                      "priority":  "P0",
                       "dependsOn":  [
+                                        "T001",
                                         "T002"
                                     ],
                       "filesLikelyToChange":  [
-                                                  ".ai-company/reports/adapter-plan.md"
+                                                  "scripts/ai-dev-test.ps1"
                                               ],
                       "verification":  [
-                                           "QA와 Review 통과 전 납품 준비로 이동하지 않는지 확인",
-                                           "Recovery 흐름이 기존 task 단위 제한과 실패 사유를 재사용하도록 명시되어 있는지 확인",
-                                           "고객 포털에 raw 로그보다 요약 이벤트를 우선 표시하는 원칙이 포함되어 있는지 확인"
+                                           "scripts/ai-dev-test.ps1 전체 통과",
+                                           "build 통과",
+                                           "전체 npm test 통과",
+                                           "lint 통과",
+                                           "strict review pass 확인"
                                        ],
-                      "commitMessage":  "Document company adapter plan",
-                      "commitHash":  "eba94cca7cd68a601002c9b92f4378c6e89a1291",
-                      "completedAt":  "2026-08-10T06:38:35.6916853+00:00",
-                      "resultSummary":  "자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료"
+                      "commitMessage":  null
                   }
               ]
 }
