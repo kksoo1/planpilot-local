@@ -1,9 +1,9 @@
 ﻿# AI Dev Test Result
 
-## 2026-08-02 23:58:55
+## 2026-08-10 10:54:27
 
 - Overall result: passed
-- Current task: T002
+- Current task: T001
 - Mode: standard
 - Commands:
   - npm run build: passed
@@ -29,7 +29,7 @@ dist/index.html                   0.46 kB │ gzip:   0.29 kB
 dist/assets/index-DvjxWt30.css    5.69 kB │ gzip:   1.93 kB
 dist/assets/index-DtLVvPCG.js   317.50 kB │ gzip: 100.16 kB
 
-[32m✓ built in 211ms[39m
+[32m✓ built in 299ms[39m
 ```
 ### npm run test
 
@@ -78,8 +78,270 @@ Repository: D:\ai-apps\planpilot-local
        NewDirtyPaths=
 [PASS] baseline-output-conflict no staged paths
        StagedPaths=
+[PASS] review-required-files-partial-diff recovery prompt expectation
+       ExpectedRecoveryPrompt=True ExitCode=1
+[PASS] review-required-files-partial-diff missing files section includes only expected targets
+       MissingSection=B.ps1
+[PASS] review-required-files-partial-diff does not stop as stale required file missing
+       ExitCode=1
+[PASS] review-required-files-all-changed recovery prompt expectation
+       ExpectedRecoveryPrompt=False ExitCode=1
+[PASS] review-required-files-all-changed missing files section includes only expected targets
+       MissingSection=
+[PASS] review-required-files-all-changed does not stop as stale required file missing
+       ExitCode=1
+[PASS] review-required-files-recovery-limit recovery prompt expectation
+       ExpectedRecoveryPrompt=False ExitCode=1
+[PASS] review-required-files-recovery-limit missing files section includes only expected targets
+       MissingSection=
+[PASS] review-required-files-recovery-limit does not stop as stale required file missing
+       ExitCode=1
+[PASS] missing-implementation-no-diff-no-commit stopped reason expectation
+       Expected=missing_implementation ExitCode=1
+[PASS] missing-implementation-no-diff-no-commit run-codex expectation
+       Expected=True Actual=True
+[PASS] missing-implementation-no-diff-no-commit run-review-codex expectation
+       Expected=True Actual=True
+[PASS] missing-implementation-no-diff-no-commit complete-task expectation
+       Expected=False Actual=False
+[PASS] missing-implementation-no-diff-no-commit missing_implementation expectation
+       Expected=True Actual=True
+[PASS] saved-review-current-commit-resumes stopped reason expectation
+       Expected=allow_commit_required ExitCode=1
+[PASS] saved-review-current-commit-resumes run-codex expectation
+       Expected=False Actual=False
+[PASS] saved-review-current-commit-resumes run-review-codex expectation
+       Expected=False Actual=False
+[PASS] saved-review-current-commit-resumes complete-task expectation
+       Expected=False Actual=False
+[PASS] saved-review-current-commit-resumes missing_implementation expectation
+       Expected=False Actual=False
+[PASS] saved-review-pass-current-skips-review-codex stopped reason expectation
+       Expected=allow_commit_required ExitCode=1
+[PASS] saved-review-pass-current-skips-review-codex run-codex expectation
+       Expected=False Actual=False
+[PASS] saved-review-pass-current-skips-review-codex run-review-codex expectation
+       Expected=False Actual=False
+[PASS] saved-review-pass-current-skips-review-codex complete-task expectation
+       Expected=False Actual=False
+[PASS] saved-review-pass-current-skips-review-codex missing_implementation expectation
+       Expected=False Actual=False
+[PASS] saved-review-previous-task-head-reruns-codex stopped reason expectation
+       Expected=allow_commit_required ExitCode=1
+[PASS] saved-review-previous-task-head-reruns-codex run-codex expectation
+       Expected=True Actual=True
+[PASS] saved-review-previous-task-head-reruns-codex run-review-codex expectation
+       Expected=True Actual=True
+[PASS] saved-review-previous-task-head-reruns-codex complete-task expectation
+       Expected=False Actual=False
+[PASS] saved-review-previous-task-head-reruns-codex missing_implementation expectation
+       Expected=False Actual=False
+[PASS] saved-review-different-task-reruns-review stopped reason expectation
+       Expected=allow_commit_required ExitCode=1
+[PASS] saved-review-different-task-reruns-review run-codex expectation
+       Expected=True Actual=True
+[PASS] saved-review-different-task-reruns-review run-review-codex expectation
+       Expected=True Actual=True
+[PASS] saved-review-different-task-reruns-review complete-task expectation
+       Expected=False Actual=False
+[PASS] saved-review-different-task-reruns-review missing_implementation expectation
+       Expected=False Actual=False
+[PASS] saved-review-stale-fingerprint-reruns-review stopped reason expectation
+       Expected=allow_commit_required ExitCode=1
+[PASS] saved-review-stale-fingerprint-reruns-review run-codex expectation
+       Expected=True Actual=True
+[PASS] saved-review-stale-fingerprint-reruns-review run-review-codex expectation
+       Expected=True Actual=True
+[PASS] saved-review-stale-fingerprint-reruns-review complete-task expectation
+       Expected=False Actual=False
+[PASS] saved-review-stale-fingerprint-reruns-review missing_implementation expectation
+       Expected=False Actual=False
+[PASS] saved-review-pass-test-failed-does-not-complete stopped reason expectation
+       Expected=test_failed ExitCode=1
+[PASS] saved-review-pass-test-failed-does-not-complete run-codex expectation
+       Expected=True Actual=True
+[PASS] saved-review-pass-test-failed-does-not-complete run-review-codex expectation
+       Expected=False Actual=False
+[PASS] saved-review-pass-test-failed-does-not-complete complete-task expectation
+       Expected=False Actual=False
+[PASS] saved-review-pass-test-failed-does-not-complete missing_implementation expectation
+       Expected=False Actual=False
+[PASS] previous-task-head-commit-not-implementation stopped reason expectation
+       Expected=missing_implementation ExitCode=1
+[PASS] previous-task-head-commit-not-implementation run-codex expectation
+       Expected=True Actual=True
+[PASS] previous-task-head-commit-not-implementation run-review-codex expectation
+       Expected=True Actual=True
+[PASS] previous-task-head-commit-not-implementation complete-task expectation
+       Expected=False Actual=False
+[PASS] previous-task-head-commit-not-implementation missing_implementation expectation
+       Expected=True Actual=True
+[PASS] previous-task-commit-not-implementation stopped reason expectation
+       Expected=missing_implementation ExitCode=1
+[PASS] previous-task-commit-not-implementation run-codex expectation
+       Expected=True Actual=True
+[PASS] previous-task-commit-not-implementation run-review-codex expectation
+       Expected=True Actual=True
+[PASS] previous-task-commit-not-implementation complete-task expectation
+       Expected=False Actual=False
+[PASS] previous-task-commit-not-implementation missing_implementation expectation
+       Expected=True Actual=True
+[PASS] test-failed-recovers-once-then-passes stopped reason expectation
+       Expected=allow_commit_required ExitCode=1
+[PASS] test-failed-recovers-once-then-passes run-codex count
+       Expected=2 Actual=2
+[PASS] test-failed-recovers-once-then-passes check count
+       Expected=2 Actual=2
+[PASS] test-failed-recovers-once-then-passes review-codex count
+       Expected=1 Actual=1
+[PASS] test-failed-recovers-once-then-passes recovery count
+       Type=test_failed Expected=1 Actual=1
+[PASS] test-failed-recovers-once-then-passes raw review preservation
+       Expected=False RawFiles=0
+[PASS] test-failed-recovers-once-then-passes revise prompt test-result content
+       Expected=True Actual=True
+[PASS] test-failed-recovers-once-then-passes seeded recovery isolation
+       SeedTask= CurrentTask=T001
+[PASS] test-failed-twice-stops-without-extra-codex stopped reason expectation
+       Expected=test_failed ExitCode=1
+[PASS] test-failed-twice-stops-without-extra-codex run-codex count
+       Expected=2 Actual=2
+[PASS] test-failed-twice-stops-without-extra-codex check count
+       Expected=2 Actual=2
+[PASS] test-failed-twice-stops-without-extra-codex review-codex count
+       Expected=0 Actual=0
+[PASS] test-failed-twice-stops-without-extra-codex recovery count
+       Type=test_failed Expected=1 Actual=1
+[PASS] test-failed-twice-stops-without-extra-codex raw review preservation
+       Expected=False RawFiles=0
+[PASS] test-failed-twice-stops-without-extra-codex revise prompt test-result content
+       Expected=True Actual=True
+[PASS] test-failed-twice-stops-without-extra-codex seeded recovery isolation
+       SeedTask= CurrentTask=T001
+[PASS] review-json-extraction-recovers-once stopped reason expectation
+       Expected=allow_commit_required ExitCode=1
+[PASS] review-json-extraction-recovers-once run-codex count
+       Expected=1 Actual=1
+[PASS] review-json-extraction-recovers-once check count
+       Expected=1 Actual=1
+[PASS] review-json-extraction-recovers-once review-codex count
+       Expected=2 Actual=2
+[PASS] review-json-extraction-recovers-once recovery count
+       Type=review_json_extraction_failed Expected=1 Actual=1
+[PASS] review-json-extraction-recovers-once raw review preservation
+       Expected=True RawFiles=1
+[PASS] review-json-extraction-recovers-once revise prompt test-result content
+       Expected=False Actual=False
+[PASS] review-json-extraction-recovers-once seeded recovery isolation
+       SeedTask= CurrentTask=T001
+[PASS] review-json-extraction-twice-stops stopped reason expectation
+       Expected=review_json_extraction_failed ExitCode=1
+[PASS] review-json-extraction-twice-stops run-codex count
+       Expected=1 Actual=1
+[PASS] review-json-extraction-twice-stops check count
+       Expected=1 Actual=1
+[PASS] review-json-extraction-twice-stops review-codex count
+       Expected=2 Actual=2
+[PASS] review-json-extraction-twice-stops recovery count
+       Type=review_json_extraction_failed Expected=1 Actual=1
+[PASS] review-json-extraction-twice-stops raw review preservation
+       Expected=True RawFiles=1
+[PASS] review-json-extraction-twice-stops revise prompt test-result content
+       Expected=False Actual=False
+[PASS] review-json-extraction-twice-stops seeded recovery isolation
+       SeedTask= CurrentTask=T001
+[PASS] stale-review-json-stop-reason-does-not-recover stopped reason expectation
+       Expected=run-review-codex_failed ExitCode=1
+[PASS] stale-review-json-stop-reason-does-not-recover run-codex count
+       Expected=1 Actual=1
+[PASS] stale-review-json-stop-reason-does-not-recover check count
+       Expected=1 Actual=1
+[PASS] stale-review-json-stop-reason-does-not-recover review-codex count
+       Expected=1 Actual=1
+[PASS] stale-review-json-stop-reason-does-not-recover recovery count
+       Type=review_json_extraction_failed Expected=0 Actual=0
+[PASS] stale-review-json-stop-reason-does-not-recover raw review preservation
+       Expected=False RawFiles=0
+[PASS] stale-review-json-stop-reason-does-not-recover revise prompt test-result content
+       Expected=False Actual=False
+[PASS] stale-review-json-stop-reason-does-not-recover seeded recovery isolation
+       SeedTask= CurrentTask=T001
+[PASS] package-scripts-only-allowed stopped reason expectation
+       Expected=allow_commit_required ExitCode=1
+[PASS] package-scripts-only-allowed run-codex count
+       Expected=1 Actual=1
+[PASS] package-scripts-only-allowed check count
+       Expected=1 Actual=1
+[PASS] package-scripts-only-allowed review-codex count
+       Expected=1 Actual=1
+[PASS] package-scripts-only-allowed raw review preservation
+       Expected=False RawFiles=0
+[PASS] package-scripts-only-allowed revise prompt test-result content
+       Expected=False Actual=False
+[PASS] package-scripts-only-allowed seeded recovery isolation
+       SeedTask= CurrentTask=T001
+[PASS] package-dependencies-blocked stopped reason expectation
+       Expected=package_files_changed ExitCode=1
+[PASS] package-dependencies-blocked run-codex count
+       Expected=1 Actual=1
+[PASS] package-dependencies-blocked check count
+       Expected=1 Actual=1
+[PASS] package-dependencies-blocked review-codex count
+       Expected=1 Actual=1
+[PASS] package-dependencies-blocked raw review preservation
+       Expected=False RawFiles=0
+[PASS] package-dependencies-blocked revise prompt test-result content
+       Expected=False Actual=False
+[PASS] package-dependencies-blocked seeded recovery isolation
+       SeedTask= CurrentTask=T001
+[PASS] package-lock-blocked stopped reason expectation
+       Expected=package_files_changed ExitCode=1
+[PASS] package-lock-blocked run-codex count
+       Expected=1 Actual=1
+[PASS] package-lock-blocked check count
+       Expected=1 Actual=1
+[PASS] package-lock-blocked review-codex count
+       Expected=1 Actual=1
+[PASS] package-lock-blocked raw review preservation
+       Expected=False RawFiles=0
+[PASS] package-lock-blocked revise prompt test-result content
+       Expected=False Actual=False
+[PASS] package-lock-blocked seeded recovery isolation
+       SeedTask= CurrentTask=T001
+[PASS] same-task-used-test-recovery-does-not-repeat stopped reason expectation
+       Expected=test_failed ExitCode=1
+[PASS] same-task-used-test-recovery-does-not-repeat run-codex count
+       Expected=1 Actual=1
+[PASS] same-task-used-test-recovery-does-not-repeat check count
+       Expected=1 Actual=1
+[PASS] same-task-used-test-recovery-does-not-repeat review-codex count
+       Expected=0 Actual=0
+[PASS] same-task-used-test-recovery-does-not-repeat recovery count
+       Type=test_failed Expected=1 Actual=1
+[PASS] same-task-used-test-recovery-does-not-repeat raw review preservation
+       Expected=False RawFiles=0
+[PASS] same-task-used-test-recovery-does-not-repeat revise prompt test-result content
+       Expected=False Actual=False
+[PASS] same-task-used-test-recovery-does-not-repeat seeded recovery isolation
+       SeedTask=T001 CurrentTask=T001
+[PASS] new-task-test-recovery-count-is-independent stopped reason expectation
+       Expected=allow_commit_required ExitCode=1
+[PASS] new-task-test-recovery-count-is-independent run-codex count
+       Expected=2 Actual=2
+[PASS] new-task-test-recovery-count-is-independent check count
+       Expected=2 Actual=2
+[PASS] new-task-test-recovery-count-is-independent review-codex count
+       Expected=1 Actual=1
+[PASS] new-task-test-recovery-count-is-independent recovery count
+       Type=test_failed Expected=1 Actual=1
+[PASS] new-task-test-recovery-count-is-independent raw review preservation
+       Expected=False RawFiles=0
+[PASS] new-task-test-recovery-count-is-independent revise prompt test-result content
+       Expected=True Actual=True
+[PASS] new-task-test-recovery-count-is-independent seeded recovery isolation
+       SeedTask=T001 CurrentTask=T002
 
-Test summary: Passed=20, Failed=0
+Test summary: Passed=151, Failed=0
 ```
 ### npm run lint
 

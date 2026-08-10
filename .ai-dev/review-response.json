@@ -1,7 +1,7 @@
 ﻿{
     "decision":  "pass",
     "severity":  "none",
-    "summary":  "앱 변경 파일 없이 허용된 검증 결과 정리만 수행되었고 build, test 20개, lint가 모두 통과했습니다.",
+    "summary":  "현재 task 요구사항에 맞게 자동 복구 분기, task별 1회 제한, 저장된 리뷰 재개, package 변경\r\n 게이트, missing_implementation 조건이 구현되었고 검증도 통과했습니다.",
     "required_changes":  [
 
                          ],

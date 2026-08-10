@@ -1828,3 +1828,13 @@ Exit code: 1
 - Task: T002 허용된 검증 실행 및 결과 정리
 - Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 구현 커밋 없음, 저장된 리뷰 pass에서 자동 완료
 - Next task: 없음
+## 2026-08-10 10:58:24 - Commit created
+
+- Task: T001 실패 유형별 자동 복구 흐름 구현
+- Commit: c131c4390ee0b21899fe7a8a2bb4cc28de28c7ef
+- Message: Add typed auto recovery handling
+## 2026-08-10 10:58:31 - Task completed
+
+- Task: T001 실패 유형별 자동 복구 흐름 구현
+- Result: 자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료
+- Next task: T002 재개 흐름과 package 변경 판정 검증

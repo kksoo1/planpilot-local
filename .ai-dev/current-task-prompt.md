@@ -7,45 +7,50 @@
 ## Goal
 
 # 목표
-AI Dev PowerShell UTF-8 출력 표준화
+AI Dev 자동화의 반복 실패 유형을 분류하고, 안전하게 자동 복구 가능한 경우 task별 최대 1회 재시도하도록 강화한다.
 
 ## 배경
-Windows PowerShell 5.1에서 AI Dev 관련 PowerShell 스크립트와 하위 스크립트 실행 중 한글 출력이 깨지는 문제가 있다. 공통 UTF-8 초기화 방식을 적용해 콘솔 출력, PowerShell 출력, 파일 읽기와 쓰기, 자식 PowerShell 프로세스 및 npm 실행 결과 캡처에서 한글 메시지가 일관되게 보이도록 개선한다.
+현재 AI Dev 흐름에서는 test_failed, review_json_extraction_failed, review_revise_repeated, stale_review_required_file_missing, missing_implementation, package_files_changed 같은 실패가 반복될 수 있다. 각 실패 유형을 명확히 구분하고, 이미 구현 커밋과 최신 검증 결과가 있는 재개 흐름은 불필요하게 Codex를 다시 실행하지 않도록 한다.
 
 ## 성공 기준
-- `ai-dev-autopilot.ps1`, `ai-dev-auto-goal.ps1`, `ai-dev-auto-cycle-full.ps1` 및 관련 하위 스크립트에서 한글 출력이 깨지지 않는다.
-- Console OutputEncoding과 PowerShell OutputEncoding이 PowerShell 5.1 호환 방식으로 UTF-8 처리된다.
-- 파일 읽기와 쓰기 인코딩이 UTF-8 기준으로 일관되게 처리된다.
-- 자식 powershell 프로세스와 npm 실행 결과를 캡처할 때 한글 메시지가 유지된다.
-- 기존 영어 고정 토큰 `Stopped reason`, `Outcome category`, `expected_non_work`는 변경하지 않는다.
-- 기존 build, test 20개, lint가 모두 통과한다.
+- test_failed 발생 시 실패 항목과 test-result를 포함한 수정 프롬프트로 Codex 재수정을 최대 1회 수행한다.
+- review_json_extraction_failed 발생 시 원본 리뷰 응답을 보존하고 JSON 추출 또는 리뷰 생성을 최대 1회 재시도한다.
+- review_revise_repeated와 stale_review_required_file_missing 발생 시 최신 required_changes와 실제 changedFiles를 비교해 누락 파일만 대상으로 재시도한다.
+- 최신 review가 pass이고 검증 결과가 current이며 task 구현 커밋이 존재하면 Codex 재실행 없이 다음 흐름으로 진행한다.
+- package.json의 scripts 필드만 변경되고 dependencies, devDependencies, package-lock.json이 변경되지 않은 경우에만 안전한 변경으로 허용한다.
+- missing_implementation은 Codex 결과와 실제 diff가 모두 없을 때만 발생한다.
+- task별 복구 횟수와 최종 stopped reason을 기록해 무한 반복을 방지한다.
+- 기존 영어 판정 토큰, expected_non_work 처리, baseline 사용자 변경 보존, PowerShell 5.1 호환성을 유지한다.
+- npm run build, npm test 20개 이상, npm run lint가 모두 통과한다.
 
 ## 제약사항
-- PowerShell 5.1 호환성을 유지한다.
-- UTF-8 적용을 위해 기존 사용자 파일 내용을 불필요하게 전체 재작성하지 않는다.
-- 줄바꿈 형식을 대량 변경하지 않는다.
-- 한 번에 변경 범위를 작게 유지하고, 기존 스크립트 구조를 우선 따른다.
+- 한 번에 하나의 복구 흐름만 작게 구현한다.
+- 기존 AI Dev 상태 파일과 queue/state 형식을 유지한다.
+- 사용자 변경 사항과 baseline 변경 사항을 보존한다.
+- package 의존성 및 lock file 변경은 안전 복구 대상으로 보지 않는다.
+- PowerShell 5.1에서 동작하는 명령 형식을 유지한다.
 
 ## 범위 제외
-- AI Dev 워크플로우 자체의 기능 변경은 포함하지 않는다.
-- 출력 메시지의 의미 변경이나 영어 고정 토큰 변경은 포함하지 않는다.
-- 관련 없는 파일 정리나 대규모 리팩터링은 포함하지 않는다.
+- 새로운 실행 환경 도입은 제외한다.
+- 대규모 구조 재작성은 제외한다.
+- 알림 기능 추가는 제외한다.
+- UI 화면 변경은 제외한다.
 
 ## 수동 검증
-- PowerShell 5.1에서 주요 AI Dev 스크립트를 실행해 한글 출력이 정상 표시되는지 확인한다.
-- 자식 PowerShell 실행 결과와 npm 실행 결과 캡처 로그에서 한글이 깨지지 않는지 확인한다.
-- 허용된 경우 build, test 20개, lint를 실행해 모두 통과하는지 확인한다.
+- 실패 유형별 샘플 상태를 사용해 자동 복구 횟수가 task별 최대 1회로 제한되는지 확인한다.
+- 최신 review pass, current 검증, 구현 커밋 존재 조건에서 Codex 재실행 없이 이어지는지 확인한다.
+- package.json scripts 단독 변경과 의존성 변경 케이스가 각각 허용/차단되는지 확인한다.
 
 ## Current Task
 
-- Task ID: T002
-- Title: 허용된 검증 실행 및 결과 정리
-- Description: 사용자가 허용한 검증 명령만 실행해 build, test 20개, lint 통과 여부를 확인하고 실패 시 원인을 요약한다.
-- Type: verification
+- Task ID: T001
+- Title: 실패 유형별 자동 복구 흐름 구현
+- Description: AI Dev 자동화의 반복 실패 유형을 분류하고, 안전한 유형에 대해 task별 최대 1회만 복구 프롬프트 또는 재시도 흐름을 실행하도록 구현한다.
+- Type: implementation
 - Status: in_progress
-- Priority: P1
+- Priority: P0
 - Depends on:
-- T001
+- 없음
 
 ## Task Scope
 
@@ -56,13 +61,14 @@ Windows PowerShell 5.1에서 AI Dev 관련 PowerShell 스크립트와 하위 스
 
 ## Likely Files
 
-- 없음
+- .ai-dev/ai-dev-loop.ps1
+- .ai-dev/lib/*.ps1
 
 ## Verification
 
-- 허용된 경우 build를 실행해 통과 여부를 확인한다.
-- 허용된 경우 test 20개를 실행해 통과 여부를 확인한다.
-- 허용된 경우 lint를 실행해 통과 여부를 확인한다.
+- PowerShell 5.1 호환 문법을 유지한다.
+- test_failed, review_json_extraction_failed, review_revise_repeated, stale_review_required_file_missing, missing_implementation, package_files_changed 분기 조건을 확인한다.
+- 복구 횟수와 stopped reason 기록 경로를 확인한다.
 
 - 필요한 경우 `npm run build`는 사람이 별도로 실행한다.
 - 이 프롬프트는 자동으로 build, test, lint를 실행하라고 지시하지 않는다.

@@ -1,14 +1,14 @@
 ﻿{
-    "goalTitle":  "AI Dev PowerShell UTF-8 출력 표준화",
+    "goalTitle":  "AI Dev 실패 유형별 자동 복구 강화",
     "goalSource":  ".ai-dev/goal.md",
-    "createdAt":  "2026-07-31T17:58:35.1646044+09:00",
-    "updatedAt":  "2026-08-02T14:59:47.0619189+00:00",
-    "currentTaskId":  null,
+    "createdAt":  "2026-08-03T00:00:00+09:00",
+    "updatedAt":  "2026-08-10T01:58:28.1085788+00:00",
+    "currentTaskId":  "T002",
     "tasks":  [
                   {
                       "id":  "T001",
-                      "title":  "PowerShell UTF-8 처리 흐름 점검 및 최소 수정",
-                      "description":  "AI Dev PowerShell 스크립트의 출력 인코딩 초기화, 파일 입출력 인코딩, 자식 PowerShell 및 npm 결과 캡처 흐름을 확인하고 PowerShell 5.1 호환 방식으로 필요한 최소 변경을 적용한다.",
+                      "title":  "실패 유형별 자동 복구 흐름 구현",
+                      "description":  "AI Dev 자동화의 반복 실패 유형을 분류하고, 안전한 유형에 대해 task별 최대 1회만 복구 프롬프트 또는 재시도 흐름을 실행하도록 구현한다.",
                       "type":  "implementation",
                       "status":  "done",
                       "priority":  "P0",
@@ -16,40 +16,60 @@
 
                                     ],
                       "filesLikelyToChange":  [
-                                                  ".ai-dev/ai-dev-autopilot.ps1",
-                                                  ".ai-dev/ai-dev-auto-goal.ps1",
-                                                  ".ai-dev/ai-dev-auto-cycle-full.ps1"
+                                                  ".ai-dev/ai-dev-loop.ps1",
+                                                  ".ai-dev/lib/*.ps1"
                                               ],
                       "verification":  [
-                                           "PowerShell 5.1에서 한글 출력이 깨지지 않는지 주요 스크립트 실행 결과를 확인한다.",
-                                           "자식 powershell 프로세스와 npm 실행 결과 캡처에서 한글 메시지가 유지되는지 확인한다.",
-                                           "기존 영어 고정 토큰 `Stopped reason`, `Outcome category`, `expected_non_work`가 유지되는지 확인한다."
+                                           "PowerShell 5.1 호환 문법을 유지한다.",
+                                           "test_failed, review_json_extraction_failed, review_revise_repeated, stale_review_required_file_missing, missing_implementation, package_files_changed 분기 조건을 확인한다.",
+                                           "복구 횟수와 stopped reason 기록 경로를 확인한다."
                                        ],
-                      "commitMessage":  "Standardize PowerShell UTF-8 output handling",
-                      "completedAt":  "2026-08-02T14:57:04.5865045+00:00",
+                      "commitMessage":  "Add typed auto recovery handling",
+                      "commitHash":  "c131c4390ee0b21899fe7a8a2bb4cc28de28c7ef",
+                      "completedAt":  "2026-08-10T01:58:28.1085788+00:00",
                       "resultSummary":  "자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료"
                   },
                   {
                       "id":  "T002",
-                      "title":  "허용된 검증 실행 및 결과 정리",
-                      "description":  "사용자가 허용한 검증 명령만 실행해 build, test 20개, lint 통과 여부를 확인하고 실패 시 원인을 요약한다.",
+                      "title":  "재개 흐름과 package 변경 판정 검증",
+                      "description":  "최신 review pass와 current 검증 및 구현 커밋이 있는 경우 Codex 재실행을 건너뛰는 흐름과 package.json scripts 단독 변경 허용 조건을 검증한다.",
                       "type":  "verification",
-                      "status":  "done",
+                      "status":  "in_progress",
                       "priority":  "P1",
                       "dependsOn":  [
                                         "T001"
                                     ],
                       "filesLikelyToChange":  [
+                                                  ".ai-dev/ai-dev-loop.ps1",
+                                                  ".ai-dev/lib/*.ps1"
+                                              ],
+                      "verification":  [
+                                           "구현 커밋이 있는 재개 흐름에서 missing_implementation이 발생하지 않는지 확인한다.",
+                                           "package.json scripts 단독 변경만 안전 변경으로 분류되는지 확인한다.",
+                                           "dependencies, devDependencies, package-lock.json 변경은 차단되는지 확인한다."
+                                       ],
+                      "commitMessage":  "Verify recovery resume guards"
+                  },
+                  {
+                      "id":  "T003",
+                      "title":  "전체 검증 실행",
+                      "description":  "자동 복구 변경 후 build, test, lint를 실행해 목표 성공 기준을 최종 확인한다.",
+                      "type":  "verification",
+                      "status":  "pending",
+                      "priority":  "P1",
+                      "dependsOn":  [
+                                        "T001",
+                                        "T002"
+                                    ],
+                      "filesLikelyToChange":  [
 
                                               ],
                       "verification":  [
-                                           "허용된 경우 build를 실행해 통과 여부를 확인한다.",
-                                           "허용된 경우 test 20개를 실행해 통과 여부를 확인한다.",
-                                           "허용된 경우 lint를 실행해 통과 여부를 확인한다."
+                                           "npm run build를 통과한다.",
+                                           "npm test에서 20개 이상의 테스트가 통과한다.",
+                                           "npm run lint를 통과한다."
                                        ],
-                      "commitMessage":  null,
-                      "completedAt":  "2026-08-02T14:59:47.0619189+00:00",
-                      "resultSummary":  "자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 구현 커밋 없음, 저장된 리뷰 pass에서 자동 완료"
+                      "commitMessage":  null
                   }
               ]
 }
