@@ -1,1 +1,1 @@
-{"schemaVersion":1,"eventId":"evt-company-bootstrap-20260810","type":"company_state_initialized","projectId":null,"message":"초기 회사 운영 상태 파일 구조를 생성했다.","createdAt":"2026-08-10T00:00:00+09:00"}
+﻿{"schemaVersion":1,"eventId":"evt-company-bootstrap-20260810","type":"company_state_initialized","projectId":null,"message":"초기 회사 운영 상태 파일 구조를 생성했다.","createdAt":"2026-08-10T00:00:00+09:00"}
