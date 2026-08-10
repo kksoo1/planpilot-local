@@ -2,8 +2,8 @@
     "goalTitle":  "AI Software Company 고객 포털과 자율 개발회사 운영 기반 구축",
     "goalSource":  ".ai-dev/goal.md",
     "createdAt":  "2026-08-10T00:00:00+09:00",
-    "updatedAt":  "2026-08-10T06:03:42.1000243+00:00",
-    "currentTaskId":  "T003",
+    "updatedAt":  "2026-08-10T06:38:35.6916853+00:00",
+    "currentTaskId":  null,
     "tasks":  [
                   {
                       "id":  "T001",
@@ -63,7 +63,7 @@
                       "title":  "기존 AI Dev 연결 경계 문서화",
                       "description":  "CEO/Product/CTO/Project 단계에서 만들어진 내부 Task가 기존 AI Dev Goal/Task 실행 흐름으로 전달되는 어댑터 책임과 검증 게이트를 문서화한다.",
                       "type":  "documentation",
-                      "status":  "in_progress",
+                      "status":  "done",
                       "priority":  "P1",
                       "dependsOn":  [
                                         "T002"
@@ -76,7 +76,10 @@
                                            "Recovery 흐름이 기존 task 단위 제한과 실패 사유를 재사용하도록 명시되어 있는지 확인",
                                            "고객 포털에 raw 로그보다 요약 이벤트를 우선 표시하는 원칙이 포함되어 있는지 확인"
                                        ],
-                      "commitMessage":  "Document company adapter plan"
+                      "commitMessage":  "Document company adapter plan",
+                      "commitHash":  "eba94cca7cd68a601002c9b92f4378c6e89a1291",
+                      "completedAt":  "2026-08-10T06:38:35.6916853+00:00",
+                      "resultSummary":  "자동 완료: Codex 구현, build/check, Codex 리뷰 pass, 자동 커밋 완료"
                   }
               ]
 }

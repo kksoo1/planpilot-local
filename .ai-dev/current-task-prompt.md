@@ -98,14 +98,14 @@ AI Software Company 고객 포털과 자율 개발회사 운영 기반을 기존
 
 ## Current Task
 
-- Task ID: T002
-- Title: 초기 회사 상태 파일 구조 추가
-- Description: 전용 회사 상태 디렉터리와 최소 JSON/JSONL 파일 구조를 작게 추가하고, Windows PowerShell 5.1 환경에서 한글 UTF-8을 유지하는 파일 형식을 사용한다.
-- Type: implementation
+- Task ID: T003
+- Title: 기존 AI Dev 연결 경계 문서화
+- Description: CEO/Product/CTO/Project 단계에서 만들어진 내부 Task가 기존 AI Dev Goal/Task 실행 흐름으로 전달되는 어댑터 책임과 검증 게이트를 문서화한다.
+- Type: documentation
 - Status: in_progress
-- Priority: P0
+- Priority: P1
 - Depends on:
-- T001
+- T002
 
 ## Task Scope
 
@@ -116,19 +116,13 @@ AI Software Company 고객 포털과 자율 개발회사 운영 기반을 기존
 
 ## Likely Files
 
-- .ai-company/company-state.json
-- .ai-company/projects.json
-- .ai-company/customer-requests.json
-- .ai-company/customer-decisions.json
-- .ai-company/deliveries.json
-- .ai-company/company-config.json
-- .ai-company/events.jsonl
+- .ai-company/reports/adapter-plan.md
 
 ## Verification
 
-- 각 파일이 유효한 UTF-8 JSON 또는 JSONL 형식인지 확인
-- 초기 회사 상태가 IDLE 또는 대기 상태로 복원 가능한지 확인
-- events.jsonl이 append-only 이벤트 로그로 사용할 수 있는지 확인
+- QA와 Review 통과 전 납품 준비로 이동하지 않는지 확인
+- Recovery 흐름이 기존 task 단위 제한과 실패 사유를 재사용하도록 명시되어 있는지 확인
+- 고객 포털에 raw 로그보다 요약 이벤트를 우선 표시하는 원칙이 포함되어 있는지 확인
 
 - 필요한 경우 `npm run build`는 사람이 별도로 실행한다.
 - 이 프롬프트는 자동으로 build, test, lint를 실행하라고 지시하지 않는다.

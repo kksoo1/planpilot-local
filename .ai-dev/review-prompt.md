@@ -106,31 +106,31 @@ AI Software Company 고객 포털과 자율 개발회사 운영 기반을 기존
 
 ## Current Task
 
-- Task ID: T002
-- Title: 초기 회사 상태 파일 구조 추가
-- Description: 전용 회사 상태 디렉터리와 최소 JSON/JSONL 파일 구조를 작게 추가하고, Windows PowerShell 5.1 환경에서 한글 UTF-8을 유지하는 파일 형식을 사용한다.
-- Type: implementation
+- Task ID: T003
+- Title: 기존 AI Dev 연결 경계 문서화
+- Description: CEO/Product/CTO/Project 단계에서 만들어진 내부 Task가 기존 AI Dev Goal/Task 실행 흐름으로 전달되는 어댑터 책임과 검증 게이트를 문서화한다.
+- Type: documentation
 - Status: in_progress
-- Priority: P0
+- Priority: P1
 - Depends on:
-- T001
+- T002
 - Verification:
-- 각 파일이 유효한 UTF-8 JSON 또는 JSONL 형식인지 확인
-- 초기 회사 상태가 IDLE 또는 대기 상태로 복원 가능한지 확인
-- events.jsonl이 append-only 이벤트 로그로 사용할 수 있는지 확인
+- QA와 Review 통과 전 납품 준비로 이동하지 않는지 확인
+- Recovery 흐름이 기존 task 단위 제한과 실패 사유를 재사용하도록 명시되어 있는지 확인
+- 고객 포털에 raw 로그보다 요약 이벤트를 우선 표시하는 원칙이 포함되어 있는지 확인
 
 ## Test Result
 
 # AI Dev Test Result
 
-## 2026-08-10 15:01:09
+## 2026-08-10 15:36:22
 
 - Overall result: passed
-- Current task: T002
-- Mode: standard
+- Current task: T003
+- Mode: BuildOnly (build + lint when available)
 - Commands:
   - npm run build: passed
-  - npm run test: passed
+  - npm run test: skipped
   - npm run lint: passed
 
 ### npm run build
@@ -152,319 +152,15 @@ dist/index.html                   0.46 kB │ gzip:   0.29 kB
 dist/assets/index-DvjxWt30.css    5.69 kB │ gzip:   1.93 kB
 dist/assets/index-DtLVvPCG.js   317.50 kB │ gzip: 100.16 kB
 
-[32m✓ built in 240ms[39m
+[32m✓ built in 410ms[39m
 ```
 ### npm run test
 
-- Status: passed
-- Exit code: 0
+- Status: skipped
+- Exit code: 없음
 
 ```text
-
-> planpilot-local@0.0.0 test
-> powershell -ExecutionPolicy Bypass -File scripts/ai-dev-test.ps1
-
-AI Dev automation tests
-Repository: D:\ai-apps\planpilot-local
-
-[PASS] auto-goal MaxSteps default is at least 40
-       Detected=40
-[PASS] maxsteps-forwarding forwards MaxSteps 57 to child script
-       Expected=57 Actual=57 ExitCode=1 Args=-MaxTasks 3 -MaxSteps 57 -AllowCodex -AllowReviewCodex -AllowCommit -AllowDirty -ProtectedBaselineDirtyPaths scripts/ai-dev-auto-cycle-full.ps1,scripts/ai-dev-auto-goal.ps1
-[PASS] maxsteps-forwarding forwards MaxTasks and allow switches
-       ExpectedMaxTasks=3 ActualMaxTasks=3 MissingSwitches=
-[PASS] maxsteps-forwarding fake child exited successfully
-       AutoGoalExitCode=1
-[PASS] maxsteps-forwarding child script was invoked
-       ExitCode=1 OutputPreview=Step 1: validate-input    Command: check GoalTitle/GoalDescription    Executed: False    Skipped: False    Exit code: 0    Message: Input validation completed: MaxSteps forwarding test  Step 2: dirty-worktree-gate    Command: git status --porcelain    Executed: True    Skipped: False    Exit code: 0    Message: AllowDirty is set. Baseline dirty count: 2  Step 3: plan-goal    Command: codex exec <auto-goal planning prompt>    Executed: True    Skipped: False    Exit code: 0    Message: Codex goal planning completed. Result: .ai-dev/codex-result.md  Step 4: validate-generated-json    Command: goal/queue/state JSON validation    Executed: False    Skipped: False    Exit code: 0    Message: goalMarkdown, queue, and state JSON validation completed. currentTaskId: T001  Step 5: write-state-files    Command: .ai-dev/goal.md, .ai-dev/queue.json, .ai-dev/state.json    Executed: True    Skipped: False    Exit code: 0    Message: New goal, queue, and state files were written.  Step 6: make-prompt    Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-make-prompt.ps1    Executed: True    Skipped: False    Exit code: 0    Message: 생성된 프롬프트 파일: .ai-dev/current-task-prompt.md  Current task id: T001  Current task title: Forwarding test  Step 7: auto-cycle-full    Command: powershell -ExecutionPolicy Bypass -File scripts/ai-dev-auto-cycle-full.ps1 -MaxTasks 3 -MaxSteps 57 -AllowCodex -AllowReviewCodex -AllowCommit -AllowDirty -ProtectedBaselineDirtyPaths scripts/ai-dev-auto-cycle-full.ps1,scripts/ai-dev-auto-goal.ps1    Executed: True    Skipped: False    Exit code: 0    Message: completed  Step 8: verify-goal-status    Command: .ai-dev/state.json goalStatus 확인    Executed: False    Skipped: False    Exit code: 0    Message: auto-cycle-full 성공 후 goalStatus completed 확인.  Step 9: final-change-gate    Command: cleanup auto-goal temp artifacts, git status --short    Executed: True    Skipped: False    Exit code: 1    Message: Final clean verification failed: baseline dirty files remain, so auto-goal will not report completed.  Baseline dirty count: 2  Final dirty count: 8  Final .ai-dev meta commit created: skipped (baseline dirty remains).  Remaining baseline dirty paths:  scripts/ai-dev-auto-cycle-full.ps1  scripts/ai-dev-auto-goal.ps1   D .ai-dev/auto-goal-planning-prompt.md   M .ai-dev/codex-result.md   M .ai-dev/current-task-prompt.md   M .ai-dev/goal.md   M .ai-dev/queue.json   M .ai-dev/state.json   M scripts/ai-dev-auto-cycle-full.ps1   M scripts/ai-dev-auto-goal.ps1  Plan preview:    Goal title: Forwarding test    Current task id: T001    Task T001: Forwarding test      Type: implementation      Status: in_progress      Priority: P0      Likely files: scripts/ai-dev-test.ps1      Verification: Verify MaxSteps forwarding.  Stopped reason: final_baseline_dirty_remains  Outcome category: actual_failure  Completed: False  Exit code: 1
-[PASS] all-goal-candidates-excluded stopped reason
-       Expected=all_goal_candidates_excluded ExitCode=1
-[PASS] all-goal-candidates-excluded expected_non_work classification
-[PASS] all-goal-candidates-excluded baseline marker preservation
-[PASS] all-goal-candidates-excluded no new dirty paths
-       NewDirtyPaths=
-[PASS] all-goal-candidates-excluded no staged paths
-       StagedPaths=
-[PASS] dirty-worktree stopped reason
-       Expected=dirty_worktree ExitCode=1
-[PASS] dirty-worktree expected_non_work classification
-[PASS] dirty-worktree baseline marker preservation
-[PASS] dirty-worktree no new dirty paths
-       NewDirtyPaths=
-[PASS] dirty-worktree no staged paths
-       StagedPaths=
-[PASS] baseline-output-conflict stopped reason
-       Expected=baseline_output_conflict ExitCode=1
-[PASS] baseline-output-conflict expected_non_work classification
-[PASS] baseline-output-conflict baseline marker preservation
-[PASS] baseline-output-conflict no new dirty paths
-       NewDirtyPaths=
-[PASS] baseline-output-conflict no staged paths
-       StagedPaths=
-[PASS] review-required-files-partial-diff recovery prompt expectation
-       ExpectedRecoveryPrompt=True ExitCode=1
-[PASS] review-required-files-partial-diff missing files section includes only expected targets
-       MissingSection=B.ps1
-[PASS] review-required-files-partial-diff does not stop as stale required file missing
-       ExitCode=1
-[PASS] review-required-files-all-changed recovery prompt expectation
-       ExpectedRecoveryPrompt=False ExitCode=1
-[PASS] review-required-files-all-changed missing files section includes only expected targets
-       MissingSection=
-[PASS] review-required-files-all-changed does not stop as stale required file missing
-       ExitCode=1
-[PASS] review-required-files-recovery-limit recovery prompt expectation
-       ExpectedRecoveryPrompt=False ExitCode=1
-[PASS] review-required-files-recovery-limit missing files section includes only expected targets
-       MissingSection=
-[PASS] review-required-files-recovery-limit does not stop as stale required file missing
-       ExitCode=1
-[PASS] missing-implementation-no-diff-no-commit stopped reason expectation
-       Expected=missing_implementation ExitCode=1
-[PASS] missing-implementation-no-diff-no-commit run-codex expectation
-       Expected=True Actual=True
-[PASS] missing-implementation-no-diff-no-commit run-review-codex expectation
-       Expected=True Actual=True
-[PASS] missing-implementation-no-diff-no-commit complete-task expectation
-       Expected=False Actual=False
-[PASS] missing-implementation-no-diff-no-commit missing_implementation expectation
-       Expected=True Actual=True
-[PASS] saved-review-current-commit-resumes stopped reason expectation
-       Expected=allow_commit_required ExitCode=1
-[PASS] saved-review-current-commit-resumes run-codex expectation
-       Expected=False Actual=False
-[PASS] saved-review-current-commit-resumes run-review-codex expectation
-       Expected=False Actual=False
-[PASS] saved-review-current-commit-resumes complete-task expectation
-       Expected=False Actual=False
-[PASS] saved-review-current-commit-resumes missing_implementation expectation
-       Expected=False Actual=False
-[PASS] saved-review-pass-current-skips-review-codex stopped reason expectation
-       Expected=allow_commit_required ExitCode=1
-[PASS] saved-review-pass-current-skips-review-codex run-codex expectation
-       Expected=False Actual=False
-[PASS] saved-review-pass-current-skips-review-codex run-review-codex expectation
-       Expected=False Actual=False
-[PASS] saved-review-pass-current-skips-review-codex complete-task expectation
-       Expected=False Actual=False
-[PASS] saved-review-pass-current-skips-review-codex missing_implementation expectation
-       Expected=False Actual=False
-[PASS] saved-review-previous-task-head-reruns-codex stopped reason expectation
-       Expected=allow_commit_required ExitCode=1
-[PASS] saved-review-previous-task-head-reruns-codex run-codex expectation
-       Expected=True Actual=True
-[PASS] saved-review-previous-task-head-reruns-codex run-review-codex expectation
-       Expected=True Actual=True
-[PASS] saved-review-previous-task-head-reruns-codex complete-task expectation
-       Expected=False Actual=False
-[PASS] saved-review-previous-task-head-reruns-codex missing_implementation expectation
-       Expected=False Actual=False
-[PASS] saved-review-different-task-reruns-review stopped reason expectation
-       Expected=allow_commit_required ExitCode=1
-[PASS] saved-review-different-task-reruns-review run-codex expectation
-       Expected=True Actual=True
-[PASS] saved-review-different-task-reruns-review run-review-codex expectation
-       Expected=True Actual=True
-[PASS] saved-review-different-task-reruns-review complete-task expectation
-       Expected=False Actual=False
-[PASS] saved-review-different-task-reruns-review missing_implementation expectation
-       Expected=False Actual=False
-[PASS] saved-review-stale-fingerprint-reruns-review stopped reason expectation
-       Expected=allow_commit_required ExitCode=1
-[PASS] saved-review-stale-fingerprint-reruns-review run-codex expectation
-       Expected=True Actual=True
-[PASS] saved-review-stale-fingerprint-reruns-review run-review-codex expectation
-       Expected=True Actual=True
-[PASS] saved-review-stale-fingerprint-reruns-review complete-task expectation
-       Expected=False Actual=False
-[PASS] saved-review-stale-fingerprint-reruns-review missing_implementation expectation
-       Expected=False Actual=False
-[PASS] saved-review-pass-test-failed-does-not-complete stopped reason expectation
-       Expected=test_failed ExitCode=1
-[PASS] saved-review-pass-test-failed-does-not-complete run-codex expectation
-       Expected=True Actual=True
-[PASS] saved-review-pass-test-failed-does-not-complete run-review-codex expectation
-       Expected=False Actual=False
-[PASS] saved-review-pass-test-failed-does-not-complete complete-task expectation
-       Expected=False Actual=False
-[PASS] saved-review-pass-test-failed-does-not-complete missing_implementation expectation
-       Expected=False Actual=False
-[PASS] previous-task-head-commit-not-implementation stopped reason expectation
-       Expected=missing_implementation ExitCode=1
-[PASS] previous-task-head-commit-not-implementation run-codex expectation
-       Expected=True Actual=True
-[PASS] previous-task-head-commit-not-implementation run-review-codex expectation
-       Expected=True Actual=True
-[PASS] previous-task-head-commit-not-implementation complete-task expectation
-       Expected=False Actual=False
-[PASS] previous-task-head-commit-not-implementation missing_implementation expectation
-       Expected=True Actual=True
-[PASS] previous-task-commit-not-implementation stopped reason expectation
-       Expected=missing_implementation ExitCode=1
-[PASS] previous-task-commit-not-implementation run-codex expectation
-       Expected=True Actual=True
-[PASS] previous-task-commit-not-implementation run-review-codex expectation
-       Expected=True Actual=True
-[PASS] previous-task-commit-not-implementation complete-task expectation
-       Expected=False Actual=False
-[PASS] previous-task-commit-not-implementation missing_implementation expectation
-       Expected=True Actual=True
-[PASS] test-failed-recovers-once-then-passes stopped reason expectation
-       Expected=allow_commit_required ExitCode=1
-[PASS] test-failed-recovers-once-then-passes run-codex count
-       Expected=2 Actual=2
-[PASS] test-failed-recovers-once-then-passes check count
-       Expected=2 Actual=2
-[PASS] test-failed-recovers-once-then-passes review-codex count
-       Expected=1 Actual=1
-[PASS] test-failed-recovers-once-then-passes recovery count
-       Type=test_failed Expected=1 Actual=1
-[PASS] test-failed-recovers-once-then-passes raw review preservation
-       Expected=False RawFiles=0
-[PASS] test-failed-recovers-once-then-passes revise prompt test-result content
-       Expected=True Actual=True
-[PASS] test-failed-recovers-once-then-passes seeded recovery isolation
-       SeedTask= CurrentTask=T001
-[PASS] test-failed-twice-stops-without-extra-codex stopped reason expectation
-       Expected=test_failed ExitCode=1
-[PASS] test-failed-twice-stops-without-extra-codex run-codex count
-       Expected=2 Actual=2
-[PASS] test-failed-twice-stops-without-extra-codex check count
-       Expected=2 Actual=2
-[PASS] test-failed-twice-stops-without-extra-codex review-codex count
-       Expected=0 Actual=0
-[PASS] test-failed-twice-stops-without-extra-codex recovery count
-       Type=test_failed Expected=1 Actual=1
-[PASS] test-failed-twice-stops-without-extra-codex raw review preservation
-       Expected=False RawFiles=0
-[PASS] test-failed-twice-stops-without-extra-codex revise prompt test-result content
-       Expected=True Actual=True
-[PASS] test-failed-twice-stops-without-extra-codex seeded recovery isolation
-       SeedTask= CurrentTask=T001
-[PASS] review-json-extraction-recovers-once stopped reason expectation
-       Expected=allow_commit_required ExitCode=1
-[PASS] review-json-extraction-recovers-once run-codex count
-       Expected=1 Actual=1
-[PASS] review-json-extraction-recovers-once check count
-       Expected=1 Actual=1
-[PASS] review-json-extraction-recovers-once review-codex count
-       Expected=2 Actual=2
-[PASS] review-json-extraction-recovers-once recovery count
-       Type=review_json_extraction_failed Expected=1 Actual=1
-[PASS] review-json-extraction-recovers-once raw review preservation
-       Expected=True RawFiles=1
-[PASS] review-json-extraction-recovers-once revise prompt test-result content
-       Expected=False Actual=False
-[PASS] review-json-extraction-recovers-once seeded recovery isolation
-       SeedTask= CurrentTask=T001
-[PASS] review-json-extraction-twice-stops stopped reason expectation
-       Expected=review_json_extraction_failed ExitCode=1
-[PASS] review-json-extraction-twice-stops run-codex count
-       Expected=1 Actual=1
-[PASS] review-json-extraction-twice-stops check count
-       Expected=1 Actual=1
-[PASS] review-json-extraction-twice-stops review-codex count
-       Expected=2 Actual=2
-[PASS] review-json-extraction-twice-stops recovery count
-       Type=review_json_extraction_failed Expected=1 Actual=1
-[PASS] review-json-extraction-twice-stops raw review preservation
-       Expected=True RawFiles=1
-[PASS] review-json-extraction-twice-stops revise prompt test-result content
-       Expected=False Actual=False
-[PASS] review-json-extraction-twice-stops seeded recovery isolation
-       SeedTask= CurrentTask=T001
-[PASS] stale-review-json-stop-reason-does-not-recover stopped reason expectation
-       Expected=run-review-codex_failed ExitCode=1
-[PASS] stale-review-json-stop-reason-does-not-recover run-codex count
-       Expected=1 Actual=1
-[PASS] stale-review-json-stop-reason-does-not-recover check count
-       Expected=1 Actual=1
-[PASS] stale-review-json-stop-reason-does-not-recover review-codex count
-       Expected=1 Actual=1
-[PASS] stale-review-json-stop-reason-does-not-recover recovery count
-       Type=review_json_extraction_failed Expected=0 Actual=0
-[PASS] stale-review-json-stop-reason-does-not-recover raw review preservation
-       Expected=False RawFiles=0
-[PASS] stale-review-json-stop-reason-does-not-recover revise prompt test-result content
-       Expected=False Actual=False
-[PASS] stale-review-json-stop-reason-does-not-recover seeded recovery isolation
-       SeedTask= CurrentTask=T001
-[PASS] package-scripts-only-allowed stopped reason expectation
-       Expected=allow_commit_required ExitCode=1
-[PASS] package-scripts-only-allowed run-codex count
-       Expected=1 Actual=1
-[PASS] package-scripts-only-allowed check count
-       Expected=1 Actual=1
-[PASS] package-scripts-only-allowed review-codex count
-       Expected=1 Actual=1
-[PASS] package-scripts-only-allowed raw review preservation
-       Expected=False RawFiles=0
-[PASS] package-scripts-only-allowed revise prompt test-result content
-       Expected=False Actual=False
-[PASS] package-scripts-only-allowed seeded recovery isolation
-       SeedTask= CurrentTask=T001
-[PASS] package-dependencies-blocked stopped reason expectation
-       Expected=package_files_changed ExitCode=1
-[PASS] package-dependencies-blocked run-codex count
-       Expected=1 Actual=1
-[PASS] package-dependencies-blocked check count
-       Expected=1 Actual=1
-[PASS] package-dependencies-blocked review-codex count
-       Expected=1 Actual=1
-[PASS] package-dependencies-blocked raw review preservation
-       Expected=False RawFiles=0
-[PASS] package-dependencies-blocked revise prompt test-result content
-       Expected=False Actual=False
-[PASS] package-dependencies-blocked seeded recovery isolation
-       SeedTask= CurrentTask=T001
-[PASS] package-lock-blocked stopped reason expectation
-       Expected=package_files_changed ExitCode=1
-[PASS] package-lock-blocked run-codex count
-       Expected=1 Actual=1
-[PASS] package-lock-blocked check count
-       Expected=1 Actual=1
-[PASS] package-lock-blocked review-codex count
-       Expected=1 Actual=1
-[PASS] package-lock-blocked raw review preservation
-       Expected=False RawFiles=0
-[PASS] package-lock-blocked revise prompt test-result content
-       Expected=False Actual=False
-[PASS] package-lock-blocked seeded recovery isolation
-       SeedTask= CurrentTask=T001
-[PASS] same-task-used-test-recovery-does-not-repeat stopped reason expectation
-       Expected=test_failed ExitCode=1
-[PASS] same-task-used-test-recovery-does-not-repeat run-codex count
-       Expected=1 Actual=1
-[PASS] same-task-used-test-recovery-does-not-repeat check count
-       Expected=1 Actual=1
-[PASS] same-task-used-test-recovery-does-not-repeat review-codex count
-       Expected=0 Actual=0
-[PASS] same-task-used-test-recovery-does-not-repeat recovery count
-       Type=test_failed Expected=1 Actual=1
-[PASS] same-task-used-test-recovery-does-not-repeat raw review preservation
-       Expected=False RawFiles=0
-[PASS] same-task-used-test-recovery-does-not-repeat revise prompt test-result content
-       Expected=False Actual=False
-[PASS] same-task-used-test-recovery-does-not-repeat seeded recovery isolation
-       SeedTask=T001 CurrentTask=T001
-[PASS] new-task-test-recovery-count-is-independent stopped reason expectation
-       Expected=allow_commit_required ExitCode=1
-[PASS] new-task-test-recovery-count-is-independent run-codex count
-       Expected=2 Actual=2
-[PASS] new-task-test-recovery-count-is-independent check count
-       Expected=2 Actual=2
-[PASS] new-task-test-recovery-count-is-independent review-codex count
-       Expected=1 Actual=1
-[PASS] new-task-test-recovery-count-is-independent recovery count
-       Type=test_failed Expected=1 Actual=1
-[PASS] new-task-test-recovery-count-is-independent raw review preservation
-       Expected=False RawFiles=0
-[PASS] new-task-test-recovery-count-is-independent revise prompt test-result content
-       Expected=True Actual=True
-[PASS] new-task-test-recovery-count-is-independent seeded recovery isolation
-       SeedTask=T001 CurrentTask=T002
-
-Test summary: Passed=151, Failed=0
+-BuildOnly 옵션으로 건너뛰었습니다.
 ```
 ### npm run lint
 
@@ -483,19 +179,12 @@ Test summary: Passed=151, Failed=0
 
 ## Generated At
 
-2026-08-10 15:01:23
+2026-08-10 15:36:39
 
 ## Git Status
 
 ```text
- M .ai-company/company-config.json
- M .ai-company/company-state.json
- M .ai-company/customer-decisions.json
- M .ai-company/customer-requests.json
- M .ai-company/deliveries.json
- M .ai-company/events.jsonl
- M .ai-company/projects.json
- D .ai-dev/auto-goal-planning-prompt.md
+ M .ai-company/reports/adapter-plan.md
  M .ai-dev/codex-result.md
  M .ai-dev/codex-review-result.md
  M .ai-dev/current-task-prompt.md
@@ -504,24 +193,16 @@ Test summary: Passed=151, Failed=0
  M .ai-dev/review-prompt.md
  M .ai-dev/review-response.json
  M .ai-dev/review.md
- M .ai-dev/revise-prompt.md
  M .ai-dev/state.json
  M .ai-dev/test-result.md
 ```
 
 ## App Change Files
 
-- .ai-company/company-config.json
-- .ai-company/company-state.json
-- .ai-company/customer-decisions.json
-- .ai-company/customer-requests.json
-- .ai-company/deliveries.json
-- .ai-company/events.jsonl
-- .ai-company/projects.json
+- .ai-company/reports/adapter-plan.md
 
 ## AI Dev Operational Artifact Files
 
-- .ai-dev/auto-goal-planning-prompt.md
 - .ai-dev/codex-result.md
 - .ai-dev/codex-review-result.md
 - .ai-dev/current-task-prompt.md
@@ -530,7 +211,6 @@ Test summary: Passed=151, Failed=0
 - .ai-dev/review-prompt.md
 - .ai-dev/review-response.json
 - .ai-dev/review.md
-- .ai-dev/revise-prompt.md
 - .ai-dev/state.json
 - .ai-dev/test-result.md
 
@@ -541,86 +221,92 @@ Test summary: Passed=151, Failed=0
 ## Unstaged Diff Stat
 
 ```text
- .ai-company/company-config.json     | 2 +-
- .ai-company/company-state.json      | 2 +-
- .ai-company/customer-decisions.json | 2 +-
- .ai-company/customer-requests.json  | 2 +-
- .ai-company/deliveries.json         | 2 +-
- .ai-company/events.jsonl            | 2 +-
- .ai-company/projects.json           | 2 +-
- 7 files changed, 7 insertions(+), 7 deletions(-)
+ .ai-company/reports/adapter-plan.md | 40 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 40 insertions(+)
 ```
 
 ## Unstaged Diff
 
 ```text
-diff --git a/.ai-company/company-config.json b/.ai-company/company-config.json
-index c337720..58a3484 100644
---- a/.ai-company/company-config.json
-+++ b/.ai-company/company-config.json
-@@ -1,4 +1,4 @@
--{
-+﻿{
-   "schemaVersion": 1,
-   "storage": {
-     "directory": ".ai-company",
-diff --git a/.ai-company/company-state.json b/.ai-company/company-state.json
-index 0977f1f..702e4f2 100644
---- a/.ai-company/company-state.json
-+++ b/.ai-company/company-state.json
-@@ -1,4 +1,4 @@
--{
-+﻿{
-   "schemaVersion": 1,
-   "status": "idle",
-   "currentProjectId": null,
-diff --git a/.ai-company/customer-decisions.json b/.ai-company/customer-decisions.json
-index 9c622d6..7d79b9e 100644
---- a/.ai-company/customer-decisions.json
-+++ b/.ai-company/customer-decisions.json
-@@ -1,4 +1,4 @@
--{
-+﻿{
-   "schemaVersion": 1,
-   "decisions": [],
-   "decisionBoundary": {
-diff --git a/.ai-company/customer-requests.json b/.ai-company/customer-requests.json
-index 3c08053..0372b08 100644
---- a/.ai-company/customer-requests.json
-+++ b/.ai-company/customer-requests.json
-@@ -1,4 +1,4 @@
--{
-+﻿{
-   "schemaVersion": 1,
-   "requests": [],
-   "intakePolicy": {
-diff --git a/.ai-company/deliveries.json b/.ai-company/deliveries.json
-index e949079..089cdef 100644
---- a/.ai-company/deliveries.json
-+++ b/.ai-company/deliveries.json
-@@ -1,4 +1,4 @@
--{
-+﻿{
-   "schemaVersion": 1,
-   "deliveries": [],
-   "deliveryStatusValues": [
-diff --git a/.ai-company/events.jsonl b/.ai-company/events.jsonl
-index e2498ba..5fe6c71 100644
---- a/.ai-company/events.jsonl
-+++ b/.ai-company/events.jsonl
-@@ -1 +1 @@
--{"schemaVersion":1,"eventId":"evt-company-bootstrap-20260810","type":"company_state_initialized","projectId":null,"message":"초기 회사 운영 상태 파일 구조를 생성했다.","createdAt":"2026-08-10T00:00:00+09:00"}
-+﻿{"schemaVersion":1,"eventId":"evt-company-bootstrap-20260810","type":"company_state_initialized","projectId":null,"message":"초기 회사 운영 상태 파일 구조를 생성했다.","createdAt":"2026-08-10T00:00:00+09:00"}
-diff --git a/.ai-company/projects.json b/.ai-company/projects.json
-index d8a50dd..bad1b52 100644
---- a/.ai-company/projects.json
-+++ b/.ai-company/projects.json
-@@ -1,4 +1,4 @@
--{
-+﻿{
-   "schemaVersion": 1,
-   "projects": [],
-   "queue": {
+diff --git a/.ai-company/reports/adapter-plan.md b/.ai-company/reports/adapter-plan.md
+index 0899f3d..7499e03 100644
+--- a/.ai-company/reports/adapter-plan.md
++++ b/.ai-company/reports/adapter-plan.md
+@@ -42,6 +42,15 @@ CEO/Product/CTO/Project 단계에서 내부 task가 AI Dev로 전달되려면 
+ 
+ 어느 단계든 `blocked` 상태이면 새 AI Dev task를 생성하지 않는다. 고객 결정이 필요한 경우에는 회사 상태에 decision record를 남기고, 고객에게는 제품 수준 선택지만 제시한다.
+ 
++단계별 산출물은 다음 경계를 넘지 않는다.
++
++- `CEO` 산출물은 고객 목표, 우선순위, 범위 판단, 고객 결정 필요 여부까지로 제한한다.
++- `Product` 산출물은 제품 요구사항, acceptance criteria, 고객 검수 기준까지로 제한한다.
++- `CTO` 산출물은 기술 영향 범위, 허용 파일 후보, 금지 명령 및 안전장치 유지 확인까지로 제한한다.
++- `Project` 산출물은 AI Dev에 넘길 단일 task 후보와 검증 계획까지로 제한한다.
++
++이 단계들은 `.ai-dev/queue.json`을 직접 편집하거나 AI Dev 실행 결과를 임의로 성공 처리하지 않는다. 내부 task가 아직 제품 수준 acceptance criteria와 연결되지 않았으면 handoff 대상이 아니라 회사 planning 상태에 남긴다.
++
+ ## 어댑터 책임
+ 
+ Company -> AI Dev 어댑터의 책임은 다음으로 제한한다.
+@@ -54,6 +63,14 @@ Company -> AI Dev 어댑터의 책임은 다음으로 제한한다.
+ - 고객 의사결정 dependency가 있으면 AI Dev task 생성 여부를 차단하거나 보류한다.
+ - AI Dev 실행 결과를 회사 상태와 고객-facing 이벤트로 요약한다.
+ 
++어댑터는 내부 task를 전달하기 전에 다음 값을 명확히 보존해야 한다.
++
++- 회사 프로젝트 ID와 내부 task ID
++- 고객-facing objective와 acceptance criteria
++- 이번 task에서 허용된 변경 범위와 범위 제외 항목
++- 기존 AI Dev 안전 규칙과 수동 검증 조건
++- 실패 시 기존 AI Dev recovery 상태를 참조할 수 있는 매핑 키
++
+ 어댑터가 직접 수행하지 않는 일:
+ 
+ - build/test/lint/review/recovery/commit 실행
+@@ -62,6 +79,19 @@ Company -> AI Dev 어댑터의 책임은 다음으로 제한한다.
+ - task 크기 제한, baseline 보호, package 변경 보호 약화
+ - 고객에게 내부 구현 세부사항 질의
+ 
++## Handoff 차단 조건
++
++다음 중 하나라도 해당하면 어댑터는 AI Dev task 생성을 보류하고 회사 프로젝트 또는 내부 task를 `blocked`로 표시한다.
++
++- 고객이 제품 목표, 범위, 우선순위, 납품 승인 중 하나를 결정해야 한다.
++- task가 둘 이상의 독립 기능을 포함해 one-task-at-a-time 제한을 위반한다.
++- 허용 파일 또는 예상 변경 파일 범위가 불명확하다.
++- package 추가, 외부 서비스 연동, 로그인, 클라우드 동기화, 알림, 모바일 권한처럼 현재 정책에서 제외된 작업이 필요하다.
++- 기존 build/test/lint/review/recovery 안전장치를 우회해야만 진행할 수 있다.
++- 고객 baseline 변경을 덮어쓰거나 복구할 위험이 있다.
++
++차단 사유는 고객 포털에 raw 오류로 표시하지 않는다. 회사 내부 상태에는 구체 사유를 남기고, 고객에게는 필요한 제품 수준 결정만 요약한다.
++
+ ## Handoff Payload
+ 
+ AI Dev로 넘기는 최소 입력은 다음 필드를 포함해야 한다.
+@@ -93,6 +123,8 @@ AI Dev 실행 결과를 회사 상태로 되돌릴 때의 최소 출력은 다
+ - `remainingRisks`
+ - `customerDecisionNeeded`
+ 
++결과 payload는 AI Dev 로그의 원문 복사본이 아니라 회사 상태 전이를 판단할 수 있는 요약이어야 한다. raw command output, stack trace, 내부 경로 목록은 내부 진단용으로만 참조하고 고객-facing record에는 필요한 의미만 변환해 기록한다.
++
+ ## 호출 순서
+ 
+ 기본 흐름은 다음 순서를 따른다.
+@@ -127,6 +159,14 @@ Company planning에서 AI Dev execution으로 넘어가기 전에는 다음을 
+ 
+ QA와 Review가 통과하기 전에는 `delivery_preparation`, `ready_for_customer`, `customer_acceptance`로 이동하지 않는다. `development`에서 고객 검수 상태로 직접 이동하는 것도 금지한다.
+ 
++AI Dev 결과 수신 후에는 다음 전이 규칙을 적용한다.
++
++- 구현이 완료되고 QA/Review가 통과하면 `qa_review`에서 `delivery_preparation`으로 이동할 수 있다.
++- 구현은 완료되었지만 QA 또는 Review가 미실행이면 `delivery_preparation`으로 이동하지 않고 `qa_pending` 요약을 남긴다.
++- QA 또는 Review가 실패하면 기존 AI Dev 실패 사유와 recovery 요약을 참조해 `development`, `planning`, 또는 `paused` 중 하나로 되돌린다.
++- 고객 제품 결정이 필요한 실패만 `customer_decision_needed`로 표시한다.
++- AI Dev task가 실패했더라도 회사 상태에서 새 task를 자동 생성하지 않는다.
++
+ ## Recovery 경계
+ 
+ Company 모델은 recovery 실행기를 새로 만들지 않는다. 기존 AI Dev task 단위 recovery 상태와 제한을 재사용한다.
 ```
 
 ## Staged Diff Stat
