@@ -345,7 +345,7 @@ exit 0
         Write-TestResult `
             -Name "$Name execution" `
             -Passed $false `
-            -Detail $_.Exception.Message
+            -Detail ("Line={0} Message={1}" -f $_.InvocationInfo.ScriptLineNumber, $_.Exception.Message)
     }
     finally {
         Remove-IsolatedScenarioRoot -ScenarioRoot $scenarioRoot
@@ -579,6 +579,1244 @@ function Invoke-IsolatedScenario {
     }
 }
 
+function Set-JsonFile {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Path,
+
+        [Parameter(Mandatory = $true)]
+        [object]$Value
+    )
+
+    $utf8WithBom = New-Object System.Text.UTF8Encoding($true)
+    [System.IO.File]::WriteAllText(
+        $Path,
+        ($Value | ConvertTo-Json -Depth 30),
+        $utf8WithBom
+    )
+}
+
+function Get-MissingRequiredFilesSection {
+    param(
+        [string]$PromptText
+    )
+
+    $startMarker = "## Missing Required Files"
+    $endMarker = "## Latest required_changes"
+    $startIndex = $PromptText.IndexOf($startMarker, [System.StringComparison]::Ordinal)
+
+    if ($startIndex -lt 0) {
+        return ""
+    }
+
+    $endIndex = $PromptText.IndexOf($endMarker, $startIndex, [System.StringComparison]::Ordinal)
+
+    if ($endIndex -lt 0) {
+        return ""
+    }
+
+    $section = $PromptText.Substring(
+        $startIndex + $startMarker.Length,
+        $endIndex - ($startIndex + $startMarker.Length)
+    )
+
+    $lines = @(
+        $section -split "`r?`n" |
+            ForEach-Object { $_.Trim() } |
+            Where-Object {
+                -not [string]::IsNullOrWhiteSpace($_) -and
+                -not $_.StartsWith('```') -and
+                -not $_.StartsWith('`')
+            }
+    )
+
+    $joinedLines = $lines -join "`n"
+    return $joinedLines.Trim()
+}
+
+function Invoke-ReviewRequiredFilesRecoveryScenario {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Name,
+
+        [Parameter(Mandatory = $true)]
+        [string[]]$RequiredFiles,
+
+        [Parameter(Mandatory = $true)]
+        [string[]]$ChangedFiles,
+
+        [string[]]$ExpectedMissingFiles = @(),
+
+        [string[]]$ExpectedExcludedFiles = @(),
+
+        [int]$ExistingRecoveryCount = 0,
+
+        [bool]$ExpectRecoveryPrompt = $true
+    )
+
+    $tmpRoot = Join-Path $env:TEMP (
+        "planpilot-test-" +
+        $Name +
+        "-" +
+        (Get-Date -Format "yyyyMMddHHmmssfff")
+    )
+
+    $scenarioRoot = New-IsolatedScenarioRoot -Name $Name -Root $tmpRoot
+
+    if ($scenarioRoot.Cleanup -eq "none") {
+        Write-TestResult `
+            -Name "$Name isolated repository creation" `
+            -Passed $false `
+            -Detail $scenarioRoot.Error
+
+        return
+    }
+
+    try {
+        Copy-Item `
+            -LiteralPath (
+                Join-Path $repoRoot "scripts\ai-dev-auto-cycle-full.ps1"
+            ) `
+            -Destination (
+                Join-Path $tmpRoot "scripts\ai-dev-auto-cycle-full.ps1"
+            ) `
+            -Force
+
+        $utf8WithBom = New-Object System.Text.UTF8Encoding($true)
+
+        foreach ($changedFile in @($ChangedFiles)) {
+            $changedPath = Join-Path $tmpRoot $changedFile
+            $changedDirectory = Split-Path -Parent $changedPath
+
+            if (-not [string]::IsNullOrWhiteSpace($changedDirectory)) {
+                [System.IO.Directory]::CreateDirectory($changedDirectory) | Out-Null
+            }
+
+            [System.IO.File]::WriteAllText(
+                $changedPath,
+                "changed by test",
+                $utf8WithBom
+            )
+        }
+
+        $fakeScripts = @(
+            "ai-dev-check.ps1",
+            "ai-dev-save-diff.ps1",
+            "ai-dev-make-review-prompt.ps1"
+        )
+
+        foreach ($fakeScript in $fakeScripts) {
+            [System.IO.File]::WriteAllText(
+                (Join-Path $tmpRoot "scripts\$fakeScript"),
+                "exit 0`r`n",
+                $utf8WithBom
+            )
+        }
+
+        [System.IO.File]::WriteAllText(
+            (Join-Path $tmpRoot "scripts\ai-dev-make-revise-prompt.ps1"),
+            @'
+$promptPath = Join-Path (Get-Location) ".ai-dev\revise-prompt.md"
+[System.IO.File]::WriteAllText($promptPath, "GENERAL REVISE PROMPT", (New-Object System.Text.UTF8Encoding($true)))
+exit 0
+'@,
+            $utf8WithBom
+        )
+
+        [System.IO.File]::WriteAllText(
+            (Join-Path $tmpRoot "scripts\ai-dev-run-codex.ps1"),
+            "exit 0`r`n",
+            $utf8WithBom
+        )
+
+        [System.IO.File]::WriteAllText(
+            (Join-Path $tmpRoot "scripts\ai-dev-run-review-codex.ps1"),
+            @'
+$repoRoot = Get-Location
+$statePath = Join-Path $repoRoot ".ai-dev\state.json"
+$reviewPath = Join-Path $repoRoot ".ai-dev\review-response.json"
+$state = Get-Content -LiteralPath $statePath -Raw -Encoding UTF8 | ConvertFrom-Json
+$review = Get-Content -LiteralPath $reviewPath -Raw -Encoding UTF8 | ConvertFrom-Json
+$state.lastCommand = "save-review"
+$state.lastCommandStatus = "passed"
+$state.lastReviewDecision = "revise"
+$state.updatedAt = "2026-01-01T00:00:00Z"
+$utf8WithBom = New-Object System.Text.UTF8Encoding($true)
+[System.IO.File]::WriteAllText($statePath, ($state | ConvertTo-Json -Depth 30), $utf8WithBom)
+[System.IO.File]::WriteAllText($reviewPath, ($review | ConvertTo-Json -Depth 30), $utf8WithBom)
+exit 0
+'@,
+            $utf8WithBom
+        )
+
+        $queue = [PSCustomObject][ordered]@{
+            goalTitle = "Review recovery test"
+            goalSource = ".ai-dev/goal.md"
+            currentTaskId = "T001"
+            tasks = @(
+                [PSCustomObject][ordered]@{
+                    id = "T001"
+                    title = "Review recovery test"
+                    description = "Verify required_changes recovery compares actual changedFiles."
+                    type = "verification"
+                    status = "in_progress"
+                    priority = "P0"
+                    dependsOn = @()
+                    filesLikelyToChange = @($RequiredFiles)
+                    verification = @("Run behavior test.")
+                    commitMessage = $null
+                }
+            )
+        }
+
+        $counts = [PSCustomObject][ordered]@{}
+
+        if ($ExistingRecoveryCount -gt 0) {
+            $counts | Add-Member `
+                -NotePropertyName "review_revise_repeated" `
+                -NotePropertyValue $ExistingRecoveryCount
+        }
+
+        $state = [PSCustomObject][ordered]@{
+            goalStatus = "in_progress"
+            currentTaskId = "T001"
+            currentLoop = 0
+            maxLoopsPerTask = 2
+            repeatedFailureCount = 0
+            lastCommand = "save-review"
+            lastCommandStatus = "passed"
+            lastErrorSummary = $null
+            lastReviewDecision = "revise"
+            lastReviewSeverity = "medium"
+            lastReviewNextStep = "revise_with_codex"
+            lastCommitHash = $null
+            startedAt = "2026-01-01T00:00:00Z"
+            updatedAt = "2026-01-01T00:00:00Z"
+            stopReason = $null
+            autoRecovery = [PSCustomObject][ordered]@{
+                T001 = [PSCustomObject][ordered]@{
+                    counts = $counts
+                    lastStoppedReason = $null
+                }
+            }
+        }
+
+        $requiredChanges = @(
+            @($RequiredFiles) |
+                ForEach-Object {
+                    [PSCustomObject][ordered]@{
+                        file = $_
+                        reason = "required by test"
+                        suggestion = "change only if missing"
+                    }
+                }
+        )
+
+        $reviewResponse = [PSCustomObject][ordered]@{
+            decision = "revise"
+            severity = "medium"
+            summary = "Review repeated with required files."
+            required_changes = @($requiredChanges)
+            next_step = "revise_with_codex"
+        }
+
+        Set-JsonFile `
+            -Path (Join-Path $tmpRoot ".ai-dev\queue.json") `
+            -Value $queue
+
+        Set-JsonFile `
+            -Path (Join-Path $tmpRoot ".ai-dev\state.json") `
+            -Value $state
+
+        Set-JsonFile `
+            -Path (Join-Path $tmpRoot ".ai-dev\review-response.json") `
+            -Value $reviewResponse
+
+        Push-Location $tmpRoot
+
+        try {
+            $protectedPaths = @(
+                "scripts/ai-dev-auto-cycle-full.ps1",
+                "scripts/ai-dev-make-prompt.ps1",
+                "scripts/ai-dev-run-codex.ps1",
+                "scripts/ai-dev-check.ps1",
+                "scripts/ai-dev-save-diff.ps1",
+                "scripts/ai-dev-make-review-prompt.ps1",
+                "scripts/ai-dev-run-review-codex.ps1",
+                "scripts/ai-dev-complete-task.ps1"
+            )
+            $protectedPathArgument = $protectedPaths -join ","
+
+            $output = & powershell `
+                -NoProfile `
+                -ExecutionPolicy Bypass `
+                -File ".\scripts\ai-dev-auto-cycle-full.ps1" `
+                -AllowCodex `
+                -AllowReviewCodex `
+                -AllowDirty `
+                -ProtectedBaselineDirtyPaths $protectedPathArgument `
+                -MaxTasks 1 `
+                -MaxSteps 40 2>&1
+            $scenarioExitCode = $LASTEXITCODE
+            $outputText = $output | Out-String
+        }
+        finally {
+            Pop-Location
+        }
+
+        $promptPath = Join-Path $tmpRoot ".ai-dev\revise-prompt.md"
+        $promptText = ""
+
+        if ([System.IO.File]::Exists($promptPath)) {
+            $promptText = Get-Content -LiteralPath $promptPath -Raw -Encoding UTF8
+        }
+
+        $isRecoveryPrompt = $promptText.Contains("# Required Files Recovery Prompt")
+        $missingSection = Get-MissingRequiredFilesSection $promptText
+        $missingFilesPresent = $true
+
+        foreach ($expectedMissingFile in @($ExpectedMissingFiles)) {
+            if (-not $missingSection.Contains($expectedMissingFile)) {
+                $missingFilesPresent = $false
+            }
+        }
+
+        $excludedFilesAbsent = $true
+
+        foreach ($expectedExcludedFile in @($ExpectedExcludedFiles)) {
+            if ($missingSection.Contains($expectedExcludedFile)) {
+                $excludedFilesAbsent = $false
+            }
+        }
+
+        $unexpectedRecovery = (-not $ExpectRecoveryPrompt) -and $isRecoveryPrompt
+        $staleStopped = $outputText.Contains("Stopped reason: stale_review_required_file_missing")
+
+        Write-TestResult `
+            -Name "$Name recovery prompt expectation" `
+            -Passed (($ExpectRecoveryPrompt -and $isRecoveryPrompt) -or (-not $ExpectRecoveryPrompt -and -not $isRecoveryPrompt)) `
+            -Detail "ExpectedRecoveryPrompt=$ExpectRecoveryPrompt ExitCode=$scenarioExitCode"
+
+        Write-TestResult `
+            -Name "$Name missing files section includes only expected targets" `
+            -Passed (
+                (-not $unexpectedRecovery) -and
+                $missingFilesPresent -and
+                $excludedFilesAbsent
+            ) `
+            -Detail "MissingSection=$missingSection"
+
+        Write-TestResult `
+            -Name "$Name does not stop as stale required file missing" `
+            -Passed (-not $staleStopped) `
+            -Detail "ExitCode=$scenarioExitCode"
+    }
+    catch {
+        Write-TestResult `
+            -Name "$Name execution" `
+            -Passed $false `
+            -Detail ("Line={0} Message={1}" -f $_.InvocationInfo.ScriptLineNumber, $_.Exception.Message)
+    }
+    finally {
+        Remove-IsolatedScenarioRoot -ScenarioRoot $scenarioRoot
+    }
+}
+
+function New-TestResultContent {
+    param(
+        [string]$TaskId,
+        [string]$OverallResult = "passed"
+    )
+
+    $commandStatus = if ($OverallResult -eq "passed") { "passed" } else { "failed" }
+
+    return @"
+# AI Dev Test Result
+
+## 2026-01-01 00:00:00
+
+- Overall result: $OverallResult
+- Current task: $TaskId
+- Mode: standard
+- Commands:
+  - npm run build: $commandStatus
+  - npm run test: $commandStatus
+  - npm run lint: $commandStatus
+"@
+}
+
+function New-ReviewPromptContent {
+    param(
+        [string]$TaskId
+    )
+
+    return @"
+# AI Dev Review Prompt
+
+## Current Task
+
+- Task ID: $TaskId
+- Title: Resume review test
+- Type: implementation
+"@
+}
+
+function New-DiffContent {
+    param(
+        [string[]]$AppChangeFiles
+    )
+
+    $appFilesText = if ($AppChangeFiles.Count -gt 0) {
+        (@($AppChangeFiles) | ForEach-Object { "- $_" }) -join "`r`n"
+    } else {
+        "- 없음"
+    }
+
+    return @"
+# AI Dev Diff
+
+## Generated At
+
+2026-01-01 00:00:00
+
+## App Change Files
+
+$appFilesText
+
+## Unstaged Diff
+
+~~~text
+변경 없음
+~~~
+"@
+}
+
+function New-PassReviewResponse {
+    return [PSCustomObject][ordered]@{
+        decision = "pass"
+        severity = "none"
+        summary = "Saved pass review."
+        required_changes = @()
+        optional_suggestions = @()
+        next_step = "complete_task"
+    }
+}
+
+function Invoke-AutoCycleResumeScenario {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Name,
+
+        [bool]$InitialSavedReview = $false,
+
+        [string]$InitialReviewTaskId = "T001",
+
+        [string]$InitialTestTaskId = "T001",
+
+        [string]$InitialTestResult = "passed",
+
+        [string[]]$InitialDiffAppFiles = @(),
+
+        [string]$InitialLastCommitHash = "",
+
+        [string]$InitialTaskCommitHash = "",
+
+        [string]$CodexResultAfterRun = "",
+
+        [bool]$FakeCheckPasses = $true,
+
+        [string]$ExpectedStoppedReason = "",
+
+        [bool]$ExpectRunCodex = $false,
+
+        [bool]$ExpectRunReviewCodex = $false,
+
+        [bool]$ExpectCompleteTask = $false,
+
+        [bool]$ExpectMissingImplementation = $false
+    )
+
+    $tmpRoot = Join-Path $env:TEMP (
+        "planpilot-test-" +
+        $Name +
+        "-" +
+        (Get-Date -Format "yyyyMMddHHmmssfff")
+    )
+
+    $scenarioRoot = New-IsolatedScenarioRoot -Name $Name -Root $tmpRoot
+
+    if ($scenarioRoot.Cleanup -eq "none") {
+        Write-TestResult `
+            -Name "$Name isolated repository creation" `
+            -Passed $false `
+            -Detail $scenarioRoot.Error
+
+        return
+    }
+
+    $markerRoot = Join-Path $env:TEMP (
+        "planpilot-marker-" +
+        $Name +
+        "-" +
+        (Get-Date -Format "yyyyMMddHHmmssfff")
+    )
+
+    try {
+        [System.IO.Directory]::CreateDirectory($markerRoot) | Out-Null
+
+        Copy-Item `
+            -LiteralPath (
+                Join-Path $repoRoot "scripts\ai-dev-auto-cycle-full.ps1"
+            ) `
+            -Destination (
+                Join-Path $tmpRoot "scripts\ai-dev-auto-cycle-full.ps1"
+            ) `
+            -Force
+
+        $utf8WithBom = New-Object System.Text.UTF8Encoding($true)
+        $headCommitHash = (& git -C $tmpRoot rev-parse HEAD 2>&1 | Out-String).Trim()
+        $lastCommitHash = if ($InitialLastCommitHash -eq "HEAD") {
+            $headCommitHash
+        } elseif ($InitialLastCommitHash -eq "NOT_HEAD") {
+            "0000000000000000000000000000000000000000"
+        } else {
+            $InitialLastCommitHash
+        }
+        $taskCommitHash = if ($InitialTaskCommitHash -eq "HEAD") {
+            $headCommitHash
+        } elseif ($InitialTaskCommitHash -eq "NOT_HEAD") {
+            "0000000000000000000000000000000000000000"
+        } else {
+            $InitialTaskCommitHash
+        }
+
+        $queue = [PSCustomObject][ordered]@{
+            goalTitle = "Resume review test"
+            goalSource = ".ai-dev/goal.md"
+            currentTaskId = "T001"
+            tasks = @(
+                [PSCustomObject][ordered]@{
+                    id = "T001"
+                    title = "Resume review test"
+                    description = "Verify saved review resume behavior."
+                    type = "implementation"
+                    status = "in_progress"
+                    priority = "P0"
+                    dependsOn = @()
+                    filesLikelyToChange = @("scripts/ai-dev-auto-cycle-full.ps1")
+                    verification = @("Run behavior test.")
+                    commitMessage = $null
+                }
+            )
+        }
+
+        if (-not [string]::IsNullOrWhiteSpace($taskCommitHash)) {
+            $queue.tasks[0] | Add-Member -NotePropertyName "commitHash" -NotePropertyValue $taskCommitHash -Force
+        }
+
+        $state = [PSCustomObject][ordered]@{
+            goalStatus = "in_progress"
+            currentTaskId = "T001"
+            currentLoop = 0
+            maxLoopsPerTask = 2
+            repeatedFailureCount = 0
+            lastCommand = if ($InitialSavedReview) { "save-review" } else { $null }
+            lastCommandStatus = if ($InitialSavedReview) { "passed" } else { "not_started" }
+            lastErrorSummary = $null
+            lastReviewDecision = if ($InitialSavedReview) { "pass" } else { "not_started" }
+            lastReviewSeverity = if ($InitialSavedReview) { "none" } else { $null }
+            lastReviewNextStep = if ($InitialSavedReview) { "complete_task" } else { $null }
+            lastCommitHash = if ([string]::IsNullOrWhiteSpace($lastCommitHash)) { $null } else { $lastCommitHash }
+            startedAt = "2026-01-01T00:00:00Z"
+            updatedAt = "2026-01-01T00:00:00Z"
+            stopReason = $null
+        }
+
+        Set-JsonFile -Path (Join-Path $tmpRoot ".ai-dev\queue.json") -Value $queue
+        Set-JsonFile -Path (Join-Path $tmpRoot ".ai-dev\state.json") -Value $state
+        Set-JsonFile -Path (Join-Path $tmpRoot ".ai-dev\review-response.json") -Value (New-PassReviewResponse)
+
+        [System.IO.File]::WriteAllText(
+            (Join-Path $tmpRoot ".ai-dev\test-result.md"),
+            (New-TestResultContent -TaskId $InitialTestTaskId -OverallResult $InitialTestResult),
+            $utf8WithBom
+        )
+
+        [System.IO.File]::WriteAllText(
+            (Join-Path $tmpRoot ".ai-dev\review-prompt.md"),
+            (New-ReviewPromptContent -TaskId $InitialReviewTaskId),
+            $utf8WithBom
+        )
+
+        [System.IO.File]::WriteAllText(
+            (Join-Path $tmpRoot ".ai-dev\diff.md"),
+            (New-DiffContent -AppChangeFiles $InitialDiffAppFiles),
+            $utf8WithBom
+        )
+
+        [System.IO.File]::WriteAllText(
+            (Join-Path $tmpRoot ".ai-dev\codex-result.md"),
+            "",
+            $utf8WithBom
+        )
+
+        $escapedMarkerRoot = ([string]$markerRoot).Replace("'", "''")
+        $escapedCodexResult = ([string]$CodexResultAfterRun).Replace("'", "''")
+        $checkExitCode = if ($FakeCheckPasses) { 0 } else { 1 }
+        $checkOverallResult = if ($FakeCheckPasses) { "passed" } else { "failed" }
+
+        [System.IO.File]::WriteAllText(
+            (Join-Path $tmpRoot "scripts\ai-dev-make-prompt.ps1"),
+            "exit 0`r`n",
+            $utf8WithBom
+        )
+
+        [System.IO.File]::WriteAllText(
+            (Join-Path $tmpRoot "scripts\ai-dev-run-codex.ps1"),
+            @"
+[System.IO.File]::WriteAllText('$escapedMarkerRoot\run-codex.txt', 'called', [System.Text.Encoding]::ASCII)
+[System.IO.File]::WriteAllText((Join-Path (Get-Location) '.ai-dev\codex-result.md'), '$escapedCodexResult', (New-Object System.Text.UTF8Encoding(`$true)))
+exit 0
+"@,
+            $utf8WithBom
+        )
+
+        [System.IO.File]::WriteAllText(
+            (Join-Path $tmpRoot "scripts\ai-dev-check.ps1"),
+            @"
+`$statePath = Join-Path (Get-Location) '.ai-dev\state.json'
+`$state = Get-Content -LiteralPath `$statePath -Raw -Encoding UTF8 | ConvertFrom-Json
+`$state.lastCommand = 'npm run lint'
+`$state.lastCommandStatus = '$checkOverallResult'
+`$state.updatedAt = '2026-01-01T00:00:00Z'
+`$utf8WithBom = New-Object System.Text.UTF8Encoding(`$true)
+[System.IO.File]::WriteAllText(`$statePath, (`$state | ConvertTo-Json -Depth 30), `$utf8WithBom)
+[System.IO.File]::WriteAllText((Join-Path (Get-Location) '.ai-dev\test-result.md'), @'
+$(New-TestResultContent -TaskId "T001" -OverallResult $checkOverallResult)
+'@, `$utf8WithBom)
+exit $checkExitCode
+"@,
+            $utf8WithBom
+        )
+
+        [System.IO.File]::WriteAllText(
+            (Join-Path $tmpRoot "scripts\ai-dev-save-diff.ps1"),
+            @"
+`$statePath = Join-Path (Get-Location) '.ai-dev\state.json'
+`$state = Get-Content -LiteralPath `$statePath -Raw -Encoding UTF8 | ConvertFrom-Json
+`$state.lastCommand = 'save-diff'
+`$state.lastCommandStatus = 'passed'
+`$state.updatedAt = '2026-01-01T00:00:00Z'
+`$utf8WithBom = New-Object System.Text.UTF8Encoding(`$true)
+[System.IO.File]::WriteAllText(`$statePath, (`$state | ConvertTo-Json -Depth 30), `$utf8WithBom)
+[System.IO.File]::WriteAllText((Join-Path (Get-Location) '.ai-dev\diff.md'), @'
+$(New-DiffContent -AppChangeFiles @())
+'@, `$utf8WithBom)
+exit 0
+"@,
+            $utf8WithBom
+        )
+
+        [System.IO.File]::WriteAllText(
+            (Join-Path $tmpRoot "scripts\ai-dev-make-review-prompt.ps1"),
+            @"
+[System.IO.File]::WriteAllText((Join-Path (Get-Location) '.ai-dev\review-prompt.md'), @'
+$(New-ReviewPromptContent -TaskId "T001")
+'@, (New-Object System.Text.UTF8Encoding(`$true)))
+exit 0
+"@,
+            $utf8WithBom
+        )
+
+        [System.IO.File]::WriteAllText(
+            (Join-Path $tmpRoot "scripts\ai-dev-run-review-codex.ps1"),
+            @"
+[System.IO.File]::WriteAllText('$escapedMarkerRoot\run-review-codex.txt', 'called', [System.Text.Encoding]::ASCII)
+`$statePath = Join-Path (Get-Location) '.ai-dev\state.json'
+`$reviewPath = Join-Path (Get-Location) '.ai-dev\review-response.json'
+`$state = Get-Content -LiteralPath `$statePath -Raw -Encoding UTF8 | ConvertFrom-Json
+`$state.lastCommand = 'save-review'
+`$state.lastCommandStatus = 'passed'
+`$state.lastReviewDecision = 'pass'
+`$state.lastReviewSeverity = 'none'
+`$state.lastReviewNextStep = 'complete_task'
+`$state.updatedAt = '2026-01-01T00:00:00Z'
+`$review = [PSCustomObject][ordered]@{
+    decision = 'pass'
+    severity = 'none'
+    summary = 'Fresh pass review.'
+    required_changes = @()
+    optional_suggestions = @()
+    next_step = 'complete_task'
+}
+`$utf8WithBom = New-Object System.Text.UTF8Encoding(`$true)
+[System.IO.File]::WriteAllText(`$statePath, (`$state | ConvertTo-Json -Depth 30), `$utf8WithBom)
+[System.IO.File]::WriteAllText(`$reviewPath, (`$review | ConvertTo-Json -Depth 30), `$utf8WithBom)
+exit 0
+"@,
+            $utf8WithBom
+        )
+
+        [System.IO.File]::WriteAllText(
+            (Join-Path $tmpRoot "scripts\ai-dev-complete-task.ps1"),
+            @"
+[System.IO.File]::WriteAllText('$escapedMarkerRoot\complete-task.txt', 'called', [System.Text.Encoding]::ASCII)
+exit 0
+"@,
+            $utf8WithBom
+        )
+
+        $fixtureScriptPaths = @(
+            "scripts/ai-dev-auto-cycle-full.ps1",
+            "scripts/ai-dev-make-prompt.ps1",
+            "scripts/ai-dev-run-codex.ps1",
+            "scripts/ai-dev-check.ps1",
+            "scripts/ai-dev-save-diff.ps1",
+            "scripts/ai-dev-make-review-prompt.ps1",
+            "scripts/ai-dev-run-review-codex.ps1",
+            "scripts/ai-dev-complete-task.ps1"
+        )
+        $protectedPathArgument = $fixtureScriptPaths -join ","
+
+        & git -C $tmpRoot update-index --assume-unchanged -- $fixtureScriptPaths |
+            Out-Null
+
+        Push-Location $tmpRoot
+
+        try {
+            $previousErrorActionPreference = $ErrorActionPreference
+            $ErrorActionPreference = "Continue"
+            $output = & powershell `
+                -NoProfile `
+                -ExecutionPolicy Bypass `
+                -File ".\scripts\ai-dev-auto-cycle-full.ps1" `
+                -AllowCodex `
+                -AllowReviewCodex `
+                -AllowDirty `
+                -ProtectedBaselineDirtyPaths $protectedPathArgument `
+                -MaxTasks 1 `
+                -MaxSteps 40 2>&1
+            $scenarioExitCode = $LASTEXITCODE
+            $outputText = $output | Out-String
+        }
+        finally {
+            $ErrorActionPreference = $previousErrorActionPreference
+            Pop-Location
+        }
+
+        $runCodexCalled = [System.IO.File]::Exists((Join-Path $markerRoot "run-codex.txt"))
+        $runReviewCalled = [System.IO.File]::Exists((Join-Path $markerRoot "run-review-codex.txt"))
+        $completeTaskCalled = [System.IO.File]::Exists((Join-Path $markerRoot "complete-task.txt"))
+        $stoppedReasonMatched = if ([string]::IsNullOrWhiteSpace($ExpectedStoppedReason)) {
+            $true
+        } else {
+            $outputText.Contains("Stopped reason: $ExpectedStoppedReason")
+        }
+        $missingImplementationDetected = $outputText.Contains("Stopped reason: missing_implementation")
+        $stoppedReasonDetail = if ($stoppedReasonMatched) {
+            "Expected=$ExpectedStoppedReason ExitCode=$scenarioExitCode"
+        } else {
+            "Expected=$ExpectedStoppedReason ExitCode=$scenarioExitCode OutputPreview=" +
+                (($outputText.Replace("`r", " ").Replace("`n", " ")).Trim())
+        }
+
+        Write-TestResult `
+            -Name "$Name stopped reason expectation" `
+            -Passed $stoppedReasonMatched `
+            -Detail $stoppedReasonDetail
+
+        Write-TestResult `
+            -Name "$Name run-codex expectation" `
+            -Passed ($runCodexCalled -eq $ExpectRunCodex) `
+            -Detail "Expected=$ExpectRunCodex Actual=$runCodexCalled"
+
+        Write-TestResult `
+            -Name "$Name run-review-codex expectation" `
+            -Passed ($runReviewCalled -eq $ExpectRunReviewCodex) `
+            -Detail "Expected=$ExpectRunReviewCodex Actual=$runReviewCalled"
+
+        Write-TestResult `
+            -Name "$Name complete-task expectation" `
+            -Passed ($completeTaskCalled -eq $ExpectCompleteTask) `
+            -Detail "Expected=$ExpectCompleteTask Actual=$completeTaskCalled"
+
+        Write-TestResult `
+            -Name "$Name missing_implementation expectation" `
+            -Passed ($missingImplementationDetected -eq $ExpectMissingImplementation) `
+            -Detail "Expected=$ExpectMissingImplementation Actual=$missingImplementationDetected"
+    }
+    catch {
+        Write-TestResult `
+            -Name "$Name execution" `
+            -Passed $false `
+            -Detail ("Line={0} Message={1}" -f $_.InvocationInfo.ScriptLineNumber, $_.Exception.Message)
+    }
+    finally {
+        Remove-IsolatedScenarioRoot -ScenarioRoot $scenarioRoot
+
+        if ([System.IO.Directory]::Exists($markerRoot)) {
+            [System.IO.Directory]::Delete($markerRoot, $true)
+        }
+    }
+}
+
+function Invoke-RecoveryCoverageScenario {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Name,
+
+        [int]$CheckFailuresBeforeSuccess = 0,
+
+        [int]$ReviewJsonFailuresBeforeSuccess = 0,
+
+        [bool]$StaleReviewJsonFailureState = $false,
+
+        [ValidateSet("none", "scripts", "dependencies", "packageLock")]
+        [string]$PackageMutation = "none",
+
+        [string]$CurrentTaskId = "T001",
+
+        [string]$SeedRecoveryTaskId = "",
+
+        [string]$SeedRecoveryType = "",
+
+        [int]$SeedRecoveryCount = 0,
+
+        [string]$ExpectedStoppedReason = "allow_commit_required",
+
+        [int]$ExpectedRunCodexCount = 1,
+
+        [int]$ExpectedCheckCount = 1,
+
+        [int]$ExpectedReviewCodexCount = 1,
+
+        [string]$ExpectedRecoveryType = "",
+
+        [int]$ExpectedRecoveryCount = 0,
+
+        [bool]$ExpectRawPreserved = $false,
+
+        [bool]$ExpectRevisePromptHasTestResult = $false
+    )
+
+    $tmpRoot = Join-Path $env:TEMP (
+        "planpilot-recovery-" +
+        $Name +
+        "-" +
+        (Get-Date -Format "yyyyMMddHHmmssfff")
+    )
+
+    $scenarioRoot = New-IsolatedScenarioRoot -Name $Name -Root $tmpRoot
+
+    if ($scenarioRoot.Cleanup -eq "none") {
+        Write-TestResult `
+            -Name "$Name isolated repository creation" `
+            -Passed $false `
+            -Detail $scenarioRoot.Error
+
+        return
+    }
+
+    $markerRoot = Join-Path $env:TEMP (
+        "planpilot-recovery-marker-" +
+        $Name +
+        "-" +
+        (Get-Date -Format "yyyyMMddHHmmssfff")
+    )
+
+    try {
+        [System.IO.Directory]::CreateDirectory($markerRoot) | Out-Null
+
+        Copy-Item `
+            -LiteralPath (
+                Join-Path $repoRoot "scripts\ai-dev-auto-cycle-full.ps1"
+            ) `
+            -Destination (
+                Join-Path $tmpRoot "scripts\ai-dev-auto-cycle-full.ps1"
+            ) `
+            -Force
+
+        $utf8WithBom = New-Object System.Text.UTF8Encoding($true)
+        $escapedMarkerRoot = ([string]$markerRoot).Replace("'", "''")
+        $escapedCheckFailures = [int]$CheckFailuresBeforeSuccess
+        $escapedReviewFailures = [int]$ReviewJsonFailuresBeforeSuccess
+        $escapedCurrentTaskId = ([string]$CurrentTaskId).Replace("'", "''")
+        $escapedStaleReviewJsonFailureState = if ($StaleReviewJsonFailureState) { '$true' } else { '$false' }
+
+        $queue = [PSCustomObject][ordered]@{
+            goalTitle = "Recovery coverage test"
+            goalSource = ".ai-dev/goal.md"
+            currentTaskId = $CurrentTaskId
+            tasks = @(
+                [PSCustomObject][ordered]@{
+                    id = $CurrentTaskId
+                    title = "Recovery coverage test"
+                    description = "Verify automatic recovery branches."
+                    type = "implementation"
+                    status = "in_progress"
+                    priority = "P0"
+                    dependsOn = @()
+                    filesLikelyToChange = @("scripts/ai-dev-auto-cycle-full.ps1")
+                    verification = @("Run behavior test.")
+                    commitMessage = $null
+                }
+            )
+        }
+
+        $state = [PSCustomObject][ordered]@{
+            goalStatus = "in_progress"
+            currentTaskId = $CurrentTaskId
+            currentLoop = 0
+            maxLoopsPerTask = 2
+            repeatedFailureCount = 0
+            lastCommand = $null
+            lastCommandStatus = "not_started"
+            lastErrorSummary = $null
+            lastReviewDecision = "not_started"
+            lastReviewSeverity = $null
+            lastReviewNextStep = $null
+            lastCommitHash = $null
+            startedAt = "2026-01-01T00:00:00Z"
+            updatedAt = "2026-01-01T00:00:00Z"
+            stopReason = $null
+        }
+
+        if ($StaleReviewJsonFailureState) {
+            $state.lastCommand = "save-review"
+            $state.lastCommandStatus = "failed"
+            $state.stopReason = "review_json_extraction_failed"
+        }
+
+        if (
+            -not [string]::IsNullOrWhiteSpace($SeedRecoveryTaskId) -and
+            -not [string]::IsNullOrWhiteSpace($SeedRecoveryType) -and
+            $SeedRecoveryCount -gt 0
+        ) {
+            $seedCounts = [PSCustomObject][ordered]@{}
+            $seedCounts | Add-Member -NotePropertyName $SeedRecoveryType -NotePropertyValue $SeedRecoveryCount
+            $seedTaskState = [PSCustomObject][ordered]@{
+                counts = $seedCounts
+                lastStoppedReason = $null
+            }
+            $seedRecovery = [PSCustomObject][ordered]@{}
+            $seedRecovery | Add-Member -NotePropertyName $SeedRecoveryTaskId -NotePropertyValue $seedTaskState
+            $state | Add-Member -NotePropertyName "autoRecovery" -NotePropertyValue $seedRecovery
+        }
+
+        Set-JsonFile -Path (Join-Path $tmpRoot ".ai-dev\queue.json") -Value $queue
+        Set-JsonFile -Path (Join-Path $tmpRoot ".ai-dev\state.json") -Value $state
+        Set-JsonFile -Path (Join-Path $tmpRoot ".ai-dev\review-response.json") -Value (New-PassReviewResponse)
+
+        [System.IO.File]::WriteAllText(
+            (Join-Path $tmpRoot ".ai-dev\codex-result.md"),
+            "",
+            $utf8WithBom
+        )
+
+        switch ($PackageMutation) {
+            "scripts" {
+                $packagePath = Join-Path $tmpRoot "package.json"
+                $package = Get-Content -LiteralPath $packagePath -Raw -Encoding UTF8 | ConvertFrom-Json
+                if (-not ($package.PSObject.Properties.Name -contains "scripts") -or $null -eq $package.scripts) {
+                    $package | Add-Member -NotePropertyName "scripts" -NotePropertyValue ([PSCustomObject][ordered]@{})
+                }
+                $package.scripts | Add-Member -NotePropertyName "ai-dev-safe-script" -NotePropertyValue "echo safe" -Force
+                [System.IO.File]::WriteAllText($packagePath, ($package | ConvertTo-Json -Depth 50), $utf8WithBom)
+            }
+            "dependencies" {
+                $packagePath = Join-Path $tmpRoot "package.json"
+                $package = Get-Content -LiteralPath $packagePath -Raw -Encoding UTF8 | ConvertFrom-Json
+                if (-not ($package.PSObject.Properties.Name -contains "dependencies") -or $null -eq $package.dependencies) {
+                    $package | Add-Member -NotePropertyName "dependencies" -NotePropertyValue ([PSCustomObject][ordered]@{})
+                }
+                $package.dependencies | Add-Member -NotePropertyName "ai-dev-blocked-dep" -NotePropertyValue "1.0.0" -Force
+                [System.IO.File]::WriteAllText($packagePath, ($package | ConvertTo-Json -Depth 50), $utf8WithBom)
+            }
+            "packageLock" {
+                $lockPath = Join-Path $tmpRoot "package-lock.json"
+                [System.IO.File]::AppendAllText($lockPath, "`r`n", $utf8WithBom)
+            }
+        }
+
+        [System.IO.File]::WriteAllText(
+            (Join-Path $tmpRoot "scripts\ai-dev-make-prompt.ps1"),
+            "exit 0`r`n",
+            $utf8WithBom
+        )
+
+        [System.IO.File]::WriteAllText(
+            (Join-Path $tmpRoot "scripts\ai-dev-run-codex.ps1"),
+            @"
+`$countPath = '$escapedMarkerRoot\run-codex-count.txt'
+`$argsPath = '$escapedMarkerRoot\run-codex-args.txt'
+`$count = if ([System.IO.File]::Exists(`$countPath)) { [int]([System.IO.File]::ReadAllText(`$countPath).Trim()) } else { 0 }
+`$count++
+[System.IO.File]::WriteAllText(`$countPath, [string]`$count, [System.Text.Encoding]::ASCII)
+[System.IO.File]::AppendAllText(`$argsPath, ((`$args -join ' ') + "`r`n"), [System.Text.Encoding]::ASCII)
+[System.IO.File]::WriteAllText((Join-Path (Get-Location) '.ai-dev\codex-result.md'), 'fake implementation', (New-Object System.Text.UTF8Encoding(`$true)))
+exit 0
+"@,
+            $utf8WithBom
+        )
+
+        [System.IO.File]::WriteAllText(
+            (Join-Path $tmpRoot "scripts\ai-dev-check.ps1"),
+            @"
+`$countPath = '$escapedMarkerRoot\check-count.txt'
+`$count = if ([System.IO.File]::Exists(`$countPath)) { [int]([System.IO.File]::ReadAllText(`$countPath).Trim()) } else { 0 }
+`$count++
+[System.IO.File]::WriteAllText(`$countPath, [string]`$count, [System.Text.Encoding]::ASCII)
+`$failed = `$count -le $escapedCheckFailures
+`$overall = if (`$failed) { 'failed' } else { 'passed' }
+`$statePath = Join-Path (Get-Location) '.ai-dev\state.json'
+`$state = Get-Content -LiteralPath `$statePath -Raw -Encoding UTF8 | ConvertFrom-Json
+`$state.lastCommand = 'npm run lint'
+`$state.lastCommandStatus = `$overall
+`$state.updatedAt = '2026-01-01T00:00:00Z'
+`$utf8WithBom = New-Object System.Text.UTF8Encoding(`$true)
+[System.IO.File]::WriteAllText(`$statePath, (`$state | ConvertTo-Json -Depth 30), `$utf8WithBom)
+`$testLines = @(
+    '# Test Result',
+    '',
+    '- Task ID: $escapedCurrentTaskId',
+    ('- Overall Result: ' + `$overall),
+    '',
+    'Failure detail marker from fake check.'
+)
+[System.IO.File]::WriteAllText((Join-Path (Get-Location) '.ai-dev\test-result.md'), (`$testLines -join "`r`n"), `$utf8WithBom)
+if (`$failed) { exit 1 }
+exit 0
+"@,
+            $utf8WithBom
+        )
+
+        [System.IO.File]::WriteAllText(
+            (Join-Path $tmpRoot "scripts\ai-dev-save-diff.ps1"),
+            @"
+`$statePath = Join-Path (Get-Location) '.ai-dev\state.json'
+`$state = Get-Content -LiteralPath `$statePath -Raw -Encoding UTF8 | ConvertFrom-Json
+`$state.lastCommand = 'save-diff'
+`$state.lastCommandStatus = 'passed'
+`$state.updatedAt = '2026-01-01T00:00:00Z'
+`$changedFiles = @('scripts/ai-dev-auto-cycle-full.ps1')
+if ('$PackageMutation' -eq 'scripts' -or '$PackageMutation' -eq 'dependencies') { `$changedFiles += 'package.json' }
+if ('$PackageMutation' -eq 'packageLock') { `$changedFiles += 'package-lock.json' }
+`$diffLines = @('# Diff Summary', '', '## App Change Files') + (`$changedFiles | ForEach-Object { '- ' + `$_ })
+`$utf8WithBom = New-Object System.Text.UTF8Encoding(`$true)
+[System.IO.File]::WriteAllText(`$statePath, (`$state | ConvertTo-Json -Depth 30), `$utf8WithBom)
+[System.IO.File]::WriteAllText((Join-Path (Get-Location) '.ai-dev\diff.md'), (`$diffLines -join "`r`n"), `$utf8WithBom)
+exit 0
+"@,
+            $utf8WithBom
+        )
+
+        [System.IO.File]::WriteAllText(
+            (Join-Path $tmpRoot "scripts\ai-dev-make-review-prompt.ps1"),
+            @"
+[System.IO.File]::WriteAllText((Join-Path (Get-Location) '.ai-dev\review-prompt.md'), @'
+$(New-ReviewPromptContent -TaskId $CurrentTaskId)
+'@, (New-Object System.Text.UTF8Encoding(`$true)))
+exit 0
+"@,
+            $utf8WithBom
+        )
+
+        [System.IO.File]::WriteAllText(
+            (Join-Path $tmpRoot "scripts\ai-dev-run-review-codex.ps1"),
+            @"
+`$countPath = '$escapedMarkerRoot\run-review-count.txt'
+`$count = if ([System.IO.File]::Exists(`$countPath)) { [int]([System.IO.File]::ReadAllText(`$countPath).Trim()) } else { 0 }
+`$count++
+[System.IO.File]::WriteAllText(`$countPath, [string]`$count, [System.Text.Encoding]::ASCII)
+`$statePath = Join-Path (Get-Location) '.ai-dev\state.json'
+`$reviewPath = Join-Path (Get-Location) '.ai-dev\review-response.json'
+`$rawPath = Join-Path (Get-Location) '.ai-dev\codex-review-result.md'
+`$state = Get-Content -LiteralPath `$statePath -Raw -Encoding UTF8 | ConvertFrom-Json
+`$utf8WithBom = New-Object System.Text.UTF8Encoding(`$true)
+if ($escapedStaleReviewJsonFailureState) {
+    [System.IO.File]::WriteAllText(`$rawPath, "NON JSON FAILURE WITH STALE STATE", `$utf8WithBom)
+    exit 1
+}
+if (`$count -le $escapedReviewFailures) {
+    `$state.lastCommand = 'save-review'
+    `$state.lastCommandStatus = 'failed'
+    `$state.stopReason = 'review_json_extraction_failed'
+    `$state.updatedAt = '2026-01-01T00:00:00Z'
+    [System.IO.File]::WriteAllText(`$statePath, (`$state | ConvertTo-Json -Depth 30), `$utf8WithBom)
+    [System.IO.File]::WriteAllText(`$rawPath, "RAW REVIEW RESPONSE `$count", `$utf8WithBom)
+    exit 1
+}
+`$state.lastCommand = 'save-review'
+`$state.lastCommandStatus = 'passed'
+`$state.lastReviewDecision = 'pass'
+`$state.lastReviewSeverity = 'none'
+`$state.lastReviewNextStep = 'complete_task'
+`$state.stopReason = `$null
+`$state.updatedAt = '2026-01-01T00:00:00Z'
+`$review = [PSCustomObject][ordered]@{
+    decision = 'pass'
+    severity = 'none'
+    summary = 'Fresh pass review.'
+    required_changes = @()
+    optional_suggestions = @()
+    next_step = 'complete_task'
+}
+[System.IO.File]::WriteAllText(`$statePath, (`$state | ConvertTo-Json -Depth 30), `$utf8WithBom)
+[System.IO.File]::WriteAllText(`$reviewPath, (`$review | ConvertTo-Json -Depth 30), `$utf8WithBom)
+exit 0
+"@,
+            $utf8WithBom
+        )
+
+        [System.IO.File]::WriteAllText(
+            (Join-Path $tmpRoot "scripts\ai-dev-complete-task.ps1"),
+            "exit 0`r`n",
+            $utf8WithBom
+        )
+
+        $fixtureScriptPaths = @(
+            "scripts/ai-dev-auto-cycle-full.ps1",
+            "scripts/ai-dev-make-prompt.ps1",
+            "scripts/ai-dev-run-codex.ps1",
+            "scripts/ai-dev-check.ps1",
+            "scripts/ai-dev-save-diff.ps1",
+            "scripts/ai-dev-make-review-prompt.ps1",
+            "scripts/ai-dev-run-review-codex.ps1",
+            "scripts/ai-dev-complete-task.ps1"
+        )
+        $protectedPathArgument = $fixtureScriptPaths -join ","
+
+        & git -C $tmpRoot update-index --assume-unchanged -- $fixtureScriptPaths |
+            Out-Null
+
+        Push-Location $tmpRoot
+
+        try {
+            $previousErrorActionPreference = $ErrorActionPreference
+            $ErrorActionPreference = "Continue"
+            $output = & powershell `
+                -NoProfile `
+                -ExecutionPolicy Bypass `
+                -File ".\scripts\ai-dev-auto-cycle-full.ps1" `
+                -AllowCodex `
+                -AllowReviewCodex `
+                -AllowDirty `
+                -ProtectedBaselineDirtyPaths $protectedPathArgument `
+                -MaxTasks 1 `
+                -MaxSteps 40 2>&1
+            $scenarioExitCode = $LASTEXITCODE
+            $outputText = $output | Out-String
+        }
+        finally {
+            $ErrorActionPreference = $previousErrorActionPreference
+            Pop-Location
+        }
+
+        $runCodexCountPath = Join-Path $markerRoot "run-codex-count.txt"
+        $checkCountPath = Join-Path $markerRoot "check-count.txt"
+        $runReviewCountPath = Join-Path $markerRoot "run-review-count.txt"
+        $runCodexCount = if ([System.IO.File]::Exists($runCodexCountPath)) { [int]([System.IO.File]::ReadAllText($runCodexCountPath).Trim()) } else { 0 }
+        $checkCount = if ([System.IO.File]::Exists($checkCountPath)) { [int]([System.IO.File]::ReadAllText($checkCountPath).Trim()) } else { 0 }
+        $runReviewCount = if ([System.IO.File]::Exists($runReviewCountPath)) { [int]([System.IO.File]::ReadAllText($runReviewCountPath).Trim()) } else { 0 }
+        $stateAfter = Get-Content -LiteralPath (Join-Path $tmpRoot ".ai-dev\state.json") -Raw -Encoding UTF8 | ConvertFrom-Json
+        $rawFiles = @(Get-ChildItem -LiteralPath (Join-Path $tmpRoot ".ai-dev") -Filter "codex-review-result.review_json_extraction_failed.*.raw.md" -File)
+        $rawTextMatched = $false
+
+        if ($rawFiles.Count -gt 0) {
+            $rawTextMatched = ((Get-Content -LiteralPath $rawFiles[0].FullName -Raw -Encoding UTF8).Contains("RAW REVIEW RESPONSE 1"))
+        }
+
+        $actualRecoveryCount = 0
+
+        if (
+            -not [string]::IsNullOrWhiteSpace($ExpectedRecoveryType) -and
+            ($stateAfter.PSObject.Properties.Name -contains "autoRecovery") -and
+            $null -ne $stateAfter.autoRecovery -and
+            ($stateAfter.autoRecovery.PSObject.Properties.Name -contains $CurrentTaskId) -and
+            $null -ne $stateAfter.autoRecovery.$CurrentTaskId.counts -and
+            ($stateAfter.autoRecovery.$CurrentTaskId.counts.PSObject.Properties.Name -contains $ExpectedRecoveryType)
+        ) {
+            $actualRecoveryCount = [int]$stateAfter.autoRecovery.$CurrentTaskId.counts.$ExpectedRecoveryType
+        }
+
+        $sameTaskSeedStillPresent = $true
+
+        if (
+            -not [string]::IsNullOrWhiteSpace($SeedRecoveryTaskId) -and
+            $SeedRecoveryTaskId -ne $CurrentTaskId
+        ) {
+            $sameTaskSeedStillPresent = (
+                ($stateAfter.autoRecovery.PSObject.Properties.Name -contains $SeedRecoveryTaskId) -and
+                ($stateAfter.autoRecovery.$SeedRecoveryTaskId.counts.PSObject.Properties.Name -contains $SeedRecoveryType) -and
+                ([int]$stateAfter.autoRecovery.$SeedRecoveryTaskId.counts.$SeedRecoveryType -eq $SeedRecoveryCount)
+            )
+        }
+
+        $revisePromptHasTestResult = $false
+        $revisePromptPath = Join-Path $tmpRoot ".ai-dev\revise-prompt.md"
+
+        if ([System.IO.File]::Exists($revisePromptPath)) {
+            $revisePrompt = Get-Content -LiteralPath $revisePromptPath -Raw -Encoding UTF8
+            $revisePromptHasTestResult = $revisePrompt.Contains("Failure detail marker from fake check.")
+        }
+
+        Write-TestResult `
+            -Name "$Name stopped reason expectation" `
+            -Passed ($outputText.Contains("Stopped reason: $ExpectedStoppedReason")) `
+            -Detail "Expected=$ExpectedStoppedReason ExitCode=$scenarioExitCode"
+
+        Write-TestResult `
+            -Name "$Name run-codex count" `
+            -Passed ($runCodexCount -eq $ExpectedRunCodexCount) `
+            -Detail "Expected=$ExpectedRunCodexCount Actual=$runCodexCount"
+
+        Write-TestResult `
+            -Name "$Name check count" `
+            -Passed ($checkCount -eq $ExpectedCheckCount) `
+            -Detail "Expected=$ExpectedCheckCount Actual=$checkCount"
+
+        Write-TestResult `
+            -Name "$Name review-codex count" `
+            -Passed ($runReviewCount -eq $ExpectedReviewCodexCount) `
+            -Detail "Expected=$ExpectedReviewCodexCount Actual=$runReviewCount"
+
+        if (-not [string]::IsNullOrWhiteSpace($ExpectedRecoveryType)) {
+            Write-TestResult `
+                -Name "$Name recovery count" `
+                -Passed ($actualRecoveryCount -eq $ExpectedRecoveryCount) `
+                -Detail "Type=$ExpectedRecoveryType Expected=$ExpectedRecoveryCount Actual=$actualRecoveryCount"
+        }
+
+        Write-TestResult `
+            -Name "$Name raw review preservation" `
+            -Passed (($rawFiles.Count -gt 0 -and $rawTextMatched) -eq $ExpectRawPreserved) `
+            -Detail "Expected=$ExpectRawPreserved RawFiles=$($rawFiles.Count)"
+
+        Write-TestResult `
+            -Name "$Name revise prompt test-result content" `
+            -Passed ($revisePromptHasTestResult -eq $ExpectRevisePromptHasTestResult) `
+            -Detail "Expected=$ExpectRevisePromptHasTestResult Actual=$revisePromptHasTestResult"
+
+        Write-TestResult `
+            -Name "$Name seeded recovery isolation" `
+            -Passed $sameTaskSeedStillPresent `
+            -Detail "SeedTask=$SeedRecoveryTaskId CurrentTask=$CurrentTaskId"
+    }
+    catch {
+        Write-TestResult `
+            -Name "$Name execution" `
+            -Passed $false `
+            -Detail ("Line={0} Message={1}" -f $_.InvocationInfo.ScriptLineNumber, $_.Exception.Message)
+    }
+    finally {
+        Remove-IsolatedScenarioRoot -ScenarioRoot $scenarioRoot
+
+        if ([System.IO.Directory]::Exists($markerRoot)) {
+            [System.IO.Directory]::Delete($markerRoot, $true)
+        }
+    }
+}
+
 Write-Host "AI Dev automation tests"
 Write-Host "Repository: $repoRoot"
 Write-Host ""
@@ -647,6 +1885,274 @@ Invoke-IsolatedScenario `
         "-MaxTasks", "1",
         "-MaxSteps", "40"
     )
+
+Invoke-ReviewRequiredFilesRecoveryScenario `
+    -Name "review-required-files-partial-diff" `
+    -RequiredFiles @("A.ps1", "B.ps1") `
+    -ChangedFiles @("A.ps1") `
+    -ExpectedMissingFiles @("B.ps1") `
+    -ExpectedExcludedFiles @("A.ps1") `
+    -ExpectRecoveryPrompt $true
+
+Invoke-ReviewRequiredFilesRecoveryScenario `
+    -Name "review-required-files-all-changed" `
+    -RequiredFiles @("A.ps1", "B.ps1") `
+    -ChangedFiles @("A.ps1", "B.ps1") `
+    -ExpectedMissingFiles @() `
+    -ExpectedExcludedFiles @("A.ps1", "B.ps1") `
+    -ExpectRecoveryPrompt $false
+
+Invoke-ReviewRequiredFilesRecoveryScenario `
+    -Name "review-required-files-recovery-limit" `
+    -RequiredFiles @("A.ps1", "B.ps1") `
+    -ChangedFiles @("A.ps1") `
+    -ExpectedMissingFiles @() `
+    -ExpectedExcludedFiles @("A.ps1", "B.ps1") `
+    -ExistingRecoveryCount 1 `
+    -ExpectRecoveryPrompt $false
+
+Invoke-AutoCycleResumeScenario `
+    -Name "missing-implementation-no-diff-no-commit" `
+    -InitialSavedReview $false `
+    -CodexResultAfterRun "" `
+    -ExpectedStoppedReason "missing_implementation" `
+    -ExpectRunCodex $true `
+    -ExpectRunReviewCodex $true `
+    -ExpectCompleteTask $false `
+    -ExpectMissingImplementation $true
+
+Invoke-AutoCycleResumeScenario `
+    -Name "saved-review-current-commit-resumes" `
+    -InitialSavedReview $true `
+    -InitialReviewTaskId "T001" `
+    -InitialTestTaskId "T001" `
+    -InitialTestResult "passed" `
+    -InitialDiffAppFiles @("scripts/ai-dev-auto-cycle-full.ps1") `
+    -InitialLastCommitHash "HEAD" `
+    -InitialTaskCommitHash "HEAD" `
+    -ExpectedStoppedReason "allow_commit_required" `
+    -ExpectRunCodex $false `
+    -ExpectRunReviewCodex $false `
+    -ExpectCompleteTask $false `
+    -ExpectMissingImplementation $false
+
+Invoke-AutoCycleResumeScenario `
+    -Name "saved-review-pass-current-skips-review-codex" `
+    -InitialSavedReview $true `
+    -InitialReviewTaskId "T001" `
+    -InitialTestTaskId "T001" `
+    -InitialTestResult "passed" `
+    -InitialDiffAppFiles @("scripts/ai-dev-auto-cycle-full.ps1") `
+    -InitialLastCommitHash "HEAD" `
+    -InitialTaskCommitHash "HEAD" `
+    -ExpectedStoppedReason "allow_commit_required" `
+    -ExpectRunCodex $false `
+    -ExpectRunReviewCodex $false `
+    -ExpectCompleteTask $false `
+    -ExpectMissingImplementation $false
+
+Invoke-AutoCycleResumeScenario `
+    -Name "saved-review-previous-task-head-reruns-codex" `
+    -InitialSavedReview $true `
+    -InitialReviewTaskId "T001" `
+    -InitialTestTaskId "T001" `
+    -InitialTestResult "passed" `
+    -InitialDiffAppFiles @("scripts/ai-dev-auto-cycle-full.ps1") `
+    -InitialLastCommitHash "HEAD" `
+    -CodexResultAfterRun "fresh implementation" `
+    -ExpectedStoppedReason "allow_commit_required" `
+    -ExpectRunCodex $true `
+    -ExpectRunReviewCodex $true `
+    -ExpectCompleteTask $false `
+    -ExpectMissingImplementation $false
+
+Invoke-AutoCycleResumeScenario `
+    -Name "saved-review-different-task-reruns-review" `
+    -InitialSavedReview $true `
+    -InitialReviewTaskId "T999" `
+    -InitialTestTaskId "T001" `
+    -InitialTestResult "passed" `
+    -InitialDiffAppFiles @("scripts/ai-dev-auto-cycle-full.ps1") `
+    -InitialLastCommitHash "HEAD" `
+    -CodexResultAfterRun "fresh implementation" `
+    -ExpectedStoppedReason "allow_commit_required" `
+    -ExpectRunCodex $true `
+    -ExpectRunReviewCodex $true `
+    -ExpectCompleteTask $false `
+    -ExpectMissingImplementation $false
+
+Invoke-AutoCycleResumeScenario `
+    -Name "saved-review-stale-fingerprint-reruns-review" `
+    -InitialSavedReview $true `
+    -InitialReviewTaskId "T001" `
+    -InitialTestTaskId "T999" `
+    -InitialTestResult "passed" `
+    -InitialDiffAppFiles @("stale-file.ps1") `
+    -InitialLastCommitHash "HEAD" `
+    -CodexResultAfterRun "fresh implementation" `
+    -ExpectedStoppedReason "allow_commit_required" `
+    -ExpectRunCodex $true `
+    -ExpectRunReviewCodex $true `
+    -ExpectCompleteTask $false `
+    -ExpectMissingImplementation $false
+
+Invoke-AutoCycleResumeScenario `
+    -Name "saved-review-pass-test-failed-does-not-complete" `
+    -InitialSavedReview $true `
+    -InitialReviewTaskId "T001" `
+    -InitialTestTaskId "T001" `
+    -InitialTestResult "failed" `
+    -InitialDiffAppFiles @("scripts/ai-dev-auto-cycle-full.ps1") `
+    -InitialLastCommitHash "HEAD" `
+    -FakeCheckPasses $false `
+    -ExpectedStoppedReason "test_failed" `
+    -ExpectRunCodex $true `
+    -ExpectRunReviewCodex $false `
+    -ExpectCompleteTask $false `
+    -ExpectMissingImplementation $false
+
+Invoke-AutoCycleResumeScenario `
+    -Name "previous-task-head-commit-not-implementation" `
+    -InitialSavedReview $false `
+    -InitialLastCommitHash "HEAD" `
+    -CodexResultAfterRun "" `
+    -ExpectedStoppedReason "missing_implementation" `
+    -ExpectRunCodex $true `
+    -ExpectRunReviewCodex $true `
+    -ExpectCompleteTask $false `
+    -ExpectMissingImplementation $true
+
+Invoke-AutoCycleResumeScenario `
+    -Name "previous-task-commit-not-implementation" `
+    -InitialSavedReview $false `
+    -InitialLastCommitHash "NOT_HEAD" `
+    -CodexResultAfterRun "" `
+    -ExpectedStoppedReason "missing_implementation" `
+    -ExpectRunCodex $true `
+    -ExpectRunReviewCodex $true `
+    -ExpectCompleteTask $false `
+    -ExpectMissingImplementation $true
+
+Invoke-RecoveryCoverageScenario `
+    -Name "test-failed-recovers-once-then-passes" `
+    -CheckFailuresBeforeSuccess 1 `
+    -ExpectedStoppedReason "allow_commit_required" `
+    -ExpectedRunCodexCount 2 `
+    -ExpectedCheckCount 2 `
+    -ExpectedReviewCodexCount 1 `
+    -ExpectedRecoveryType "test_failed" `
+    -ExpectedRecoveryCount 1 `
+    -ExpectRawPreserved $false `
+    -ExpectRevisePromptHasTestResult $true
+
+Invoke-RecoveryCoverageScenario `
+    -Name "test-failed-twice-stops-without-extra-codex" `
+    -CheckFailuresBeforeSuccess 2 `
+    -ExpectedStoppedReason "test_failed" `
+    -ExpectedRunCodexCount 2 `
+    -ExpectedCheckCount 2 `
+    -ExpectedReviewCodexCount 0 `
+    -ExpectedRecoveryType "test_failed" `
+    -ExpectedRecoveryCount 1 `
+    -ExpectRawPreserved $false `
+    -ExpectRevisePromptHasTestResult $true
+
+Invoke-RecoveryCoverageScenario `
+    -Name "review-json-extraction-recovers-once" `
+    -ReviewJsonFailuresBeforeSuccess 1 `
+    -ExpectedStoppedReason "allow_commit_required" `
+    -ExpectedRunCodexCount 1 `
+    -ExpectedCheckCount 1 `
+    -ExpectedReviewCodexCount 2 `
+    -ExpectedRecoveryType "review_json_extraction_failed" `
+    -ExpectedRecoveryCount 1 `
+    -ExpectRawPreserved $true `
+    -ExpectRevisePromptHasTestResult $false
+
+Invoke-RecoveryCoverageScenario `
+    -Name "review-json-extraction-twice-stops" `
+    -ReviewJsonFailuresBeforeSuccess 2 `
+    -ExpectedStoppedReason "review_json_extraction_failed" `
+    -ExpectedRunCodexCount 1 `
+    -ExpectedCheckCount 1 `
+    -ExpectedReviewCodexCount 2 `
+    -ExpectedRecoveryType "review_json_extraction_failed" `
+    -ExpectedRecoveryCount 1 `
+    -ExpectRawPreserved $true `
+    -ExpectRevisePromptHasTestResult $false
+
+Invoke-RecoveryCoverageScenario `
+    -Name "stale-review-json-stop-reason-does-not-recover" `
+    -StaleReviewJsonFailureState $true `
+    -ExpectedStoppedReason "run-review-codex_failed" `
+    -ExpectedRunCodexCount 1 `
+    -ExpectedCheckCount 1 `
+    -ExpectedReviewCodexCount 1 `
+    -ExpectedRecoveryType "review_json_extraction_failed" `
+    -ExpectedRecoveryCount 0 `
+    -ExpectRawPreserved $false `
+    -ExpectRevisePromptHasTestResult $false
+
+Invoke-RecoveryCoverageScenario `
+    -Name "package-scripts-only-allowed" `
+    -PackageMutation "scripts" `
+    -ExpectedStoppedReason "allow_commit_required" `
+    -ExpectedRunCodexCount 1 `
+    -ExpectedCheckCount 1 `
+    -ExpectedReviewCodexCount 1 `
+    -ExpectRawPreserved $false `
+    -ExpectRevisePromptHasTestResult $false
+
+Invoke-RecoveryCoverageScenario `
+    -Name "package-dependencies-blocked" `
+    -PackageMutation "dependencies" `
+    -ExpectedStoppedReason "package_files_changed" `
+    -ExpectedRunCodexCount 1 `
+    -ExpectedCheckCount 1 `
+    -ExpectedReviewCodexCount 1 `
+    -ExpectRawPreserved $false `
+    -ExpectRevisePromptHasTestResult $false
+
+Invoke-RecoveryCoverageScenario `
+    -Name "package-lock-blocked" `
+    -PackageMutation "packageLock" `
+    -ExpectedStoppedReason "package_files_changed" `
+    -ExpectedRunCodexCount 1 `
+    -ExpectedCheckCount 1 `
+    -ExpectedReviewCodexCount 1 `
+    -ExpectRawPreserved $false `
+    -ExpectRevisePromptHasTestResult $false
+
+Invoke-RecoveryCoverageScenario `
+    -Name "same-task-used-test-recovery-does-not-repeat" `
+    -CheckFailuresBeforeSuccess 1 `
+    -SeedRecoveryTaskId "T001" `
+    -SeedRecoveryType "test_failed" `
+    -SeedRecoveryCount 1 `
+    -ExpectedStoppedReason "test_failed" `
+    -ExpectedRunCodexCount 1 `
+    -ExpectedCheckCount 1 `
+    -ExpectedReviewCodexCount 0 `
+    -ExpectedRecoveryType "test_failed" `
+    -ExpectedRecoveryCount 1 `
+    -ExpectRawPreserved $false `
+    -ExpectRevisePromptHasTestResult $false
+
+Invoke-RecoveryCoverageScenario `
+    -Name "new-task-test-recovery-count-is-independent" `
+    -CurrentTaskId "T002" `
+    -CheckFailuresBeforeSuccess 1 `
+    -SeedRecoveryTaskId "T001" `
+    -SeedRecoveryType "test_failed" `
+    -SeedRecoveryCount 1 `
+    -ExpectedStoppedReason "allow_commit_required" `
+    -ExpectedRunCodexCount 2 `
+    -ExpectedCheckCount 2 `
+    -ExpectedReviewCodexCount 1 `
+    -ExpectedRecoveryType "test_failed" `
+    -ExpectedRecoveryCount 1 `
+    -ExpectRawPreserved $false `
+    -ExpectRevisePromptHasTestResult $true
 
 Write-Host ""
 Write-Host (
