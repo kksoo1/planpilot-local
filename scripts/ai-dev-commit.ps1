@@ -150,6 +150,12 @@ function Convert-ToRepoPathspec {
 
     $trimmedPathspec = $Pathspec.Trim()
     $normalizedPathspec = $trimmedPathspec.Replace('\', '/')
+    $pathSegments = @($normalizedPathspec -split "/" | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+
+    if ($pathSegments -contains "..") {
+        Stop-WithError "상위 디렉터리 traversal 경로는 선택할 수 없습니다: $Pathspec"
+    }
+
     $projectRootFullPath = [System.IO.Path]::GetFullPath($projectRoot).TrimEnd('\', '/')
     $projectRootPrefix = $projectRootFullPath + [System.IO.Path]::DirectorySeparatorChar
 
@@ -172,7 +178,49 @@ function Convert-ToRepoPathspec {
         return $relativePath.Replace('\', '/')
     }
 
-    return $normalizedPathspec.TrimStart('/')
+    $relativePathFromFullPath = $fullPath.Substring($projectRootPrefix.Length)
+    return $relativePathFromFullPath.Replace('\', '/').TrimStart('/')
+}
+
+function Test-IsPathInScope {
+    param(
+        [string]$ChangedPath,
+        [string]$ScopePath
+    )
+
+    $normalizedChangedPath = $ChangedPath.Replace('\', '/').TrimStart('/')
+    $normalizedScopePath = $ScopePath.Replace('\', '/').TrimStart('/').TrimEnd('/')
+    $scopePrefix = $normalizedScopePath + "/"
+
+    return (
+        $normalizedChangedPath.Equals($normalizedScopePath, [System.StringComparison]::OrdinalIgnoreCase) -or
+        $normalizedChangedPath.StartsWith($scopePrefix, [System.StringComparison]::OrdinalIgnoreCase)
+    )
+}
+
+function Get-ChangedPathsForScope {
+    param(
+        [string]$ScopePath
+    )
+
+    try {
+        $fileStatus = Invoke-GitCapture -Arguments @("status", "--porcelain", "--untracked-files=all", "--", $ScopePath) -DisplayName "git status --porcelain --untracked-files=all -- $ScopePath"
+    } catch {
+        Stop-WithError $_.Exception.Message
+    }
+
+    if ([string]::IsNullOrWhiteSpace($fileStatus)) {
+        return @()
+    }
+
+    return @(
+        $fileStatus -split "`r?`n" |
+            Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
+            ForEach-Object { Convert-ToChangedPath $_ } |
+            ForEach-Object { Convert-ToRepoPathspec $_ } |
+            Where-Object { Test-IsPathInScope $_ $ScopePath } |
+            Select-Object -Unique
+    )
 }
 
 function Convert-ToFileList {
@@ -279,19 +327,14 @@ if ($null -ne $Files -and $Files.Count -gt 0) {
             Stop-WithError "-Files에는 비어 있지 않은 파일 경로만 지정할 수 있습니다."
         }
 
-        $normalizedFile = Convert-ToRepoPathspec $file
+        $normalizedScope = Convert-ToRepoPathspec $file
+        $changedPathsInScope = @(Get-ChangedPathsForScope $normalizedScope)
 
-        try {
-            $fileStatus = Invoke-GitCapture -Arguments @("status", "--porcelain", "--", $normalizedFile) -DisplayName "git status --porcelain -- $normalizedFile"
-        } catch {
-            Stop-WithError $_.Exception.Message
-        }
-
-        if ([string]::IsNullOrWhiteSpace($fileStatus)) {
+        if ($changedPathsInScope.Count -eq 0) {
             Stop-WithError "선택한 파일에 커밋할 변경사항이 없습니다: $file"
         }
 
-        $selectedFiles += $normalizedFile
+        $selectedFiles += $changedPathsInScope
     }
 
     $selectedFiles = @($selectedFiles | Select-Object -Unique)

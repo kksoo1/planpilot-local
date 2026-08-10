@@ -579,6 +579,176 @@ function Invoke-IsolatedScenario {
     }
 }
 
+function Invoke-CommitScopeScenario {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Name,
+
+        [Parameter(Mandatory = $true)]
+        [string[]]$ScopeArgs,
+
+        [string[]]$ExpectedCommittedFiles = @(),
+
+        [string[]]$ChangedFiles = @(),
+
+        [string[]]$DeletedFiles = @(),
+
+        [string[]]$StagedOutsideFiles = @(),
+
+        [bool]$ExpectSuccess = $true,
+
+        [string]$ExpectedOutputFragment = ""
+    )
+
+    $tmpRoot = Join-Path $env:TEMP (
+        "planpilot-test-" +
+        $Name +
+        "-" +
+        (Get-Date -Format "yyyyMMddHHmmssfff")
+    )
+
+    $scenarioRoot = New-IsolatedScenarioRoot -Name $Name -Root $tmpRoot
+
+    if ($scenarioRoot.Cleanup -eq "none") {
+        Write-TestResult `
+            -Name "$Name isolated repository creation" `
+            -Passed $false `
+            -Detail $scenarioRoot.Error
+
+        return
+    }
+
+    try {
+        Copy-Item `
+            -LiteralPath (
+                Join-Path $repoRoot "scripts\ai-dev-commit.ps1"
+            ) `
+            -Destination (
+                Join-Path $tmpRoot "scripts\ai-dev-commit.ps1"
+            ) `
+            -Force
+
+        & git -C $tmpRoot config user.email "ai-dev-test@example.invalid" | Out-Null
+        & git -C $tmpRoot config user.name "AI Dev Test" | Out-Null
+
+        $utf8WithBom = New-Object System.Text.UTF8Encoding($true)
+
+        foreach ($changedFile in @($ChangedFiles)) {
+            $changedPath = Join-Path $tmpRoot $changedFile
+            $changedDirectory = Split-Path -Parent $changedPath
+
+            if (-not [string]::IsNullOrWhiteSpace($changedDirectory)) {
+                [System.IO.Directory]::CreateDirectory($changedDirectory) | Out-Null
+            }
+
+            [System.IO.File]::WriteAllText(
+                $changedPath,
+                "changed by commit scope test $Name",
+                $utf8WithBom
+            )
+        }
+
+        foreach ($deletedFile in @($DeletedFiles)) {
+            $deletedPath = Join-Path $tmpRoot $deletedFile
+
+            if ([System.IO.File]::Exists($deletedPath)) {
+                [System.IO.File]::Delete($deletedPath)
+            }
+        }
+
+        foreach ($stagedOutsideFile in @($StagedOutsideFiles)) {
+            $stagedPath = Join-Path $tmpRoot $stagedOutsideFile
+            $stagedDirectory = Split-Path -Parent $stagedPath
+
+            if (-not [string]::IsNullOrWhiteSpace($stagedDirectory)) {
+                [System.IO.Directory]::CreateDirectory($stagedDirectory) | Out-Null
+            }
+
+            [System.IO.File]::WriteAllText(
+                $stagedPath,
+                "staged outside commit scope test $Name",
+                $utf8WithBom
+            )
+
+            & git -C $tmpRoot add -- $stagedOutsideFile | Out-Null
+        }
+
+        Push-Location $tmpRoot
+
+        try {
+            $previousErrorActionPreference = $ErrorActionPreference
+            $ErrorActionPreference = "Continue"
+            $output = & powershell `
+                -NoProfile `
+                -ExecutionPolicy Bypass `
+                -File ".\scripts\ai-dev-commit.ps1" `
+                -Message "test: commit scope $Name" `
+                -Files ($ScopeArgs -join ",") `
+                -AllowWithoutPassedCheck `
+                -AllowWithoutPassedReview 2>&1
+            $scenarioExitCode = $LASTEXITCODE
+            $outputText = $output | Out-String
+        }
+        finally {
+            $ErrorActionPreference = $previousErrorActionPreference
+            Pop-Location
+        }
+
+        if ($ExpectSuccess) {
+            $committedFiles = @(
+                & git -C $tmpRoot diff-tree --no-commit-id --name-only -r HEAD |
+                    ForEach-Object { $_.Replace('\', '/') } |
+                    Sort-Object
+            )
+            $expectedFiles = @(
+                $ExpectedCommittedFiles |
+                    ForEach-Object { $_.Replace('\', '/') } |
+                    Sort-Object
+            )
+            $unexpectedCommittedFiles = @($committedFiles | Where-Object { $expectedFiles -notcontains $_ })
+            $missingCommittedFiles = @($expectedFiles | Where-Object { $committedFiles -notcontains $_ })
+
+            Write-TestResult `
+                -Name "$Name commit succeeds" `
+                -Passed ($scenarioExitCode -eq 0) `
+                -Detail "ExitCode=$scenarioExitCode OutputPreview=$((($outputText.Replace("`r", " ").Replace("`n", " ")).Trim()))"
+
+            Write-TestResult `
+                -Name "$Name committed file scope" `
+                -Passed ($unexpectedCommittedFiles.Count -eq 0 -and $missingCommittedFiles.Count -eq 0) `
+                -Detail (
+                    "Expected=" +
+                    ($expectedFiles -join ", ") +
+                    " Actual=" +
+                    ($committedFiles -join ", ") +
+                    " Missing=" +
+                    ($missingCommittedFiles -join ", ") +
+                    " Unexpected=" +
+                    ($unexpectedCommittedFiles -join ", ")
+                )
+        } else {
+            $fragmentMatched = (
+                [string]::IsNullOrWhiteSpace($ExpectedOutputFragment) -or
+                $outputText.Contains($ExpectedOutputFragment)
+            )
+
+            Write-TestResult `
+                -Name "$Name commit blocked" `
+                -Passed ($scenarioExitCode -ne 0 -and $fragmentMatched) `
+                -Detail "ExitCode=$scenarioExitCode ExpectedFragment=$ExpectedOutputFragment OutputPreview=$((($outputText.Replace("`r", " ").Replace("`n", " ")).Trim()))"
+        }
+    }
+    catch {
+        Write-TestResult `
+            -Name "$Name execution" `
+            -Passed $false `
+            -Detail ("Line={0} Message={1}" -f $_.InvocationInfo.ScriptLineNumber, $_.Exception.Message)
+    }
+    finally {
+        Remove-IsolatedScenarioRoot -ScenarioRoot $scenarioRoot
+    }
+}
+
 function Set-JsonFile {
     param(
         [Parameter(Mandatory = $true)]
@@ -1885,6 +2055,77 @@ Invoke-IsolatedScenario `
         "-MaxTasks", "1",
         "-MaxSteps", "40"
     )
+
+Invoke-CommitScopeScenario `
+    -Name "commit-scope-ai-company-directory" `
+    -ScopeArgs @(".ai-company/") `
+    -ChangedFiles @(
+        ".ai-company/customer-requests.json",
+        ".ai-company/reports/adapter-plan.md",
+        ".ai-company/reports/new-scope-report.md"
+    ) `
+    -DeletedFiles @(".ai-company/customer-decisions.json") `
+    -ExpectedCommittedFiles @(
+        ".ai-company/customer-requests.json",
+        ".ai-company/reports/adapter-plan.md",
+        ".ai-company/reports/new-scope-report.md",
+        ".ai-company/customer-decisions.json"
+    )
+
+Invoke-CommitScopeScenario `
+    -Name "commit-scope-reports-directory" `
+    -ScopeArgs @(".ai-company/reports/") `
+    -ChangedFiles @(".ai-company/reports/adapter-plan.md") `
+    -ExpectedCommittedFiles @(".ai-company/reports/adapter-plan.md")
+
+Invoke-CommitScopeScenario `
+    -Name "commit-scope-new-directory" `
+    -ScopeArgs @("ai-software-company/") `
+    -ChangedFiles @(
+        "ai-software-company/notes.md",
+        "ai-software-company/reports/summary.md"
+    ) `
+    -ExpectedCommittedFiles @(
+        "ai-software-company/notes.md",
+        "ai-software-company/reports/summary.md"
+    )
+
+Invoke-CommitScopeScenario `
+    -Name "commit-scope-file-and-directory" `
+    -ScopeArgs @(".ai-company/reports/", "scripts/ai-dev-status.ps1") `
+    -ChangedFiles @(
+        ".ai-company/reports/adapter-plan.md",
+        "scripts/ai-dev-status.ps1"
+    ) `
+    -ExpectedCommittedFiles @(
+        ".ai-company/reports/adapter-plan.md",
+        "scripts/ai-dev-status.ps1"
+    )
+
+Invoke-CommitScopeScenario `
+    -Name "commit-scope-blocks-outside-staged-file" `
+    -ScopeArgs @(".ai-company/") `
+    -ChangedFiles @(".ai-company/customer-requests.json") `
+    -StagedOutsideFiles @("scripts/ai-dev-status.ps1") `
+    -ExpectedCommittedFiles @() `
+    -ExpectSuccess $false `
+    -ExpectedOutputFragment "선택 파일 외에 이미 staged 된 파일"
+
+Invoke-CommitScopeScenario `
+    -Name "commit-scope-blocks-repo-outside-path" `
+    -ScopeArgs @($env:TEMP) `
+    -ChangedFiles @(".ai-company/customer-requests.json") `
+    -ExpectedCommittedFiles @() `
+    -ExpectSuccess $false `
+    -ExpectedOutputFragment "저장소 밖 파일"
+
+Invoke-CommitScopeScenario `
+    -Name "commit-scope-blocks-traversal-path" `
+    -ScopeArgs @("../outside.txt") `
+    -ChangedFiles @(".ai-company/customer-requests.json") `
+    -ExpectedCommittedFiles @() `
+    -ExpectSuccess $false `
+    -ExpectedOutputFragment "traversal"
 
 Invoke-ReviewRequiredFilesRecoveryScenario `
     -Name "review-required-files-partial-diff" `
