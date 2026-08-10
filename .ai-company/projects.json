@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "projects": [],
+  "queue": {
+    "activeProjectId": null,
+    "pendingProjectIds": [],
+    "pausedProjectIds": [],
+    "closedProjectIds": []
+  },
+  "lifecycleValues": [
+    "intake",
+    "ceo_review",
+    "planning",
+    "development",
+    "qa_review",
+    "delivery_preparation",
+    "customer_acceptance",
+    "closed",
+    "paused"
+  ],
+  "updatedAt": "2026-08-10T00:00:00+09:00"
+}

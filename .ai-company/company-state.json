@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "status": "idle",
+  "currentProjectId": null,
+  "currentInternalTaskId": null,
+  "lifecycle": "intake",
+  "deliveryStatus": "not_ready",
+  "roles": {
+    "CEO": {
+      "status": "idle",
+      "blockedReason": null,
+      "currentAssignment": null
+    },
+    "Product": {
+      "status": "idle",
+      "blockedReason": null,
+      "currentAssignment": null
+    },
+    "CTO": {
+      "status": "idle",
+      "blockedReason": null,
+      "currentAssignment": null
+    },
+    "Developer": {
+      "status": "idle",
+      "blockedReason": null,
+      "currentAssignment": null
+    },
+    "QA": {
+      "status": "idle",
+      "blockedReason": null,
+      "currentAssignment": null
+    }
+  },
+  "blocked": {
+    "isBlocked": false,
+    "reason": null,
+    "requiresCustomerDecisionId": null
+  },
+  "aiDevAdapter": {
+    "linkedGoalId": null,
+    "linkedTaskId": null,
+    "lastSyncAt": null,
+    "syncStatus": "not_started"
+  },
+  "updatedAt": "2026-08-10T00:00:00+09:00"
+}

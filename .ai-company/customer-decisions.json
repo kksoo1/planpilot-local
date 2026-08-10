@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "decisions": [],
+  "decisionBoundary": {
+    "requiresCustomerDecision": [
+      "목표 변경",
+      "범위 확대 또는 축소",
+      "우선순위 변경",
+      "제품 동작 선택",
+      "UX 방향 선택",
+      "납품 승인"
+    ],
+    "companyAutonomousDecisions": [
+      "파일 분리",
+      "테스트 명령 선택",
+      "코드 스타일 정렬",
+      "기존 AI Dev 큐 생성",
+      "검증 결과 요약"
+    ]
+  },
+  "updatedAt": "2026-08-10T00:00:00+09:00"
+}

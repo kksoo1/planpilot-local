@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "requests": [],
+  "intakePolicy": {
+    "customerProvides": [
+      "제품 목표",
+      "원하는 사용자 경험",
+      "우선순위",
+      "납품 승인 기준"
+    ],
+    "companyHandles": [
+      "작업 분해",
+      "구현 방식 선택",
+      "검증 순서",
+      "리뷰 대응"
+    ]
+  },
+  "updatedAt": "2026-08-10T00:00:00+09:00"
+}

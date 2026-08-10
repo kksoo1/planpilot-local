@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "storage": {
+    "directory": ".ai-company",
+    "format": "utf-8-json",
+    "eventLogFormat": "utf-8-jsonl",
+    "externalServicesEnabled": false
+  },
+  "runtime": {
+    "shell": "Windows PowerShell 5.1",
+    "statePersistence": "local-files",
+    "usesExistingAiDevSafetyGuards": true
+  },
+  "roles": {
+    "CEO": {
+      "defaultStatus": "idle",
+      "responsibility": "고객 의뢰 해석, 우선순위 판단, 고객 결정 필요 여부 판정, 납품 승인 준비"
+    },
+    "Product": {
+      "defaultStatus": "idle",
+      "responsibility": "제품 수준 요구사항, 수용 기준, 고객-facing 변경 요약"
+    },
+    "CTO": {
+      "defaultStatus": "idle",
+      "responsibility": "기술 범위, 기존 AI Dev 연결 가능성, 안전장치 유지 여부 판단"
+    },
+    "Developer": {
+      "defaultStatus": "idle",
+      "responsibility": "기존 AI Dev task 단위 구현"
+    },
+    "QA": {
+      "defaultStatus": "idle",
+      "responsibility": "build/test/lint/review 결과와 회귀 위험 확인"
+    }
+  },
+  "updatedAt": "2026-08-10T00:00:00+09:00"
+}

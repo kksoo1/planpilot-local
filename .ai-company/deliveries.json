@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "deliveries": [],
+  "deliveryStatusValues": [
+    "not_ready",
+    "qa_pending",
+    "ready_for_customer",
+    "changes_requested",
+    "accepted"
+  ],
+  "qualityGate": {
+    "readyForCustomerRequires": [
+      "구현 완료",
+      "QA 확인 완료",
+      "리뷰 위험 확인",
+      "고객-facing 변경 요약 준비"
+    ],
+    "rawLogsExposedToCustomer": false
+  },
+  "updatedAt": "2026-08-10T00:00:00+09:00"
+}
