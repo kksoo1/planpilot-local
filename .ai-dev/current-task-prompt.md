@@ -43,14 +43,15 @@ AI Dev 자동화의 반복 실패 유형을 분류하고, 안전하게 자동 �
 
 ## Current Task
 
-- Task ID: T002
-- Title: 재개 흐름과 package 변경 판정 검증
-- Description: 최신 review pass와 current 검증 및 구현 커밋이 있는 경우 Codex 재실행을 건너뛰는 흐름과 package.json scripts 단독 변경 허용 조건을 검증한다.
+- Task ID: T003
+- Title: 전체 검증 실행
+- Description: 자동 복구 변경 후 build, test, lint를 실행해 목표 성공 기준을 최종 확인한다.
 - Type: verification
 - Status: in_progress
 - Priority: P1
 - Depends on:
 - T001
+- T002
 
 ## Task Scope
 
@@ -61,14 +62,13 @@ AI Dev 자동화의 반복 실패 유형을 분류하고, 안전하게 자동 �
 
 ## Likely Files
 
-- .ai-dev/ai-dev-loop.ps1
-- .ai-dev/lib/*.ps1
+- 없음
 
 ## Verification
 
-- 구현 커밋이 있는 재개 흐름에서 missing_implementation이 발생하지 않는지 확인한다.
-- package.json scripts 단독 변경만 안전 변경으로 분류되는지 확인한다.
-- dependencies, devDependencies, package-lock.json 변경은 차단되는지 확인한다.
+- npm run build를 통과한다.
+- npm test에서 20개 이상의 테스트가 통과한다.
+- npm run lint를 통과한다.
 
 - 필요한 경우 `npm run build`는 사람이 별도로 실행한다.
 - 이 프롬프트는 자동으로 build, test, lint를 실행하라고 지시하지 않는다.
